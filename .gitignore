@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output — dist/theme.xml IS committed (golden-file diffing depends on it)
+dist/*
+!dist/.gitkeep
+!dist/theme.xml
+
+# Test artifacts
+playwright-report/
+test-results/
+harness-report.json
+harness.log
+playwright.log
+coverage/
+
+# Credentials — Blogger API tokens for the staging seed live here
+.env
+.env.*
+!.env.example
+credentials.json
+token.json
+
+# Editor and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
