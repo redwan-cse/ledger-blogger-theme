@@ -6,11 +6,15 @@ describe('M0 empty theme', () => {
 
   it('emits an upload-oriented V3 document with explicit V2 widget markup', () => {
     const { build, xml } = renderEmptyTheme(sha);
+    const widgetTags = xml.match(/<b:widget\b[^>]*>/g) ?? [];
+
     expect(build).toBe(`0.0.0+${sha}`);
     expect(xml).toContain("b:layoutsVersion='3'");
     expect(xml).toContain("b:defaultwidgetversion='2'");
-    expect(xml.match(/<b:widget\b/g)).toHaveLength(2);
-    expect(xml.match(/version='2'/g)).toHaveLength(2);
+    expect(widgetTags).toHaveLength(2);
+    for (const widgetTag of widgetTags) {
+      expect(widgetTag).toContain("version='2'");
+    }
     expect(xml).toContain("<b:includable id='main'");
     expect(xml).not.toMatch(/<b:widget\b[^>]*\/>/);
   });
