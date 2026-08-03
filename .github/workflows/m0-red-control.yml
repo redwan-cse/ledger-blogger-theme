@@ -25,6 +25,8 @@ jobs:
       HARNESS_TIMEOUT_MS: '30000'
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: chore/m0-scaffold
       - uses: actions/setup-node@v7
         with:
           node-version: '24.18.1'
@@ -50,7 +52,7 @@ jobs:
           harness_status=${PIPESTATUS[0]}
           set -e
           echo "status=$harness_status" >> "$GITHUB_OUTPUT"
-      - name: Persist audit evidence
+      - name: Build audit evidence
         if: always()
         shell: bash
         run: |
@@ -67,11 +69,28 @@ jobs:
             if [[ -f m0-red.log ]]; then cat m0-red.log; fi
             echo '```'
           } > docs/m0-red-evidence.md
+          cat docs/m0-red-evidence.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Persist audit evidence safely
+        if: always()
+        shell: bash
+        run: |
           git config user.name github-actions
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add docs/m0-red-evidence.md
-          git commit -m 'test(m0): record stamped live RED evidence'
-          git push
+          for attempt in 1 2 3; do
+            git fetch origin chore/m0-scaffold
+            git reset --hard origin/chore/m0-scaffold
+            git clean -fd
+            cp "$RUNNER_TEMP/m0-red-evidence.md" docs/m0-red-evidence.md
+            git add docs/m0-red-evidence.md
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'test(m0): record stamped live RED evidence'
+            if git push origin HEAD:chore/m0-scaffold; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          echo 'Failed to persist evidence after 3 synchronized attempts.'
+          exit 1
+        env:
+          EVIDENCE_PATH: ${{ runner.temp }}/m0-red-evidence.md
       - name: Enforce valid RED control
         if: always()
         shell: bash
