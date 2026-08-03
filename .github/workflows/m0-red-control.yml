@@ -1,0 +1,77 @@
+name: Verify M0 RED control
+on:
+  push:
+    branches: [chore/m0-scaffold]
+    paths: [.github/workflows/m0-red-control.yml]
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: blogger-live-reads
+  cancel-in-progress: false
+jobs:
+  red-control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: blogger-live
+    env:
+      STAGING_URL: https://blogs.redwan.work/
+      EXPECTED_THEME_BUILD: 0.0.0+96c0ce5b442f7ad2612b3f27aae5441f17166482
+      BLOGGER_BLOG_ID: '5972841034338492159'
+      HARNESS_PACE_MS: '4000'
+      HARNESS_TIMEOUT_MS: '30000'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Refresh short-lived access token
+        env:
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
+        run: npx tsx tools/google-access-token.ts
+      - name: Verify deployed build stamp
+        run: npm run deploy:check
+      - name: Require the intentional RED result
+        id: red
+        shell: bash
+        run: |
+          set +e
+          npm run harness 2>&1 | tee m0-red.log
+          harness_status=${PIPESTATUS[0]}
+          set -e
+          if [[ "$harness_status" -ne 1 ]]; then
+            echo "Expected harness exit 1 (FAIL), received $harness_status."
+            exit 1
+          fi
+          if ! grep -q '"outcome": "FAIL"' m0-red.log; then
+            echo "Harness exited 1 without the required FAIL summary."
+            exit 1
+          fi
+          if grep -q '\[BLOCKED\]' m0-red.log; then
+            echo "RED control was blocked and is not valid evidence."
+            exit 1
+          fi
+          if grep -q '\[ERROR\]' m0-red.log; then
+            echo "RED control hit infrastructure errors and is not valid evidence."
+            exit 1
+          fi
+          {
+            echo '## M0 stamped empty-theme RED evidence'
+            echo
+            echo '- Commit under test: `${{ github.sha }}`'
+            echo '- Deployed build: `${{ env.EXPECTED_THEME_BUILD }}`'
+            echo '- Harness exit: `1` (`FAIL`, required control result)'
+            echo '- BLOCKED/ERROR assertions: none'
+            echo
+            echo '```text'
+            cat m0-red.log
+            echo '```'
+          } > m0-red-evidence.md
+      - name: Publish evidence to the milestone
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 1 --body-file m0-red-evidence.md
