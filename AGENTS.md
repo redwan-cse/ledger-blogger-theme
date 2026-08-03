@@ -38,12 +38,14 @@ Budget is 200 KB. The predecessor was 44 KB of valid XML that rendered nothing.
 
 - Write `<b:widget>` without `version='2'`
 - Put `b:version` or `class='v2'` on `<html>` (that is the V2 theme format)
+- Ship a theme with no `Header` widget declared
 - Use `&&` or `||` in an expression — use `and` / `or`
 - Use `data:blog.pageType` — use `data:view.*`
 - Use `.size` or `gt`/`lt` — neither exists in V3
 - Interpolate into JSON-LD without `.jsonEscaped`
 - Hardcode a `/search/label/` URL
 - Hide content behind an animation
+- Make an image depend on a JS lazy-loader — use native `loading='lazy'`
 - Add a test whose subject is a file we wrote by hand
 - Add `|| true` or `continue-on-error` to a CI step
 - Commit a fabricated value (reading time, author name, avatar)
@@ -54,6 +56,8 @@ Budget is 200 KB. The predecessor was 44 KB of valid XML that rendered nothing.
 - Give every conditional a branch that renders something
 - Compose URLs with the `path` operator
 - Declare unwanted includables **empty** rather than omitting them
+- Use `b:with` to compute a value once when it is used more than once
+- Cap a loop with `index` server-side rather than trimming in JavaScript
 - Give every new lint rule a self-test that proves it catches a real violation
   **and** does not flag a comment describing one
 - Verify on staging before production, always
@@ -77,8 +81,10 @@ A change is not done until:
 In order:
 
 1. Check [`docs/V3-REFERENCE.md`](docs/V3-REFERENCE.md)
-2. Check the sources listed at the bottom of that file
-3. **Test it on staging.** Not production, not a guess, not a tutorial.
+2. Read Google's own native V3 theme XML in `docs/reference/` — the highest
+   fidelity source available, because Google ships it
+3. Check the other sources at the bottom of the reference
+4. **Test it on staging.** Not production, not a guess, not a tutorial.
 
 Most material online is V1/V2-era, including recent posts and AI prompts that
 claim to be modern. **Treat borrowed guidance as a hypothesis until verified on

@@ -4,8 +4,8 @@
 > including recent tutorials and AI prompts that claim to be modern.
 
 Verified against Google's layouts documentation, the community schema
-(`nikahmadz/Blogger-Template-Documentation`), and production V3 themes currently
-shipping. Sources at the bottom.
+(`nikahmadz/Blogger-Template-Documentation`), Google's own native V3 themes, and
+production V3 themes currently shipping. Sources at the bottom.
 
 ---
 
@@ -85,10 +85,10 @@ Anything not on this list does not exist in V3.
 |---|---|---|
 | `b:section` | `id` (required, alphanumeric), `class`, `name`, `maxwidgets`, `showaddelement`, `preferred` | Layout zone. `preferred='yes'` marks the default drop target in Layout. |
 | `b:section-contents` | `name` | Render a named section's widgets at an arbitrary point. |
-| `b:widget` | `id`, `type`, **`version='2'`**, `locked`, `title`, `visible` | Widget instance. |
+| `b:widget` | `id`, `type`, **`version='2'`**, `locked`, `title`, `visible` | Widget instance. Types used here: `Header`, `Blog`, `Label`, `LinkList`, `HTML`. |
 | `b:widget-settings` / `b:widget-setting` | `name` | Default dashboard settings. |
-| `b:includable` | `id`, `var` | Named reusable block. |
-| `b:include` | `name`, `data`, `cond` | Invoke an includable. |
+| `b:includable` | `id`, `var` | Named reusable block. `var` names the payload passed by `b:include`. |
+| `b:include` | `name`, `data`, `cond` | Invoke an includable, optionally with a payload. |
 | `b:defaultmarkups` / `b:defaultmarkup` | `type` | **V3 only.** Override default markup per widget type, or `type='Common'` for all. |
 
 ### Logic
@@ -97,22 +97,22 @@ Anything not on this list does not exist in V3.
 |---|---|
 | `b:if` / `b:elseif` / `b:else` | Conditionals. |
 | `b:switch` / `b:case` / `b:default` | **V3 only.** Multi-branch dispatch. Replaces verbose `if` chains. |
-| `b:loop` | `values`, `var`, `index`. |
-| `b:with` | **V3 only.** Bind an expression to a local variable. Compute a resized image once, reuse it. |
+| `b:loop` | `values`, `var`, `index`. **`index` caps iteration server-side** — render only the first N of a collection without JavaScript. |
+| `b:with` | **V3 only.** Bind an expression to a local variable. **Compute a resized image once, reuse it many times** instead of re-evaluating `resizeImage` per use. |
 | `b:eval` | **V3 only.** Emit an expression result. |
 
 ### Attributes and output
 
 | Tag | Use |
 |---|---|
-| `b:attr` | `name`, `value` or `expr:value`, optional `cond`. Conditional attribute injection. |
+| `b:attr` | `name`, `value` or `expr:value`, optional `cond`. Conditional attribute injection without fragile inline syntax. |
 | `b:class` | **V3 only.** `name` or `expr:name`, optional `cond`. Safe conditional class binding. |
 | `b:tag` | **V3 only.** Element with a computed tag name. |
 | `b:message` / `b:param` | Localised strings from `data:messages`. |
 | `b:comment` | Template-only comment, stripped from output. Unlike `<!-- -->`, which ships. |
 | `b:skin` | The one CSS block. CDATA required. |
 | `b:template-skin` | Optional layout-editor CSS. **Omitted** — an empty one is dead weight. |
-| `b:variable` | Theme Designer variable declaration. |
+| `b:variable` | Theme Designer variable declaration. Used minimally; see PROJECT-PLAN §11. |
 
 `macro:include`, `macro:includable`, `macro:if` exist but are undocumented and
 unstable. **Banned.**
@@ -254,7 +254,38 @@ No JavaScript required.
 
 ## 7. Reference implementations
 
-### Widget declaration
+### Header widget — required
+
+```xml
+<b:section id='masthead' maxwidgets='1' showaddelement='no'>
+  <b:widget id='Header1' locked='true' title='Blog Header'
+            type='Header' version='2'>
+    <b:includable id='main'>
+      <b:if cond='data:view.isHomepage'>
+        <h1 class='site-title'>
+          <a expr:href='data:blog.homepageUrl'><data:title/></a>
+        </h1>
+      <b:else/>
+        <p class='site-title'>
+          <a expr:href='data:blog.homepageUrl'><data:title/></a>
+        </p>
+      </b:if>
+      <b:if cond='data:description'>
+        <p class='site-tagline'><data:description/></p>
+      </b:if>
+    </b:includable>
+  </b:widget>
+</b:section>
+```
+
+Two reasons this is not optional:
+
+1. **Without a declared `Header` widget the blog title and description are not
+   editable from Layout**, and Blogger may inject its own markup.
+2. The `h1`/`p` switch is how R-A11Y-3 is satisfied. Exactly one `h1` per view,
+   and on a post page that `h1` belongs to the post, not the site.
+
+### Blog widget declaration
 
 ```xml
 <b:section id='main' maxwidgets='1' showaddelement='no' preferred='yes'>
@@ -315,6 +346,23 @@ No JavaScript required.
 `<b:if cond='data:navMessage'>`, so when that was unset it produced a blank page.
 That is what turned a bug into an undiagnosable bug.
 
+### Capped loop with `index` — server-side, no JavaScript
+
+```xml
+<b:includable id='recentList' var='posts'>
+  <ul class='recent'>
+    <b:loop index='i' values='data:posts' var='p'>
+      <b:if cond='data:i &lt; 5'>
+        <li><a expr:href='data:p.url'><data:p.title/></a></li>
+      </b:if>
+    </b:loop>
+  </ul>
+</b:includable>
+```
+
+Used by the 404 and empty-search states to show five recent posts. Note `&lt;`:
+`<` must be escaped inside an attribute.
+
 ### Safe JSON-LD
 
 ```xml
@@ -343,7 +391,7 @@ Not hypothetical: **all 16 live post titles begin with an emoji**, and several
 contain apostrophes and em dashes. Unescaped, they produce invalid JSON and
 Google silently drops the structured data.
 
-### Responsive image with `b:with`
+### Responsive image, computed once with `b:with`
 
 ```xml
 <b:includable id='postThumb' var='post'>
@@ -359,8 +407,14 @@ Google silently drops the structured data.
 </b:includable>
 ```
 
-No `b:else` placeholder. **Zero of the 16 live posts have a featured image**, so
-the layout must be correct with no image rather than reserving a grey box.
+Two deliberate divergences from common practice:
+
+- **No `b:else` placeholder graphic.** Zero of the 16 live posts have a featured
+  image, so a placeholder would appear on every row. The layout is designed to be
+  correct with no image rather than reserving a grey box.
+- **Native `loading='lazy'`, not `data-lazy-src` plus a JS lazy-loader.** A very
+  common Blogger pattern, and it makes image visibility depend on a script. That
+  is F3 in a new costume. Banned in §8.
 
 ### Server-side comment threading
 
@@ -419,6 +473,7 @@ Each is rejected by the contract suite with a message naming the V3 replacement.
 | `<html b:version='2'>` | `b:layoutsVersion='3'` | **V2 theme format. Contradicts V3.** |
 | `class='v2'` on `<html>` | omit | V2 marker |
 | `<b:widget>` with no `version` | `version='2'` | **The predecessor's root cause** |
+| No `Header` widget declared | declare one | Blog title becomes uneditable from Layout; Blogger may inject its own |
 | `data:blog.pageType == "item"` | `data:view.isPost` | Untyped string comparison |
 | `data:blog.pageType in {"index"}` | `data:view.isMultipleItems` | Same |
 | `data:blog.url == data:blog.homepageUrl` | `data:view.isHomepage` | Fragile URL comparison |
@@ -431,6 +486,7 @@ Each is rejected by the contract suite with a message naming the V3 replacement.
 | Empty `<b:template-skin/>` | omit | Dead weight |
 | String `+` for URL paths | the `path` operator | Double-slash and encoding bugs |
 | Method-call syntax in a data tag | `expr:` with a documented function | Data tags are property paths |
+| `data-lazy-src` + JS lazy-loader | native `loading='lazy'` | A JavaScript dependency for content visibility. F3. |
 
 ---
 
@@ -439,6 +495,10 @@ Each is rejected by the contract suite with a message naming the V3 replacement.
 - [Layouts Data Tags](https://support.google.com/blogger/answer/47270) — official `data:` reference
 - [Page elements tags for layouts](https://support.google.com/blogger/answer/46888) — `b:section` and `b:widget` attributes
 - [nikahmadz/Blogger-Template-Documentation](https://github.com/nikahmadz/Blogger-Template-Documentation) — most complete community list of V3 tags, operators, `data:view`, Blog-widget includables
+- **Google's native V3 themes (Contempo, Soho, Emporio, Notable).** Apply one to
+  the staging blog, export the XML, and read it. The highest-fidelity primary
+  source for real V3 usage, because Google ships it. Done in M0; a copy lives in
+  `docs/reference/`.
 - [zkreations/hamlet](https://github.com/zkreations/hamlet) · [canvas-core](https://github.com/zkreations/canvas-core) — production Pug-based V3 build systems
 - [Understanding `b:defaultwidgetversion='2'`](https://stackoverflow.com/questions/50086387/understanding-bdefaultwidgetversion-2-on-blogger-template) — the reported comments interaction
 - [Blogger API v3](https://developers.google.com/blogger/docs/3.0/using) — post and page CRUD for the staging seed; confirms there is **no theme endpoint**
