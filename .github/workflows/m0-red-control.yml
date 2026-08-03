@@ -4,8 +4,7 @@ on:
     branches: [chore/m0-scaffold]
     paths: [.github/workflows/m0-red-control.yml]
 permissions:
-  contents: read
-  issues: write
+  contents: write
 concurrency:
   group: blogger-live-reads
   cancel-in-progress: false
@@ -28,50 +27,55 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Refresh short-lived access token
+        id: refresh
         env:
           GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
           GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
         run: npx tsx tools/google-access-token.ts
       - name: Verify deployed build stamp
-        run: npm run deploy:check
-      - name: Require the intentional RED result
-        id: red
+        id: stamp
+        run: npm run deploy:check 2>&1 | tee m0-stamp.log
+      - name: Run stamped empty-theme harness
+        id: harness
         shell: bash
         run: |
           set +e
           npm run harness 2>&1 | tee m0-red.log
           harness_status=${PIPESTATUS[0]}
           set -e
-          if [[ "$harness_status" -ne 1 ]]; then
-            echo "Expected harness exit 1 (FAIL), received $harness_status."
-            exit 1
-          fi
-          if ! grep -q '"outcome": "FAIL"' m0-red.log; then
-            echo "Harness exited 1 without the required FAIL summary."
-            exit 1
-          fi
-          if grep -q '\[BLOCKED\]' m0-red.log; then
-            echo "RED control was blocked and is not valid evidence."
-            exit 1
-          fi
-          if grep -q '\[ERROR\]' m0-red.log; then
-            echo "RED control hit infrastructure errors and is not valid evidence."
-            exit 1
-          fi
+          echo "status=$harness_status" >> "$GITHUB_OUTPUT"
+      - name: Persist audit evidence
+        if: always()
+        shell: bash
+        run: |
           {
-            echo '## M0 stamped empty-theme RED evidence'
+            echo '# M0 stamped empty-theme RED evidence'
             echo
-            echo '- Commit under test: `${{ github.sha }}`'
-            echo '- Deployed build: `${{ env.EXPECTED_THEME_BUILD }}`'
-            echo '- Harness exit: `1` (`FAIL`, required control result)'
-            echo '- BLOCKED/ERROR assertions: none'
+            echo '- Workflow commit: `${{ github.sha }}`'
+            echo '- Deployed build expected: `${{ env.EXPECTED_THEME_BUILD }}`'
+            echo '- OAuth refresh step: `${{ steps.refresh.outcome }}`'
+            echo '- Build-stamp gate: `${{ steps.stamp.outcome }}`'
+            echo '- Harness step: `${{ steps.harness.outcome }}`'
+            echo '- Harness exit: `${{ steps.harness.outputs.status }}`'
             echo
             echo '```text'
-            cat m0-red.log
+            if [[ -f m0-stamp.log ]]; then cat m0-stamp.log; fi
+            if [[ -f m0-red.log ]]; then cat m0-red.log; fi
             echo '```'
-          } > m0-red-evidence.md
-      - name: Publish evidence to the milestone
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh issue comment 1 --body-file m0-red-evidence.md
+          } > docs/m0-red-evidence.md
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/m0-red-evidence.md
+          git commit -m 'test(m0): record stamped live RED evidence'
+          git push
+      - name: Enforce valid RED control
+        if: always()
+        shell: bash
+        run: |
+          [[ '${{ steps.refresh.outcome }}' == 'success' ]]
+          [[ '${{ steps.stamp.outcome }}' == 'success' ]]
+          [[ '${{ steps.harness.outputs.status }}' == '1' ]]
+          grep -q '"outcome": "FAIL"' m0-red.log
+          if grep -q '\[BLOCKED\]' m0-red.log; then exit 1; fi
+          if grep -q '\[ERROR\]' m0-red.log; then exit 1; fi
