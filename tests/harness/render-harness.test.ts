@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { extractThemeBuild } from '../../tools/render-harness.js';
+import { extractThemeBuild } from '../../tools/harness/build-stamp.js';
 
-describe('render harness entrypoint helpers', () => {
+describe('render harness build-stamp parsing', () => {
   it('reads the deployed build stamp regardless of attribute order', () => {
     expect(extractThemeBuild("<meta content='1.0.0+abc123' name='theme-build'>")).toBe('1.0.0+abc123');
     expect(extractThemeBuild('<meta name="theme-build" content="1.0.0+def456">')).toBe('1.0.0+def456');

@@ -1,3 +1,4 @@
+import { extractThemeBuild } from './harness/build-stamp.js';
 import { HarnessHttpClient } from './harness/http.js';
 import { fatalHarnessSummary, summarizeHarnessRun, type HarnessSummary } from './harness/result.js';
 
@@ -7,18 +8,6 @@ function requiredEnvironment(name: 'STAGING_URL' | 'EXPECTED_THEME_BUILD'): stri
     throw new Error(`${name} is required.`);
   }
   return value;
-}
-
-export function extractThemeBuild(html: string): string | null {
-  const metaTags = html.match(/<meta\b[^>]*>/gi) ?? [];
-  for (const tag of metaTags) {
-    if (!/\bname\s*=\s*(['"])theme-build\1/i.test(tag)) {
-      continue;
-    }
-    const content = tag.match(/\bcontent\s*=\s*(['"])(.*?)\1/i);
-    return content?.[2]?.trim() || null;
-  }
-  return null;
 }
 
 function printSummary(summary: HarnessSummary): void {
