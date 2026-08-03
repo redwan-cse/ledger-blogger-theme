@@ -36,10 +36,9 @@ jobs:
           GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
         run: npx tsx tools/google-access-token.ts
-      - name: Verify deployed build stamp
-        id: stamp
-        run: npm run deploy:check 2>&1 | tee m0-stamp.log
-      - name: Run stamped empty-theme harness
+      - name: Cool down Blogger before the single measured run
+        run: sleep 180
+      - name: Run stamp-gated empty-theme harness
         id: harness
         shell: bash
         run: |
@@ -56,14 +55,12 @@ jobs:
             echo '# M0 stamped empty-theme RED evidence'
             echo
             echo '- Workflow commit: `${{ github.sha }}`'
-            echo '- Deployed build expected: `${{ env.EXPECTED_THEME_BUILD }}`'
+            echo '- Deployed build expected and verified by harness: `${{ env.EXPECTED_THEME_BUILD }}`'
             echo '- OAuth refresh step: `${{ steps.refresh.outcome }}`'
-            echo '- Build-stamp gate: `${{ steps.stamp.outcome }}`'
             echo '- Harness step: `${{ steps.harness.outcome }}`'
             echo '- Harness exit: `${{ steps.harness.outputs.status }}`'
             echo
             echo '```text'
-            if [[ -f m0-stamp.log ]]; then cat m0-stamp.log; fi
             if [[ -f m0-red.log ]]; then cat m0-red.log; fi
             echo '```'
           } > docs/m0-red-evidence.md
@@ -77,7 +74,6 @@ jobs:
         shell: bash
         run: |
           [[ '${{ steps.refresh.outcome }}' == 'success' ]]
-          [[ '${{ steps.stamp.outcome }}' == 'success' ]]
           [[ '${{ steps.harness.outputs.status }}' == '1' ]]
           grep -q '"outcome": "FAIL"' m0-red.log
           if grep -q '\[BLOCKED\]' m0-red.log; then exit 1; fi
