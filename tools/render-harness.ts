@@ -20,7 +20,12 @@ async function main(): Promise<HarnessSummary> {
 
     const discovery = new BloggerDiscoveryClient(client, { ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}), ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {}) });
     const [posts, pages] = await Promise.all([discovery.listAllPosts(required('BLOGGER_BLOG_ID')), discovery.listPages(required('BLOGGER_BLOG_ID'))]);
-    const targets = createViewTargets(stagingUrl.href, posts, pages, { ...(olderUrl(home.body) ? { olderUrl: olderUrl(home.body) } : {}), ...(process.env.LAYOUT_MODE_URL ? { layoutModeUrl: process.env.LAYOUT_MODE_URL } : {}) });
+    const discoveredOlderUrl = olderUrl(home.body);
+    const layoutModeUrl = process.env.LAYOUT_MODE_URL?.trim();
+    const targetOptions: { olderUrl?: string; layoutModeUrl?: string } = {};
+    if (discoveredOlderUrl) targetOptions.olderUrl = discoveredOlderUrl;
+    if (layoutModeUrl) targetOptions.layoutModeUrl = layoutModeUrl;
+    const targets = createViewTargets(stagingUrl.href, posts, pages, targetOptions);
     const assertions: HarnessAssertion[] = [];
     for (const target of targets) {
       if (!target.url) { assertions.push(assessView(target, 0, '')); continue; }
