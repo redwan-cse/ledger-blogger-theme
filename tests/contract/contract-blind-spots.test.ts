@@ -11,7 +11,7 @@ describe('contract audit regression cases', () => {
     const mutations = [
       xml.slice(0, xml.indexOf('>') + 5),
       xml.replace('id="main"', 'id="<main"'),
-      xml.replace('</main>', '</main>'),
+      xml.replace('</main>', `${String.fromCodePoint(0)}</main>`),
       xml.replace('</main>', ']]></main>'),
       xml.replace('<!DOCTYPE html>', '<?xml version="1.0"?><!DOCTYPE html>')
     ];
