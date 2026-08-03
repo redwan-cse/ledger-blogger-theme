@@ -1,11 +1,16 @@
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import pug from 'pug';
 import { compileString } from 'sass';
 import { transform } from 'esbuild';
 
+interface PugRenderer {
+  renderFile(filename: string, options: Record<string, unknown>): string;
+}
+
+const pug = createRequire(import.meta.url)('pug') as PugRenderer;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATE_VERSION = '0.0.0';
 
