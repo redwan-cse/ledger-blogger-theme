@@ -1,57 +1,12 @@
 export const WRITE_PACE_MS = 4_000;
 export const REQUIRED_SCOPE = 'https://www.googleapis.com/auth/blogger';
-
 export type SeedFetch = (input: URL | RequestInfo, init?: RequestInit) => Promise<Response>;
 export type SeedSleep = (milliseconds: number) => Promise<void>;
-
 interface GoogleError { error?: { code?: unknown; message?: unknown; errors?: Array<{ reason?: unknown }> } }
-
-export class BloggerApiError extends Error {
-  constructor(readonly status: number, readonly reason: string, readonly retryAfterMs: number | null) {
-    super(`Blogger API returned HTTP ${status} (${reason}).`);
-  }
-}
-
-export function parseRetryAfter(value: string | null): number | null {
-  if (!value) return null;
-  const seconds = Number(value);
-  if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds * 1000);
-  const date = Date.parse(value);
-  return Number.isNaN(date) ? null : Math.max(0, date - Date.now());
-}
-
-export async function safeGoogleError(response: Response): Promise<BloggerApiError> {
-  let reason = response.statusText || 'unknown';
-  try {
-    const payload = await response.clone().json() as GoogleError;
-    const apiReason = payload.error?.errors?.find((item) => typeof item.reason === 'string')?.reason;
-    if (typeof apiReason === 'string') reason = apiReason;
-    else if (typeof payload.error?.message === 'string') reason = payload.error.message.slice(0, 160);
-  } catch { /* response was not JSON */ }
-  return new BloggerApiError(response.status, reason, parseRetryAfter(response.headers.get('retry-after')));
-}
-
-export class PacedBloggerClient {
-  #nextRequestAt = 0;
-  constructor(readonly accessToken: string, readonly fetcher: SeedFetch = fetch, readonly sleep: SeedSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), readonly now: () => number = Date.now) {}
-
-  async request(url: string, init: RequestInit = {}): Promise<Response> {
-    const waitMs = Math.max(0, this.#nextRequestAt - this.now());
-    if (waitMs > 0) await this.sleep(waitMs);
-    this.#nextRequestAt = this.now() + WRITE_PACE_MS;
-    const headers = new Headers(init.headers);
-    headers.set('authorization', `Bearer ${this.accessToken}`);
-    if (init.body) headers.set('content-type', 'application/json');
-    const response = await this.fetcher(url, { ...init, headers, signal: AbortSignal.timeout(30_000) });
-    if (!response.ok) throw await safeGoogleError(response);
-    return response;
-  }
-}
-
+export class BloggerApiError extends Error { constructor(readonly status: number, readonly reason: string, readonly retryAfterMs: number | null) { super(`Blogger API returned HTTP ${status} (${reason}).`); } }
+export function parseRetryAfter(value: string | null): number | null { if (!value) return null; const seconds = Number(value); if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds * 1000); const date = Date.parse(value); return Number.isNaN(date) ? null : Math.max(0, date - Date.now()); }
+export async function safeGoogleError(response: Response): Promise<BloggerApiError> { let reason = response.statusText || 'unknown'; try { const payload = await response.clone().json() as GoogleError; const apiReason = payload.error?.errors?.find((item) => typeof item.reason === 'string')?.reason; if (typeof apiReason === 'string') reason = apiReason; else if (typeof payload.error?.message === 'string') reason = payload.error.message.slice(0, 160); } catch { /* not JSON */ } return new BloggerApiError(response.status, reason, parseRetryAfter(response.headers.get('retry-after'))); }
+export class PacedBloggerClient { #nextRequestAt = 0; constructor(readonly accessToken: string, readonly fetcher: SeedFetch = fetch, readonly sleep: SeedSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), readonly now: () => number = Date.now) {} async request(url: string, init: RequestInit = {}): Promise<Response> { const waitMs = Math.max(0, this.#nextRequestAt - this.now()); if (waitMs > 0) await this.sleep(waitMs); this.#nextRequestAt = this.now() + WRITE_PACE_MS; const headers = new Headers(init.headers); headers.set('authorization', `Bearer ${this.accessToken}`); if (init.body) headers.set('content-type', 'application/json'); const response = await this.fetcher(url, { ...init, headers, signal: AbortSignal.timeout(30_000) }); if (!response.ok) throw await safeGoogleError(response); return response; } }
 export interface SeedResource { id: string; title: string }
-export interface SeedPlan { expected: number; existing: number; create: number; update: number }
-export function createSeedPlan(expectedTitles: readonly string[], existing: readonly SeedResource[]): SeedPlan {
-  const existingTitles = new Set(existing.map((item) => item.title));
-  const update = expectedTitles.filter((title) => existingTitles.has(title)).length;
-  return { expected: expectedTitles.length, existing: update, create: expectedTitles.length - update, update };
-}
+export interface SeedPlan { expected: number; existing: number; create: number; skip: number }
+export function createSeedPlan(expectedTitles: readonly string[], existing: readonly SeedResource[]): SeedPlan { const existingTitles = new Set(existing.map((item) => item.title)); const skip = expectedTitles.filter((title) => existingTitles.has(title)).length; return { expected: expectedTitles.length, existing: skip, create: expectedTitles.length - skip, skip }; }
