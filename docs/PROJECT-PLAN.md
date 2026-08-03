@@ -8,11 +8,17 @@
 | **Staging blog** | `staging-ledger-theme.blogspot.com` (created in M0) |
 | **Brand parent** | [redwan.work](https://redwan.work) — Fast Cyber Defense |
 | **Estimate** | ~10 working days, 8 milestones |
+| **Revision** | 2 |
 
 **Companion documents.** The platform contract lives in
 [`V3-REFERENCE.md`](V3-REFERENCE.md) and is not repeated here. The failure
 analysis driving these requirements lives in [`POSTMORTEM.md`](POSTMORTEM.md).
 References below to F1–F5 point at that document.
+
+> **Revision 2** folds in a reviewed third-party Layouts V3 checklist. The
+> `Header` widget was a real gap and is now a required zone. `b:loop` index
+> capping, `b:with` compute-once, and Google's native V3 themes as a primary
+> source were also adopted. What was rejected, and why, is in §11.
 
 ---
 
@@ -123,6 +129,12 @@ grids flatten editorial judgement and are the clearest tell of generated design.
 A list reads faster than a grid, scales to any post count, has **no image
 dependency** (correct: zero of 16 posts have one), and looks deliberate.
 
+**Post formats are deliberately not implemented.** `b:switch` on a post's labels
+can route Video / Audio / Gallery layouts, and it is a legitimate V3 technique.
+Out of scope here because this is a text-first security blog: 16 long-form posts,
+zero media posts. Building format routing for content that does not exist is
+scope creep with extra steps. Revisit if media posts ever appear.
+
 **Spacing.** Base 4px, rhythm deliberately uneven: `4, 8, 12, 16, 24, 32, 48, 72,
 112`. Section gaps large (72–112), intra-component tight (8–12).
 
@@ -158,7 +170,7 @@ Every row is a requirement. F2 is why this table exists.
 | Label, zero posts | "Nothing filed under *label* yet." + all-topics link |
 | Archive, zero posts | Range message + "no posts" + home link |
 | 404 | "That page doesn't exist." + search + 5 recent |
-| Post, no featured image | No image slot. No reserved space. |
+| Post, no featured image | No image slot. No reserved space, no placeholder graphic. |
 | Post, no labels | Topic row omitted entirely |
 | Post, zero comments | "No comments yet." + form |
 | Comments disabled | Section omitted entirely |
@@ -207,7 +219,26 @@ decorative SVGs `aria-hidden='true'`.
 | CI | GitHub Actions | |
 | Deploy | Manual upload, build-stamp gated | Blogger API v3 has no theme endpoint (OD-1) |
 
-### 3.2 Layout
+### 3.2 Layout zones
+
+Seven `b:section` zones, all editable from Blogger → Layout.
+
+| Zone | `id` | Widget | Max | Purpose |
+|---|---|---|---|---|
+| Masthead | `masthead` | `Header` | 1 | Site title and tagline. **Locked.** |
+| Nav | `navlinks` | `LinkList` | 1 | Menu items |
+| Intro | `intro` | `HTML` | 1 | Editorial standfirst under the title |
+| Topics | `topics` | `Label` | 1 | Topic pills, derived from real labels |
+| Posts | `main` | `Blog` | 1 | The render path. **Locked**, `preferred='yes'`. |
+| CTA | `cta` | `HTML` | 1 | Closing call to action |
+| Footer | `footer` | `HTML` | 3 | Attribution, social, extras |
+
+**The masthead zone is not optional.** Without a declared `Header` widget the
+blog title and description are not editable from Layout, and Blogger may inject
+its own markup. It also carries the `h1`/`p` switch that makes R-A11Y-3
+satisfiable. See V3-REFERENCE §7.
+
+### 3.3 File layout
 
 ```
 ledger-blogger-theme/
@@ -225,13 +256,14 @@ ledger-blogger-theme/
 │   │   ├── blog-archive.pug
 │   │   └── label.pug
 │   ├── widgets/
+│   │   ├── header.pug            # Header widget: site title + tagline
 │   │   ├── blog.pug              # THE critical file
 │   │   ├── label.pug
 │   │   ├── linklist.pug
 │   │   └── html.pug
 │   ├── partials/
 │   │   ├── masthead.pug  footer.pug
-│   │   ├── pager.pug  empty-state.pug
+│   │   ├── pager.pug  empty-state.pug  recent-list.pug
 │   │   └── head-meta.pug  head-schema.pug
 │   ├── styles/
 │   │   ├── tokens.scss           # OKLCH ramp, type scale, spacing
@@ -256,9 +288,12 @@ ledger-blogger-theme/
 │   └── seed-staging.ts           # Blogger API v3 post/page CRUD
 ├── dist/theme.xml
 └── docs/
+    ├── PROJECT-PLAN.md  V3-REFERENCE.md  POSTMORTEM.md
+    ├── HARNESS.md  RUNBOOK.md
+    └── reference/                # exported Google native V3 theme (M0)
 ```
 
-### 3.3 Scripts
+### 3.4 Scripts
 
 | Command | Does | Network |
 |---|---|---|
@@ -273,7 +308,7 @@ ledger-blogger-theme/
 | `npm run seed:staging` | Create fixture content via Blogger API | **yes** |
 | `npm run lint` | stylelint + eslint | no |
 
-### 3.4 The staging blog
+### 3.5 The staging blog
 
 **A second, disposable Blogger blog is a hard requirement, not a convenience.**
 
@@ -303,6 +338,10 @@ supports post and page CRUD even though it cannot upload themes):
 This single artefact converts roughly a dozen untestable requirements into
 testable ones.
 
+The staging blog has a second job: **it is where Google's native V3 themes get
+read.** Apply Contempo, export the XML, commit it to `docs/reference/`. It is the
+highest-fidelity source for real V3 usage available, because Google ships it.
+
 ---
 
 ## 4. Requirements
@@ -318,10 +357,11 @@ testable ones.
 - AC3 `[C]` `<html>` does **not** carry `b:version` or `class='v2'`
 - AC4 `[C]` Exactly one `<b:skin>`, containing CDATA
 - AC5 `[C]` At least one `<b:section>` with a unique alphanumeric `id`
-- AC6 `[C]` No banned V2-era construct (V3-REFERENCE §8)
-- AC7 `[C]` No `macro:*` tag
-- AC8 `[C]` Well-formed XML, no undeclared entity outside CDATA
-- AC9 `[R]` Renders in Layout mode without error
+- AC6 `[C]` A `Header` widget is declared (else the blog title is uneditable from Layout)
+- AC7 `[C]` No banned V2-era construct (V3-REFERENCE §8)
+- AC8 `[C]` No `macro:*` tag
+- AC9 `[C]` Well-formed XML, no undeclared entity outside CDATA
+- AC10 `[R]` Renders in Layout mode without error
 
 **R-V3-2 · Only documented V3 expressions**
 
@@ -370,7 +410,7 @@ testable ones.
 - AC1 `[R]` All ten views render `<main>` with ≥ 40 characters of visible text
 - AC2 `[R]` Empty label renders `.empty-state` naming the label
 - AC3 `[R]` Empty search renders `.empty-state` quoting the query + pre-filled input
-- AC4 `[R]` 404 returns HTTP 404 **and** renders `.empty-state` + recent posts
+- AC4 `[R]` 404 returns HTTP 404 **and** renders `.empty-state` + 5 recent posts
 - AC5 `[C]` `status-message` has no branch producing empty output
 - AC6 `[R]` Copy differs between no-results, no-label, no-posts
 
@@ -380,6 +420,7 @@ testable ones.
 - AC2 `[C]` No compiled CSS sets `opacity: 0` / `visibility: hidden` / `display: none` on `.post-*` or `.article-*` outside `:hover`, `:focus`, `[hidden]`
 - AC3 `[R]` Walking each post's ancestors finds no computed `opacity: 0`
 - AC4 `[R]` All content assertions pass under `prefers-reduced-motion: reduce`
+- AC5 `[C]` No image relies on a JS lazy-loader; `loading` is a native attribute
 
 ### R-NAV — Navigation and taxonomy
 
@@ -392,11 +433,12 @@ testable ones.
 
 **R-NAV-2 · Every content zone is editable from Layout**
 
-- AC1 `[C]` A `b:section` exists for: `navlinks`, `intro`, `topics`, `main`, `cta`, `footer`
+- AC1 `[C]` A `b:section` exists for all seven zones in §3.2
 - AC2 `[M]` Each visible and editable in Blogger Layout
 - AC3 `[R]` A section with no widget renders nothing, no empty container
 - AC4 `[C]` Every overridden includable has a fallback branch
-- AC5 `[C]` README zone table parsed and diffed against `dist/theme.xml`
+- AC5 `[C]` `b:defaultmarkup` declared for `Common`, `PopularPosts`, `FeaturedPost`, `ContactForm`, `BlogArchive`, `Label`
+- AC6 `[C]` README zone table parsed and diffed against `dist/theme.xml`
 
 ### R-SEO
 
@@ -455,7 +497,8 @@ testable ones.
 
 - AC1 `[R]` Exactly one `h1` per view
 - AC2 `[R]` No level skipped
-- AC3 `[R]` Index: blog title `h1`, post titles `h2`. Post: post title `h1`.
+- AC3 `[R]` Index: site title `h1`, post titles `h2`. Post: post title `h1`, site
+  title demoted to `p` by the Header widget.
 
 ### R-BUILD
 
@@ -504,7 +547,7 @@ testable ones.
 
 | ID | Rule |
 |---|---|
-| BR-1 | The Blog widget is `locked='true'`. Removing it from Layout would blank the site. |
+| BR-1 | The `Blog` and `Header` widgets are `locked='true'`. Removing either from Layout would break the site. |
 | BR-2 | Author identity always from `data:post.author.*`. Never hardcoded. |
 | BR-3 | Displayed metrics derived from content. A fabricated reading time is a build failure. |
 | BR-4 | Taxonomy is content, not theme. The theme may only render labels that exist. |
@@ -624,11 +667,11 @@ branch, linear history.
 
 | M | Name | Exit criteria | Est. |
 |---|---|---|---|
-| **M0** | Repo + staging + harness | Repo scaffolded. Staging blog created and seeded from `fixtures/`. Harness covers ten views, four-state results, build-stamp gate. **Runs red against an empty theme for the right reasons.** | 1 d |
+| **M0** | Repo + staging + harness | Repo scaffolded. Staging blog created and seeded from `fixtures/`. A Google native V3 theme exported into `docs/reference/`. Harness covers ten views, four-state results, build-stamp gate. **Runs red against an empty theme for the right reasons.** | 1 d |
 | **M1** | Generation pipeline | Pug → V3 XML, SCSS → skin, TS → inline. Contract suite with all R-V3 and R-BUILD rules plus their self-tests. Golden snapshot. `generate` job green. | 1.5 d |
-| **M2** | Render path | Blog widget against the full includable contract. All ten views render. R-RENDER and R-EMPTY pass **with JS disabled**. Comment rendering verified (RK-2). Every `continue-on-error` removed. | 2 d |
+| **M2** | Render path | Header + Blog widgets against the full includable contract. All ten views render. R-RENDER and R-EMPTY pass **with JS disabled**. Comment rendering verified (RK-2). Every `continue-on-error` removed. | 2 d |
 | **M3** | Design system | Tokens, type scale, layout. Lead + list index, article layout, all §2.6 states. Visual baselines captured. | 2 d |
-| **M4** | Config zones | Six `b:section` zones live and editable. `defaultmarkup` for all six widget types. R-NAV passes. Labels applied to production posts. | 1 d |
+| **M4** | Config zones | All seven zones in §3.2 live and editable. `defaultmarkup` for six widget types. R-NAV passes. Labels applied to production posts. | 1 d |
 | **M5** | SEO + a11y | R-SEO and R-A11Y pass. axe clean, Rich Results clean. | 1 d |
 | **M6** | Performance | R-PERF passes. Budgets enforced in CI. | 1 d |
 | **M7** | Cutover | Back up current theme, tag `v1.0.0`, deploy, verify, canary armed, runbook written. | 0.5 d |
@@ -657,16 +700,40 @@ exists before the thing it measures.
 ### Borrowed-guidance hygiene (BR-8)
 
 Most circulating Blogger material is V1/V2-era, including recent posts and AI
-prompts that claim to be modern. A worked example, from a "production-grade
-Layouts V3 / Widget V2" checklist reviewed during planning:
+prompts that claim to be modern. **Treat borrowed guidance as a hypothesis until
+verified on staging.**
+
+Worked example, from a "production-grade Layouts V3 / Widget V2" checklist
+reviewed during planning. It was roughly two-thirds correct, which is the
+dangerous ratio: right often enough to be trusted, wrong in a way that silently
+destroys the theme.
+
+#### Adopted
+
+| Item | Where it landed |
+|---|---|
+| `preferred` on `b:section` | V3-REFERENCE §3; `main` uses it |
+| **`Header` as an essential widget type** | V3-REFERENCE §7, §3.2 here, R-V3-1 AC6, R-A11Y-3 AC3, BR-1. **A real gap.** Without it the blog title is uneditable from Layout and Blogger may inject its own markup. |
+| `b:loop` `index` to cap iteration without JS | V3-REFERENCE §3 and §7; used by the 404 and empty-search states |
+| `b:with` to compute a resized image once and reuse it | V3-REFERENCE §3 and §7 |
+| `b:defaultmarkup` for `PopularPosts`, `FeaturedPost`, `ContactForm`, `Label`, plus `BlogArchive` | R-NAV-2 AC5. Reframed as **defensive**, not decorative: a dashboard-added gadget would otherwise inject unstyled HTML. |
+| `b:attr` / `b:class` over fragile inline conditionals | V3-REFERENCE §3 |
+| Inspecting Google's native V3 themes (Contempo, Soho, Emporio) | §3.5, M0, V3-REFERENCE §9. Genuinely the best primary source available. |
+| `visible` on `b:widget` | V3-REFERENCE §3 |
+
+#### Rejected
 
 | Claim | Verdict |
 |---|---|
-| `b:switch`, `b:case`, `b:with`, `b:attr`, `b:class`, `b:defaultmarkup`, `data:view` nodes, `preferred` on `b:section` | **Correct.** `preferred` and the extra `defaultmarkup` types were adopted. |
-| "Strictly match `<html> b:version='2' class='v2'` with `<b:widget version='2'>`" | **Wrong, and dangerous.** `b:version='2'` is the V2 theme format; it cannot pair with Layouts V3. Following it reproduces F1 exactly. Now contract-banned. |
-| Research anchor `https://google.com2` | **Not a URL.** An agent told to search it will hallucinate around it. |
-| "5,000 to 10,000 lines of clean XML" | **Anti-goal.** The predecessor was 44 KB of valid XML that rendered nothing. Budget is 200 KB. |
-| "Expand `<b:skin>` with extensive Variable declarations… naturally adds thousands of lines of high-value structural code" | **Padding dressed as value.** Written for marketplace resale, an explicit non-goal. Every Theme Designer variable is also a surface for a user to break the contrast ratios in §2.2. |
+| "Strictly match `<html> b:version='2' class='v2'` with `<b:widget version='2'>`" | **Wrong, and dangerous.** `b:version='2'` is the V2 theme format; it cannot pair with Layouts V3. Following it reproduces F1 exactly: valid XML, no error, every custom includable silently discarded. Now contract-banned. |
+| `https://google.com` given as "Google's Official Help Document System for Theme Customization" | **Not a documentation URL.** An agent told to research it will improvise. Real sources are in V3-REFERENCE §9. |
+| "Roughly 5,000 to 10,000 lines of highly clean XML" | **Anti-goal.** The predecessor was 44 KB of valid XML that rendered nothing. Budget is 200 KB. Line count measures nothing. |
+| "Expand `<b:skin>` with extensive `<Group>` and `<Variable>` declarations… naturally adds thousands of lines of high-value structural code" | **Padding dressed as value.** Written for marketplace resale, an explicit non-goal (§1). Every Theme Designer variable is also a surface for a user to break the contrast ratios in §2.2. |
+| `b:attr` injecting `data-lazy-src` for a JS lazy-loader | **Rejected.** Native `loading='lazy'` needs no JavaScript. Making image visibility depend on a script is F3 in a new costume. Now banned. |
+| `b:else` fallback "vector placeholder" for a missing featured image | **Rejected.** Zero of 16 posts have a featured image, so a placeholder would appear on every row. The layout is designed to be correct with no image at all. |
+| `b:switch` routing Video / Audio / Gallery post formats | **Out of scope, not wrong.** A legitimate V3 technique with no content to serve here. See §2.4. |
+| `data:view.isPage` to "change sidebar configuration" | **N/A.** No sidebar in this design. |
+| "Start with the `b:skin` variables or the Blog1 grid loop" | **Neither.** That ordering is what produced a blank homepage. M0 comes first, always. |
 
 The useful parts were adopted; the rest is banned by test. That is the process
 for every future borrowed source.

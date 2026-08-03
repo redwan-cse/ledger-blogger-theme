@@ -46,13 +46,30 @@ Three version numbers, and they are not the same thing. Confusing them is what b
 
 ---
 
+## Layout zones
+
+Seven `b:section` zones, all editable from Blogger → Layout. This table is
+verified against `dist/theme.xml` by a test, so it cannot drift.
+
+| Zone | `id` | Widget | Max | Purpose |
+|---|---|---|---|---|
+| Masthead | `masthead` | `Header` | 1 | Site title and tagline. Locked. |
+| Nav | `navlinks` | `LinkList` | 1 | Menu items |
+| Intro | `intro` | `HTML` | 1 | Editorial standfirst |
+| Topics | `topics` | `Label` | 1 | Topic pills from real labels |
+| Posts | `main` | `Blog` | 1 | The render path. Locked. |
+| CTA | `cta` | `HTML` | 1 | Closing call to action |
+| Footer | `footer` | `HTML` | 3 | Attribution, social |
+
+---
+
 ## Milestones
 
 | M | Name | Days |
 |---|---|---|
 | M0 | Repo + staging blog + render harness | 1 |
 | M1 | Generation pipeline (Pug → V3 XML) | 1.5 |
-| M2 | Render path (the Blog widget) | 2 |
+| M2 | Render path (Header + Blog widgets) | 2 |
 | M3 | Design system | 2 |
 | M4 | Configurable zones | 1 |
 | M5 | SEO + accessibility | 1 |
