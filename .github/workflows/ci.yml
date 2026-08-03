@@ -5,12 +5,12 @@ on:
   pull_request:
 permissions:
   contents: read
-  issues: write
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   harness-contract:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     steps:
@@ -22,7 +22,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
-      - name: Enforce offline contract budget (NFR-2)
+      - name: Enforce fetch-denied contract budget (NFR-2)
         shell: bash
         run: |
           start=$(date +%s%3N)
@@ -31,6 +31,7 @@ jobs:
           echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
           test "$elapsed" -lt 5000
   generate:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     steps:
