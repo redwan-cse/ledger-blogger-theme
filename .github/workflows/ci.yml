@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main, chore/m0-scaffold]
+    branches: [main, feat/m1-generation-pipeline]
   pull_request:
 permissions:
   contents: read
@@ -21,3 +21,22 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run generate
+      - name: Enforce theme size budget
+        run: test "$(wc -c < dist/theme.xml)" -le 200000
+      - uses: actions/upload-artifact@v7
+        with:
+          name: theme-${{ github.sha }}
+          path: dist/theme.xml
+          if-no-files-found: error
+          retention-days: 7
