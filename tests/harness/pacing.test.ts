@@ -8,16 +8,15 @@ describe('serialized browser navigation pacing', () => {
 
   it('serializes concurrent navigation starts at least four seconds apart', async () => {
     let now = 5_000;
-    const starts: number[] = [];
     const sleep = vi.fn(async (milliseconds: number) => {
       now += milliseconds;
     });
     const pacer = new SerializedPacer(4_000, sleep, () => now);
 
-    await Promise.all([
-      pacer.waitForTurn().then(() => starts.push(now)),
-      pacer.waitForTurn().then(() => starts.push(now)),
-      pacer.waitForTurn().then(() => starts.push(now))
+    const starts = await Promise.all([
+      pacer.waitForTurn(),
+      pacer.waitForTurn(),
+      pacer.waitForTurn()
     ]);
 
     expect(starts).toEqual([5_000, 9_000, 13_000]);

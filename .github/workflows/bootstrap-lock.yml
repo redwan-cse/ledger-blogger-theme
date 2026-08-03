@@ -23,7 +23,12 @@ jobs:
           ref: chore/m0-scaffold
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '24.18.1'
+          cache: npm
+      - name: Confirm runtime
+        run: |
+          node --version
+          npm --version
       - name: Generate lockfile
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Commit generated lockfile for audit

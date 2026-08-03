@@ -22,7 +22,7 @@ export class SerializedPacer {
     this.#now = now;
   }
 
-  async waitForTurn(): Promise<void> {
+  async waitForTurn(): Promise<number> {
     let release!: () => void;
     const previous = this.#queue;
     this.#queue = new Promise<void>((resolve) => {
@@ -35,7 +35,9 @@ export class SerializedPacer {
       if (delay > 0) {
         await this.#sleep(delay);
       }
-      this.#nextStartAt = this.#now() + this.#paceMs;
+      const startedAt = this.#now();
+      this.#nextStartAt = startedAt + this.#paceMs;
+      return startedAt;
     } finally {
       release();
     }
