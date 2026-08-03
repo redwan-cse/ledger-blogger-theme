@@ -8,7 +8,7 @@
   "engines": { "node": ">=24.18.1 <25", "npm": ">=11" },
   "scripts": {
     "generate": "tsx tools/generate.ts",
-    "test:contract": "vitest run tests/contract --setupFiles tests/contract/no-network.ts",
+    "test:contract": "vitest run --config vitest.contract.config.ts",
     "test:golden": "tsx tools/golden-check.ts",
     "contract:check": "tsx tools/contract-check.ts",
     "typecheck": "tsc --noEmit",
