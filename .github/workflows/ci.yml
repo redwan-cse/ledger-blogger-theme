@@ -5,6 +5,7 @@ on:
   pull_request:
 permissions:
   contents: read
+  issues: write
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -19,8 +20,28 @@ jobs:
           node-version: '24.18.1'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run typecheck
-      - run: npm test
+      - name: Run typed contract suite
+        shell: bash
+        run: |
+          set +e
+          npm run typecheck 2>&1 | tee typecheck.log
+          type_status=${PIPESTATUS[0]}
+          npm test 2>&1 | tee tests.log
+          test_status=${PIPESTATUS[0]}
+          set -e
+          if [[ "$type_status" -ne 0 || "$test_status" -ne 0 ]]; then
+            {
+              echo 'M1 contract diagnostic for `${{ github.sha }}`:'
+              echo
+              echo '```text'
+              cat typecheck.log tests.log
+              echo '```'
+            } > diagnostic.md
+            gh issue comment 5 --body-file diagnostic.md
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
   generate:
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
