@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M1 generation pipeline ready for final review.** Pug, SCSS, and TypeScript compile deterministically into a stamped V3 XML artifact. The hardened contract suite, canonical golden snapshot, size budget, and timing gates are green. The current generated theme is only the M1 scaffold; M2 owns the real Blog render path.
+> **Status: M1 generation pipeline complete, pending merge.** Pug, SCSS, and TypeScript compile deterministically into a stamped V3 XML artifact. The hardened contract suite, canonical golden snapshot, watch mode, size budget, and timing gates are green. The generated theme remains an M1 scaffold; M2 owns the real Blog render path.
 
 ## Rules
 
@@ -51,6 +51,7 @@ Never update the golden file merely to make CI green.
 - `src/scripts/`: TypeScript bundled into one inline IIFE.
 - `tools/generate.ts`: deterministic compiler and size gate.
 - `tools/contract-check.ts`: namespace-aware V3 contract validator.
+- `tools/watch.ts`: serialized, coalescing source watcher that survives failed builds.
 - `tests/contract/`: isolated mutation and blind-spot regression suite.
 - `tests/golden/theme.xml`: canonical generated output snapshot.
 
