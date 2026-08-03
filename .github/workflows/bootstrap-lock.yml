@@ -1,10 +1,13 @@
 name: Bootstrap npm lockfile
 
 on:
+  workflow_dispatch:
   push:
     branches: [chore/m0-scaffold]
     paths:
       - package.json
+      - tools/**
+      - tests/**
       - .github/workflows/bootstrap-lock.yml
 
 permissions:
