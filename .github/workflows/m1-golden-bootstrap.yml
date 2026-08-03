@@ -23,10 +23,10 @@ jobs:
           GITHUB_SHA: 0123456789abcdef0123456789abcdef01234567
         run: |
           npm run generate
+          npm run contract:check
           mkdir -p tests/golden
           sed 's/0\.0\.0+0123456789abcdef0123456789abcdef01234567/0.0.0+GOLDEN_SHA_40_CHARS________________/' dist/theme.xml > tests/golden/theme.xml
-          npm run contract:check -- tests/golden/theme.xml
-      - name: Commit reviewed snapshot input
+      - name: Commit snapshot
         run: |
           git config user.name github-actions
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
