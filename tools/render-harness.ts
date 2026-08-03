@@ -38,6 +38,9 @@ async function main(): Promise<HarnessSummary> {
 }
 
 const summary = await main();
-for (const assertion of summary.assertions) console.log(`[${assertion.status}] ${assertion.requirementId} ${assertion.message}`);
+for (const assertion of summary.assertions) {
+  const evidence = assertion.evidence ? ` Evidence: ${assertion.evidence}` : '';
+  console.log(`[${assertion.status}] ${assertion.requirementId} ${assertion.message}${evidence}`);
+}
 console.log(JSON.stringify({ outcome: summary.outcome, counts: summary.counts, reason: summary.reason }, null, 2));
 process.exitCode = summary.exitCode;
