@@ -1,0 +1,28 @@
+{
+  "name": "ledger-blogger-theme",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A Blogger Layouts V3 theme verified against Blogger-rendered HTML.",
+  "type": "module",
+  "engines": {
+    "node": "24.x",
+    "npm": ">=11"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "harness": "tsx tools/render-harness.ts",
+    "harness:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.0",
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "pug": "^3.0.3",
+    "sass": "^1.89.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}
