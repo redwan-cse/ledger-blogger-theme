@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "postCount": 25,
+  "labels": ["Penetration Testing", "Red Teaming", "Digital Forensics", "OSINT", "Linux Hardening", "Cloud Security", "DevOps", "AI Security"],
+  "fixtureClasses": {
+    "pagination": { "postCount": 25 },
+    "escaping": { "title": "🛡️ \"Quotes\" & <angles> — em dash" },
+    "longTitle": { "length": 180 },
+    "noLabels": true,
+    "sixLabels": true,
+    "noFeaturedImage": true,
+    "longForm": { "words": 4000 },
+    "commentsDisabled": true,
+    "threadedComments": { "count": 12, "manualAfterSeed": true },
+    "deletedComment": { "manualAfterSeed": true },
+    "staticPages": { "count": 3 },
+    "emptyLabel": { "name": "Empty Fixture Label", "manualAfterSeed": true }
+  }
+}
