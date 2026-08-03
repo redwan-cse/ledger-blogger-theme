@@ -32,11 +32,12 @@ describe('harness result model', () => {
     expect(summary.counts).toEqual({ PASS: 1, FAIL: 0, BLOCKED: 0, SKIP: 1 });
   });
 
-  it('reports a real render defect as FAIL even when another check is blocked', () => {
+  it('makes any BLOCKED assertion inconclusive even when a defect was also measured', () => {
     const summary = summarizeHarnessRun([assertion('BLOCKED'), assertion('FAIL', 'R-RENDER-1 AC1')]);
 
-    expect(summary.outcome).toBe('FAIL');
-    expect(summary.exitCode).toBe(exitCodes.FAIL);
+    expect(summary.outcome).toBe('BLOCKED');
+    expect(summary.exitCode).toBe(exitCodes.BLOCKED);
+    expect(summary.counts).toEqual({ PASS: 0, FAIL: 1, BLOCKED: 1, SKIP: 0 });
   });
 
   it('reports throttling or a challenge as BLOCKED, never PASS or FAIL', () => {

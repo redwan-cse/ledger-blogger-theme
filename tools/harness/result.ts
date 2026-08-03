@@ -79,10 +79,10 @@ export function summarizeHarnessRun(
   }
 
   let outcome: RunOutcome;
-  if (counts.FAIL > 0) {
-    outcome = 'FAIL';
-  } else if (counts.BLOCKED > 0) {
+  if (counts.BLOCKED > 0) {
     outcome = 'BLOCKED';
+  } else if (counts.FAIL > 0) {
+    outcome = 'FAIL';
   } else if (counts.PASS > 0) {
     outcome = 'PASS';
   } else {
