@@ -63,7 +63,7 @@ describe('harness result model', () => {
     expect(summary.exitCode).toBe(exitCodes.STALE);
     expect(summary.assertions).toEqual([]);
     expect(summary.counts).toEqual({ PASS: 0, FAIL: 0, BLOCKED: 0, SKIP: 0 });
-    expect(summary.reason).toContain('zero assertions' .replace('zero assertions', 'Upload'));
+    expect(summary.reason).toContain('Upload the expected build before running assertions.');
   });
 
   it('treats a missing deployed stamp as STALE', () => {
