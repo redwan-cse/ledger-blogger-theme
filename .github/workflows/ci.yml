@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   harness-contract:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -22,7 +22,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
   generate:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
