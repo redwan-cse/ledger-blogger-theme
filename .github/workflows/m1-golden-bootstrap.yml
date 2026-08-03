@@ -1,0 +1,35 @@
+name: Bootstrap M1 golden snapshot
+on:
+  push:
+    branches: [feat/m1-generation-pipeline]
+    paths: [.github/workflows/m1-golden-bootstrap.yml]
+permissions:
+  contents: write
+jobs:
+  snapshot:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/m1-generation-pipeline
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate canonical snapshot
+        env:
+          GITHUB_SHA: 0123456789abcdef0123456789abcdef01234567
+        run: |
+          npm run generate
+          mkdir -p tests/golden
+          sed 's/0\.0\.0+0123456789abcdef0123456789abcdef01234567/0.0.0+GOLDEN_SHA_40_CHARS________________/' dist/theme.xml > tests/golden/theme.xml
+          npm run contract:check -- tests/golden/theme.xml
+      - name: Commit reviewed snapshot input
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tests/golden/theme.xml
+          git commit -m 'test(m1): commit canonical golden theme snapshot'
+          git push origin HEAD:feat/m1-generation-pipeline
