@@ -103,10 +103,10 @@ export class BloggerDiscoveryClient {
       if (pageToken) {
         url.searchParams.set('pageToken', pageToken);
       }
-      const headers = this.#credentials.accessToken
-        ? { authorization: `Bearer ${this.#credentials.accessToken}` }
-        : undefined;
-      const response = await this.#http.get(url, { headers });
+      const init: RequestInit = this.#credentials.accessToken
+        ? { headers: { authorization: `Bearer ${this.#credentials.accessToken}` } }
+        : {};
+      const response = await this.#http.get(url, init);
       if (response.blocked) {
         throw new Error(response.blockedReason ?? 'Blogger API discovery was blocked.');
       }

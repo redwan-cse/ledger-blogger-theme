@@ -58,15 +58,20 @@ describe('Blogger harness HTTP transport', () => {
     expect(starts).toEqual([20_000, 24_000]);
   });
 
-  it('supplies a finite abort deadline to fetch', async () => {
+  it('aborts a stalled request at the configured deadline', async () => {
     const fetch = vi.fn(async (_input: URL | RequestInfo, init?: RequestInit) => {
-      expect(init?.signal).toBeInstanceOf(AbortSignal);
-      expect(init?.signal?.aborted).toBe(false);
-      return new Response('ok', { status: 200 });
+      const signal = init?.signal;
+      if (!signal) {
+        throw new Error('missing abort signal');
+      }
+      await new Promise<never>((_resolve, reject) => {
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      });
+      throw new Error('unreachable');
     });
-    const client = new HarnessHttpClient({ paceMs: 4_000, timeoutMs: 50, fetch });
-    await client.get('https://staging-ledger-theme.blogspot.com/');
-    expect(fetch).toHaveBeenCalledOnce();
+    const client = new HarnessHttpClient({ paceMs: 4_000, timeoutMs: 5, fetch });
+
+    await expect(client.get('https://staging-ledger-theme.blogspot.com/')).rejects.toMatchObject({ name: 'TimeoutError' });
   });
 
   it('honors Retry-After before the next request without retrying', async () => {
