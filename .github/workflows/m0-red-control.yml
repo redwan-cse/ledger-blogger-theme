@@ -2,7 +2,10 @@ name: Verify M0 RED control
 on:
   push:
     branches: [chore/m0-scaffold]
-    paths: [.github/workflows/m0-red-control.yml]
+    paths:
+      - .github/workflows/m0-red-control.yml
+      - tools/harness/blogger-api.ts
+      - tools/render-harness.ts
 permissions:
   contents: write
 concurrency:

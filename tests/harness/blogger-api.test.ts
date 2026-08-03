@@ -10,7 +10,7 @@ describe('Blogger API discovery', () => {
     expect(() => new BloggerDiscoveryClient(http, {})).toThrow('API key or OAuth');
   });
 
-  it('exhausts post pagination and requests partial fields', async () => {
+  it('exhausts live-post pagination and requests partial fields', async () => {
     let now = 0;
     const requestedUrls: URL[] = [];
     const responses = [
@@ -26,7 +26,17 @@ describe('Blogger API discovery', () => {
     const client = new BloggerDiscoveryClient(new HarnessHttpClient({ paceMs: 4000, fetch: fetcher, sleep: async (ms) => { now += ms; }, now: () => now }), { apiKey: 'key' });
 
     expect((await client.listAllPosts('123')).map((item) => item.id)).toEqual(['one', 'two']);
+    expect(requestedUrls[0]?.searchParams.get('status')).toBe('live');
     expect(requestedUrls[1]?.searchParams.get('pageToken')).toBe('next');
+  });
+
+  it('accepts content omitted by Blogger for an empty live post', async () => {
+    const emptyPost = post('empty');
+    const { content: _content, ...withoutContent } = emptyPost;
+    const fetcher: FetchLike = async () => new Response(JSON.stringify({ items: [withoutContent] }), { status: 200 });
+    const client = new BloggerDiscoveryClient(new HarnessHttpClient({ paceMs: 4000, fetch: fetcher }), { accessToken: 'token' });
+
+    expect((await client.listAllPosts('123'))[0]?.content).toBe('');
   });
 
   it('discovers static pages through pages.list', async () => {

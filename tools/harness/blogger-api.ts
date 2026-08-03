@@ -14,6 +14,12 @@ function requiredString(value: unknown, field: string): string {
   return value;
 }
 
+function optionalString(value: unknown, field: string): string {
+  if (value === undefined) return '';
+  if (typeof value !== 'string') throw new Error(`Blogger API response has an invalid ${field}.`);
+  return value;
+}
+
 function record(value: unknown, name: string): Record<string, unknown> {
   if (typeof value !== 'object' || value === null) throw new Error(`Blogger API returned an invalid ${name}.`);
   return value as Record<string, unknown>;
@@ -29,7 +35,7 @@ function parsePostsPage(body: string): PostsPage {
     const post = record(item, `post ${index}`);
     const labels = post.labels ?? [];
     if (!Array.isArray(labels) || !labels.every((label) => typeof label === 'string')) throw new Error(`Blogger API post ${index} has invalid labels.`);
-    return { id: requiredString(post.id, `items[${index}].id`), url: requiredString(post.url, `items[${index}].url`), title: requiredString(post.title, `items[${index}].title`), content: requiredString(post.content, `items[${index}].content`), labels, published: requiredString(post.published, `items[${index}].published`), updated: requiredString(post.updated, `items[${index}].updated`) };
+    return { id: requiredString(post.id, `items[${index}].id`), url: requiredString(post.url, `items[${index}].url`), title: requiredString(post.title, `items[${index}].title`), content: optionalString(post.content, `items[${index}].content`), labels, published: requiredString(post.published, `items[${index}].published`), updated: requiredString(post.updated, `items[${index}].updated`) };
   });
   if (root.nextPageToken !== undefined && typeof root.nextPageToken !== 'string') throw new Error('Blogger API posts page has an invalid nextPageToken.');
   return { items, ...(typeof root.nextPageToken === 'string' && root.nextPageToken ? { nextPageToken: root.nextPageToken } : {}) };
@@ -72,7 +78,7 @@ export class BloggerDiscoveryClient {
     let pageToken: string | undefined;
     do {
       const url = this.#url(blogId, 'posts');
-      url.searchParams.set('fetchBodies', 'true'); url.searchParams.set('maxResults', '500'); url.searchParams.set('fields', POST_FIELDS);
+      url.searchParams.set('fetchBodies', 'true'); url.searchParams.set('maxResults', '500'); url.searchParams.set('status', 'live'); url.searchParams.set('fields', POST_FIELDS);
       if (pageToken) url.searchParams.set('pageToken', pageToken);
       const page = parsePostsPage(await this.#read(url));
       posts.push(...page.items); pageToken = page.nextPageToken;
