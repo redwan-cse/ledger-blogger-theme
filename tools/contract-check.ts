@@ -19,25 +19,11 @@ const BLOGGER_NS = 'http://www.google.com/2005/gml/b';
 const NAME = /^[A-Za-z_][A-Za-z0-9_.:-]*$/;
 const LEGAL_XML_CODEPOINT = (value: number): boolean => value === 0x9 || value === 0xa || value === 0xd || (value >= 0x20 && value <= 0xd7ff) || (value >= 0xe000 && value <= 0xfffd) || (value >= 0x10000 && value <= 0x10ffff);
 class XmlSyntaxError extends Error {}
-
 function assertLegalCharacters(value: string): void { for (const char of value) if (!LEGAL_XML_CODEPOINT(char.codePointAt(0) ?? 0)) throw new XmlSyntaxError('Illegal XML character.'); }
 function splitName(name: string): { prefix: string | null; localName: string } { const parts = name.split(':'); if (parts.length > 2 || parts.some((part) => !part)) throw new XmlSyntaxError(`Invalid qualified name ${name}.`); return parts.length === 2 ? { prefix: parts[0] ?? null, localName: parts[1] ?? '' } : { prefix: null, localName: name }; }
-function decodeEntities(value: string): string {
-  assertLegalCharacters(value); let output = '';
-  for (let index = 0; index < value.length;) {
-    const char = value[index]; if (char !== '&') { output += char; index += 1; continue; }
-    const end = value.indexOf(';', index + 1); if (end < 0) throw new XmlSyntaxError('Unterminated entity reference.');
-    const entity = value.slice(index + 1, end); const named: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
-    if (entity in named) output += named[entity];
-    else if (/^#x[0-9a-f]+$/i.test(entity) || /^#[0-9]+$/.test(entity)) { const hex = entity[1]?.toLowerCase() === 'x'; const codePoint = Number.parseInt(entity.slice(hex ? 2 : 1), hex ? 16 : 10); if (!LEGAL_XML_CODEPOINT(codePoint)) throw new XmlSyntaxError(`Illegal XML code point ${entity}.`); output += String.fromCodePoint(codePoint); }
-    else throw new XmlSyntaxError(`Undeclared entity &${entity};.`);
-    index = end + 1;
-  }
-  return output;
-}
-
+function decodeEntities(value: string): string { assertLegalCharacters(value); let output = ''; for (let index = 0; index < value.length;) { const char = value[index]; if (char !== '&') { output += char; index += 1; continue; } const end = value.indexOf(';', index + 1); if (end < 0) throw new XmlSyntaxError('Unterminated entity reference.'); const entity = value.slice(index + 1, end); const named: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" }; if (entity in named) output += named[entity]; else if (/^#x[0-9a-f]+$/i.test(entity) || /^#[0-9]+$/.test(entity)) { const hex = entity[1]?.toLowerCase() === 'x'; const codePoint = Number.parseInt(entity.slice(hex ? 2 : 1), hex ? 16 : 10); if (!LEGAL_XML_CODEPOINT(codePoint)) throw new XmlSyntaxError(`Illegal XML code point ${entity}.`); output += String.fromCodePoint(codePoint); } else throw new XmlSyntaxError(`Undeclared entity &${entity};.`); index = end + 1; } return output; }
 function parseXml(xml: string): XmlDocument {
-  assertLegalCharacters(xml); let index = 0; const stack: Array<{ element: XmlElement; namespaces: Map<string, string> }> = []; const elements: XmlElement[] = []; let root: XmlElement | null = null; let doctypeSeen = false; let processingInstructionSeen = false;
+  assertLegalCharacters(xml); let index = 0; const stack: Array<{ element: XmlElement; namespaces: Map<string, string> }> = []; const elements: XmlElement[] = []; let root: XmlElement | null = null; let doctypeSeen = false; let declarationSeen = false;
   const currentChildren = (): XmlChild[] | null => stack.at(-1)?.element.children ?? null;
   const addText = (raw: string): void => { if (!raw) return; if (raw.includes(']]>')) throw new XmlSyntaxError(']]> is forbidden in character data.'); const value = decodeEntities(raw); if (!currentChildren()) { if (value.trim()) throw new XmlSyntaxError('Text is not allowed outside the document element.'); } else currentChildren()?.push({ kind: 'text', value }); };
   const readName = (): string => { const start = index; while (index < xml.length && /[A-Za-z0-9_.:-]/.test(xml[index] ?? '')) index += 1; const name = xml.slice(start, index); if (!NAME.test(name)) throw new XmlSyntaxError(`Invalid XML name near byte ${start}.`); return name; };
@@ -46,7 +32,7 @@ function parseXml(xml: string): XmlDocument {
     if (xml[index] !== '<') { const next = xml.indexOf('<', index); addText(xml.slice(index, next < 0 ? xml.length : next)); index = next < 0 ? xml.length : next; continue; }
     if (xml.startsWith('<!--', index)) { const end = xml.indexOf('-->', index + 4); if (end < 0 || xml.slice(index + 4, end).includes('--')) throw new XmlSyntaxError('Malformed XML comment.'); currentChildren()?.push({ kind: 'comment', value: xml.slice(index + 4, end) }); index = end + 3; continue; }
     if (xml.startsWith('<![CDATA[', index)) { if (!currentChildren()) throw new XmlSyntaxError('CDATA is not allowed outside the document element.'); const end = xml.indexOf(']]>', index + 9); if (end < 0) throw new XmlSyntaxError('Unterminated CDATA section.'); currentChildren()?.push({ kind: 'cdata', value: xml.slice(index + 9, end) }); index = end + 3; continue; }
-    if (xml.startsWith('<?', index)) { const end = xml.indexOf('?>', index + 2); const body = end < 0 ? '' : xml.slice(index + 2, end).trim(); if (end < 0 || stack.length > 0 || root || processingInstructionSeen || !/^xml\s+version=(['"])1\.0\1(?:\s+encoding=(['"])UTF-8\2)?\s*$/i.test(body)) throw new XmlSyntaxError('Malformed or misplaced XML declaration.'); processingInstructionSeen = true; index = end + 2; continue; }
+    if (xml.startsWith('<?', index)) { const end = xml.indexOf('?>', index + 2); const body = end < 0 ? '' : xml.slice(index + 2, end).trim(); if (end < 0 || stack.length > 0 || root || declarationSeen || !/^xml\s+version=(['"])1\.0\1(?:\s+encoding=(['"])UTF-8\2)?\s*$/i.test(body)) throw new XmlSyntaxError('Malformed or misplaced XML declaration.'); declarationSeen = true; index = end + 2; continue; }
     if (/^<!DOCTYPE\b/i.test(xml.slice(index))) { if (doctypeSeen || root || stack.length > 0) throw new XmlSyntaxError('DOCTYPE must appear once before the root.'); let end = index + 9; let quote: string | null = null; let subset = 0; for (; end < xml.length; end += 1) { const char = xml[end] ?? ''; if (quote) { if (char === quote) quote = null; continue; } if (char === '"' || char === "'") quote = char; else if (char === '[') subset += 1; else if (char === ']') subset -= 1; else if (char === '>' && subset === 0) break; } if (end >= xml.length || subset !== 0) throw new XmlSyntaxError('Unterminated DOCTYPE.'); doctypeSeen = true; index = end + 1; continue; }
     if (xml.startsWith('</', index)) { index += 2; whitespace(); const name = readName(); whitespace(); if (xml[index] !== '>') throw new XmlSyntaxError('Malformed closing tag.'); index += 1; if (stack.pop()?.element.name !== name) throw new XmlSyntaxError(`Mismatched closing tag ${name}.`); continue; }
     if (xml.startsWith('<!', index)) throw new XmlSyntaxError('Unsupported declaration.');
@@ -55,14 +41,11 @@ function parseXml(xml: string): XmlDocument {
     if (!terminated) throw new XmlSyntaxError(`Unterminated start tag ${name}.`);
     const inherited = new Map(stack.at(-1)?.namespaces ?? [['xml', XML_NS]]); for (const [attributeName, value] of rawAttributes) { if (attributeName === 'xmlns') inherited.set('', value); else if (attributeName.startsWith('xmlns:')) inherited.set(attributeName.slice(6), value); }
     const qualified = splitName(name); const namespaceUri = inherited.get(qualified.prefix ?? '') ?? null; if (qualified.prefix && !namespaceUri) throw new XmlSyntaxError(`Undeclared prefix ${qualified.prefix}.`);
-    const attributes = new Map<string, string>(); const expanded = new Set<string>();
-    for (const [attributeName, value] of rawAttributes) { if (attributes.has(attributeName)) throw new XmlSyntaxError(`Duplicate attribute ${attributeName}.`); attributes.set(attributeName, value); const attributeQualified = splitName(attributeName); let uri = ''; if (attributeName === 'xmlns' || attributeQualified.prefix === 'xmlns') uri = XMLNS_NS; else if (attributeQualified.prefix) { uri = inherited.get(attributeQualified.prefix) ?? ''; if (!uri) throw new XmlSyntaxError(`Undeclared attribute prefix ${attributeQualified.prefix}.`); } const expandedName = `{${uri}}${attributeQualified.localName}`; if (expanded.has(expandedName)) throw new XmlSyntaxError(`Duplicate expanded attribute ${expandedName}.`); expanded.add(expandedName); }
-    const element: XmlElement = { kind: 'element', name, prefix: qualified.prefix, localName: qualified.localName, namespaceUri, attributes, children: [], parent: stack.at(-1)?.element ?? null, selfClosing };
-    if (!root) root = element; else if (!element.parent) throw new XmlSyntaxError('XML must contain exactly one root element.'); currentChildren()?.push(element); elements.push(element); if (!selfClosing) stack.push({ element, namespaces: inherited });
+    const attributes = new Map<string, string>(); const expanded = new Set<string>(); for (const [attributeName, value] of rawAttributes) { if (attributes.has(attributeName)) throw new XmlSyntaxError(`Duplicate attribute ${attributeName}.`); attributes.set(attributeName, value); const attributeQualified = splitName(attributeName); let uri = ''; if (attributeName === 'xmlns' || attributeQualified.prefix === 'xmlns') uri = XMLNS_NS; else if (attributeQualified.prefix) { uri = inherited.get(attributeQualified.prefix) ?? ''; if (!uri) throw new XmlSyntaxError(`Undeclared attribute prefix ${attributeQualified.prefix}.`); } const expandedName = `{${uri}}${attributeQualified.localName}`; if (expanded.has(expandedName)) throw new XmlSyntaxError(`Duplicate expanded attribute ${expandedName}.`); expanded.add(expandedName); }
+    const element: XmlElement = { kind: 'element', name, prefix: qualified.prefix, localName: qualified.localName, namespaceUri, attributes, children: [], parent: stack.at(-1)?.element ?? null, selfClosing }; if (!root) root = element; else if (!element.parent) throw new XmlSyntaxError('XML must contain exactly one root element.'); currentChildren()?.push(element); elements.push(element); if (!selfClosing) stack.push({ element, namespaces: inherited });
   }
   if (stack.length || !root) throw new XmlSyntaxError('Unclosed element or missing root.'); return { root, elements };
 }
-
 function ignored(element: XmlElement): boolean { for (let current: XmlElement | null = element; current; current = current.parent) if (current.namespaceUri === BLOGGER_NS && current.localName === 'comment') return true; return false; }
 function active(document: XmlDocument): XmlElement[] { return document.elements.filter((element) => !ignored(element)); }
 function attr(element: XmlElement, name: string): string | null { return element.attributes.get(name) ?? null; }
@@ -71,8 +54,15 @@ function expressions(document: XmlDocument): string[] { const values: string[] =
 function semanticValues(document: XmlDocument): string[] { return [...expressions(document), ...active(document).filter((element) => element.prefix === 'data').map((element) => element.name)]; }
 function descendants(element: XmlElement): XmlElement[] { const result: XmlElement[] = []; for (const child of element.children) if (child.kind === 'element') { result.push(child, ...descendants(child)); } return result; }
 function literalText(element: XmlElement): string { return element.children.filter((child): child is XmlText => child.kind === 'text').map((child) => child.value).join('').trim(); }
-function jsonLdScript(element: XmlElement): boolean { if (element.localName !== 'script') return false; if ((attr(element, 'type') ?? '').toLowerCase() === 'application/ld+json') return true; return element.children.some((child) => child.kind === 'element' && child.namespaceUri === BLOGGER_NS && child.localName === 'attr' && attr(child, 'name') === 'type' && ((attr(child, 'value') ?? attr(child, 'expr:value') ?? '').replace(/["']/g, '').toLowerCase() === 'application/ld+json'); }
-
+function jsonLdScript(element: XmlElement): boolean {
+  if (element.localName !== 'script') return false;
+  if ((attr(element, 'type') ?? '').toLowerCase() === 'application/ld+json') return true;
+  return element.children.some((child) => {
+    if (child.kind !== 'element' || child.namespaceUri !== BLOGGER_NS || child.localName !== 'attr' || attr(child, 'name') !== 'type') return false;
+    const value = attr(child, 'value') ?? attr(child, 'expr:value') ?? '';
+    return value.replace(/["']/g, '').toLowerCase() === 'application/ld+json';
+  });
+}
 export const contractRules: readonly ContractRule[] = [
   { id: 'well-formed', requirementId: 'R-V3-1 AC9', message: 'Generated output must be namespace-aware, well-formed XML.', check: () => true },
   { id: 'layouts-v3', requirementId: 'R-V3-1 AC1', message: "<html> must carry b:layoutsVersion='3'.", check: (doc) => attr(doc.root, 'b:layoutsVersion') === '3' },
@@ -94,7 +84,6 @@ export const contractRules: readonly ContractRule[] = [
   { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 200000 bytes.', check: (_doc, xml) => Buffer.byteLength(xml, 'utf8') <= 200_000 },
   { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (doc) => attr(doc.root, 'b:css') === 'false' }
 ];
-
 export function checkThemeContract(xml: string): ContractFinding[] { let document: XmlDocument; try { document = parseXml(xml); } catch (error) { const message = error instanceof Error ? error.message : String(error); return [{ ruleId: 'well-formed', requirementId: 'R-V3-1 AC9', message }, { ruleId: 'declared-entities', requirementId: 'R-BUILD-1 AC6', message }]; } return contractRules.filter((rule) => !rule.check(document, xml)).map((rule) => ({ ruleId: rule.id, requirementId: rule.requirementId, message: rule.message })); }
 export function assertThemeContract(xml: string): void { const findings = checkThemeContract(xml); if (findings.length) throw new Error(findings.map((finding) => `[${finding.requirementId}] ${finding.ruleId}: ${finding.message}`).join('\n')); }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) { const filename = path.resolve(process.argv[2] ?? path.join(ROOT, 'dist/theme.xml')); assertThemeContract(await readFile(filename, 'utf8')); console.log(`PASS: ${contractRules.length} V3 contract rules verified.`); }
