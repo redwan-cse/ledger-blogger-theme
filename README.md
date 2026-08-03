@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M0 verification in progress.** The Node 24.18.1 scaffold, deterministic install, Blogger API fixture seed, serialized ten-view harness, result model, build-stamp gate, native Contempo export, and upload-compatible empty control theme exist. The final gate is the stamped live RED control against that uploaded empty theme. No real theme source exists yet.
+> **Status: M0 complete.** The Node 24.18.1 scaffold, deterministic install, Blogger API fixture seed, serialized ten-view harness, result model, build-stamp gate, native Contempo export, and stamped empty-theme RED control are verified. No real theme source exists yet; M1 is next.
 
 ## Rules
 
