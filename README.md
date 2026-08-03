@@ -1,55 +1,40 @@
 # Ledger
 
-A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real rendered HTML.
+A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: planning.** No theme source exists yet. That is deliberate. M0 builds the render harness *before* the thing it measures, because the predecessor theme was built for eight days before anyone discovered it rendered nothing.
+> **Status: M0 verification in progress.** The Node 24.18.1 scaffold, deterministic install, Blogger API fixture seed, serialized ten-view harness, result model, build-stamp gate, native Contempo export, and upload-compatible empty control theme exist. The final gate is the stamped live RED control against that uploaded empty theme. No real theme source exists yet.
 
----
+## Rules
 
-## The three rules
-
-**1. Nothing is "working" because the XML looks right.**
-Every requirement is verified against HTML that Blogger actually rendered.
-
-**2. Failure must be loud.**
-No view may ever produce a blank content area. Every empty and error state is a named, tested requirement.
-
-**3. Line count is not a goal.**
-The predecessor was 44 KB of valid XML that rendered nothing. Budget is 200 KB, and less is better.
-
----
+1. Rendered Blogger HTML is the evidence. XML shape alone never proves rendering.
+2. No view may produce a blank content area.
+3. The output budget is 200 KB. Line count is irrelevant.
 
 ## Start here
 
-| Document | What it is |
-|---|---|
-| [`docs/PROJECT-PLAN.md`](docs/PROJECT-PLAN.md) | The build plan. Requirements, design system, CI, milestones. |
-| [`docs/V3-REFERENCE.md`](docs/V3-REFERENCE.md) | Layouts V3 / Widget V2 platform reference. Read before writing any XML. |
-| [`docs/POSTMORTEM.md`](docs/POSTMORTEM.md) | Why the previous theme failed. Five findings that drive every decision. |
-| [`AGENTS.md`](AGENTS.md) | Working agreement for anyone (human or agent) contributing code. |
+Read in this order: [`AGENTS.md`](AGENTS.md), [`docs/POSTMORTEM.md`](docs/POSTMORTEM.md), [`docs/V3-REFERENCE.md`](docs/V3-REFERENCE.md), [`docs/PROJECT-PLAN.md`](docs/PROJECT-PLAN.md). Harness operation lives in [`docs/HARNESS.md`](docs/HARNESS.md).
 
----
+## Local checks
 
-## The version trap, in one table
+```sh
+nvm use
+npm ci
+npm run typecheck
+npm test
+```
 
-Three version numbers, and they are not the same thing. Confusing them is what broke the predecessor.
+## M0 commands
 
-| Attribute | Value | Location | Meaning |
-|---|---|---|---|
-| `b:layoutsVersion` | `'3'` | `<html>` | The **theme format**. This is "V3". |
-| `version` | `'2'` | every `<b:widget>` | The **widget markup version**. |
-| `b:defaultwidgetversion` | `'2'` | `<html>` | Default for widgets Blogger injects itself. |
+```sh
+npm run seed:staging
+npm run deploy:check
+npm run harness
+npm run harness:browser
+```
 
-**A V3 theme uses version-2 widgets. There is no `version='3'` on a widget.**
-
-`b:version='2' class='v2'` on `<html>` is the *V2 theme format* and must never appear. It is a common instruction in circulating tutorials and AI prompts, it contradicts `b:layoutsVersion='3'`, and pairing them silently discards every custom includable in the theme.
-
----
+All staging/API configuration uses environment variables documented in `.env.example`. Never commit credentials.
 
 ## Layout zones
-
-Seven `b:section` zones, all editable from Blogger → Layout. This table is
-verified against `dist/theme.xml` by a test, so it cannot drift.
 
 | Zone | `id` | Widget | Max | Purpose |
 |---|---|---|---|---|
@@ -59,31 +44,10 @@ verified against `dist/theme.xml` by a test, so it cannot drift.
 | Topics | `topics` | `Label` | 1 | Topic pills from real labels |
 | Posts | `main` | `Blog` | 1 | The render path. Locked. |
 | CTA | `cta` | `HTML` | 1 | Closing call to action |
-| Footer | `footer` | `HTML` | 3 | Attribution, social |
-
----
-
-## Milestones
-
-| M | Name | Days |
-|---|---|---|
-| M0 | Repo + staging blog + render harness | 1 |
-| M1 | Generation pipeline (Pug → V3 XML) | 1.5 |
-| M2 | Render path (Header + Blog widgets) | 2 |
-| M3 | Design system | 2 |
-| M4 | Configurable zones | 1 |
-| M5 | SEO + accessibility | 1 |
-| M6 | Performance | 1 |
-| M7 | Production cutover | 0.5 |
-
----
-
-## Scope
-
-**In:** one excellent theme for one working blog. Ten view types, all rendering with JavaScript disabled. WCAG 2.2 AA. Lighthouse mobile ≥ 90.
-
-**Out:** resale or redistribution, Theme Designer colour customiser, AMP, Dynamic Views, third-party comments, dark mode (this release), IE, pre-2022 Safari.
+| Footer | `footer` | `HTML` | 3 | Attribution and social links |
 
 ## License
 
-MIT
+Source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE): personal and other noncommercial use, modification, and contribution are allowed; commercial use is not. This is **not an OSI-approved open-source license**.
+
+The repository contains identity-specific material belonging to Md Redwan Ahmed and Fast Cyber Defense, including names, biography, domains, blog content, media, logos, and branding. That material is not licensed for reuse and must be removed or replaced before any public deployment, publication, or redistribution as a website or theme.
