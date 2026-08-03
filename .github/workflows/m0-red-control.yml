@@ -68,8 +68,8 @@ jobs:
             echo '```text'
             if [[ -f m0-red.log ]]; then cat m0-red.log; fi
             echo '```'
-          } > docs/m0-red-evidence.md
-          cat docs/m0-red-evidence.md >> "$GITHUB_STEP_SUMMARY"
+          } > "$RUNNER_TEMP/m0-red-evidence.md"
+          cat "$RUNNER_TEMP/m0-red-evidence.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Persist audit evidence safely
         if: always()
         shell: bash
@@ -89,8 +89,6 @@ jobs:
           done
           echo 'Failed to persist evidence after 3 synchronized attempts.'
           exit 1
-        env:
-          EVIDENCE_PATH: ${{ runner.temp }}/m0-red-evidence.md
       - name: Enforce valid RED control
         if: always()
         shell: bash
