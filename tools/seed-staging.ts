@@ -1,7 +1,8 @@
 import seed from '../fixtures/staging-seed.json' with { type: 'json' };
-const API = 'https://www.googleapis.com/blogger/v3'; const PREFIX = '[Ledger M0 Fixture]';
+const API = 'https://www.googleapis.com/blogger/v3'; const PREFIX = '[Ledger M0 Fixture]'; const LIVE_BLOG_ID = '5972841034338492159';
 interface BloggerResource { id: string; title: string } interface ResourceList { items?: BloggerResource[] }
 function env(name: 'BLOGGER_BLOG_ID' | 'BLOGGER_ACCESS_TOKEN'): string { const value = process.env[name]?.trim(); if (!value) throw new Error(`${name} is required.`); return value; }
+function confirmTarget(): void { if (env('BLOGGER_BLOG_ID') === LIVE_BLOG_ID && process.env.ALLOW_LIVE_BLOG_TESTING !== 'I_ACCEPT_PUBLIC_DOWNTIME') throw new Error('Refusing to seed the live blog without ALLOW_LIVE_BLOG_TESTING=I_ACCEPT_PUBLIC_DOWNTIME.'); }
 async function api(path: string, init: RequestInit = {}): Promise<Response> { const headers = new Headers(init.headers); headers.set('authorization', `Bearer ${env('BLOGGER_ACCESS_TOKEN')}`); headers.set('content-type', 'application/json'); const response = await fetch(`${API}${path}`, { ...init, headers, signal: AbortSignal.timeout(30000) }); if (!response.ok) throw new Error(`Blogger API ${init.method ?? 'GET'} ${path} returned HTTP ${response.status}.`); return response; }
 function words(count: number): string { return 'Security engineering evidence must come from rendered behavior, not assumptions. '.repeat(Math.ceil(count / 9)).trim(); }
 function postFixtures(): Array<{ title: string; content: string; labels?: string[] }> {
@@ -10,4 +11,4 @@ function postFixtures(): Array<{ title: string; content: string; labels?: string
 }
 const pageFixtures = [{ title: `${PREFIX} About page`, content: '<p>Static page fixture for page chrome.</p>' }, { title: `${PREFIX} Contact page`, content: '<p>Second static page fixture.</p>' }, { title: `${PREFIX} Long static page`, content: `<p>${words(500)}</p>` }];
 async function upsert(kind: 'posts' | 'pages', fixtures: Array<{ title: string; content: string; labels?: string[] }>): Promise<void> { const blogId = encodeURIComponent(env('BLOGGER_BLOG_ID')); const existing = await api(`/blogs/${blogId}/${kind}?status=live&fetchBodies=false&maxResults=500`).then((r) => r.json()) as ResourceList; const byTitle = new Map((existing.items ?? []).map((item) => [item.title, item])); for (const fixture of fixtures) { const current = byTitle.get(fixture.title); const path = current ? `/blogs/${blogId}/${kind}/${encodeURIComponent(current.id)}` : `/blogs/${blogId}/${kind}`; await api(path, { method: current ? 'PUT' : 'POST', body: JSON.stringify(fixture) }); console.log(`${current ? 'updated' : 'created'} ${kind.slice(0, -1)}: ${fixture.title}`); } }
-await upsert('posts', postFixtures()); await upsert('pages', pageFixtures); console.log('Seed complete. Finish manual comment and empty-label fixtures from docs/HARNESS.md.');
+confirmTarget(); await upsert('posts', postFixtures()); await upsert('pages', pageFixtures); console.log('Seed complete. Finish manual comment and empty-label fixtures from docs/HARNESS.md.');
