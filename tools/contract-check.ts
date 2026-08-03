@@ -2,120 +2,239 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export interface ContractFinding {
-  ruleId: string;
-  requirementId: string;
-  message: string;
-}
+export interface ContractFinding { ruleId: string; requirementId: string; message: string }
+export interface ContractRule { id: string; requirementId: string; message: string; check(document: XmlDocument, xml: string): boolean }
 
-export interface ContractRule {
-  id: string;
-  requirementId: string;
-  message: string;
-  check(xml: string): boolean;
+type XmlChild = XmlElement | XmlText | XmlCdata | XmlComment;
+interface XmlText { kind: 'text'; value: string }
+interface XmlCdata { kind: 'cdata'; value: string }
+interface XmlComment { kind: 'comment'; value: string }
+interface XmlElement {
+  kind: 'element';
+  name: string;
+  prefix: string | null;
+  localName: string;
+  namespaceUri: string | null;
+  attributes: Map<string, string>;
+  children: XmlChild[];
+  parent: XmlElement | null;
+  selfClosing: boolean;
 }
+interface XmlDocument { root: XmlElement; elements: XmlElement[] }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const namedEntities = new Set(['amp', 'lt', 'gt', 'quot', 'apos']);
+const XML_NS = 'http://www.w3.org/XML/1998/namespace';
+const XMLNS_NS = 'http://www.w3.org/2000/xmlns/';
+const BLOGGER_NS = 'http://www.google.com/2005/gml/b';
+const NAME = /^[A-Za-z_][A-Za-z0-9_.:-]*$/;
+const LEGAL_XML_CODEPOINT = (value: number): boolean => value === 0x9 || value === 0xa || value === 0xd || (value >= 0x20 && value <= 0xd7ff) || (value >= 0xe000 && value <= 0xfffd) || (value >= 0x10000 && value <= 0x10ffff);
 
-function withoutComments(xml: string): string {
-  return xml
-    .replace(/<!--([\s\S]*?)-->/g, '')
-    .replace(/<b:comment\b[^>]*>[\s\S]*?<\/b:comment>/gi, '');
+class XmlSyntaxError extends Error {}
+
+function splitName(name: string): { prefix: string | null; localName: string } {
+  const parts = name.split(':');
+  if (parts.length > 2 || parts.some((part) => !part)) throw new XmlSyntaxError(`Invalid qualified name ${name}.`);
+  return parts.length === 2 ? { prefix: parts[0] ?? null, localName: parts[1] ?? '' } : { prefix: null, localName: name };
 }
 
-function withoutCommentsOrCdata(xml: string): string {
-  return withoutComments(xml).replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '');
+function decodeEntities(value: string): string {
+  let output = '';
+  for (let index = 0; index < value.length;) {
+    const char = value[index];
+    if (char !== '&') { output += char; index += 1; continue; }
+    const end = value.indexOf(';', index + 1);
+    if (end < 0) throw new XmlSyntaxError('Unterminated entity reference.');
+    const entity = value.slice(index + 1, end);
+    const named: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+    if (entity in named) output += named[entity];
+    else if (/^#x[0-9a-f]+$/i.test(entity) || /^#[0-9]+$/.test(entity)) {
+      const codePoint = Number.parseInt(entity.slice(entity[1]?.toLowerCase() === 'x' ? 2 : 1), entity[1]?.toLowerCase() === 'x' ? 16 : 10);
+      if (!LEGAL_XML_CODEPOINT(codePoint)) throw new XmlSyntaxError(`Illegal XML code point ${entity}.`);
+      output += String.fromCodePoint(codePoint);
+    } else throw new XmlSyntaxError(`Undeclared entity &${entity};.`);
+    index = end + 1;
+  }
+  return output;
 }
 
-function htmlTag(xml: string): string {
-  return withoutComments(xml).match(/<html\b[^>]*>/i)?.[0] ?? '';
-}
+function parseXml(xml: string): XmlDocument {
+  let index = 0;
+  const stack: Array<{ element: XmlElement; namespaces: Map<string, string> }> = [];
+  const elements: XmlElement[] = [];
+  let root: XmlElement | null = null;
+  let doctypeSeen = false;
+  const currentChildren = (): XmlChild[] | null => stack.at(-1)?.element.children ?? null;
+  const addText = (raw: string): void => {
+    if (!raw) return;
+    const value = decodeEntities(raw);
+    if (!currentChildren()) { if (value.trim()) throw new XmlSyntaxError('Text is not allowed outside the document element.'); }
+    else currentChildren()?.push({ kind: 'text', value });
+  };
+  const readName = (): string => {
+    const start = index;
+    while (index < xml.length && /[A-Za-z0-9_.:-]/.test(xml[index] ?? '')) index += 1;
+    const name = xml.slice(start, index);
+    if (!NAME.test(name)) throw new XmlSyntaxError(`Invalid XML name near byte ${start}.`);
+    return name;
+  };
+  const whitespace = (): void => { while (/\s/.test(xml[index] ?? '')) index += 1; };
 
-function startTags(xml: string, name: string): string[] {
-  return withoutComments(xml).match(new RegExp(`<${name}\\b[^>]*>`, 'gi')) ?? [];
-}
-
-function attribute(tag: string, name: string): string | null {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return tag.match(new RegExp(`\\b${escaped}\\s*=\\s*(['"])(.*?)\\1`, 'i'))?.[2] ?? null;
-}
-
-function expressionAttributes(xml: string): string[] {
-  const source = withoutCommentsOrCdata(xml);
-  return [...source.matchAll(/\b(?:cond|expr:[\w-]+)\s*=\s*(['"])(.*?)\1/gi)].map((match) => match[2] ?? '');
-}
-
-function isWellFormed(xml: string): boolean {
-  const source = withoutComments(xml)
-    .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '')
-    .replace(/<\?xml[\s\S]*?\?>/gi, '')
-    .replace(/<!DOCTYPE[\s\S]*?>/gi, '');
-  const stack: string[] = [];
-  for (const match of source.matchAll(/<\s*(\/)?\s*([A-Za-z_][\w:.-]*)\b[^>]*?(\/)?\s*>/g)) {
-    const closing = Boolean(match[1]);
-    const name = match[2]?.toLowerCase();
-    const selfClosing = Boolean(match[3]);
-    if (!name) return false;
-    if (closing) {
-      if (stack.pop() !== name) return false;
-    } else if (!selfClosing && !['meta', 'link', 'img', 'input', 'br', 'hr'].includes(name)) {
-      stack.push(name);
+  while (index < xml.length) {
+    if (xml[index] !== '<') {
+      const next = xml.indexOf('<', index);
+      addText(xml.slice(index, next < 0 ? xml.length : next));
+      index = next < 0 ? xml.length : next;
+      continue;
     }
+    if (xml.startsWith('<!--', index)) {
+      const end = xml.indexOf('-->', index + 4);
+      if (end < 0 || xml.slice(index + 4, end).includes('--')) throw new XmlSyntaxError('Malformed XML comment.');
+      currentChildren()?.push({ kind: 'comment', value: xml.slice(index + 4, end) });
+      index = end + 3; continue;
+    }
+    if (xml.startsWith('<![CDATA[', index)) {
+      if (!currentChildren()) throw new XmlSyntaxError('CDATA is not allowed outside the document element.');
+      const end = xml.indexOf(']]>', index + 9);
+      if (end < 0) throw new XmlSyntaxError('Unterminated CDATA section.');
+      currentChildren()?.push({ kind: 'cdata', value: xml.slice(index + 9, end) });
+      index = end + 3; continue;
+    }
+    if (xml.startsWith('<?', index)) {
+      const end = xml.indexOf('?>', index + 2);
+      if (end < 0 || stack.length > 0) throw new XmlSyntaxError('Malformed processing instruction.');
+      index = end + 2; continue;
+    }
+    if (/^<!DOCTYPE\b/i.test(xml.slice(index))) {
+      if (doctypeSeen || root || stack.length > 0) throw new XmlSyntaxError('DOCTYPE must appear once before the root.');
+      let end = index + 9; let quote: string | null = null; let subset = 0;
+      for (; end < xml.length; end += 1) {
+        const char = xml[end] ?? '';
+        if (quote) { if (char === quote) quote = null; continue; }
+        if (char === '"' || char === "'") quote = char;
+        else if (char === '[') subset += 1;
+        else if (char === ']') subset -= 1;
+        else if (char === '>' && subset === 0) break;
+      }
+      if (end >= xml.length) throw new XmlSyntaxError('Unterminated DOCTYPE.');
+      doctypeSeen = true; index = end + 1; continue;
+    }
+    if (xml.startsWith('</', index)) {
+      index += 2; whitespace(); const name = readName(); whitespace();
+      if (xml[index] !== '>') throw new XmlSyntaxError('Malformed closing tag.');
+      index += 1;
+      if (stack.pop()?.element.name !== name) throw new XmlSyntaxError(`Mismatched closing tag ${name}.`);
+      continue;
+    }
+    if (xml.startsWith('<!', index)) throw new XmlSyntaxError('Unsupported declaration.');
+
+    index += 1; whitespace(); const name = readName();
+    const rawAttributes: Array<[string, string]> = [];
+    let selfClosing = false;
+    while (index < xml.length) {
+      whitespace();
+      if (xml.startsWith('/>', index)) { selfClosing = true; index += 2; break; }
+      if (xml[index] === '>') { index += 1; break; }
+      const attributeName = readName(); whitespace();
+      if (xml[index] !== '=') throw new XmlSyntaxError(`Attribute ${attributeName} has no value.`);
+      index += 1; whitespace(); const quote = xml[index];
+      if (quote !== '"' && quote !== "'") throw new XmlSyntaxError(`Attribute ${attributeName} must be quoted.`);
+      index += 1; const end = xml.indexOf(quote, index);
+      if (end < 0) throw new XmlSyntaxError(`Unterminated attribute ${attributeName}.`);
+      rawAttributes.push([attributeName, decodeEntities(xml.slice(index, end))]); index = end + 1;
+    }
+    const inherited = new Map(stack.at(-1)?.namespaces ?? [['xml', XML_NS]]);
+    for (const [attributeName, value] of rawAttributes) {
+      if (attributeName === 'xmlns') inherited.set('', value);
+      else if (attributeName.startsWith('xmlns:')) inherited.set(attributeName.slice(6), value);
+    }
+    const qualified = splitName(name);
+    const namespaceUri = inherited.get(qualified.prefix ?? '') ?? null;
+    if (qualified.prefix && !namespaceUri) throw new XmlSyntaxError(`Undeclared prefix ${qualified.prefix}.`);
+    const attributes = new Map<string, string>(); const expanded = new Set<string>();
+    for (const [attributeName, value] of rawAttributes) {
+      if (attributes.has(attributeName)) throw new XmlSyntaxError(`Duplicate attribute ${attributeName}.`);
+      attributes.set(attributeName, value);
+      const attributeQualified = splitName(attributeName);
+      let uri = '';
+      if (attributeName === 'xmlns' || attributeQualified.prefix === 'xmlns') uri = XMLNS_NS;
+      else if (attributeQualified.prefix) {
+        uri = inherited.get(attributeQualified.prefix) ?? '';
+        if (!uri) throw new XmlSyntaxError(`Undeclared attribute prefix ${attributeQualified.prefix}.`);
+      }
+      const expandedName = `{${uri}}${attributeQualified.localName}`;
+      if (expanded.has(expandedName)) throw new XmlSyntaxError(`Duplicate expanded attribute ${expandedName}.`);
+      expanded.add(expandedName);
+    }
+    const element: XmlElement = { kind: 'element', name, prefix: qualified.prefix, localName: qualified.localName, namespaceUri, attributes, children: [], parent: stack.at(-1)?.element ?? null, selfClosing };
+    if (!root) root = element;
+    else if (!element.parent) throw new XmlSyntaxError('XML must contain exactly one root element.');
+    currentChildren()?.push(element); elements.push(element);
+    if (!selfClosing) stack.push({ element, namespaces: inherited });
   }
-  return stack.length === 0;
+  if (stack.length > 0 || !root) throw new XmlSyntaxError('Unclosed element or missing root.');
+  return { root, elements };
 }
 
-function hasOnlyDeclaredEntities(xml: string): boolean {
-  const source = withoutCommentsOrCdata(xml);
-  for (const match of source.matchAll(/&(#x?[0-9a-f]+|[A-Za-z][\w.-]*);/gi)) {
-    const entity = match[1] ?? '';
-    if (!entity.startsWith('#') && !namedEntities.has(entity)) return false;
+function ignored(element: XmlElement): boolean {
+  for (let current: XmlElement | null = element; current; current = current.parent) if (current.namespaceUri === BLOGGER_NS && current.localName === 'comment') return true;
+  return false;
+}
+function active(document: XmlDocument): XmlElement[] { return document.elements.filter((element) => !ignored(element)); }
+function attr(element: XmlElement, name: string): string | null { return element.attributes.get(name) ?? null }
+function named(document: XmlDocument, namespaceUri: string | null, localName: string): XmlElement[] { return active(document).filter((element) => element.namespaceUri === namespaceUri && element.localName === localName) }
+function expressions(document: XmlDocument): string[] {
+  const values: string[] = [];
+  for (const element of active(document)) for (const [name, value] of element.attributes) {
+    const isExpression = name === 'cond' || name.startsWith('expr:') || (element.namespaceUri === BLOGGER_NS && ['with', 'loop', 'include', 'attr', 'class', 'eval', 'case', 'switch'].includes(element.localName) && ['value', 'values', 'data', 'name', 'var'].includes(name));
+    if (isExpression) values.push(value);
   }
-  return !/(^|[^&])&(?!#x?[0-9a-f]+;|(?:amp|lt|gt|quot|apos);)/i.test(source);
+  return values;
 }
-
-function jsonLdIsEscaped(xml: string): boolean {
-  const blocks = withoutComments(xml).match(/<script\b[^>]*type=(['"])application\/ld\+json\1[^>]*>[\s\S]*?<\/script>/gi) ?? [];
-  return blocks.every((block) => {
-    const tags = block.match(/<data:[^>]+\/>|<b:eval\b[^>]*>/gi) ?? [];
-    return tags.every((tag) => /\.jsonEscaped\b/i.test(tag));
-  });
+function descendants(element: XmlElement): XmlElement[] {
+  const result: XmlElement[] = [];
+  for (const child of element.children) if (child.kind === 'element') { result.push(child, ...descendants(child)); }
+  return result;
 }
+function literalText(element: XmlElement): string { return element.children.filter((child): child is XmlText => child.kind === 'text').map((child) => child.value).join('').trim() }
 
 export const contractRules: readonly ContractRule[] = [
-  { id: 'layouts-v3', requirementId: 'R-V3-1 AC1', message: "<html> must carry b:layoutsVersion='3'.", check: (xml) => attribute(htmlTag(xml), 'b:layoutsVersion') === '3' },
-  { id: 'widget-v2', requirementId: 'R-V3-1 AC2', message: "Every b:widget must carry version='2'.", check: (xml) => { const widgets = startTags(xml, 'b:widget'); return widgets.length > 0 && widgets.every((tag) => attribute(tag, 'version') === '2'); } },
-  { id: 'no-v2-html', requirementId: 'R-V3-1 AC3', message: "<html> must not carry b:version or class='v2'.", check: (xml) => { const tag = htmlTag(xml); return attribute(tag, 'b:version') === null && attribute(tag, 'class') !== 'v2'; } },
-  { id: 'single-cdata-skin', requirementId: 'R-V3-1 AC4', message: 'Theme must contain exactly one b:skin with CDATA.', check: (xml) => { const skins = withoutComments(xml).match(/<b:skin\b[^>]*>[\s\S]*?<\/b:skin>/gi) ?? []; return skins.length === 1 && /<!\[CDATA\[[\s\S]*\]\]>/.test(skins[0] ?? ''); } },
-  { id: 'section-ids', requirementId: 'R-V3-1 AC5', message: 'Section IDs must be unique and alphanumeric.', check: (xml) => { const ids = startTags(xml, 'b:section').map((tag) => attribute(tag, 'id')); return ids.length > 0 && ids.every((id) => id !== null && /^[A-Za-z][A-Za-z0-9]*$/.test(id)) && new Set(ids).size === ids.length; } },
-  { id: 'header-widget', requirementId: 'R-V3-1 AC6', message: 'Theme must declare a Header widget.', check: (xml) => startTags(xml, 'b:widget').some((tag) => attribute(tag, 'type') === 'Header') },
-  { id: 'no-v2-accessors', requirementId: 'R-V3-1 AC7', message: 'Banned V2-era data accessors are not allowed.', check: (xml) => !/data:blog\.(?:pageType|searchLabel|searchQuery)|data:post\.dateHeader/i.test(withoutCommentsOrCdata(xml)) },
-  { id: 'no-macro-tags', requirementId: 'R-V3-1 AC8', message: 'macro:* tags are not allowed.', check: (xml) => !/<\/?macro:/i.test(withoutCommentsOrCdata(xml)) },
-  { id: 'well-formed', requirementId: 'R-V3-1 AC9', message: 'Generated output must be well-formed XML.', check: isWellFormed },
-  { id: 'declared-entities', requirementId: 'R-BUILD-1 AC6', message: 'Undeclared XML entities are not allowed outside CDATA.', check: hasOnlyDeclaredEntities },
-  { id: 'word-logical-operators', requirementId: 'R-V3-2 AC1', message: 'Expressions must use and/or, never && or ||.', check: (xml) => expressionAttributes(xml).every((value) => !/&&|\|\|/.test(value)) },
-  { id: 'documented-comparisons', requirementId: 'R-V3-2 AC2', message: 'Expressions must not use .size or gt/lt/gte/lte.', check: (xml) => expressionAttributes(xml).every((value) => !/\.size\b|\b(?:gt|lt|gte|lte)\b/i.test(value)) },
-  { id: 'data-tags-are-paths', requirementId: 'R-V3-2 AC3', message: 'data:* tags must be property paths, not method calls.', check: (xml) => !(withoutCommentsOrCdata(xml).match(/<data:[^>]*>/gi) ?? []).some((tag) => /[()]/.test(tag)) },
-  { id: 'url-path-operator', requirementId: 'R-V3-2 AC4', message: 'URL expressions must use path, never string +.', check: (xml) => { const source = withoutCommentsOrCdata(xml); const values = [...source.matchAll(/\bexpr:(?:href|src|action)\s*=\s*(['"])(.*?)\1/gi)].map((match) => match[2] ?? ''); return values.every((value) => !/\+/.test(value)); } },
-  { id: 'json-escaped', requirementId: 'R-V3-2 AC5', message: 'Every JSON-LD interpolation must end in .jsonEscaped.', check: jsonLdIsEscaped },
-  { id: 'no-fabricated-metadata', requirementId: 'R-BUILD-1 AC7', message: 'Fabricated reading times, authors, or blank Gravatar fallbacks are not allowed.', check: (xml) => !/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar|data:post\.author[^<]*\?:\s*['"][^'"]+/i.test(withoutCommentsOrCdata(xml)) },
-  { id: 'build-stamp', requirementId: 'R-BUILD-2 AC1', message: 'Theme must contain a full-SHA theme-build meta stamp.', check: (xml) => /<meta\b(?=[^>]*\bname=(['"])theme-build\1)(?=[^>]*\bcontent=(['"])[^'"]+\+[0-9a-f]{40}\2)[^>]*>/i.test(withoutComments(xml)) },
-  { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 200000 bytes.', check: (xml) => Buffer.byteLength(xml, 'utf8') <= 200_000 },
-  { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (xml) => attribute(htmlTag(xml), 'b:css') === 'false' }
+  { id: 'well-formed', requirementId: 'R-V3-1 AC9', message: 'Generated output must be namespace-aware, well-formed XML.', check: () => true },
+  { id: 'layouts-v3', requirementId: 'R-V3-1 AC1', message: "<html> must carry b:layoutsVersion='3'.", check: (doc) => attr(doc.root, 'b:layoutsVersion') === '3' },
+  { id: 'widget-v2', requirementId: 'R-V3-1 AC2', message: "Every b:widget must carry version='2'.", check: (doc) => { const widgets = named(doc, BLOGGER_NS, 'widget'); return widgets.length > 0 && widgets.every((element) => attr(element, 'version') === '2'); } },
+  { id: 'no-v2-html', requirementId: 'R-V3-1 AC3', message: "<html> must not carry b:version or a v2 class token.", check: (doc) => attr(doc.root, 'b:version') === null && !(attr(doc.root, 'class') ?? '').split(/\s+/).includes('v2') },
+  { id: 'single-cdata-skin', requirementId: 'R-V3-1 AC4', message: 'Theme must contain exactly one b:skin whose non-whitespace content is one CDATA node.', check: (doc) => { const skins = named(doc, BLOGGER_NS, 'skin'); if (skins.length !== 1) return false; const content = skins[0]?.children.filter((child) => child.kind !== 'text' || child.value.trim()) ?? []; return content.length === 1 && content[0]?.kind === 'cdata'; } },
+  { id: 'section-ids', requirementId: 'R-V3-1 AC5', message: 'Section IDs must be unique and alphanumeric (project policy: letter-first).', check: (doc) => { const ids = named(doc, BLOGGER_NS, 'section').map((element) => attr(element, 'id')); return ids.length > 0 && ids.every((id) => id !== null && /^[A-Za-z][A-Za-z0-9]*$/.test(id)) && new Set(ids).size === ids.length; } },
+  { id: 'header-widget', requirementId: 'R-V3-1 AC6', message: 'Theme must declare a Header widget.', check: (doc) => named(doc, BLOGGER_NS, 'widget').some((element) => attr(element, 'type') === 'Header') },
+  { id: 'no-v2-accessors', requirementId: 'R-V3-1 AC7', message: 'Banned V2-era accessors and URL-based view dispatch are not allowed.', check: (doc) => expressions(doc).every((value) => !/data:blog\.(?:pageType|searchLabel|searchQuery)|data:post\.dateHeader|data:blog\.url\s*==\s*data:blog\.homepageUrl/i.test(value)) },
+  { id: 'no-macro-tags', requirementId: 'R-V3-1 AC8', message: 'macro:* tags are not allowed.', check: (doc) => active(doc).every((element) => element.prefix !== 'macro') },
+  { id: 'declared-entities', requirementId: 'R-BUILD-1 AC6', message: 'Entities and numeric code points must be valid XML.', check: () => true },
+  { id: 'word-logical-operators', requirementId: 'R-V3-2 AC1', message: 'Expressions must use and/or, never && or ||.', check: (doc) => expressions(doc).every((value) => !/&&|\|\|/.test(value)) },
+  { id: 'documented-comparisons', requirementId: 'R-V3-2 AC2', message: 'Expressions must not use .size or gt/lt/gte/lte.', check: (doc) => expressions(doc).every((value) => !/\.size\b|\b(?:gt|lt|gte|lte)\b/i.test(value)) },
+  { id: 'data-tags-are-paths', requirementId: 'R-V3-2 AC3', message: 'data:* tags must be self-closing property paths.', check: (doc) => active(doc).filter((element) => element.prefix === 'data').every((element) => element.selfClosing && element.children.length === 0 && /^data:[A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*$/.test(element.name)) },
+  { id: 'url-path-operator', requirementId: 'R-V3-2 AC4', message: 'Computed URL expressions must use path, never string +.', check: (doc) => active(doc).every((element) => { const direct = ['expr:href', 'expr:src', 'expr:action'].map((name) => attr(element, name)).filter((value): value is string => value !== null); const injectedName = element.namespaceUri === BLOGGER_NS && element.localName === 'attr' ? attr(element, 'name') : null; const injected = injectedName && ['href', 'src', 'action'].includes(injectedName) ? [attr(element, 'expr:value') ?? attr(element, 'value') ?? ''] : []; return [...direct, ...injected].every((value) => !/\+/.test(value)); }) },
+  { id: 'json-escaped', requirementId: 'R-V3-2 AC5', message: 'Every JSON-LD interpolation must end in .jsonEscaped.', check: (doc) => active(doc).filter((element) => element.localName === 'script' && (attr(element, 'type') ?? '').toLowerCase() === 'application/ld+json').every((script) => descendants(script).filter((element) => element.prefix === 'data' || (element.namespaceUri === BLOGGER_NS && element.localName === 'eval')).every((element) => element.prefix === 'data' ? element.name.endsWith('.jsonEscaped') : /\.jsonEscaped\s*$/.test(attr(element, 'expr') ?? ''))) },
+  { id: 'no-fabricated-metadata', requirementId: 'R-BUILD-1 AC7', message: 'Fabricated reading time, author identity, or Gravatar fallback is not allowed.', check: (doc, xml) => { if (/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar/i.test(xml)) return false; return active(doc).filter((element) => /(?:^|\s)(?:author-name|post-author)(?:\s|$)/.test(attr(element, 'class') ?? '')).every((element) => !/[A-Za-z0-9]/.test(literalText(element))); } },
+  { id: 'build-stamp', requirementId: 'R-BUILD-2 AC1', message: 'A unique head meta stamp must equal b:templateVersion plus a full SHA.', check: (doc) => { const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head'); if (heads.length !== 1) return false; const stamps = descendants(heads[0]!).filter((element) => element.localName === 'meta' && attr(element, 'name') === 'theme-build'); const version = attr(doc.root, 'b:templateVersion'); return stamps.length === 1 && version !== null && new RegExp(`^${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\+[0-9a-f]{40}$`, 'i').test(attr(stamps[0]!, 'content') ?? ''); } },
+  { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 200000 bytes.', check: (_doc, xml) => Buffer.byteLength(xml, 'utf8') <= 200_000 },
+  { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (doc) => attr(doc.root, 'b:css') === 'false' }
 ];
 
 export function checkThemeContract(xml: string): ContractFinding[] {
-  return contractRules
-    .filter((rule) => !rule.check(xml))
-    .map((rule) => ({ ruleId: rule.id, requirementId: rule.requirementId, message: rule.message }));
+  let document: XmlDocument;
+  try { document = parseXml(xml); }
+  catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return [
+      { ruleId: 'well-formed', requirementId: 'R-V3-1 AC9', message },
+      { ruleId: 'declared-entities', requirementId: 'R-BUILD-1 AC6', message }
+    ];
+  }
+  return contractRules.filter((rule) => !rule.check(document, xml)).map((rule) => ({ ruleId: rule.id, requirementId: rule.requirementId, message: rule.message }));
 }
 
 export function assertThemeContract(xml: string): void {
   const findings = checkThemeContract(xml);
-  if (findings.length > 0) {
-    throw new Error(findings.map((finding) => `[${finding.requirementId}] ${finding.ruleId}: ${finding.message}`).join('\n'));
-  }
+  if (findings.length) throw new Error(findings.map((finding) => `[${finding.requirementId}] ${finding.ruleId}: ${finding.message}`).join('\n'));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
