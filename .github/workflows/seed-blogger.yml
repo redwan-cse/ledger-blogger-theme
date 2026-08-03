@@ -7,6 +7,9 @@ on:
         description: Type I_ACCEPT_PUBLIC_DOWNTIME to seed the approved Blogger target
         required: true
         type: string
+  push:
+    branches: [chore/m0-scaffold]
+    paths: [.github/workflows/seed-blogger.yml]
 
 permissions:
   contents: read
@@ -17,7 +20,7 @@ concurrency:
 
 jobs:
   seed:
-    if: inputs.confirmation == 'I_ACCEPT_PUBLIC_DOWNTIME'
+    if: github.event_name == 'push' || inputs.confirmation == 'I_ACCEPT_PUBLIC_DOWNTIME'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: blogger-live
