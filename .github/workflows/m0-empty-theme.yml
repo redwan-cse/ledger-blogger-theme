@@ -1,0 +1,23 @@
+name: Build M0 empty theme
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx tsx tools/create-empty-theme.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m0-empty-theme-${{ github.sha }}
+          path: dist/m0/
+          if-no-files-found: error
+          retention-days: 7

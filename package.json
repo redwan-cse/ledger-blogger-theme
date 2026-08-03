@@ -12,7 +12,8 @@
     "harness": "tsx tools/render-harness.ts",
     "harness:browser": "playwright test",
     "deploy:check": "tsx tools/deploy-check.ts",
-    "seed:staging": "tsx tools/seed-staging.ts"
+    "seed:staging": "tsx tools/seed-staging.ts",
+    "m0:empty-theme": "tsx tools/create-empty-theme.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.0",
