@@ -1,5 +1,6 @@
 name: Verify M0 RED control
 on:
+  workflow_dispatch:
   push:
     branches: [chore/m0-scaffold]
     paths:
