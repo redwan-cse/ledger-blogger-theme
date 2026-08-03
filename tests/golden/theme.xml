@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+eb13f55d6560cb586a5c584815f4d2dcd2d89378" name="theme-build"/>
+    <meta content="0.0.0+GOLDEN_SHA_40_CHARS________________" name="theme-build"/>
     <title>Ledger M1 generation scaffold</title>
     <b:skin version="0.0.0">
       <![CDATA[
