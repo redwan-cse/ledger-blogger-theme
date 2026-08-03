@@ -5,6 +5,7 @@ on:
     paths:
       - .github/workflows/m0-red-control.yml
       - tools/harness/blogger-api.ts
+      - tools/harness/http.ts
       - tools/render-harness.ts
 permissions:
   contents: write
@@ -20,7 +21,7 @@ jobs:
       STAGING_URL: https://blogs.redwan.work/
       EXPECTED_THEME_BUILD: 0.0.0+96c0ce5b442f7ad2612b3f27aae5441f17166482
       BLOGGER_BLOG_ID: '5972841034338492159'
-      HARNESS_PACE_MS: '15000'
+      HARNESS_PACE_MS: '30000'
       HARNESS_TIMEOUT_MS: '30000'
     steps:
       - uses: actions/checkout@v7
@@ -29,6 +30,8 @@ jobs:
           node-version: '24.18.1'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
       - name: Refresh short-lived access token
         id: refresh
         env:
@@ -37,7 +40,7 @@ jobs:
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
         run: npx tsx tools/google-access-token.ts
       - name: Cool down Blogger before the single measured run
-        run: sleep 180
+        run: sleep 120
       - name: Run stamp-gated empty-theme harness
         id: harness
         shell: bash

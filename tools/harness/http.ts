@@ -42,61 +42,36 @@ const quotaReasons = new Set([
 ]);
 
 export function parseRetryAfter(value: string | null, now = Date.now()): number | null {
-  if (value === null) {
-    return null;
-  }
-
+  if (value === null) return null;
   const seconds = Number(value);
-  if (Number.isFinite(seconds) && seconds >= 0) {
-    return Math.ceil(seconds * 1_000);
-  }
-
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds * 1_000);
   const date = Date.parse(value);
-  if (Number.isNaN(date)) {
-    return null;
-  }
-
+  if (Number.isNaN(date)) return null;
   return Math.max(0, date - now);
 }
 
 function googleApiErrorReasons(body: string): string[] {
   try {
     const parsed: unknown = JSON.parse(body);
-    if (typeof parsed !== 'object' || parsed === null || !('error' in parsed)) {
-      return [];
-    }
+    if (typeof parsed !== 'object' || parsed === null || !('error' in parsed)) return [];
     const error = (parsed as { error?: unknown }).error;
-    if (typeof error !== 'object' || error === null || !('errors' in error)) {
-      return [];
-    }
+    if (typeof error !== 'object' || error === null || !('errors' in error)) return [];
     const errors = (error as { errors?: unknown }).errors;
-    if (!Array.isArray(errors)) {
-      return [];
-    }
+    if (!Array.isArray(errors)) return [];
     return errors.flatMap((item) => {
-      if (typeof item !== 'object' || item === null || !('reason' in item)) {
-        return [];
-      }
+      if (typeof item !== 'object' || item === null || !('reason' in item)) return [];
       const reason = (item as { reason?: unknown }).reason;
       return typeof reason === 'string' ? [reason] : [];
     });
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export function detectBlockedResponse(status: number, body: string): string | null {
-  if (status === 429) {
-    return 'Blogger returned HTTP 429 (rate limited).';
-  }
-
+  if (status === 429) return 'Blogger returned HTTP 429 (rate limited).';
   if (status === 403) {
     const reason = googleApiErrorReasons(body).find((candidate) => quotaReasons.has(candidate.toLowerCase()));
-    if (reason) {
-      return `Blogger API quota blocked the request (${reason}).`;
-    }
+    if (reason) return `Blogger API quota blocked the request (${reason}).`;
   }
-
   const normalizedBody = body.toLowerCase();
   const marker = challengeMarkers.find((candidate) => normalizedBody.includes(candidate.toLowerCase()));
   return marker ? `Blogger anti-bot challenge detected (${marker}).` : null;
@@ -110,18 +85,13 @@ export class HarnessHttpClient {
   readonly #now: Clock;
   readonly #userAgent: string;
   #queue: Promise<void> = Promise.resolve();
-  #nextRequestAt = 0;
+  readonly #nextRequestAtByHost = new Map<string, number>();
 
   constructor(options: HarnessHttpClientOptions = {}) {
     const paceMs = options.paceMs ?? Number.parseInt(process.env.HARNESS_PACE_MS ?? '4000', 10);
-    if (!Number.isInteger(paceMs) || paceMs < MINIMUM_PACE_MS) {
-      throw new Error(`Harness request pace must be an integer >= ${MINIMUM_PACE_MS}ms.`);
-    }
+    if (!Number.isInteger(paceMs) || paceMs < MINIMUM_PACE_MS) throw new Error(`Harness request pace must be an integer >= ${MINIMUM_PACE_MS}ms.`);
     const timeoutMs = options.timeoutMs ?? Number.parseInt(process.env.HARNESS_TIMEOUT_MS ?? String(DEFAULT_TIMEOUT_MS), 10);
-    if (!Number.isInteger(timeoutMs) || timeoutMs <= 0) {
-      throw new Error('Harness request timeout must be a positive integer.');
-    }
-
+    if (!Number.isInteger(timeoutMs) || timeoutMs <= 0) throw new Error('Harness request timeout must be a positive integer.');
     this.#paceMs = paceMs;
     this.#timeoutMs = timeoutMs;
     this.#fetch = options.fetch ?? globalThis.fetch;
@@ -133,48 +103,25 @@ export class HarnessHttpClient {
   async get(url: URL | string, init: RequestInit = {}): Promise<HarnessHttpResponse> {
     let releaseQueue!: () => void;
     const previous = this.#queue;
-    this.#queue = new Promise<void>((resolve) => {
-      releaseQueue = resolve;
-    });
-
+    this.#queue = new Promise<void>((resolve) => { releaseQueue = resolve; });
     await previous;
+    const requestUrl = new URL(String(url));
+    const host = requestUrl.host;
     try {
-      const waitMs = Math.max(0, this.#nextRequestAt - this.#now());
-      if (waitMs > 0) {
-        await this.#sleep(waitMs);
-      }
-
-      this.#nextRequestAt = this.#now() + this.#paceMs;
+      const waitMs = Math.max(0, (this.#nextRequestAtByHost.get(host) ?? 0) - this.#now());
+      if (waitMs > 0) await this.#sleep(waitMs);
+      this.#nextRequestAtByHost.set(host, this.#now() + this.#paceMs);
       const headers = new Headers(init.headers);
       headers.set('accept-encoding', 'gzip');
       headers.set('user-agent', this.#userAgent);
       const timeoutSignal = AbortSignal.timeout(this.#timeoutMs);
       const signal = init.signal ? AbortSignal.any([init.signal, timeoutSignal]) : timeoutSignal;
-
-      const response = await this.#fetch(url, {
-        ...init,
-        method: 'GET',
-        redirect: 'follow',
-        headers,
-        signal
-      });
+      const response = await this.#fetch(requestUrl, { ...init, method: 'GET', redirect: 'follow', headers, signal });
       const body = await response.text();
       const retryAfterMs = parseRetryAfter(response.headers.get('retry-after'), this.#now());
-      if (retryAfterMs !== null) {
-        this.#nextRequestAt = Math.max(this.#nextRequestAt, this.#now() + retryAfterMs);
-      }
-
+      if (retryAfterMs !== null) this.#nextRequestAtByHost.set(host, Math.max(this.#nextRequestAtByHost.get(host) ?? 0, this.#now() + retryAfterMs));
       const blockedReason = detectBlockedResponse(response.status, body);
-      return {
-        url: response.url || String(url),
-        status: response.status,
-        headers: response.headers,
-        body,
-        blocked: blockedReason !== null,
-        ...(blockedReason ? { blockedReason } : {})
-      };
-    } finally {
-      releaseQueue();
-    }
+      return { url: response.url || requestUrl.href, status: response.status, headers: response.headers, body, blocked: blockedReason !== null, ...(blockedReason ? { blockedReason } : {}) };
+    } finally { releaseQueue(); }
   }
 }
