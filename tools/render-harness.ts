@@ -1,48 +1,38 @@
+import { BloggerDiscoveryClient } from './harness/blogger-api.js';
 import { extractThemeBuild } from './harness/build-stamp.js';
 import { HarnessHttpClient } from './harness/http.js';
-import { fatalHarnessSummary, summarizeHarnessRun, type HarnessSummary } from './harness/result.js';
+import { fatalHarnessSummary, summarizeHarnessRun, type HarnessAssertion, type HarnessSummary } from './harness/result.js';
+import { assessView, createViewTargets } from './harness/views.js';
 
-function requiredEnvironment(name: 'STAGING_URL' | 'EXPECTED_THEME_BUILD'): string {
-  const value = process.env[name]?.trim();
-  if (!value) {
-    throw new Error(`${name} is required.`);
-  }
-  return value;
-}
+function required(name: 'STAGING_URL' | 'EXPECTED_THEME_BUILD' | 'BLOGGER_BLOG_ID'): string { const value = process.env[name]?.trim(); if (!value) throw new Error(`${name} is required.`); return value; }
+function olderUrl(html: string): string | undefined { return html.match(/<a\b[^>]*(?:id=(['"])Blog1_blog-pager-older-link\1|class=(['"])[^'"]*blog-pager-older-link[^'"]*\2)[^>]*href=(['"])(.*?)\3/i)?.[4]; }
 
-function printSummary(summary: HarnessSummary): void {
-  console.log(JSON.stringify(summary, null, 2));
-}
-
-async function main(): Promise<void> {
-  let summary: HarnessSummary;
+async function main(): Promise<HarnessSummary> {
   try {
-    const stagingUrl = new URL(requiredEnvironment('STAGING_URL'));
-    const expectedBuild = requiredEnvironment('EXPECTED_THEME_BUILD');
+    const stagingUrl = new URL(required('STAGING_URL'));
+    const expectedBuild = required('EXPECTED_THEME_BUILD');
     const client = new HarnessHttpClient();
-    const response = await client.get(stagingUrl);
+    const home = await client.get(stagingUrl);
+    if (home.blocked) return summarizeHarnessRun([{ requirementId: 'R-BUILD-2 AC2', status: 'BLOCKED', message: 'Build-stamp gate could not be measured.', evidence: home.blockedReason ?? `HTTP ${home.status}` }]);
+    if (home.status < 200 || home.status >= 400) return fatalHarnessSummary(`Staging homepage returned HTTP ${home.status}; no render assertions ran.`);
+    const deployed = extractThemeBuild(home.body);
+    if (deployed !== expectedBuild) return summarizeHarnessRun([], { expected: expectedBuild, deployed });
 
-    if (response.blocked) {
-      summary = summarizeHarnessRun([{
-        requirementId: 'R-BUILD-2 AC2',
-        status: 'BLOCKED',
-        message: 'Build-stamp gate could not be measured.',
-        evidence: response.blockedReason ?? `HTTP ${response.status}`
-      }]);
-    } else if (response.status < 200 || response.status >= 400) {
-      summary = fatalHarnessSummary(`Staging homepage returned HTTP ${response.status}; no render assertions ran.`);
-    } else {
-      summary = summarizeHarnessRun([], {
-        expected: expectedBuild,
-        deployed: extractThemeBuild(response.body)
-      });
+    const discovery = new BloggerDiscoveryClient(client, { ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}), ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {}) });
+    const [posts, pages] = await Promise.all([discovery.listAllPosts(required('BLOGGER_BLOG_ID')), discovery.listPages(required('BLOGGER_BLOG_ID'))]);
+    const targets = createViewTargets(stagingUrl.href, posts, pages, { ...(olderUrl(home.body) ? { olderUrl: olderUrl(home.body) } : {}), ...(process.env.LAYOUT_MODE_URL ? { layoutModeUrl: process.env.LAYOUT_MODE_URL } : {}) });
+    const assertions: HarnessAssertion[] = [];
+    for (const target of targets) {
+      if (!target.url) { assertions.push(assessView(target, 0, '')); continue; }
+      const response = target.name === 'home-p1' ? home : await client.get(target.url);
+      if (response.blocked) assertions.push({ requirementId: target.requirementId, status: 'BLOCKED', message: `${target.name} could not be measured.`, evidence: response.blockedReason ?? `HTTP ${response.status}` });
+      else assertions.push(assessView(target, response.status, response.body));
     }
-  } catch (error) {
-    summary = fatalHarnessSummary(error instanceof Error ? error.message : String(error));
-  }
-
-  printSummary(summary);
-  process.exitCode = summary.exitCode;
+    return summarizeHarnessRun(assertions, { expected: expectedBuild, deployed });
+  } catch (error) { return fatalHarnessSummary(error instanceof Error ? error.message : String(error)); }
 }
 
-await main();
+const summary = await main();
+for (const assertion of summary.assertions) console.log(`[${assertion.status}] ${assertion.requirementId} ${assertion.message}`);
+console.log(JSON.stringify({ outcome: summary.outcome, counts: summary.counts, reason: summary.reason }, null, 2));
+process.exitCode = summary.exitCode;

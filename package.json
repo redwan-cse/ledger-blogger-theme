@@ -4,16 +4,15 @@
   "private": true,
   "description": "A Blogger Layouts V3 theme verified against Blogger-rendered HTML.",
   "type": "module",
-  "engines": {
-    "node": ">=24.18.1 <25",
-    "npm": ">=11"
-  },
+  "engines": { "node": ">=24.18.1 <25", "npm": ">=11" },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "harness": "tsx tools/render-harness.ts",
-    "harness:browser": "playwright test"
+    "harness:browser": "playwright test",
+    "deploy:check": "tsx tools/deploy-check.ts",
+    "seed:staging": "tsx tools/seed-staging.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.0",
