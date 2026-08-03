@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
+  <head>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta content="0.0.0+eb13f55d6560cb586a5c584815f4d2dcd2d89378" name="theme-build"/>
+    <title>Ledger M1 generation scaffold</title>
+    <b:skin version="0.0.0">
+      <![CDATA[
+:root{color:oklch(.23 .012 85);background:oklch(.984 .004 85)}body{margin:0;min-height:100vh;font-family:system-ui,sans-serif}main{min-height:1px}
+      ]]>
+    </b:skin>
+  </head>
+  <body>
+    <header>
+      <b:section id="masthead" maxwidgets="1" name="Masthead" showaddelement="no">
+        <b:widget id="Header1" locked="true" title="Blog Header" type="Header" version="2" visible="true">
+          <b:includable id="main" var="this">
+            <p>M1 generation scaffold</p>
+          </b:includable>
+        </b:widget>
+      </b:section>
+    </header>
+    <main id="main">
+      <b:section id="mainContent" maxwidgets="1" name="Posts" preferred="yes" showaddelement="no">
+        <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
+          <b:includable id="main">
+            <b:comment>M2 owns the real Blog render path.</b:comment>
+          </b:includable>
+        </b:widget>
+      </b:section>
+    </main>
+    <script>(()=>{document.documentElement.classList.add("js");})();</script>
+  </body>
+</html>
