@@ -48,4 +48,6 @@ All staging/API configuration uses environment variables documented in `.env.exa
 
 ## License
 
-MIT
+Source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE): personal and other noncommercial use, modification, and contribution are allowed; commercial use is not. This is **not an OSI-approved open-source license**.
+
+The repository contains identity-specific material belonging to Md Redwan Ahmed and Fast Cyber Defense, including names, biography, domains, blog content, media, logos, and branding. That material is not licensed for reuse and must be removed or replaced before any public deployment, publication, or redistribution as a website or theme.
