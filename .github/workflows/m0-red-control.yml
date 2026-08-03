@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   red-control:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     environment: blogger-live
     env:
@@ -42,8 +42,6 @@ jobs:
           GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
         run: npx tsx tools/google-access-token.ts
-      - name: Cool down Blogger before the single measured run
-        run: sleep 120
       - name: Run stamp-gated empty-theme harness
         id: harness
         shell: bash
