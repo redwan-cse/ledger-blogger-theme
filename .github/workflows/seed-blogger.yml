@@ -1,0 +1,40 @@
+name: Seed Blogger development target
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type I_ACCEPT_PUBLIC_DOWNTIME to seed the approved Blogger target
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blogger-live-writes
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    if: inputs.confirmation == 'I_ACCEPT_PUBLIC_DOWNTIME'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: blogger-live
+    env:
+      BLOGGER_BLOG_ID: '5972841034338492159'
+      ALLOW_LIVE_BLOG_TESTING: I_ACCEPT_PUBLIC_DOWNTIME
+      GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+      BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Refresh short-lived access token
+        run: npx tsx tools/google-access-token.ts
+      - name: Seed approved Blogger target
+        run: npm run seed:staging
