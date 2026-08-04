@@ -9,7 +9,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
       b:widget-setting(name='showBacklinks') false
       b:widget-setting(name='showInlineAds') false
       b:widget-setting(name='showShareButtons') false
-
     b:includable(id='main')
       b:if(cond='data:view.isError')
         b:include(name='errorState')/
@@ -21,7 +20,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
             b:loop(values='data:posts' var='post')
               b:include(data='data:post' name='post')/
           b:include(name='postPagination')/
-
     b:includable(id='post' var='post')
       article.post-row(expr:data-post-id='data:post.id')
         b:if(cond='data:view.isHomepage and not data:newerPageUrl')
@@ -34,7 +32,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
         b:include(data='data:post' name='postFooter')/
         b:if(cond='data:view.isPost')
           b:include(data='data:post' name='postCommentsAndAd')/
-
     b:includable(id='postHeader' var='post')
       header.post-header
         b:include(data='data:post' name='postTitle')/
@@ -60,7 +57,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
     b:includable(id='postBodySnippet' var='post')
       p.post-snippet
         data:post.snippets.long/
-
     b:includable(id='postFooter' var='post')
       b:if(cond='data:view.isPost')
         footer.post-footer
@@ -76,7 +72,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
         b:if(cond='data:post.author.aboutMe')
           p
             data:post.author.aboutMe/
-
     b:includable(id='postCommentsAndAd' var='post')
       b:include(data='data:post' name='comments')/
     b:includable(id='comments' var='post')
@@ -114,7 +109,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
       data:post.commentFormIframeSrc/
     b:includable(id='threadedComments' var='post')
       b:include(data='data:post' name='commentList')/
-
     b:includable(id='postPagination')
       b:if(cond='data:newerPageUrl or data:olderPageUrl')
         nav.blog-pager(aria-label='Posts')
@@ -128,7 +122,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
       a.blog-pager-older-link(expr:href='data:olderPageUrl') Older
     b:includable(id='homePageLink')
       a(expr:href='data:blog.homepageUrl') All posts
-
     b:includable(id='status-message')
       div.empty-state(role='status')
         b:if(cond='data:view.isSearch and not data:view.isLabelSearch')
@@ -155,7 +148,6 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
           input#error-search(name='q' type='search')/
           button(type='submit') Search
         b:include(name='homePageLink')/
-
     b:includable(id='postCommentsLink' var='post')
       a(expr:href='data:post.commentsUrl')
         data:post.numberOfComments/

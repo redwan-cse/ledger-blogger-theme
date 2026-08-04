@@ -5,14 +5,13 @@ import { generateTheme } from '../../tools/generate.js';
 const sha = '0123456789abcdef0123456789abcdef01234567';
 interface RuleCase { id: string; violate(xml: string): string; comment: string; parserFailure?: boolean }
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
-
 const cases: readonly RuleCase[] = [
   { id: 'well-formed', violate: (xml) => xml.replace('<main id="content" role="main" tabindex="-1">', '<main id="content" id="duplicate" role="main" tabindex="-1">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
   { id: 'layouts-v3', violate: (xml) => xml.replace('b:layoutsVersion="3"', 'b:layoutsVersion="2"'), comment: "b:layoutsVersion='2' is forbidden" },
   { id: 'widget-v2', violate: (xml) => xml.replace(' version="2"', ''), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
-  { id: 'section-ids', violate: (xml) => xml.replace('id="main" maxwidgets="1"', 'id="masthead" maxwidgets="1"'), comment: 'duplicate section id masthead' },
+  { id: 'section-ids', violate: (xml) => xml.replace('id="mainContent" maxwidgets="1"', 'id="masthead" maxwidgets="1"'), comment: 'duplicate section id masthead' },
   { id: 'header-widget', violate: (xml) => xml.replace('type="Header"', 'type="HTML"'), comment: 'missing Header widget' },
   { id: 'no-v2-accessors', violate: (xml) => inject(xml, '<b:with value="data:blog.url == data:blog.homepageUrl" var="wrong"/>'), comment: 'URL equality is fragile view dispatch' },
   { id: 'no-macro-tags', violate: (xml) => xml.replace('xmlns:expr=', 'xmlns:macro="urn:macro" xmlns:expr=').replace('</main>', '<macro:include name="x"/></main>'), comment: 'macro:include is banned' },
@@ -29,38 +28,20 @@ const cases: readonly RuleCase[] = [
 ];
 
 describe('V3 contract checker blind-spot matrix', () => {
-  it('covers every registered rule exactly once', () => {
-    expect(cases.map((item) => item.id).sort()).toEqual(contractRules.map((rule) => rule.id).sort());
-  });
-
+  it('covers every registered rule exactly once', () => { expect(cases.map((item) => item.id).sort()).toEqual(contractRules.map((rule) => rule.id).sort()); });
   for (const testCase of cases) it(`${testCase.id}: isolates a violation and ignores both comment forms`, async () => {
-    const { xml } = await generateTheme({ sha, write: false });
-    const violated = testCase.violate(xml);
-    expect(violated).not.toBe(xml);
+    const { xml } = await generateTheme({ sha, write: false }); const violated = testCase.violate(xml); expect(violated).not.toBe(xml);
     const findings = checkThemeContract(violated).map((finding) => finding.ruleId);
-    if (testCase.parserFailure) expect(findings).toEqual(['well-formed', 'declared-entities']);
-    else expect(findings).toEqual([testCase.id]);
-
+    if (testCase.parserFailure) expect(findings).toEqual(['well-formed', 'declared-entities']); else expect(findings).toEqual([testCase.id]);
     const safe = testCase.comment.replace(/--/g, '—').replace(/&/g, 'and');
-    const htmlComment = xml.replace('</body>', `<!-- ${safe} --></body>`);
-    const bloggerComment = xml.replace('</main>', `<b:comment>${safe}</b:comment></main>`);
-    expect(checkThemeContract(htmlComment)).toEqual([]);
-    expect(checkThemeContract(bloggerComment)).toEqual([]);
+    expect(checkThemeContract(xml.replace('</body>', `<!-- ${safe} --></body>`))).toEqual([]);
+    expect(checkThemeContract(xml.replace('</main>', `<b:comment>${safe}</b:comment></main>`))).toEqual([]);
   });
-
   it('rejects malformed XML classes the regex checker missed', async () => {
     const { xml } = await generateTheme({ sha, write: false });
-    const mutations = [
-      xml.replace('</html>', '</html><extra/>'),
-      xml.replace('<main id="content" role="main" tabindex="-1">', '<bad:main id="content" role="main" tabindex="-1">').replace('</main>', '</bad:main>'),
-      xml.replace('<main id="content" role="main" tabindex="-1">', '<main id="content" role="main" tabindex="-1" broken>'),
-      xml.replace('<main id="content" role="main" tabindex="-1">', '<main id="content" role="main" tabindex="-1"> stray < text')
-    ];
+    const start = '<main id="content" role="main" tabindex="-1">';
+    const mutations = [xml.replace('</html>', '</html><extra/>'), xml.replace(start, '<bad:main id="content" role="main" tabindex="-1">').replace('</main>', '</bad:main>'), xml.replace(start, '<main id="content" role="main" tabindex="-1" broken>'), xml.replace(start, `${start} stray < text`)];
     for (const mutation of mutations) expect(checkThemeContract(mutation).map((finding) => finding.ruleId)).toContain('well-formed');
   });
-
-  it('accepts the actual generated M2 render skeleton', async () => {
-    const { xml } = await generateTheme({ sha, write: false });
-    expect(checkThemeContract(xml)).toEqual([]);
-  });
+  it('accepts the actual generated M2 render skeleton', async () => { expect(checkThemeContract((await generateTheme({ sha, write: false })).xml)).toEqual([]); });
 });
