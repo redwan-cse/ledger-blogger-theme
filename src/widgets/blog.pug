@@ -123,15 +123,12 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
 
     b:includable(id='commentsTitle' var='post')
       h2 Comments
-
     b:includable(id='threadedComments' var='post')
       b:include(data='data:post' name='commentList')/
-
     b:includable(id='commentList' var='post')
       ol.comment-list
         b:loop(values='data:post.comments' var='comment')
           b:include(data='data:comment' name='commentItem')/
-
     b:includable(id='commentItem' var='comment')
       li.comment(expr:data-comment-id='data:comment.id')
         b:if(cond='data:comment.isDeleted')
@@ -146,11 +143,9 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
             b:eval(expr='data:comment.body')/
           time(expr:datetime='data:comment.timestampValue')
             b:eval(expr='data:comment.timestamp')/
-
     b:includable(id='commentForm' var='post')
       div.comment-form
         b:include(data='data:post' name='commentFormIframeSrc')/
-
     b:includable(id='commentFormIframeSrc' var='post')
       b:if(cond='data:post.commentFormIframeSrc')
         iframe(expr:src='data:post.commentFormIframeSrc' title='Comment form')/
@@ -162,7 +157,6 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
             b:include(name='previousPageLink')/
           b:if(cond='data:olderPageUrl')
             b:include(name='nextPageLink')/
-
     b:includable(id='previousPageLink')
       a.blog-pager-newer-link(expr:href='data:newerPageUrl') Newer
     b:includable(id='nextPageLink')
@@ -173,7 +167,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
     b:includable(id='recentList' var='posts')
       ul.recent-posts
         b:loop(index='i' values='data:posts' var='recent')
-          b:if(cond='data:i < 5')
+          b:if(cond='data:i &lt; 5')
             li
               a(expr:href='data:recent.url')
                 b:eval(expr='data:recent.title')/

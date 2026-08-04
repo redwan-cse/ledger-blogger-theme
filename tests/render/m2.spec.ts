@@ -9,11 +9,9 @@ function required(name: 'STAGING_URL' | 'EXPECTED_THEME_BUILD' | 'BLOGGER_BLOG_I
   if (!value) throw new Error(`${name} is required for conclusive M2 browser verification.`);
   return value;
 }
-
 function olderUrl(html: string): string | undefined {
   return html.match(/<a\b[^>]*(?:id=(['"])Blog1_blog-pager-older-link\1|class=(['"])[^'"]*blog-pager-older-link[^'"]*\2)[^>]*href=(['"])(.*?)\3/i)?.[4];
 }
-
 let targets: ViewTarget[] = [];
 
 test.beforeAll(async ({ request }) => {
@@ -23,7 +21,6 @@ test.beforeAll(async ({ request }) => {
   expect(response.status(), 'staging homepage must be measurable').toBeLessThan(400);
   const homeHtml = await response.text();
   expect(extractThemeBuild(homeHtml), 'browser assertions must target the current build').toBe(expectedBuild);
-
   const client = new HarnessHttpClient();
   const discovery = new BloggerDiscoveryClient(client, {
     ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
@@ -33,10 +30,10 @@ test.beforeAll(async ({ request }) => {
     discovery.listAllPosts(required('BLOGGER_BLOG_ID')),
     discovery.listPages(required('BLOGGER_BLOG_ID'))
   ]);
-  targets = createViewTargets(stagingUrl, posts, pages, {
-    olderUrl: olderUrl(homeHtml),
-    layoutModeUrl: required('LAYOUT_MODE_URL')
-  });
+  const options: { olderUrl?: string; layoutModeUrl: string } = { layoutModeUrl: required('LAYOUT_MODE_URL') };
+  const older = olderUrl(homeHtml);
+  if (older) options.olderUrl = older;
+  targets = createViewTargets(stagingUrl, posts, pages, options);
   expect(targets.every((target) => target.url), 'all ten M2 view preconditions must exist').toBe(true);
 });
 
@@ -54,14 +51,16 @@ test('all ten views render visible server content', async ({ page }) => {
 });
 
 test('static pages omit post-only chrome', async ({ page }) => {
-  const target = targets.find((item) => item.name === 'static-page')!;
-  await page.goto(target.url!);
+  const target = targets.find((item) => item.name === 'static-page');
+  expect(target?.url).toBeTruthy();
+  await page.goto(target!.url!);
   await expect(page.locator('.share-bar, .author-bio, .related, .reading-progress')).toHaveCount(0);
 });
 
 test('post pages contain the complete structural path', async ({ page }) => {
-  const target = targets.find((item) => item.name === 'post')!;
-  await page.goto(target.url!);
+  const target = targets.find((item) => item.name === 'post');
+  expect(target?.url).toBeTruthy();
+  await page.goto(target!.url!);
   await expect(page.locator('.article-body')).toBeVisible();
   await expect(page.locator('.share-bar')).toHaveCount(1);
   await expect(page.locator('.author-bio')).toHaveCount(1);
