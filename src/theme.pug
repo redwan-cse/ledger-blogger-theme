@@ -3,22 +3,18 @@ html&attributes(rootAttributes)
   head
     meta(content='width=device-width, initial-scale=1' name='viewport')/
     meta(content=build name='theme-build')/
-    title Ledger M1 generation scaffold
+    title
+      data:view.title.escaped/
     b:skin(version=templateVersion).
       <![CDATA[
       !{css}
       ]]>
   body
-    header
-      b:section(id='masthead' maxwidgets='1' name='Masthead' showaddelement='no')
-        b:widget(id='Header1' locked='true' title='Blog Header' type='Header' version='2' visible='true')
-          b:includable(id='main' var='this')
-            p M1 generation scaffold
-    main(id='main')
-      b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddelement='no')
-        b:widget(id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true')
-          b:includable(id='main')
-            b:comment M2 owns the real Blog render path.
+    a.skip-link(href='#content') Skip to content
+    header(role='banner')
+      include widgets/header.pug
+    main#content(role='main' tabindex='-1')
+      include widgets/blog.pug
     if script
       script.
         !{script}

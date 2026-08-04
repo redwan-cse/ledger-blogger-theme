@@ -1,0 +1,14 @@
+b:section(id='masthead' maxwidgets='1' name='Masthead' showaddelement='no')
+  b:widget(id='Header1' locked='true' title='Blog Header' type='Header' version='2' visible='true')
+    b:includable(id='main' var='this')
+      b:if(cond='data:view.isHomepage')
+        h1.site-title
+          a(expr:href='data:blog.homepageUrl')
+            data:title/
+      b:else/
+        p.site-title
+          a(expr:href='data:blog.homepageUrl')
+            data:title/
+      b:if(cond='data:description')
+        p.site-tagline
+          data:description/

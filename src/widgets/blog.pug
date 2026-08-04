@@ -1,0 +1,206 @@
+b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='no')
+  b:widget(id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true')
+    b:widget-settings
+      b:widget-setting(name='showDateHeader') false
+      b:widget-setting(name='showAuthor') true
+      b:widget-setting(name='showLabels') true
+      b:widget-setting(name='showTimestamp') true
+      b:widget-setting(name='showCommentLink') true
+      b:widget-setting(name='showBacklinks') false
+      b:widget-setting(name='showInlineAds') false
+      b:widget-setting(name='showShareButtons') false
+
+    b:includable(id='main')
+      b:if(cond='data:view.isError')
+        b:include(name='errorState')/
+      b:else/
+        b:if(cond='not data:view.isHomepage')
+          b:include(name='viewHeading')/
+        b:if(cond='data:posts.empty')
+          b:include(name='status-message')/
+        b:else/
+          div.blog-posts
+            b:loop(index='i' values='data:posts' var='post')
+              b:include(data='{ post: data:post, index: data:i }' name='post')/
+          b:if(cond='data:view.isMultipleItems')
+            b:include(name='postPagination')/
+
+    b:includable(id='viewHeading')
+      b:if(cond='data:view.isLabelSearch')
+        h1.view-title Filed under 
+          data:view.search.label/
+      b:elseif(cond='data:view.isSearch and not data:view.isLabelSearch')/
+        h1.view-title Results for 
+          data:view.search.query/
+      b:elseif(cond='data:view.isArchive')/
+        h1.view-title
+          data:view.archive.rangeMessage/
+
+    b:includable(id='post' var='entry')
+      article
+        b:class(expr:name='data:view.isHomepage and not data:newerPageUrl and data:entry.index == 0 ? "post-lead" : "post-row"')/
+        b:include(data='data:entry.post' name='postHeader')/
+        b:if(cond='data:view.isSingleItem')
+          b:include(data='data:entry.post' name='postBody')/
+        b:else/
+          b:include(data='data:entry.post' name='postBodySnippet')/
+        b:include(data='data:entry.post' name='postFooter')/
+        b:if(cond='data:view.isPost')
+          b:include(data='data:entry.post' name='postCommentsAndAd')/
+
+    b:includable(id='postHeader' var='post')
+      header.post-header
+        b:include(data='data:post' name='postTitle')/
+        b:include(data='data:post' name='postMeta')/
+
+    b:includable(id='postTitle' var='post')
+      b:if(cond='data:view.isSingleItem')
+        h1.post-title
+          data:post.title/
+      b:else/
+        h2.post-title
+          a(expr:href='data:post.url')
+            data:post.title/
+
+    b:includable(id='postMeta' var='post')
+      p.post-meta
+        time(expr:datetime='data:post.date.iso8601')
+          data:post.date/
+        b:if(cond='data:post.author.name')
+          span.post-author
+            data:post.author.name/
+
+    b:includable(id='postBody' var='post')
+      div.article-body
+        data:post.body/
+
+    b:includable(id='postBodySnippet' var='post')
+      p.post-snippet
+        b:eval(expr='snippet(data:post.snippets.long, {length: 180, links: false, linebreaks: false, ellipsis: true})')/
+
+    b:includable(id='postFooter' var='post')
+      b:if(cond='data:view.isPost')
+        footer.post-footer
+          div.share-bar
+            a(expr:href='data:post.url.canonical') Permalink
+          b:include(data='data:post' name='postFooterAuthorProfile')/
+          div.related
+          div.reading-progress
+
+    b:includable(id='postFooterAuthorProfile' var='post')
+      div.author-bio
+        b:if(cond='data:post.author.profileUrl')
+          a.author-name(expr:href='data:post.author.profileUrl' rel='author')
+            data:post.author.name/
+        b:else/
+          span.author-name
+            data:post.author.name/
+        b:if(cond='data:post.author.aboutMe')
+          p
+            data:post.author.aboutMe/
+
+    b:includable(id='postCommentsAndAd' var='post')
+      b:include(data='data:post' name='comments')/
+
+    b:includable(id='comments' var='post')
+      b:if(cond='data:post.allowComments')
+        section.comments
+          b:include(data='data:post' name='commentsTitle')/
+          b:if(cond='data:post.comments.empty')
+            p.comments-empty No comments yet.
+          b:else/
+            b:include(data='data:post' name='threadedComments')/
+          b:if(cond='data:post.allowNewComments')
+            b:include(data='data:post' name='commentForm')/
+
+    b:includable(id='commentsTitle' var='post')
+      h2 Comments
+
+    b:includable(id='threadedComments' var='post')
+      b:include(data='data:post' name='commentList')/
+
+    b:includable(id='commentList' var='post')
+      ol.comment-list
+        b:loop(values='data:post.comments' var='comment')
+          b:include(data='data:comment' name='commentItem')/
+
+    b:includable(id='commentItem' var='comment')
+      li.comment
+        b:if(cond='data:comment.isDeleted')
+          p.comment-tombstone Comment deleted.
+        b:else/
+          p.comment-author
+            b:if(cond='data:comment.author')
+              data:comment.author/
+            b:else/
+              | Anonymous
+          div.comment-body
+            data:comment.body/
+          time(expr:datetime='data:comment.timestampValue')
+            data:comment.timestamp/
+
+    b:includable(id='commentForm' var='post')
+      div.comment-form
+        b:include(data='data:post' name='commentFormIframeSrc')/
+
+    b:includable(id='commentFormIframeSrc' var='post')
+      b:if(cond='data:post.commentFormIframeSrc')
+        iframe(expr:src='data:post.commentFormIframeSrc' title='Comment form')/
+
+    b:includable(id='postPagination')
+      b:if(cond='data:newerPageUrl or data:olderPageUrl')
+        nav.blog-pager(aria-label='Posts')
+          b:if(cond='data:newerPageUrl')
+            b:include(name='previousPageLink')/
+          b:if(cond='data:olderPageUrl')
+            b:include(name='nextPageLink')/
+
+    b:includable(id='previousPageLink')
+      a.blog-pager-newer-link(expr:href='data:newerPageUrl') Newer
+    b:includable(id='nextPageLink')
+      a.blog-pager-older-link(expr:href='data:olderPageUrl') Older
+    b:includable(id='homePageLink')
+      a(expr:href='data:blog.homepageUrl') All posts
+
+    b:includable(id='status-message')
+      div.empty-state(role='status')
+        b:if(cond='data:view.isSearch and not data:view.isLabelSearch')
+          p Nothing matched “
+            data:view.search.query/
+            | ”.
+        b:elseif(cond='data:view.isLabelSearch')/
+          p Nothing filed under “
+            data:view.search.label/
+            | ” yet.
+        b:elseif(cond='data:view.isArchive')/
+          p
+            data:view.archive.rangeMessage/
+            |  has no posts.
+        b:else/
+          p No posts published yet.
+        b:include(name='homePageLink')/
+
+    b:includable(id='errorState')
+      section.empty-state
+        h1 That page doesn’t exist.
+        p Search the journal or return to all posts.
+        form(expr:action='data:blog.searchUrl' role='search')
+          label(for='error-search') Search
+          input#error-search(name='q' type='search')/
+          button(type='submit') Search
+        b:include(name='homePageLink')/
+
+    b:includable(id='postCommentsLink' var='post')
+      a(expr:href='data:post.commentsUrl')
+        data:post.numberOfComments/
+    b:includable(id='postJumpLink')/
+    b:includable(id='feedLinks')/
+    b:includable(id='feedLinksBody')/
+    b:includable(id='inlineAd')/
+    b:includable(id='commentAuthorAvatar')/
+    b:includable(id='commentDeleteIcon')/
+    b:includable(id='commentPicker')/
+    b:includable(id='threadedCommentForm')/
+    b:includable(id='threadedCommentJs')/
+    b:includable(id='addComments')/
+    b:includable(id='aboutPostAuthor')/
