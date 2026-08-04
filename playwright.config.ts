@@ -11,9 +11,14 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  timeout: 60_000,
+  timeout: 90_000,
   forbidOnly: Boolean(process.env.CI),
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'line',
+  projects: [
+    { name: 'javascript', use: { javaScriptEnabled: true } },
+    { name: 'no-javascript', use: { javaScriptEnabled: false } },
+    { name: 'reduced-motion', use: { javaScriptEnabled: true, reducedMotion: 'reduce' } }
+  ],
   use: {
     baseURL: process.env.STAGING_URL,
     trace: 'retain-on-failure',

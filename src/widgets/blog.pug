@@ -37,7 +37,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
           b:eval(expr='data:view.archive.rangeMessage')/
 
     b:includable(id='post' var='entry')
-      article
+      article(expr:data-post-id='data:entry.post.id')
         b:class(expr:name='data:view.isHomepage and not data:newerPageUrl and data:entry.index == 0 ? "post-lead" : "post-row"')/
         b:include(data='data:entry.post' name='postHeader')/
         b:if(cond='data:view.isSingleItem')
@@ -72,7 +72,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
 
     b:includable(id='postBody' var='post')
       div.article-body
-        b:eval(expr='data:post.body')/
+        != '<data:post.body/>'
 
     b:includable(id='postBodySnippet' var='post')
       p.post-snippet
@@ -106,10 +106,18 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       b:if(cond='data:post.allowComments')
         section.comments
           b:include(data='data:post' name='commentsTitle')/
-          b:if(cond='data:post.comments.empty')
-            p.comments-empty No comments yet.
-            b:else/
-            b:include(data='data:post' name='threadedComments')/
+          b:with(value='data:post.comments filter (c => not data:c.inReplyTo)' var='roots')
+            b:if(cond='data:roots.empty')
+              p.comments-empty No comments yet.
+              b:else/
+              ol.comment-list
+                b:loop(values='data:roots' var='root')
+                  b:include(data='data:root' name='commentItem')/
+                  b:with(value='data:post.comments filter (c => data:c.inReplyTo == data:root.id)' var='replies')
+                    b:if(cond='not data:replies.empty')
+                      ol.comment-replies
+                        b:loop(values='data:replies' var='reply')
+                          b:include(data='data:reply' name='commentItem')/
           b:if(cond='data:post.allowNewComments')
             b:include(data='data:post' name='commentForm')/
 
@@ -125,7 +133,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
           b:include(data='data:comment' name='commentItem')/
 
     b:includable(id='commentItem' var='comment')
-      li.comment
+      li.comment(expr:data-comment-id='data:comment.id')
         b:if(cond='data:comment.isDeleted')
           p.comment-tombstone Comment deleted.
           b:else/
@@ -162,12 +170,25 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
     b:includable(id='homePageLink')
       a(expr:href='data:blog.homepageUrl') All posts
 
+    b:includable(id='recentList' var='posts')
+      ul.recent-posts
+        b:loop(index='i' values='data:posts' var='recent')
+          b:if(cond='data:i < 5')
+            li
+              a(expr:href='data:recent.url')
+                b:eval(expr='data:recent.title')/
+
     b:includable(id='status-message')
       div.empty-state(role='status')
         b:if(cond='data:view.isSearch and not data:view.isLabelSearch')
           p Nothing matched “
             b:eval(expr='data:view.search.query')/
             | ”.
+          form(expr:action='data:blog.searchUrl' role='search')
+            label(for='empty-search') Search
+            input#empty-search(expr:value='data:view.search.query.escaped' name='q' type='search')/
+            button(type='submit') Search
+          b:include(data='data:widgets.Blog.first.posts' name='recentList')/
           b:elseif(cond='data:view.isLabelSearch')/
           p Nothing filed under “
             b:eval(expr='data:view.search.label')/
@@ -188,6 +209,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
           label(for='error-search') Search
           input#error-search(name='q' type='search')/
           button(type='submit') Search
+        b:include(data='data:widgets.Blog.first.posts' name='recentList')/
         b:include(name='homePageLink')/
 
     b:includable(id='postCommentsLink' var='post')

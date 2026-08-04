@@ -28,15 +28,25 @@ describe('M2 render-path contract', () => {
     }
   });
 
-  it('routes the full post body only through postBody', async () => {
+  it('emits the full post body only through postBody', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
-    expect(widget.match(/<b:eval expr="data:post\.body"\/>/g)).toHaveLength(1);
-    expect(widget).toMatch(/<b:includable id="postBody" var="post">[\s\S]*?<b:eval expr="data:post\.body"\/>[\s\S]*?<\/b:includable>/);
+    expect(widget.match(/<data:post\.body\/>/g)).toHaveLength(1);
+    expect(widget).toMatch(/<b:includable id="postBody" var="post">[\s\S]*?<data:post\.body\/>[\s\S]*?<\/b:includable>/);
+    expect(widget).not.toContain('expr="data:post.body"');
   });
 
   it('keeps post-only chrome behind data:view.isPost', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
     expect(widget).toMatch(/<b:if cond="data:view\.isPost">[\s\S]*?<div class="share-bar">[\s\S]*?<div class="related">[\s\S]*?<div class="reading-progress">/);
+  });
+
+  it('implements threaded comments and five-item recovery lists', async () => {
+    const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
+    expect(widget).toContain('data:post.comments filter (c =&gt; not data:c.inReplyTo)');
+    expect(widget).toContain('data:post.comments filter (c =&gt; data:c.inReplyTo == data:root.id)');
+    expect(widget).toContain('class="comment-tombstone"');
+    expect(widget).toContain('data:i &lt; 5');
+    expect(widget.match(/name="recentList"/g)?.length).toBeGreaterThanOrEqual(3);
   });
 
   it('replaces the M1 scaffold with explicit view, empty, pager, and comment paths', async () => {
@@ -45,6 +55,5 @@ describe('M2 render-path contract', () => {
     expect(xml).toContain('data:view.isError');
     expect(xml).toContain('class="empty-state"');
     expect(xml).toContain('class="blog-pager"');
-    expect(xml).toContain('class="comment-tombstone"');
   });
 });
