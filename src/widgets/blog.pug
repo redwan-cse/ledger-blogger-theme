@@ -52,7 +52,6 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       header.post-header
         b:include(data='data:post' name='postTitle')/
         b:include(data='data:post' name='postMeta')/
-
     b:includable(id='postTitle' var='post')
       b:if(cond='data:view.isSingleItem')
         h1.post-title
@@ -61,7 +60,6 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
         h2.post-title
           a(expr:href='data:post.url')
             b:eval(expr='data:post.title')/
-
     b:includable(id='postMeta' var='post')
       p.post-meta
         time(expr:datetime='data:post.date.iso8601')
@@ -69,11 +67,9 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
         b:if(cond='data:post.author.name')
           span.post-author
             b:eval(expr='data:post.author.name')/
-
     b:includable(id='postBody' var='post')
       div.article-body
         != '<data:post.body/>'
-
     b:includable(id='postBodySnippet' var='post')
       p.post-snippet
         b:eval(expr='snippet(data:post.snippets.long, {length: 180, links: false, linebreaks: false, ellipsis: true})')/
@@ -86,7 +82,6 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
           b:include(data='data:post' name='postFooterAuthorProfile')/
           div.related
           div.reading-progress
-
     b:includable(id='postFooterAuthorProfile' var='post')
       div.author-bio
         b:if(cond='data:post.author.profileUrl')
@@ -101,7 +96,6 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
 
     b:includable(id='postCommentsAndAd' var='post')
       b:include(data='data:post' name='comments')/
-
     b:includable(id='comments' var='post')
       b:if(cond='data:post.allowComments')
         section.comments
@@ -120,7 +114,6 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
                           b:include(data='data:reply' name='commentItem')/
           b:if(cond='data:post.allowNewComments')
             b:include(data='data:post' name='commentForm')/
-
     b:includable(id='commentsTitle' var='post')
       h2 Comments
     b:includable(id='threadedComments' var='post')
@@ -167,11 +160,10 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
     b:includable(id='recentList' var='posts')
       ul.recent-posts
         b:loop(index='i' values='data:posts' var='recent')
-          b:if(cond='data:i &lt; 5')
+          b:if(cond='data:i < 5')
             li
               a(expr:href='data:recent.url')
                 b:eval(expr='data:recent.title')/
-
     b:includable(id='status-message')
       div.empty-state(role='status')
         b:if(cond='data:view.isSearch and not data:view.isLabelSearch')
@@ -194,7 +186,6 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
           b:else/
           p No posts published yet.
         b:include(name='homePageLink')/
-
     b:includable(id='errorState')
       section.empty-state
         h1 That page doesn’t exist.
