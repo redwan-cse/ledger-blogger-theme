@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main, chore/m0-scaffold]
+    branches: [main, feat/m1-generation-pipeline]
   pull_request:
 permissions:
   contents: read
@@ -10,7 +10,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   harness-contract:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -21,3 +22,41 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
+      - name: Enforce fetch-denied contract budget (NFR-2)
+        shell: bash
+        run: |
+          start=$(date +%s%3N)
+          npm run test:contract
+          elapsed=$(( $(date +%s%3N) - start ))
+          echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
+          test "$elapsed" -lt 5000
+  generate:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Enforce cold generation budget (NFR-1)
+        shell: bash
+        run: |
+          rm -rf dist
+          start=$(date +%s%3N)
+          npm run generate
+          elapsed=$(( $(date +%s%3N) - start ))
+          echo "Cold generation: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
+          test "$elapsed" -lt 10000
+      - run: npm run contract:check
+      - run: npm run test:golden
+      - name: Enforce theme size budget
+        run: test "$(wc -c < dist/theme.xml)" -le 200000
+      - uses: actions/upload-artifact@v7
+        with:
+          name: theme-${{ github.sha }}
+          path: dist/theme.xml
+          if-no-files-found: error
+          retention-days: 7

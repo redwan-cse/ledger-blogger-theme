@@ -1,0 +1,17 @@
+$page: oklch(98.4% 0.004 85);
+$ink: oklch(23% 0.012 85);
+
+:root {
+  color: $ink;
+  background: $page;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  min-height: 1px;
+}

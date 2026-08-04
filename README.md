@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M0 complete.** The Node 24.18.1 scaffold, deterministic install, Blogger API fixture seed, serialized ten-view harness, result model, build-stamp gate, native Contempo export, and stamped empty-theme RED control are verified. No real theme source exists yet; M1 is next.
+> **Status: M1 generation pipeline complete, pending merge.** Pug, SCSS, and TypeScript compile deterministically into a stamped V3 XML artifact. The hardened contract suite, canonical golden snapshot, watch mode, size budget, and timing gates are green. The generated theme remains an M1 scaffold; M2 owns the real Blog render path.
 
 ## Rules
 
@@ -14,16 +14,48 @@ A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work
 
 Read in this order: [`AGENTS.md`](AGENTS.md), [`docs/POSTMORTEM.md`](docs/POSTMORTEM.md), [`docs/V3-REFERENCE.md`](docs/V3-REFERENCE.md), [`docs/PROJECT-PLAN.md`](docs/PROJECT-PLAN.md). Harness operation lives in [`docs/HARNESS.md`](docs/HARNESS.md).
 
-## Local checks
+## Setup and core checks
 
 ```sh
 nvm use
 npm ci
 npm run typecheck
 npm test
+npm run test:contract
 ```
 
-## M0 commands
+## M1 generation commands
+
+```sh
+npm run generate         # Pug + SCSS + TypeScript -> dist/theme.xml
+npm run watch            # regenerate after .pug, .scss, or .ts source changes
+npm run contract:check   # validate generated XML against the V3 contract
+npm run test:golden      # byte-diff generated XML after build-SHA normalization
+```
+
+Generation must finish in under 10 seconds, the fetch-denied contract suite in under 5 seconds, and `dist/theme.xml` must remain at or below 200 KB. CI publishes both timings and uploads the verified XML artifact.
+
+### Deliberately updating the golden snapshot
+
+1. Run `npm run generate` and `npm run contract:check`.
+2. Replace only the full SHA in `dist/theme.xml` with `GOLDEN_SHA_40_CHARS________________`.
+3. Review the complete XML diff, then update `tests/golden/theme.xml`.
+4. Run `npm run test:golden` and `npm run test:contract`.
+
+Never update the golden file merely to make CI green.
+
+## Repository source layout
+
+- `src/theme.pug`: generated XML shell and M1 scaffold.
+- `src/styles/`: SCSS compiled into the single `b:skin` CDATA block.
+- `src/scripts/`: TypeScript bundled into one inline IIFE.
+- `tools/generate.ts`: deterministic compiler and size gate.
+- `tools/contract-check.ts`: namespace-aware V3 contract validator.
+- `tools/watch.ts`: serialized, coalescing source watcher that survives failed builds.
+- `tests/contract/`: isolated mutation and blind-spot regression suite.
+- `tests/golden/theme.xml`: canonical generated output snapshot.
+
+## Live Blogger commands
 
 ```sh
 npm run seed:staging
@@ -32,7 +64,11 @@ npm run harness
 npm run harness:browser
 ```
 
-All staging/API configuration uses environment variables documented in `.env.example`. Never commit credentials.
+All Blogger/API configuration uses environment variables documented in `.env.example`. Never commit credentials. Live Layout-mode rendering and the complete Blog-widget includable contract remain M2 gates; M1 does not claim them.
+
+## Self-hosted runner safety
+
+CI currently uses repository-scoped persistent Linux runners while this repository is private. Jobs reject fork pull requests before reaching those runners. Before making the repository public, add a dedicated runner label, restrict runner access to trusted branches/environments, and keep untrusted fork code on ephemeral GitHub-hosted runners.
 
 ## Layout zones
 
@@ -50,4 +86,4 @@ All staging/API configuration uses environment variables documented in `.env.exa
 
 Source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE): personal and other noncommercial use, modification, and contribution are allowed; commercial use is not. This is **not an OSI-approved open-source license**.
 
-The repository contains identity-specific material belonging to Md Redwan Ahmed and Fast Cyber Defense, including names, biography, domains, blog content, media, logos, and branding. That material is not licensed for reuse and must be removed or replaced before any public deployment, publication, or redistribution as a website or theme.
+Identity-specific material belonging to Md Redwan Ahmed and Fast Cyber Defense is not licensed for reuse and must be replaced before public deployment or redistribution.
