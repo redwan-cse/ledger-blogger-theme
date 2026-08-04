@@ -53,7 +53,7 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
             data:post.author.name/
     b:includable(id='postBody' var='post')
       div.article-body
-        data:post.body/
+        != '<data:post.body/>'
     b:includable(id='postBodySnippet' var='post')
       p.post-snippet
         data:post.snippets.long/
