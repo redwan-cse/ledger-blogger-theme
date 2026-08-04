@@ -19,7 +19,7 @@ jobs:
       BLOGGER_BLOG_ID: '5972841034338492159'
       LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
       HARNESS_PACE_MS: '4000'
-      EXPECTED_THEME_BUILD: 0.0.0+b184537233a9a460d1a2488806b6492c51f033ed
+      EXPECTED_THEME_BUILD: 0.0.0+7adbdf8efb4c7babe67a349f2a8e5beb408a840f
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
