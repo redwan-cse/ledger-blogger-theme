@@ -46,7 +46,8 @@ describe('M2 render-path contract', () => {
     expect(widget).toContain('data:post.comments filter (c =&gt; data:c.inReplyTo == data:root.id)');
     expect(widget).toContain('class="comment-tombstone"');
     expect(widget).toContain('data:i &lt; 5');
-    expect(widget.match(/name="recentList"/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(widget.match(/<b:includable id="recentList"/g) ?? []).toHaveLength(1);
+    expect(widget.match(/<b:include data="data:widgets\.Blog\.first\.posts" name="recentList"\/>/g) ?? []).toHaveLength(2);
   });
 
   it('replaces the M1 scaffold with explicit view, empty, pager, and comment paths', async () => {
