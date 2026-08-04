@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main, feat/m1-generation-pipeline]
+    branches: [main, feat/m2-render-path]
   pull_request:
 permissions:
   contents: read
@@ -30,6 +30,20 @@ jobs:
           elapsed=$(( $(date +%s%3N) - start ))
           echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
           test "$elapsed" -lt 5000
+      - name: Reject CI escape hatches (NFR-6/NFR-7)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          banned = ('continue-' + 'on-error', '|' + '| true')
+          failures = []
+          for path in Path('.github/workflows').glob('*.yml'):
+              text = path.read_text()
+              for token in banned:
+                  if token in text:
+                      failures.append(f'{path}: {token}')
+          if failures:
+              raise SystemExit('\n'.join(failures))
+          PY
   generate:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64]

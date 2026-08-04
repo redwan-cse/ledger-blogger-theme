@@ -1,55 +1,67 @@
+import { BloggerDiscoveryClient } from '../../tools/harness/blogger-api.js';
 import { extractThemeBuild } from '../../tools/harness/build-stamp.js';
+import { HarnessHttpClient } from '../../tools/harness/http.js';
+import { createViewTargets, type ViewTarget } from '../../tools/harness/views.js';
 import { test, expect } from './fixture.js';
 
-const stagingUrl = process.env.STAGING_URL?.trim();
-const expectedBuild = process.env.EXPECTED_THEME_BUILD?.trim();
-
-if (!stagingUrl || !expectedBuild) {
-  throw new Error('STAGING_URL and EXPECTED_THEME_BUILD are required for M2 browser verification.');
+function required(name: 'STAGING_URL' | 'EXPECTED_THEME_BUILD' | 'BLOGGER_BLOG_ID' | 'LAYOUT_MODE_URL'): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`${name} is required for conclusive M2 browser verification.`);
+  return value;
 }
 
-const views = [
-  ['home-p1', stagingUrl],
-  ['home-p2', process.env.HOME_P2_URL],
-  ['label', process.env.LABEL_URL],
-  ['search', process.env.SEARCH_URL],
-  ['archive', process.env.ARCHIVE_URL],
-  ['post', process.env.POST_URL],
-  ['static-page', process.env.STATIC_PAGE_URL],
-  ['empty-result', process.env.EMPTY_RESULT_URL],
-  ['error', process.env.ERROR_URL],
-  ['layout-mode', process.env.LAYOUT_MODE_URL]
-] as const;
+function olderUrl(html: string): string | undefined {
+  return html.match(/<a\b[^>]*(?:id=(['"])Blog1_blog-pager-older-link\1|class=(['"])[^'"]*blog-pager-older-link[^'"]*\2)[^>]*href=(['"])(.*?)\3/i)?.[4];
+}
+
+let targets: ViewTarget[] = [];
 
 test.beforeAll(async ({ request }) => {
+  const stagingUrl = required('STAGING_URL');
+  const expectedBuild = required('EXPECTED_THEME_BUILD');
   const response = await request.get(stagingUrl);
   expect(response.status(), 'staging homepage must be measurable').toBeLessThan(400);
-  expect(extractThemeBuild(await response.text()), 'browser assertions must target the current build').toBe(expectedBuild);
+  const homeHtml = await response.text();
+  expect(extractThemeBuild(homeHtml), 'browser assertions must target the current build').toBe(expectedBuild);
+
+  const client = new HarnessHttpClient();
+  const discovery = new BloggerDiscoveryClient(client, {
+    ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
+    ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {})
+  });
+  const [posts, pages] = await Promise.all([
+    discovery.listAllPosts(required('BLOGGER_BLOG_ID')),
+    discovery.listPages(required('BLOGGER_BLOG_ID'))
+  ]);
+  targets = createViewTargets(stagingUrl, posts, pages, {
+    olderUrl: olderUrl(homeHtml),
+    layoutModeUrl: required('LAYOUT_MODE_URL')
+  });
+  expect(targets.every((target) => target.url), 'all ten M2 view preconditions must exist').toBe(true);
 });
 
-for (const [name, url] of views) {
-  test(`${name} renders visible server content`, async ({ page }) => {
-    test.skip(!url, `${name} URL was not configured.`);
-    const response = await page.goto(url!);
-    expect(response, `${name} returned no navigation response`).not.toBeNull();
-    if (name === 'error') expect(response!.status()).toBe(404);
-    else expect(response!.status()).toBeLessThan(400);
+test('all ten views render visible server content', async ({ page }) => {
+  for (const target of targets) {
+    const response = await page.goto(target.url!);
+    expect(response, `${target.name} returned no navigation response`).not.toBeNull();
+    if (target.name === 'error') expect(response!.status()).toBe(404);
+    else expect(response!.status(), target.name).toBeLessThan(400);
     const main = page.locator('main');
-    await expect(main).toBeVisible();
-    expect((await main.innerText()).replace(/\s+/g, ' ').trim().length).toBeGreaterThanOrEqual(40);
-    await expect(page.locator('.post-lead, .post-row, .article-body, .empty-state').first()).toBeVisible();
-  });
-}
+    await expect(main, target.name).toBeVisible();
+    expect((await main.innerText()).replace(/\s+/g, ' ').trim().length, target.name).toBeGreaterThanOrEqual(40);
+    await expect(page.locator('.post-lead, .post-row, .article-body, .empty-state').first(), target.name).toBeVisible();
+  }
+});
 
 test('static pages omit post-only chrome', async ({ page }) => {
-  test.skip(!process.env.STATIC_PAGE_URL, 'STATIC_PAGE_URL was not configured.');
-  await page.goto(process.env.STATIC_PAGE_URL!);
+  const target = targets.find((item) => item.name === 'static-page')!;
+  await page.goto(target.url!);
   await expect(page.locator('.share-bar, .author-bio, .related, .reading-progress')).toHaveCount(0);
 });
 
 test('post pages contain the complete structural path', async ({ page }) => {
-  test.skip(!process.env.POST_URL, 'POST_URL was not configured.');
-  await page.goto(process.env.POST_URL!);
+  const target = targets.find((item) => item.name === 'post')!;
+  await page.goto(target.url!);
   await expect(page.locator('.article-body')).toBeVisible();
   await expect(page.locator('.share-bar')).toHaveCount(1);
   await expect(page.locator('.author-bio')).toHaveCount(1);

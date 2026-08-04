@@ -1,0 +1,47 @@
+name: M2 staging validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: staging-blog
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: [self-hosted, Linux, X64]
+    environment: staging
+    timeout-minutes: 15
+    env:
+      STAGING_URL: ${{ secrets.STAGING_URL }}
+      BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
+      BLOGGER_API_KEY: ${{ secrets.BLOGGER_API_KEY }}
+      BLOGGER_ACCESS_TOKEN: ${{ secrets.BLOGGER_ACCESS_TOKEN }}
+      LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
+      HARNESS_PACE_MS: '4000'
+      EXPECTED_THEME_BUILD: 0.0.0+${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run generate
+      - run: npm run contract:check
+      - run: npm run test:golden
+      - name: Verify deployed build stamp
+        run: npm run deploy:check
+      - name: Verify rendered HTML across ten views
+        run: npm run harness
+      - name: Verify JS, no-JS, and reduced-motion browser contexts
+        run: npm run harness:browser
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: m2-evidence-${{ github.sha }}
+          path: |
+            dist/theme.xml
+            playwright-report
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
