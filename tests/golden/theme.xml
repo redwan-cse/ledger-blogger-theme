@@ -35,7 +35,7 @@
       </b:section>
     </header>
     <main id="content" role="main" tabindex="-1">
-      <b:section id="main" maxwidgets="1" name="Posts" preferred="yes" showaddelement="no">
+      <b:section id="mainContent" maxwidgets="1" name="Posts" preferred="yes" showaddelement="no">
         <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
           <b:widget-settings>
             <b:widget-setting name="showDateHeader">false</b:widget-setting>
@@ -51,50 +51,32 @@
             <b:if cond="data:view.isError">
               <b:include name="errorState"/>
               <b:else/>
-              <b:if cond="not data:view.isHomepage">
-                <b:include name="viewHeading"/>
-              </b:if>
               <b:if cond="data:posts.empty">
                 <b:include name="status-message"/>
                 <b:else/>
                 <div class="blog-posts">
-                  <b:loop index="i" values="data:posts" var="post">
-                    <b:include data="{ post: data:post, index: data:i }" name="post"/>
+                  <b:loop values="data:posts" var="post">
+                    <b:include data="data:post" name="post"/>
                   </b:loop>
                 </div>
-                <b:if cond="data:view.isMultipleItems">
-                  <b:include name="postPagination"/>
-                </b:if>
+                <b:include name="postPagination"/>
               </b:if>
             </b:if>
           </b:includable>
-          <b:includable id="viewHeading">
-            <b:if cond="data:view.isLabelSearch">
-              <h1 class="view-title">Filed under 
-                <b:eval expr="data:view.search.label"/>
-              </h1>
-              <b:elseif cond="data:view.isSearch and not data:view.isLabelSearch"/>
-              <h1 class="view-title">Results for 
-                <b:eval expr="data:view.search.query"/>
-              </h1>
-              <b:elseif cond="data:view.isArchive"/>
-              <h1 class="view-title">
-                <b:eval expr="data:view.archive.rangeMessage"/>
-              </h1>
-            </b:if>
-          </b:includable>
-          <b:includable id="post" var="entry">
-            <article expr:data-post-id="data:entry.post.id">
-              <b:class expr:name="data:view.isHomepage and not data:newerPageUrl and data:entry.index == 0 ? &quot;post-lead&quot; : &quot;post-row&quot;"/>
-              <b:include data="data:entry.post" name="postHeader"/>
+          <b:includable id="post" var="post">
+            <article class="post-row" expr:data-post-id="data:post.id">
+              <b:if cond="data:view.isHomepage and not data:newerPageUrl">
+                <b:class name="post-lead"/>
+              </b:if>
+              <b:include data="data:post" name="postHeader"/>
               <b:if cond="data:view.isSingleItem">
-                <b:include data="data:entry.post" name="postBody"/>
+                <b:include data="data:post" name="postBody"/>
                 <b:else/>
-                <b:include data="data:entry.post" name="postBodySnippet"/>
+                <b:include data="data:post" name="postBodySnippet"/>
               </b:if>
-              <b:include data="data:entry.post" name="postFooter"/>
+              <b:include data="data:post" name="postFooter"/>
               <b:if cond="data:view.isPost">
-                <b:include data="data:entry.post" name="postCommentsAndAd"/>
+                <b:include data="data:post" name="postCommentsAndAd"/>
               </b:if>
             </article>
           </b:includable>
@@ -107,20 +89,20 @@
           <b:includable id="postTitle" var="post">
             <b:if cond="data:view.isSingleItem">
               <h1 class="post-title">
-                <b:eval expr="data:post.title"/>
+                <data:post class="title"/>
               </h1>
               <b:else/>
               <h2 class="post-title"><a expr:href="data:post.url">
-                  <b:eval expr="data:post.title"/></a></h2>
+                  <data:post class="title"/></a></h2>
             </b:if>
           </b:includable>
           <b:includable id="postMeta" var="post">
             <p class="post-meta">
               <time expr:datetime="data:post.date.iso8601">
-                <b:eval expr="data:post.date"/>
+                <data:post class="date"/>
               </time>
               <b:if cond="data:post.author.name"><span class="post-author">
-                  <b:eval expr="data:post.author.name"/></span></b:if>
+                  <data:post class="author name"/></span></b:if>
             </p>
           </b:includable>
           <b:includable id="postBody" var="post">
@@ -129,7 +111,7 @@
           </b:includable>
           <b:includable id="postBodySnippet" var="post">
             <p class="post-snippet">
-              <b:eval expr="snippet(data:post.snippets.long, {length: 180, links: false, linebreaks: false, ellipsis: true})"/>
+              <data:post class="snippets long"/>
             </p>
           </b:includable>
           <b:includable id="postFooter" var="post">
@@ -143,15 +125,11 @@
             </b:if>
           </b:includable>
           <b:includable id="postFooterAuthorProfile" var="post">
-            <div class="author-bio">
-              <b:if cond="data:post.author.profileUrl"><a class="author-name" expr:href="data:post.author.profileUrl" rel="author">
-                  <b:eval expr="data:post.author.name"/></a>
-                <b:else/><span class="author-name">
-                  <b:eval expr="data:post.author.name"/></span>
-              </b:if>
+            <div class="author-bio"><span class="author-name">
+                <data:post class="author name"/></span>
               <b:if cond="data:post.author.aboutMe">
                 <p>
-                  <b:eval expr="data:post.author.aboutMe"/>
+                  <data:post class="author aboutMe"/>
                 </p>
               </b:if>
             </div>
@@ -163,26 +141,11 @@
             <b:if cond="data:post.allowComments">
               <section class="comments">
                 <b:include data="data:post" name="commentsTitle"/>
-                <b:with value="data:post.comments filter (c =&gt; not data:c.inReplyTo)" var="roots">
-                  <b:if cond="data:roots.empty">
-                    <p class="comments-empty">No comments yet.</p>
-                    <b:else/>
-                    <ol class="comment-list">
-                      <b:loop values="data:roots" var="root">
-                        <b:include data="data:root" name="commentItem"/>
-                        <b:with value="data:post.comments filter (c =&gt; data:c.inReplyTo == data:root.id)" var="replies">
-                          <b:if cond="not data:replies.empty">
-                            <ol class="comment-replies">
-                              <b:loop values="data:replies" var="reply">
-                                <b:include data="data:reply" name="commentItem"/>
-                              </b:loop>
-                            </ol>
-                          </b:if>
-                        </b:with>
-                      </b:loop>
-                    </ol>
-                  </b:if>
-                </b:with>
+                <b:if cond="data:post.comments.empty">
+                  <p class="comments-empty">No comments yet.</p>
+                  <b:else/>
+                  <b:include data="data:post" name="commentList"/>
+                </b:if>
                 <b:if cond="data:post.allowNewComments">
                   <b:include data="data:post" name="commentForm"/>
                 </b:if>
@@ -192,9 +155,6 @@
           <b:includable id="commentsTitle" var="post">
             <h2>Comments</h2>
           </b:includable>
-          <b:includable id="threadedComments" var="post">
-            <b:include data="data:post" name="commentList"/>
-          </b:includable>
           <b:includable id="commentList" var="post">
             <ol class="comment-list">
               <b:loop values="data:post.comments" var="comment">
@@ -203,34 +163,32 @@
             </ol>
           </b:includable>
           <b:includable id="commentItem" var="comment">
-            <li class="comment" expr:data-comment-id="data:comment.id">
+            <li class="comment">
               <b:if cond="data:comment.isDeleted">
                 <p class="comment-tombstone">Comment deleted.</p>
                 <b:else/>
                 <p class="comment-author">
                   <b:if cond="data:comment.author">
-                    <b:eval expr="data:comment.author"/>
+                    <data:comment class="author"/>
                     <b:else/>Anonymous
                   </b:if>
                 </p>
                 <div class="comment-body">
-                  <b:eval expr="data:comment.body"/>
+                  <data:comment class="body"/>
                 </div>
-                <time expr:datetime="data:comment.timestampValue">
-                  <b:eval expr="data:comment.timestamp"/>
-                </time>
               </b:if>
             </li>
           </b:includable>
           <b:includable id="commentForm" var="post">
-            <div class="comment-form">
-              <b:include data="data:post" name="commentFormIframeSrc"/>
-            </div>
+            <b:if cond="data:post.commentFormIframeSrc">
+              <iframe class="comment-form" expr:src="data:post.commentFormIframeSrc" title="Comment form"/>
+            </b:if>
           </b:includable>
           <b:includable id="commentFormIframeSrc" var="post">
-            <b:if cond="data:post.commentFormIframeSrc">
-              <iframe expr:src="data:post.commentFormIframeSrc" title="Comment form"/>
-            </b:if>
+            <data:post class="commentFormIframeSrc"/>
+          </b:includable>
+          <b:includable id="threadedComments" var="post">
+            <b:include data="data:post" name="commentList"/>
           </b:includable>
           <b:includable id="postPagination">
             <b:if cond="data:newerPageUrl or data:olderPageUrl">
@@ -247,35 +205,19 @@
           <b:includable id="previousPageLink"><a class="blog-pager-newer-link" expr:href="data:newerPageUrl">Newer</a></b:includable>
           <b:includable id="nextPageLink"><a class="blog-pager-older-link" expr:href="data:olderPageUrl">Older</a></b:includable>
           <b:includable id="homePageLink"><a expr:href="data:blog.homepageUrl">All posts</a></b:includable>
-          <b:includable id="recentList" var="posts">
-            <ul class="recent-posts">
-              <b:loop index="i" values="data:posts" var="recent">
-                <b:if cond="data:i &lt; 5">
-                  <li><a expr:href="data:recent.url">
-                      <b:eval expr="data:recent.title"/></a></li>
-                </b:if>
-              </b:loop>
-            </ul>
-          </b:includable>
           <b:includable id="status-message">
             <div class="empty-state" role="status">
               <b:if cond="data:view.isSearch and not data:view.isLabelSearch">
                 <p>Nothing matched “
-                  <b:eval expr="data:view.search.query"/>”.
+                  <data:view class="search query"/>”.
                 </p>
-                <form expr:action="data:blog.searchUrl" role="search">
-                  <label for="empty-search">Search</label>
-                  <input id="empty-search" expr:value="data:view.search.query.escaped" name="q" type="search"/>
-                  <button type="submit">Search</button>
-                </form>
-                <b:include data="data:widgets.Blog.first.posts" name="recentList"/>
                 <b:elseif cond="data:view.isLabelSearch"/>
                 <p>Nothing filed under “
-                  <b:eval expr="data:view.search.label"/>” yet.
+                  <data:view class="search label"/>” yet.
                 </p>
                 <b:elseif cond="data:view.isArchive"/>
                 <p>
-                  <b:eval expr="data:view.archive.rangeMessage"/> has no posts.
+                  <data:view class="archive rangeMessage"/> has no posts.
                 </p>
                 <b:else/>
                 <p>No posts published yet.</p>
@@ -292,12 +234,11 @@
                 <input id="error-search" name="q" type="search"/>
                 <button type="submit">Search</button>
               </form>
-              <b:include data="data:widgets.Blog.first.posts" name="recentList"/>
               <b:include name="homePageLink"/>
             </section>
           </b:includable>
           <b:includable id="postCommentsLink" var="post"><a expr:href="data:post.commentsUrl">
-              <b:eval expr="data:post.numberOfComments"/></a></b:includable>
+              <data:post class="numberOfComments"/></a></b:includable>
           <b:includable id="postJumpLink"/>
           <b:includable id="feedLinks"/>
           <b:includable id="feedLinksBody"/>
