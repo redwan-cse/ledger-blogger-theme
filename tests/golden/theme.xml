@@ -84,7 +84,7 @@
             </b:if>
           </b:includable>
           <b:includable id="post" var="entry">
-            <article>
+            <article expr:data-post-id="data:entry.post.id">
               <b:class expr:name="data:view.isHomepage and not data:newerPageUrl and data:entry.index == 0 ? &quot;post-lead&quot; : &quot;post-row&quot;"/>
               <b:include data="data:entry.post" name="postHeader"/>
               <b:if cond="data:view.isSingleItem">
@@ -124,8 +124,7 @@
             </p>
           </b:includable>
           <b:includable id="postBody" var="post">
-            <div class="article-body">
-              <b:eval expr="data:post.body"/>
+            <div class="article-body"><data:post.body/>
             </div>
           </b:includable>
           <b:includable id="postBodySnippet" var="post">
@@ -164,11 +163,26 @@
             <b:if cond="data:post.allowComments">
               <section class="comments">
                 <b:include data="data:post" name="commentsTitle"/>
-                <b:if cond="data:post.comments.empty">
-                  <p class="comments-empty">No comments yet.</p>
-                  <b:else/>
-                  <b:include data="data:post" name="threadedComments"/>
-                </b:if>
+                <b:with value="data:post.comments filter (c =&gt; not data:c.inReplyTo)" var="roots">
+                  <b:if cond="data:roots.empty">
+                    <p class="comments-empty">No comments yet.</p>
+                    <b:else/>
+                    <ol class="comment-list">
+                      <b:loop values="data:roots" var="root">
+                        <b:include data="data:root" name="commentItem"/>
+                        <b:with value="data:post.comments filter (c =&gt; data:c.inReplyTo == data:root.id)" var="replies">
+                          <b:if cond="not data:replies.empty">
+                            <ol class="comment-replies">
+                              <b:loop values="data:replies" var="reply">
+                                <b:include data="data:reply" name="commentItem"/>
+                              </b:loop>
+                            </ol>
+                          </b:if>
+                        </b:with>
+                      </b:loop>
+                    </ol>
+                  </b:if>
+                </b:with>
                 <b:if cond="data:post.allowNewComments">
                   <b:include data="data:post" name="commentForm"/>
                 </b:if>
@@ -189,7 +203,7 @@
             </ol>
           </b:includable>
           <b:includable id="commentItem" var="comment">
-            <li class="comment">
+            <li class="comment" expr:data-comment-id="data:comment.id">
               <b:if cond="data:comment.isDeleted">
                 <p class="comment-tombstone">Comment deleted.</p>
                 <b:else/>
@@ -233,12 +247,28 @@
           <b:includable id="previousPageLink"><a class="blog-pager-newer-link" expr:href="data:newerPageUrl">Newer</a></b:includable>
           <b:includable id="nextPageLink"><a class="blog-pager-older-link" expr:href="data:olderPageUrl">Older</a></b:includable>
           <b:includable id="homePageLink"><a expr:href="data:blog.homepageUrl">All posts</a></b:includable>
+          <b:includable id="recentList" var="posts">
+            <ul class="recent-posts">
+              <b:loop index="i" values="data:posts" var="recent">
+                <b:if cond="data:i &lt; 5">
+                  <li><a expr:href="data:recent.url">
+                      <b:eval expr="data:recent.title"/></a></li>
+                </b:if>
+              </b:loop>
+            </ul>
+          </b:includable>
           <b:includable id="status-message">
             <div class="empty-state" role="status">
               <b:if cond="data:view.isSearch and not data:view.isLabelSearch">
                 <p>Nothing matched “
                   <b:eval expr="data:view.search.query"/>”.
                 </p>
+                <form expr:action="data:blog.searchUrl" role="search">
+                  <label for="empty-search">Search</label>
+                  <input id="empty-search" expr:value="data:view.search.query.escaped" name="q" type="search"/>
+                  <button type="submit">Search</button>
+                </form>
+                <b:include data="data:widgets.Blog.first.posts" name="recentList"/>
                 <b:elseif cond="data:view.isLabelSearch"/>
                 <p>Nothing filed under “
                   <b:eval expr="data:view.search.label"/>” yet.
@@ -262,6 +292,7 @@
                 <input id="error-search" name="q" type="search"/>
                 <button type="submit">Search</button>
               </form>
+              <b:include data="data:widgets.Blog.first.posts" name="recentList"/>
               <b:include name="homePageLink"/>
             </section>
           </b:includable>
