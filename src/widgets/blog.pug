@@ -13,12 +13,12 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
     b:includable(id='main')
       b:if(cond='data:view.isError')
         b:include(name='errorState')/
-      b:else/
+        b:else/
         b:if(cond='not data:view.isHomepage')
           b:include(name='viewHeading')/
         b:if(cond='data:posts.empty')
           b:include(name='status-message')/
-        b:else/
+          b:else/
           div.blog-posts
             b:loop(index='i' values='data:posts' var='post')
               b:include(data='{ post: data:post, index: data:i }' name='post')/
@@ -29,10 +29,10 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       b:if(cond='data:view.isLabelSearch')
         h1.view-title Filed under 
           b:eval(expr='data:view.search.label')/
-      b:elseif(cond='data:view.isSearch and not data:view.isLabelSearch')/
+        b:elseif(cond='data:view.isSearch and not data:view.isLabelSearch')/
         h1.view-title Results for 
           b:eval(expr='data:view.search.query')/
-      b:elseif(cond='data:view.isArchive')/
+        b:elseif(cond='data:view.isArchive')/
         h1.view-title
           b:eval(expr='data:view.archive.rangeMessage')/
 
@@ -42,7 +42,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
         b:include(data='data:entry.post' name='postHeader')/
         b:if(cond='data:view.isSingleItem')
           b:include(data='data:entry.post' name='postBody')/
-        b:else/
+          b:else/
           b:include(data='data:entry.post' name='postBodySnippet')/
         b:include(data='data:entry.post' name='postFooter')/
         b:if(cond='data:view.isPost')
@@ -57,7 +57,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       b:if(cond='data:view.isSingleItem')
         h1.post-title
           b:eval(expr='data:post.title')/
-      b:else/
+        b:else/
         h2.post-title
           a(expr:href='data:post.url')
             b:eval(expr='data:post.title')/
@@ -92,7 +92,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
         b:if(cond='data:post.author.profileUrl')
           a.author-name(expr:href='data:post.author.profileUrl' rel='author')
             b:eval(expr='data:post.author.name')/
-        b:else/
+          b:else/
           span.author-name
             b:eval(expr='data:post.author.name')/
         b:if(cond='data:post.author.aboutMe')
@@ -108,7 +108,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
           b:include(data='data:post' name='commentsTitle')/
           b:if(cond='data:post.comments.empty')
             p.comments-empty No comments yet.
-          b:else/
+            b:else/
             b:include(data='data:post' name='threadedComments')/
           b:if(cond='data:post.allowNewComments')
             b:include(data='data:post' name='commentForm')/
@@ -128,11 +128,11 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       li.comment
         b:if(cond='data:comment.isDeleted')
           p.comment-tombstone Comment deleted.
-        b:else/
+          b:else/
           p.comment-author
             b:if(cond='data:comment.author')
               b:eval(expr='data:comment.author')/
-            b:else/
+              b:else/
               | Anonymous
           div.comment-body
             b:eval(expr='data:comment.body')/
@@ -168,15 +168,15 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
           p Nothing matched “
             b:eval(expr='data:view.search.query')/
             | ”.
-        b:elseif(cond='data:view.isLabelSearch')/
+          b:elseif(cond='data:view.isLabelSearch')/
           p Nothing filed under “
             b:eval(expr='data:view.search.label')/
             | ” yet.
-        b:elseif(cond='data:view.isArchive')/
+          b:elseif(cond='data:view.isArchive')/
           p
             b:eval(expr='data:view.archive.rangeMessage')/
             |  has no posts.
-        b:else/
+          b:else/
           p No posts published yet.
         b:include(name='homePageLink')/
 
