@@ -30,8 +30,8 @@ describe('M2 render-path contract', () => {
 
   it('routes the full post body only through postBody', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
-    expect(widget.match(/<data:post\.body\/>/g)).toHaveLength(1);
-    expect(widget).toMatch(/<b:includable id="postBody" var="post">[\s\S]*?<data:post\.body\/>[\s\S]*?<\/b:includable>/);
+    expect(widget.match(/<b:eval expr="data:post\.body"\/>/g)).toHaveLength(1);
+    expect(widget).toMatch(/<b:includable id="postBody" var="post">[\s\S]*?<b:eval expr="data:post\.body"\/>[\s\S]*?<\/b:includable>/);
   });
 
   it('keeps post-only chrome behind data:view.isPost', async () => {

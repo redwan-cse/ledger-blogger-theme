@@ -4,7 +4,7 @@ html&attributes(rootAttributes)
     meta(content='width=device-width, initial-scale=1' name='viewport')/
     meta(content=build name='theme-build')/
     title
-      data:view.title.escaped/
+      b:eval(expr='data:view.title.escaped')/
     b:skin(version=templateVersion).
       <![CDATA[
       !{css}

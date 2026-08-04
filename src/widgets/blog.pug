@@ -28,13 +28,13 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
     b:includable(id='viewHeading')
       b:if(cond='data:view.isLabelSearch')
         h1.view-title Filed under 
-          data:view.search.label/
+          b:eval(expr='data:view.search.label')/
       b:elseif(cond='data:view.isSearch and not data:view.isLabelSearch')/
         h1.view-title Results for 
-          data:view.search.query/
+          b:eval(expr='data:view.search.query')/
       b:elseif(cond='data:view.isArchive')/
         h1.view-title
-          data:view.archive.rangeMessage/
+          b:eval(expr='data:view.archive.rangeMessage')/
 
     b:includable(id='post' var='entry')
       article
@@ -56,23 +56,23 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
     b:includable(id='postTitle' var='post')
       b:if(cond='data:view.isSingleItem')
         h1.post-title
-          data:post.title/
+          b:eval(expr='data:post.title')/
       b:else/
         h2.post-title
           a(expr:href='data:post.url')
-            data:post.title/
+            b:eval(expr='data:post.title')/
 
     b:includable(id='postMeta' var='post')
       p.post-meta
         time(expr:datetime='data:post.date.iso8601')
-          data:post.date/
+          b:eval(expr='data:post.date')/
         b:if(cond='data:post.author.name')
           span.post-author
-            data:post.author.name/
+            b:eval(expr='data:post.author.name')/
 
     b:includable(id='postBody' var='post')
       div.article-body
-        data:post.body/
+        b:eval(expr='data:post.body')/
 
     b:includable(id='postBodySnippet' var='post')
       p.post-snippet
@@ -91,13 +91,13 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       div.author-bio
         b:if(cond='data:post.author.profileUrl')
           a.author-name(expr:href='data:post.author.profileUrl' rel='author')
-            data:post.author.name/
+            b:eval(expr='data:post.author.name')/
         b:else/
           span.author-name
-            data:post.author.name/
+            b:eval(expr='data:post.author.name')/
         b:if(cond='data:post.author.aboutMe')
           p
-            data:post.author.aboutMe/
+            b:eval(expr='data:post.author.aboutMe')/
 
     b:includable(id='postCommentsAndAd' var='post')
       b:include(data='data:post' name='comments')/
@@ -131,13 +131,13 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
         b:else/
           p.comment-author
             b:if(cond='data:comment.author')
-              data:comment.author/
+              b:eval(expr='data:comment.author')/
             b:else/
               | Anonymous
           div.comment-body
-            data:comment.body/
+            b:eval(expr='data:comment.body')/
           time(expr:datetime='data:comment.timestampValue')
-            data:comment.timestamp/
+            b:eval(expr='data:comment.timestamp')/
 
     b:includable(id='commentForm' var='post')
       div.comment-form
@@ -166,15 +166,15 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       div.empty-state(role='status')
         b:if(cond='data:view.isSearch and not data:view.isLabelSearch')
           p Nothing matched “
-            data:view.search.query/
+            b:eval(expr='data:view.search.query')/
             | ”.
         b:elseif(cond='data:view.isLabelSearch')/
           p Nothing filed under “
-            data:view.search.label/
+            b:eval(expr='data:view.search.label')/
             | ” yet.
         b:elseif(cond='data:view.isArchive')/
           p
-            data:view.archive.rangeMessage/
+            b:eval(expr='data:view.archive.rangeMessage')/
             |  has no posts.
         b:else/
           p No posts published yet.
@@ -192,7 +192,7 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
 
     b:includable(id='postCommentsLink' var='post')
       a(expr:href='data:post.commentsUrl')
-        data:post.numberOfComments/
+        b:eval(expr='data:post.numberOfComments')/
     b:includable(id='postJumpLink')/
     b:includable(id='feedLinks')/
     b:includable(id='feedLinksBody')/

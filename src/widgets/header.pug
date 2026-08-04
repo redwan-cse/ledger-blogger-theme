@@ -4,11 +4,11 @@ b:section(id='masthead' maxwidgets='1' name='Masthead' showaddelement='no')
       b:if(cond='data:view.isHomepage')
         h1.site-title
           a(expr:href='data:blog.homepageUrl')
-            data:title/
+            b:eval(expr='data:title')/
       b:else/
         p.site-title
           a(expr:href='data:blog.homepageUrl')
-            data:title/
+            b:eval(expr='data:title')/
       b:if(cond='data:description')
         p.site-tagline
-          data:description/
+          b:eval(expr='data:description')/
