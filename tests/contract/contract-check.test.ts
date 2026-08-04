@@ -7,12 +7,12 @@ interface RuleCase { id: string; violate(xml: string): string; comment: string; 
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
 
 const cases: readonly RuleCase[] = [
-  { id: 'well-formed', violate: (xml) => xml.replace('<main id="main">', '<main id="main" id="duplicate">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
+  { id: 'well-formed', violate: (xml) => xml.replace('<main id="content" role="main" tabindex="-1">', '<main id="content" id="duplicate" role="main" tabindex="-1">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
   { id: 'layouts-v3', violate: (xml) => xml.replace('b:layoutsVersion="3"', 'b:layoutsVersion="2"'), comment: "b:layoutsVersion='2' is forbidden" },
   { id: 'widget-v2', violate: (xml) => xml.replace(' version="2"', ''), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
-  { id: 'section-ids', violate: (xml) => xml.replace('id="mainContent"', 'id="masthead"'), comment: 'duplicate section id masthead' },
+  { id: 'section-ids', violate: (xml) => xml.replace('id="main" maxwidgets="1"', 'id="masthead" maxwidgets="1"'), comment: 'duplicate section id masthead' },
   { id: 'header-widget', violate: (xml) => xml.replace('type="Header"', 'type="HTML"'), comment: 'missing Header widget' },
   { id: 'no-v2-accessors', violate: (xml) => inject(xml, '<b:with value="data:blog.url == data:blog.homepageUrl" var="wrong"/>'), comment: 'URL equality is fragile view dispatch' },
   { id: 'no-macro-tags', violate: (xml) => xml.replace('xmlns:expr=', 'xmlns:macro="urn:macro" xmlns:expr=').replace('</main>', '<macro:include name="x"/></main>'), comment: 'macro:include is banned' },
@@ -52,14 +52,14 @@ describe('V3 contract checker blind-spot matrix', () => {
     const { xml } = await generateTheme({ sha, write: false });
     const mutations = [
       xml.replace('</html>', '</html><extra/>'),
-      xml.replace('<main id="main">', '<bad:main id="main">').replace('</main>', '</bad:main>'),
-      xml.replace('<main id="main">', '<main id="main" broken>'),
-      xml.replace('<main id="main">', '<main id="main"> stray < text')
+      xml.replace('<main id="content" role="main" tabindex="-1">', '<bad:main id="content" role="main" tabindex="-1">').replace('</main>', '</bad:main>'),
+      xml.replace('<main id="content" role="main" tabindex="-1">', '<main id="content" role="main" tabindex="-1" broken>'),
+      xml.replace('<main id="content" role="main" tabindex="-1">', '<main id="content" role="main" tabindex="-1"> stray < text')
     ];
     for (const mutation of mutations) expect(checkThemeContract(mutation).map((finding) => finding.ruleId)).toContain('well-formed');
   });
 
-  it('accepts the actual generated M1 scaffold', async () => {
+  it('accepts the actual generated M2 render skeleton', async () => {
     const { xml } = await generateTheme({ sha, write: false });
     expect(checkThemeContract(xml)).toEqual([]);
   });
