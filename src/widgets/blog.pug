@@ -10,23 +10,11 @@ b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='
       b:widget-setting(name='showInlineAds') false
       b:widget-setting(name='showShareButtons') false
     b:includable(id='main')
-      b:if(cond='data:view.isError')
-        b:include(name='errorState')/
-        b:else/
-        b:if(cond='data:posts.empty')
-          b:include(name='status-message')/
-          b:else/
-          div.blog-posts
-            b:loop(index='i' values='data:posts' var='post')
-              b:if(cond='data:view.isHomepage and not data:newerPageUrl and data:i == 0')
-                div.post-lead
-                  b:include(data='data:post' name='post')/
-                b:else/
-                div.post-row
-                  b:include(data='data:post' name='post')/
-          b:include(name='postPagination')/
+      b:include(name='super.main')/
     b:includable(id='post' var='post')
-      article(expr:data-post-id='data:post.id')
+      article.post-row(expr:data-post-id='data:post.id')
+        b:if(cond='data:view.isHomepage and not data:newerPageUrl and data:post.id == data:posts.first.id')
+          b:class(name='post-lead')/
         b:include(data='data:post' name='postHeader')/
         b:if(cond='data:view.isSingleItem')
           b:include(data='data:post' name='postBody')/

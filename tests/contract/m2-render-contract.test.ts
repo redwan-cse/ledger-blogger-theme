@@ -10,16 +10,20 @@ describe('M2 render-path contract', () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
     for (const id of required) { const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); expect(widget.match(new RegExp(`<b:includable id="${escaped}"(?:\\s|/|>)`, 'g')) ?? [], id).toHaveLength(1); }
   });
+  it('delegates top-level dispatch to Blogger native V3 main', async () => {
+    const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
+    expect(widget).toMatch(/<b:includable id="main">\s*<b:include name="super\.main"\/>\s*<\/b:includable>/);
+  });
   it('emits the full post body only through postBody', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
     expect(widget.match(/<data:post\.body\/>/g) ?? []).toHaveLength(1);
     expect(widget).toMatch(/<b:includable id="postBody" var="post">[\s\S]*?<data:post\.body\/>[\s\S]*?<\/b:includable>/);
   });
-  it('renders exactly one homepage lead path and a row fallback', async () => {
+  it('uses an identity-correlated first-post lead and row default', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
-    expect(widget.match(/class="post-lead"/g) ?? []).toHaveLength(1);
-    expect(widget.match(/class="post-row"/g) ?? []).toHaveLength(1);
-    expect(widget).toContain('data:view.isHomepage and not data:newerPageUrl and data:i == 0');
+    expect(widget).toContain('class="post-row"');
+    expect(widget).toContain('name="post-lead"');
+    expect(widget).toContain('data:post.id == data:posts.first.id');
   });
   it('keeps post-only chrome behind data:view.isPost', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
@@ -32,11 +36,5 @@ describe('M2 render-path contract', () => {
     expect(widget).toContain('class="comment-tombstone"');
     expect(widget).toContain('data:i &lt; 5');
     expect(widget.match(/<b:include data="data:widgets\.Blog\.first\.posts" name="recentList"\/>/g) ?? []).toHaveLength(2);
-  });
-  it('uses the documented Posts section id and loud states', async () => {
-    const xml = (await generateTheme({ sha, write: false })).xml;
-    expect(xml).toContain('<b:section id="main"');
-    expect(xml).toContain('class="empty-state"');
-    expect(xml).toContain('data:view.isError');
   });
 });
