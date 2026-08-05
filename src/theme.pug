@@ -5,6 +5,7 @@ html&attributes(rootAttributes)
     meta(content=build name='theme-build')/
     title
       b:eval(expr='data:view.title.escaped')/
+    b:include(data='blog' name='all-head-content')/
     b:skin(version=templateVersion).
       <![CDATA[
       !{css}
@@ -13,7 +14,7 @@ html&attributes(rootAttributes)
     a.skip-link(href='#content') Skip to content
     header(role='banner')
       include widgets/header.pug
-    main#content(role='main' tabindex='-1')
+    div#content
       include widgets/blog.pug
     if script
       script.

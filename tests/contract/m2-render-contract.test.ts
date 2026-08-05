@@ -8,10 +8,16 @@ function blogWidget(xml: string): string {
   return match[0];
 }
 
-describe('M2 render bisect: pure native Blog dispatch', () => {
+describe('M2 render bisect: native Blog dispatch with required head include', () => {
+  it('includes all-head-content exactly once inside head', async () => {
+    const xml = (await generateTheme({ sha, write: false })).xml;
+    expect(xml.match(/<b:include data="blog" name="all-head-content"\/>/g) ?? []).toHaveLength(1);
+    expect(xml).toMatch(/<head>[\s\S]*<b:include data="blog" name="all-head-content"\/>[\s\S]*<\/head>/);
+  });
+
   it('declares a locked version-2 Blog widget in the Posts section', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
-    expect(xml).toContain('<b:section id="main"');
+    expect(xml).toContain('<b:section id="pageBody"');
     expect(xml).toMatch(/<b:widget id="Blog1"[^>]*locked="true"[^>]*type="Blog"[^>]*version="2"/);
   });
 

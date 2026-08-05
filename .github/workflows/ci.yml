@@ -40,6 +40,9 @@ jobs:
               for token in tokens:
                   if token in text:
                       failures.append(f'{path}: forbidden {token}')
+          shell = Path('src/theme.pug').read_text()
+          if "name='all-head-content'" not in shell:
+              failures.append('src/theme.pug: all-head-content include missing')
           source = Path('src/widgets/blog.pug').read_text()
           if "b:include(name='super.main')" not in source:
               failures.append('src/widgets/blog.pug: native dispatch missing')
