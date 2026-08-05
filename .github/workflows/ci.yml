@@ -43,9 +43,13 @@ jobs:
           shell = Path('src/theme.pug').read_text()
           if "name='all-head-content'" not in shell:
               failures.append('src/theme.pug: all-head-content include missing')
+          if 'main#content.main-content' not in shell:
+              failures.append('src/theme.pug: Posts section must sit inside a main element')
           source = Path('src/widgets/blog.pug').read_text()
           if "b:include(name='super.main')" not in source:
               failures.append('src/widgets/blog.pug: native dispatch missing')
+          if "id='pageBody'" not in source:
+              failures.append('src/widgets/blog.pug: Posts section id must stay pageBody')
           if source.count('b:includable(') != 1:
               failures.append('bisect stage must override only main')
           if failures:

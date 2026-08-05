@@ -12,9 +12,9 @@ html&attributes(rootAttributes)
       ]]>
   body
     a.skip-link(href='#content') Skip to content
-    header(role='banner')
+    div.header-outer
       include widgets/header.pug
-    div#content
+    main#content.main-content(role='main')
       include widgets/blog.pug
     if script
       script.
