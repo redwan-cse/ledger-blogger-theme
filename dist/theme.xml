@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+b537e775627b45c494b884877ae365933a423675" name="theme-build"/>
+    <meta content="0.0.0+0000000000000000000000000000000000000000" name="theme-build"/>
     <title>
       <b:eval expr="data:view.title.escaped"/>
     </title>
@@ -15,8 +15,8 @@
     </b:skin>
   </head>
   <body><a class="skip-link" href="#content">Skip to content</a>
-    <header role="banner">
-      <b:section id="masthead" maxwidgets="1" name="Masthead" showaddelement="no">
+    <div class="header-outer">
+      <b:section class="header" id="header" maxwidgets="1" name="Header" showaddelement="no">
         <b:widget id="Header1" locked="true" title="Blog Header" type="Header" version="2" visible="true">
           <b:includable id="main" var="this">
             <b:if cond="data:view.isHomepage">
@@ -34,16 +34,16 @@
           </b:includable>
         </b:widget>
       </b:section>
-    </header>
-    <div id="content">
-      <b:section id="pageBody" maxwidgets="1" name="Posts" preferred="yes" showaddelement="no">
+    </div>
+    <main id="content" class="main-content" role="main">
+      <b:section class="main" id="pageBody" name="Page Body" showaddelement="no">
         <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
           <b:includable id="main">
             <b:include name="super.main"/>
           </b:includable>
         </b:widget>
       </b:section>
-    </div>
+    </main>
     <script>(()=>{document.documentElement.classList.add("js");})();</script>
   </body>
 </html>
