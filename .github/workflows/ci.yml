@@ -29,7 +29,7 @@ jobs:
           elapsed=$(( $(date +%s%3N) - start ))
           echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
           test "$elapsed" -lt 5000
-      - name: Audit CI policy and complete M2 source
+      - name: Audit CI policy and bisect stage
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -41,19 +41,10 @@ jobs:
                   if token in text:
                       failures.append(f'{path}: forbidden {token}')
           source = Path('src/widgets/blog.pug').read_text()
-          required = (
-              "b:include(name='super.main')",
-              'data:post.body',
-              'data:view.isPost',
-              'comment-tombstone',
-              'recentList',
-              'data:i < 5',
-              "id='main'",
-              'data:post.id == data:posts.first.id',
-          )
-          for token in required:
-              if token not in source:
-                  failures.append(f'src/widgets/blog.pug: missing {token}')
+          if "b:include(name='super.main')" not in source:
+              failures.append('src/widgets/blog.pug: native dispatch missing')
+          if source.count('b:includable(') != 1:
+              failures.append('bisect stage must override only main')
           if failures:
               raise SystemExit('\n'.join(failures))
           PY
