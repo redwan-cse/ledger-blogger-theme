@@ -1,12 +1,13 @@
 <?xml version='1.0' encoding='UTF-8' ?>
 <!DOCTYPE html>
-<html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
+<html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <meta content="0.0.0+GOLDEN_SHA_40_CHARS________________" name="theme-build"/>
     <title>
       <b:eval expr="data:view.title.escaped"/>
     </title>
+    <b:include data="blog" name="all-head-content"/>
     <b:skin version="0.0.0">
       <![CDATA[
 :root{color:oklch(.23 .012 85);background:oklch(.984 .004 85)}body{margin:0;min-height:100vh;font-family:system-ui,sans-serif}main{min-height:1px}
@@ -14,8 +15,8 @@
     </b:skin>
   </head>
   <body><a class="skip-link" href="#content">Skip to content</a>
-    <header role="banner">
-      <b:section id="masthead" maxwidgets="1" name="Masthead" showaddelement="no">
+    <div class="header-outer">
+      <b:section class="header" id="header" maxwidgets="1" name="Header" showaddelement="no">
         <b:widget id="Header1" locked="true" title="Blog Header" type="Header" version="2" visible="true">
           <b:includable id="main" var="this">
             <b:if cond="data:view.isHomepage">
@@ -33,9 +34,9 @@
           </b:includable>
         </b:widget>
       </b:section>
-    </header>
-    <main id="content" role="main" tabindex="-1">
-      <b:section id="main" maxwidgets="1" name="Posts" preferred="yes" showaddelement="no">
+    </div>
+    <main class="main-content" id="content" role="main">
+      <b:section class="main" id="pageBody" name="Page Body" showaddelement="no">
         <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
           <b:includable id="main">
             <b:include name="super.main"/>
