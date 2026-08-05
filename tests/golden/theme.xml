@@ -55,7 +55,7 @@
                 <b:eval expr="data:post.title"/>
               </h1>
               <b:else/>
-              <h2 class="post-title" itemprop="name headline"><a expr:href="data:post.url.path" itemprop="url">
+              <h2 class="post-title" itemprop="name headline"><a expr:href="data:post.url" itemprop="url">
                   <b:eval expr="data:post.title"/></a></h2>
             </b:if>
           </b:includable>
@@ -77,7 +77,7 @@
             <footer class="post-footer">
               <b:if cond="data:post.labels">
                 <div class="post-labels">
-                  <b:loop values="data:post.labels" var="label"><a class="label-link" expr:href="data:label.url.path" rel="tag">
+                  <b:loop values="data:post.labels" var="label"><a class="label-link" expr:href="data:label.url" rel="tag">
                       <b:eval expr="data:label.name"/></a></b:loop>
                 </div>
               </b:if>
@@ -131,8 +131,8 @@
           </b:includable>
           <b:includable id="postPagination">
             <div class="pagination">
-              <b:if cond="data:newerPageUrl"><a class="newer-link" expr:href="data:newerPageUrl.path">Newer Posts</a></b:if>
-              <b:if cond="data:olderPageUrl"><a class="older-link" expr:href="data:olderPageUrl.path">Older Posts</a></b:if>
+              <b:if cond="data:newerPageUrl"><a class="newer-link" expr:href="data:newerPageUrl">Newer Posts</a></b:if>
+              <b:if cond="data:olderPageUrl"><a class="older-link" expr:href="data:olderPageUrl">Older Posts</a></b:if>
             </div>
           </b:includable>
         </b:widget>

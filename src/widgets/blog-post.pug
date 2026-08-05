@@ -11,7 +11,7 @@ b:includable(id='postTitle' var='post')
       b:eval(expr='data:post.title')/
     b:else/
     h2.post-title(itemprop='name headline')
-      a(expr:href='data:post.url.path' itemprop='url')
+      a(expr:href='data:post.url' itemprop='url')
         b:eval(expr='data:post.title')/
 
 b:includable(id='postHeader' var='post')
@@ -29,5 +29,5 @@ b:includable(id='postFooter' var='post')
     b:if(cond='data:post.labels')
       .post-labels
         b:loop(values='data:post.labels' var='label')
-          a.label-link(expr:href='data:label.url.path' rel='tag')
+          a.label-link(expr:href='data:label.url' rel='tag')
             b:eval(expr='data:label.name')/
