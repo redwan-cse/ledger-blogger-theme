@@ -1,0 +1,29 @@
+b:includable(id='comments' var='post')
+  section.comments-section(id='comments')
+    b:if(cond='data:post.allowComments')
+      b:if(cond='data:post.numberOfComments > 0')
+        h3.comments-title
+          b:eval(expr='data:post.numberOfComments')/
+          |  Comments
+      b:include(name='threadedComments' data='post')/
+      b:else/
+      b:if(cond='data:post.numberOfComments > 0')
+        h3.comments-title Comments are closed.
+
+b:includable(id='threadedComments' var='post')
+  .comments-content
+    b:if(cond='data:post.comments')
+      b:loop(values='data:post.comments' var='comment')
+        .comment(expr:id='"c" + data:comment.id')
+          b:eval(expr='data:comment.body')/
+          .comment-meta
+            b:eval(expr='data:comment.author')/
+            |  · 
+            b:eval(expr='data:comment.timestamp')/
+  b:if(cond='data:post.allowComments')
+    b:include(name='threadedCommentForm' data='post')/
+
+b:includable(id='threadedCommentForm' var='post')
+  .comment-form
+    p Please leave a comment:
+    a(expr:href='data:post.commentFormIframeSrc' id='comment-editor-src') Add Comment

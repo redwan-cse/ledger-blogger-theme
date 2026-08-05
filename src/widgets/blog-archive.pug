@@ -1,0 +1,6 @@
+b:includable(id='postPagination')
+  .pagination
+    b:if(cond='data:newerPageUrl')
+      a.newer-link(expr:href='data:newerPageUrl.path') Newer Posts
+    b:if(cond='data:olderPageUrl')
+      a.older-link(expr:href='data:olderPageUrl.path') Older Posts

@@ -1,0 +1,33 @@
+b:includable(id='post' var='post')
+  article.post(itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting')
+    b:include(name='postHeader' data='post')/
+    b:include(name='postTitle' data='post')/
+    b:include(name='postBody' data='post')/
+    b:include(name='postFooter' data='post')/
+
+b:includable(id='postTitle' var='post')
+  b:if(cond='data:view.isPost or data:view.isPage')
+    h1.post-title(itemprop='name headline')
+      b:eval(expr='data:post.title')/
+    b:else/
+    h2.post-title(itemprop='name headline')
+      a(expr:href='data:post.url.path' itemprop='url')
+        b:eval(expr='data:post.title')/
+
+b:includable(id='postHeader' var='post')
+  header.post-header
+    b:if(cond='data:post.date')
+      time.post-date(expr:datetime='data:post.date.iso8601' itemprop='datePublished')
+        b:eval(expr='data:post.date')/
+
+b:includable(id='postBody' var='post')
+  .post-body(itemprop='articleBody')
+    b:eval(expr='data:post.body')/
+
+b:includable(id='postFooter' var='post')
+  footer.post-footer
+    b:if(cond='data:post.labels')
+      .post-labels
+        b:loop(values='data:post.labels' var='label')
+          a.label-link(expr:href='data:label.url.path' rel='tag')
+            b:eval(expr='data:label.name')/
