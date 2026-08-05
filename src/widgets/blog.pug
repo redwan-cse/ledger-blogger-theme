@@ -1,4 +1,4 @@
-b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddelement='no')
+b:section(id='main' maxwidgets='1' name='Posts' preferred='yes' showaddelement='no')
   b:widget(id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true')
     b:widget-settings
       b:widget-setting(name='showDateHeader') false
@@ -17,13 +17,16 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
           b:include(name='status-message')/
           b:else/
           div.blog-posts
-            b:loop(values='data:posts' var='post')
-              b:include(data='data:post' name='post')/
+            b:loop(index='i' values='data:posts' var='post')
+              b:if(cond='data:view.isHomepage and not data:newerPageUrl and data:i == 0')
+                div.post-lead
+                  b:include(data='data:post' name='post')/
+                b:else/
+                div.post-row
+                  b:include(data='data:post' name='post')/
           b:include(name='postPagination')/
     b:includable(id='post' var='post')
-      article.post-row(expr:data-post-id='data:post.id')
-        b:if(cond='data:view.isHomepage and not data:newerPageUrl')
-          b:class(name='post-lead')/
+      article(expr:data-post-id='data:post.id')
         b:include(data='data:post' name='postHeader')/
         b:if(cond='data:view.isSingleItem')
           b:include(data='data:post' name='postBody')/
@@ -67,8 +70,12 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
           div.reading-progress
     b:includable(id='postFooterAuthorProfile' var='post')
       div.author-bio
-        span.author-name
-          data:post.author.name/
+        b:if(cond='data:post.author.profileUrl')
+          a.author-name(expr:href='data:post.author.profileUrl' rel='author')
+            data:post.author.name/
+          b:else/
+          span.author-name
+            data:post.author.name/
         b:if(cond='data:post.author.aboutMe')
           p
             data:post.author.aboutMe/
@@ -78,10 +85,20 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
       b:if(cond='data:post.allowComments')
         section.comments
           b:include(data='data:post' name='commentsTitle')/
-          b:if(cond='data:post.comments.empty')
-            p.comments-empty No comments yet.
-            b:else/
-            b:include(data='data:post' name='commentList')/
+          b:with(value='data:post.comments filter (c => not data:c.inReplyTo)' var='roots')
+            b:if(cond='data:roots.empty')
+              p.comments-empty No comments yet.
+              b:else/
+              ol.comment-list
+                b:loop(values='data:roots' var='root')
+                  li.comment-thread
+                    b:include(data='data:root' name='commentItem')/
+                    b:with(value='data:post.comments filter (c => data:c.inReplyTo == data:root.id)' var='replies')
+                      b:if(cond='not data:replies.empty')
+                        ol.comment-replies
+                          b:loop(values='data:replies' var='reply')
+                            li.comment-reply
+                              b:include(data='data:reply' name='commentItem')/
           b:if(cond='data:post.allowNewComments')
             b:include(data='data:post' name='commentForm')/
     b:includable(id='commentsTitle' var='post')
@@ -89,9 +106,10 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
     b:includable(id='commentList' var='post')
       ol.comment-list
         b:loop(values='data:post.comments' var='comment')
-          b:include(data='data:comment' name='commentItem')/
+          li
+            b:include(data='data:comment' name='commentItem')/
     b:includable(id='commentItem' var='comment')
-      li.comment
+      article.comment(expr:data-comment-id='data:comment.id')
         b:if(cond='data:comment.isDeleted')
           p.comment-tombstone Comment deleted.
           b:else/
@@ -102,13 +120,22 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
               | Anonymous
           div.comment-body
             data:comment.body/
+          time(expr:datetime='data:comment.timestampValue')
+            data:comment.timestamp/
     b:includable(id='commentForm' var='post')
       b:if(cond='data:post.commentFormIframeSrc')
         iframe.comment-form(expr:src='data:post.commentFormIframeSrc' title='Comment form')/
     b:includable(id='commentFormIframeSrc' var='post')
       data:post.commentFormIframeSrc/
     b:includable(id='threadedComments' var='post')
-      b:include(data='data:post' name='commentList')/
+      b:include(data='data:post' name='comments')/
+    b:includable(id='recentList' var='posts')
+      ul.recent-posts
+        b:loop(index='i' values='data:posts' var='recent')
+          b:if(cond='data:i < 5')
+            li
+              a(expr:href='data:recent.url')
+                data:recent.title/
     b:includable(id='postPagination')
       b:if(cond='data:newerPageUrl or data:olderPageUrl')
         nav.blog-pager(aria-label='Posts')
@@ -128,6 +155,11 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
           p Nothing matched “
             data:view.search.query/
             | ”.
+          form(expr:action='data:blog.searchUrl' role='search')
+            label(for='empty-search') Search
+            input#empty-search(expr:value='data:view.search.query.escaped' name='q' type='search')/
+            button(type='submit') Search
+          b:include(data='data:widgets.Blog.first.posts' name='recentList')/
           b:elseif(cond='data:view.isLabelSearch')/
           p Nothing filed under “
             data:view.search.label/
@@ -147,6 +179,7 @@ b:section(id='mainContent' maxwidgets='1' name='Posts' preferred='yes' showaddel
           label(for='error-search') Search
           input#error-search(name='q' type='search')/
           button(type='submit') Search
+        b:include(data='data:widgets.Blog.first.posts' name='recentList')/
         b:include(name='homePageLink')/
     b:includable(id='postCommentsLink' var='post')
       a(expr:href='data:post.commentsUrl')

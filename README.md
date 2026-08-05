@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M2 implementation complete, staging verification pending.** The real Header and Blog render paths, complete includable inventory, pagination, loud empty/error states, threaded comments, recovery lists, and JS/no-JS/reduced-motion browser matrix are implemented. M2 is not complete until the exact stamped artifact passes the ten-view staging workflow, including Layout mode.
+> **Status: M2 completion candidate, staging verification pending.** Header and Blog render paths, complete includable inventory, first-page lead dispatch, pagination, loud empty/error states, server-side threaded comments, five-post recovery lists, and JS/no-JS/reduced-motion checks are implemented. M2 is not complete until the exact stamped artifact passes all ten staging views, including Layout mode.
 
 ## Rules
 
@@ -27,13 +27,13 @@ npm run test:contract
 ## Generation commands
 
 ```sh
-npm run generate         # Pug + SCSS + TypeScript -> dist/theme.xml
-npm run watch            # regenerate after .pug, .scss, or .ts source changes
-npm run contract:check   # validate generated XML against the V3 contract
-npm run test:golden      # byte-diff generated XML after build-SHA normalization
+npm run generate
+npm run watch
+npm run contract:check
+npm run test:golden
 ```
 
-Generation must finish in under 10 seconds, the fetch-denied contract suite in under 5 seconds, and `dist/theme.xml` must remain at or below 200 KB. CI publishes both timings and uploads the verified XML artifact.
+Generation must finish in under 10 seconds, the fetch-denied contract suite in under 5 seconds, and `dist/theme.xml` must remain at or below 200 KB. CI runs on GitHub-hosted Linux runners and uploads the verified XML artifact.
 
 ### Deliberately updating the golden snapshot
 
@@ -48,12 +48,12 @@ Never update the golden file merely to make CI green.
 
 - `src/theme.pug`: generated XML shell.
 - `src/widgets/header.pug`: locked Header widget and homepage heading switch.
-- `src/widgets/blog.pug`: M2 Blog render path, states, pager, and comments.
+- `src/widgets/blog.pug`: M2 Blog render path, states, pager, comments, and recovery lists.
 - `src/styles/`: SCSS compiled into the single `b:skin` CDATA block.
 - `src/scripts/`: TypeScript bundled into one inline IIFE.
 - `tools/generate.ts`: deterministic compiler and size gate.
 - `tools/contract-check.ts`: namespace-aware V3 contract validator.
-- `tools/watch.ts`: serialized, coalescing source watcher that survives failed builds.
+- `tools/watch.ts`: serialized, coalescing source watcher.
 - `tests/contract/`: isolated mutation and render-contract suite.
 - `tests/golden/theme.xml`: canonical generated output snapshot.
 - `tests/render/`: real Blogger Playwright checks, never hand-written DOM fixtures.
@@ -67,11 +67,7 @@ npm run harness
 npm run harness:browser
 ```
 
-All Blogger/API configuration uses environment variables documented in `.env.example`. Never commit credentials. Follow [`docs/HARNESS.md`](docs/HARNESS.md) to upload the exact PR artifact and dispatch the protected M2 staging validation workflow.
-
-## Self-hosted runner safety
-
-CI currently uses repository-scoped persistent Linux runners while this repository is private. Jobs reject fork pull requests before reaching those runners. Before making the repository public, add a dedicated runner label, restrict runner access to trusted branches/environments, and keep untrusted fork code on ephemeral GitHub-hosted runners.
+All Blogger/API configuration uses environment variables documented in `.env.example`. Upload the exact green artifact before staging validation. A mismatched stamp is STALE, throttling/challenge is BLOCKED, and neither is a pass.
 
 ## Layout zones
 
@@ -85,7 +81,7 @@ CI currently uses repository-scoped persistent Linux runners while this reposito
 | CTA | `cta` | `HTML` | 1 | Closing call to action |
 | Footer | `footer` | `HTML` | 3 | Attribution and social links |
 
-Only Masthead and Posts are implemented in M2. The remaining editable zones belong to M4 and are not claimed yet.
+Only Masthead and Posts are implemented in M2. Remaining editable zones belong to M4.
 
 ## License
 

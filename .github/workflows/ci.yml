@@ -29,7 +29,7 @@ jobs:
           elapsed=$(( $(date +%s%3N) - start ))
           echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
           test "$elapsed" -lt 5000
-      - name: Audit CI policy and active M2 render repair
+      - name: Audit CI policy and complete M2 source
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -41,7 +41,7 @@ jobs:
                   if token in text:
                       failures.append(f'{path}: forbidden {token}')
           source = Path('src/widgets/blog.pug').read_text()
-          for required in ('data:post.body', 'data:view.isPost', 'comment-tombstone', 'status-message', 'errorState'):
+          for required in ('data:post.body', 'data:view.isPost', 'comment-tombstone', 'recentList', 'data:i < 5', "id='main'", 'data:i == 0'):
               if required not in source:
                   failures.append(f'src/widgets/blog.pug: missing {required}')
           if failures:
