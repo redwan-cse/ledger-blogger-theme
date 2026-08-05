@@ -19,7 +19,7 @@ jobs:
       BLOGGER_BLOG_ID: '5972841034338492159'
       LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
       HARNESS_PACE_MS: '4000'
-      EXPECTED_THEME_BUILD: 0.0.0+7adbdf8efb4c7babe67a349f2a8e5beb408a840f
+      EXPECTED_THEME_BUILD: 0.0.0+31441b0f9b0cda4b883ff8fa2a69930490a6f5b0
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -38,7 +38,7 @@ jobs:
       - run: npm run generate
       - run: npm run contract:check
       - run: npm run test:golden
-      - name: Verify deployed build stamp
+      - name: Report the deployed build stamp before asserting
         run: npm run deploy:check
       - name: Verify rendered HTML across ten views
         run: npm run harness
