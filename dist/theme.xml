@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
+  <head>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta content="0.0.0+b537e775627b45c494b884877ae365933a423675" name="theme-build"/>
+    <title>
+      <b:eval expr="data:view.title.escaped"/>
+    </title>
+    <b:include data="blog" name="all-head-content"/>
+    <b:skin version="0.0.0">
+      <![CDATA[
+:root{color:oklch(.23 .012 85);background:oklch(.984 .004 85)}body{margin:0;min-height:100vh;font-family:system-ui,sans-serif}main{min-height:1px}
+      ]]>
+    </b:skin>
+  </head>
+  <body><a class="skip-link" href="#content">Skip to content</a>
+    <header role="banner">
+      <b:section id="masthead" maxwidgets="1" name="Masthead" showaddelement="no">
+        <b:widget id="Header1" locked="true" title="Blog Header" type="Header" version="2" visible="true">
+          <b:includable id="main" var="this">
+            <b:if cond="data:view.isHomepage">
+              <h1 class="site-title"><a expr:href="data:blog.homepageUrl">
+                  <b:eval expr="data:title"/></a></h1>
+              <b:else/>
+              <p class="site-title"><a expr:href="data:blog.homepageUrl">
+                  <b:eval expr="data:title"/></a></p>
+            </b:if>
+            <b:if cond="data:description">
+              <p class="site-tagline">
+                <b:eval expr="data:description"/>
+              </p>
+            </b:if>
+          </b:includable>
+        </b:widget>
+      </b:section>
+    </header>
+    <div id="content">
+      <b:section id="pageBody" maxwidgets="1" name="Posts" preferred="yes" showaddelement="no">
+        <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
+          <b:includable id="main">
+            <b:include name="super.main"/>
+          </b:includable>
+        </b:widget>
+      </b:section>
+    </div>
+    <script>(()=>{document.documentElement.classList.add("js");})();</script>
+  </body>
+</html>
