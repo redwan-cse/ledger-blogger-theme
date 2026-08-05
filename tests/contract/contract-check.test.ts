@@ -11,7 +11,7 @@ const cases: readonly RuleCase[] = [
   { id: 'widget-v2', violate: (xml) => xml.replace(' version="2"', ''), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
-  { id: 'section-ids', violate: (xml) => xml.replace('id="mainContent" maxwidgets="1"', 'id="masthead" maxwidgets="1"'), comment: 'duplicate section id masthead' },
+  { id: 'section-ids', violate: (xml) => xml.replace('id="main" maxwidgets="1"', 'id="masthead" maxwidgets="1"'), comment: 'duplicate section id masthead' },
   { id: 'header-widget', violate: (xml) => xml.replace('type="Header"', 'type="HTML"'), comment: 'missing Header widget' },
   { id: 'no-v2-accessors', violate: (xml) => inject(xml, '<b:with value="data:blog.url == data:blog.homepageUrl" var="wrong"/>'), comment: 'URL equality is fragile view dispatch' },
   { id: 'no-macro-tags', violate: (xml) => xml.replace('xmlns:expr=', 'xmlns:macro="urn:macro" xmlns:expr=').replace('</main>', '<macro:include name="x"/></main>'), comment: 'macro:include is banned' },
