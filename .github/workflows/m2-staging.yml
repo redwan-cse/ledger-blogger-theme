@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   render:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
     environment: blogger-live
     timeout-minutes: 15
     env:
@@ -27,6 +27,8 @@ jobs:
           node-version: '24.18.1'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - name: Refresh short-lived Blogger access token
         env:
           GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
