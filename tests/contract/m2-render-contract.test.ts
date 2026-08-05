@@ -8,17 +8,22 @@ function blogWidget(xml: string): string {
   return match[0];
 }
 
-describe('M2 render bisect: native Blog dispatch with required head include', () => {
+describe('M2 render bisect: Contempo-aligned shell with native Blog dispatch', () => {
+  it('carries the Blogger locale and direction expressions on html', async () => {
+    const xml = (await generateTheme({ sha, write: false })).xml;
+    expect(xml).toContain('expr:dir="data:blog.languageDirection"');
+    expect(xml).toContain('expr:lang="data:blog.locale.language"');
+  });
+
   it('includes all-head-content exactly once inside head', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
     expect(xml.match(/<b:include data="blog" name="all-head-content"\/>/g) ?? []).toHaveLength(1);
     expect(xml).toMatch(/<head>[\s\S]*<b:include data="blog" name="all-head-content"\/>[\s\S]*<\/head>/);
   });
 
-  it('declares a locked version-2 Blog widget in the Posts section', async () => {
+  it('wraps the Posts section in a main element using Contempo section conventions', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
-    expect(xml).toContain('<b:section id="pageBody"');
-    expect(xml).toMatch(/<b:widget id="Blog1"[^>]*locked="true"[^>]*type="Blog"[^>]*version="2"/);
+    expect(xml).toMatch(/<main id="content" class="main-content" role="main">[\s\S]*<b:section class="main" id="page_body"/);
   });
 
   it('overrides only main and delegates to the native renderer', async () => {
@@ -27,9 +32,13 @@ describe('M2 render bisect: native Blog dispatch with required head include', ()
     expect(widget).toMatch(/<b:includable id="main">\s*<b:include name="super\.main"\/>\s*<\/b:includable>/);
   });
 
-  it('keeps the Header widget render path intact', async () => {
+  it('keeps both widgets locked and explicitly version 2', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
-    expect(xml).toContain('type="Header"');
-    expect(xml).toContain('class="site-title"');
+    const widgets = xml.match(/<b:widget [^>]*>/g) ?? [];
+    expect(widgets).toHaveLength(2);
+    for (const widget of widgets) {
+      expect(widget).toContain('locked="true"');
+      expect(widget).toContain('version="2"');
+    }
   });
 });
