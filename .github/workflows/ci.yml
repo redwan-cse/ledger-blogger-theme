@@ -41,9 +41,19 @@ jobs:
                   if token in text:
                       failures.append(f'{path}: forbidden {token}')
           source = Path('src/widgets/blog.pug').read_text()
-          for required in ('data:post.body', 'data:view.isPost', 'comment-tombstone', 'recentList', 'data:i < 5', "id='main'", 'data:i == 0'):
-              if required not in source:
-                  failures.append(f'src/widgets/blog.pug: missing {required}')
+          required = (
+              "b:include(name='super.main')",
+              'data:post.body',
+              'data:view.isPost',
+              'comment-tombstone',
+              'recentList',
+              'data:i < 5',
+              "id='main'",
+              'data:post.id == data:posts.first.id',
+          )
+          for token in required:
+              if token not in source:
+                  failures.append(f'src/widgets/blog.pug: missing {token}')
           if failures:
               raise SystemExit('\n'.join(failures))
           PY
