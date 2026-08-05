@@ -1,4 +1,4 @@
-name: M2 contempo-parity golden bootstrap
+name: M2 section-id golden bootstrap
 on:
   push:
     branches: [feat/m2-render-path]
@@ -19,7 +19,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run generate && npm run contract:check && npm run test:contract
-      - name: Normalize and commit contempo-parity snapshot
+      - name: Normalize and commit section-id snapshot
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -33,5 +33,5 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add tests/golden/theme.xml .github/workflows/m2-golden-bootstrap.yml
-          git commit -m "test(m2): refresh contempo-parity snapshot"
+          git commit -m "test(m2): refresh section-id snapshot"
           git push origin HEAD:feat/m2-render-path

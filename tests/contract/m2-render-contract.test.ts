@@ -23,7 +23,14 @@ describe('M2 render bisect: Contempo-aligned shell with native Blog dispatch', (
 
   it('wraps the Posts section in a main element using Contempo section conventions', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
-    expect(xml).toMatch(/<main id="content" class="main-content" role="main">[\s\S]*<b:section class="main" id="page_body"/);
+    expect(xml).toMatch(/<main id="content" class="main-content" role="main">[\s\S]*<b:section class="main" id="pageBody"/);
+  });
+
+  it('keeps every section id letter-first alphanumeric', async () => {
+    const xml = (await generateTheme({ sha, write: false })).xml;
+    const ids = [...xml.matchAll(/<b:section [^>]*id="([^"]+)"/g)].map((match) => match[1]);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) expect(id).toMatch(/^[A-Za-z][A-Za-z0-9]*$/);
   });
 
   it('overrides only main and delegates to the native renderer', async () => {

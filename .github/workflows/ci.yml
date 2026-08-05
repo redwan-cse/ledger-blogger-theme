@@ -48,8 +48,8 @@ jobs:
           source = Path('src/widgets/blog.pug').read_text()
           if "b:include(name='super.main')" not in source:
               failures.append('src/widgets/blog.pug: native dispatch missing')
-          if "id='page_body'" not in source:
-              failures.append('src/widgets/blog.pug: Posts section id must stay page_body')
+          if "id='pageBody'" not in source:
+              failures.append('src/widgets/blog.pug: Posts section id must stay pageBody')
           if source.count('b:includable(') != 1:
               failures.append('bisect stage must override only main')
           if failures:
