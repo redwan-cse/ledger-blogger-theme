@@ -1,7 +1,22 @@
 b:section(class='main' id='pageBody' name='Page Body' showaddelement='no')
   b:widget(id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true')
-    b:includable(id='main')
-      b:include(name='super.main')/
+    b:includable(id='main' var='top')
+      b:if(cond='data:posts.empty')
+        b:include(name='status-message')/
+        b:else/
+        .post-list
+          b:loop(values='data:posts' var='post' index='i')
+            b:if(cond='data:view.isPost or data:view.isPage')
+              b:include(name='post' data='post')/
+              b:if(cond='data:view.isPost')
+                b:include(name='comments' data='post')/
+              b:else/
+              b:if(cond='data:view.isHomepage and not data:newerPageUrl and data:i == 0')
+                b:include(name='postLead' data='post')/
+                b:else/
+                b:include(name='postRow' data='post')/
+        b:if(cond='not data:view.isPost and not data:view.isPage')
+          b:include(name='postPagination')/
     include blog-post.pug
     include blog-comments.pug
     include blog-empty.pug

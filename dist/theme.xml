@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+1a0576fcc7ea5c394990cd7016db0a7fdcf7539a" name="theme-build"/>
+    <meta content="0.0.0+e27199e38675cb2f535b9d74c584173ad17c3b11" name="theme-build"/>
     <title>
       <b:eval expr="data:view.title.escaped"/>
     </title>
@@ -38,8 +38,30 @@
     <main class="main-content" id="content" role="main">
       <b:section class="main" id="pageBody" name="Page Body" showaddelement="no">
         <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
-          <b:includable id="main">
-            <b:include name="super.main"/>
+          <b:includable id="main" var="top">
+            <b:if cond="data:posts.empty">
+              <b:include name="status-message"/>
+              <b:else/>
+              <div class="post-list">
+                <b:loop values="data:posts" var="post" index="i">
+                  <b:if cond="data:view.isPost or data:view.isPage">
+                    <b:include name="post" data="post"/>
+                    <b:if cond="data:view.isPost">
+                      <b:include name="comments" data="post"/>
+                    </b:if>
+                    <b:else/>
+                    <b:if cond="data:view.isHomepage and not data:newerPageUrl and data:i == 0">
+                      <b:include name="postLead" data="post"/>
+                      <b:else/>
+                      <b:include name="postRow" data="post"/>
+                    </b:if>
+                  </b:if>
+                </b:loop>
+              </div>
+              <b:if cond="not data:view.isPost and not data:view.isPage">
+                <b:include name="postPagination"/>
+              </b:if>
+            </b:if>
           </b:includable>
           <b:includable id="post" var="post">
             <article class="post" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
@@ -55,7 +77,7 @@
                 <b:eval expr="data:post.title"/>
               </h1>
               <b:else/>
-              <h2 class="post-title" itemprop="name headline"><a expr:href="data:post.url.path" itemprop="url">
+              <h2 class="post-title" itemprop="name headline"><a expr:href="data:post.url" itemprop="url">
                   <b:eval expr="data:post.title"/></a></h2>
             </b:if>
           </b:includable>
@@ -77,11 +99,35 @@
             <footer class="post-footer">
               <b:if cond="data:post.labels">
                 <div class="post-labels">
-                  <b:loop values="data:post.labels" var="label"><a class="label-link" expr:href="data:label.url.path" rel="tag">
+                  <b:loop values="data:post.labels" var="label"><a class="label-link" expr:href="data:label.url" rel="tag">
                       <b:eval expr="data:label.name"/></a></b:loop>
                 </div>
               </b:if>
             </footer>
+          </b:includable>
+          <b:includable id="postLead" var="post">
+            <article class="post-lead" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+              <b:include name="postHeader" data="post"/>
+              <b:include name="postTitle" data="post"/>
+              <div class="post-excerpt" itemprop="description">
+                <b:eval expr="snippet(data:post.snippets.long, {length: 180})"/>
+              </div>
+              <b:include name="postFooter" data="post"/>
+            </article>
+          </b:includable>
+          <b:includable id="postRow" var="post">
+            <article class="post-row" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+              <b:include name="postTitle" data="post"/>
+              <div class="row-meta">
+                <b:if cond="data:post.date">
+                  <time expr:datetime="data:post.date.iso8601" itemprop="datePublished">
+                    <b:eval expr="data:post.date"/>
+                  </time>
+                </b:if>
+                <b:if cond="data:post.labels and not data:post.labels.empty"><span class="topic">
+                    <b:eval expr="data:post.labels.first.name"/></span></b:if>
+              </div>
+            </article>
           </b:includable>
           <b:includable id="comments" var="post">
             <section class="comments-section" id="comments">
@@ -104,11 +150,15 @@
               <b:if cond="data:post.comments">
                 <b:loop values="data:post.comments" var="comment">
                   <div class="comment" expr:id="&quot;c&quot; + data:comment.id">
-                    <b:eval expr="data:comment.body"/>
-                    <div class="comment-meta">
-                      <b:eval expr="data:comment.author"/> · 
-                      <b:eval expr="data:comment.timestamp"/>
-                    </div>
+                    <b:if cond="data:comment.isDeleted">
+                      <div class="comment-tombstone">This comment has been deleted.</div>
+                      <b:else/>
+                      <b:eval expr="data:comment.body"/>
+                      <div class="comment-meta">
+                        <b:eval expr="data:comment.author"/> · 
+                        <b:eval expr="data:comment.timestamp"/>
+                      </div>
+                    </b:if>
                   </div>
                 </b:loop>
               </b:if>
@@ -123,16 +173,31 @@
             </div>
           </b:includable>
           <b:includable id="status-message">
-            <b:if cond="data:navMessage">
-              <div class="status-message">
-                <b:eval expr="data:navMessage"/>
-              </div>
-            </b:if>
+            <div class="empty-state">
+              <b:if cond="data:view.isError">
+                <h2>That page doesn't exist.</h2>
+                <p>But you can search for something else:</p>
+                <b:elseif cond="data:view.isSearch and not data:view.isLabelSearch"/>
+                <h2>Nothing matched your search.</h2>
+                <p>We couldn't find anything matching &quot;<b:eval(expr='data:view.search.query.escaped')/>&quot;.</p>
+                <b:elseif cond="data:view.isLabelSearch"/>
+                <h2>Nothing filed under this label yet.</h2>
+                <p>No posts are tagged with &quot;<b:eval(expr='data:view.search.label.escaped')/>&quot;.</p>
+                <b:elseif cond="data:view.isArchive"/>
+                <h2>No posts in this period.</h2>
+                <p>
+                  <b:eval expr="data:view.archive.rangeMessage"/>
+                </p>
+                <b:else/>
+                <h2>No posts published yet.</h2>
+                <p>Check back later.</p>
+              </b:if>
+            </div>
           </b:includable>
           <b:includable id="postPagination">
             <div class="pagination">
-              <b:if cond="data:newerPageUrl"><a class="newer-link" expr:href="data:newerPageUrl.path">Newer Posts</a></b:if>
-              <b:if cond="data:olderPageUrl"><a class="older-link" expr:href="data:olderPageUrl.path">Older Posts</a></b:if>
+              <b:if cond="data:newerPageUrl"><a class="newer-link" expr:href="data:newerPageUrl">Newer Posts</a></b:if>
+              <b:if cond="data:olderPageUrl"><a class="older-link" expr:href="data:olderPageUrl">Older Posts</a></b:if>
             </div>
           </b:includable>
         </b:widget>

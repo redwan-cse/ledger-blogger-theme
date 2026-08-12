@@ -33,10 +33,10 @@ describe('M2 render bisect: Contempo-aligned shell with native Blog dispatch', (
     for (const id of ids) expect(id).toMatch(/^[A-Za-z][A-Za-z0-9]*$/);
   });
 
-  it('delegates main to the native renderer while providing child overrides', async () => {
+  it('implements a custom main loop rather than relying on super.main, which causes runtime errors', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
     expect(widget.match(/<b:includable /g)?.length ?? 0).toBeGreaterThan(1);
-    expect(widget).toMatch(/<b:includable id="main">\s*<b:include name="super\.main"\/>\s*<\/b:includable>/);
+    expect(widget).toMatch(/<b:includable id="main" var="top">[\s\S]*<b:loop values="data:posts" var="post" index="i">/);
   });
 
   it('keeps both widgets locked and explicitly version 2', async () => {

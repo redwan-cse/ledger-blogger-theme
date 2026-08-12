@@ -15,11 +15,14 @@ b:includable(id='threadedComments' var='post')
     b:if(cond='data:post.comments')
       b:loop(values='data:post.comments' var='comment')
         .comment(expr:id='"c" + data:comment.id')
-          b:eval(expr='data:comment.body')/
-          .comment-meta
-            b:eval(expr='data:comment.author')/
-            |  · 
-            b:eval(expr='data:comment.timestamp')/
+          b:if(cond='data:comment.isDeleted')
+            .comment-tombstone This comment has been deleted.
+            b:else/
+            b:eval(expr='data:comment.body')/
+            .comment-meta
+              b:eval(expr='data:comment.author')/
+              |  · 
+              b:eval(expr='data:comment.timestamp')/
   b:if(cond='data:post.allowComments')
     b:include(name='threadedCommentForm' data='post')/
 

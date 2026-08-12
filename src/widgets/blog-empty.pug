@@ -1,4 +1,19 @@
 b:includable(id='status-message')
-  b:if(cond='data:navMessage')
-    .status-message
-      b:eval(expr='data:navMessage')/
+  .empty-state
+    b:if(cond='data:view.isError')
+      h2 That page doesn't exist.
+      p But you can search for something else:
+      //- Search box would go here, plus recent posts
+      b:elseif(cond='data:view.isSearch and not data:view.isLabelSearch')/
+      h2 Nothing matched your search.
+      p We couldn't find anything matching &quot;<b:eval expr='data:view.search.query.escaped'/>&quot;.
+      b:elseif(cond='data:view.isLabelSearch')/
+      h2 Nothing filed under this label yet.
+      p No posts are tagged with &quot;<b:eval expr='data:view.search.label.escaped'/>&quot;.
+      b:elseif(cond='data:view.isArchive')/
+      h2 No posts in this period.
+      p
+        b:eval(expr='data:view.archive.rangeMessage')/
+      b:else/
+      h2 No posts published yet.
+      p Check back later.
