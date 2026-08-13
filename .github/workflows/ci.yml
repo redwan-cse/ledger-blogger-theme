@@ -29,7 +29,7 @@ jobs:
           elapsed=$(( $(date +%s%3N) - start ))
           echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
           test "$elapsed" -lt 5000
-      - name: Audit CI policy and bisect stage
+      - name: Audit CI policy and Blogger layout bindings
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -45,13 +45,14 @@ jobs:
               failures.append('src/theme.pug: all-head-content include missing')
           if 'main#content.main-content' not in shell:
               failures.append('src/theme.pug: Posts section must sit inside a main element')
-          source = Path('src/widgets/blog.pug').read_text()
-          if "b:include(name='super.main')" not in source:
+          header = Path('src/widgets/header.pug').read_text()
+          if "id='header'" not in header or "id='Header1'" not in header:
+              failures.append('src/widgets/header.pug: must bind section header and widget Header1')
+          blog = Path('src/widgets/blog.pug').read_text()
+          if "b:include(name='super.main')" not in blog:
               failures.append('src/widgets/blog.pug: native dispatch missing')
-          if "id='pageBody'" not in source:
-              failures.append('src/widgets/blog.pug: Posts section id must stay pageBody')
-          if source.count('b:includable(') != 1:
-              failures.append('bisect stage must override only main')
+          if "id='page_body'" not in blog or "id='Blog1'" not in blog:
+              failures.append('src/widgets/blog.pug: must bind section page_body and widget Blog1')
           if failures:
               raise SystemExit('\n'.join(failures))
           PY

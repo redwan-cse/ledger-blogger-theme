@@ -3,12 +3,12 @@ import { generateTheme } from '../../tools/generate.js';
 
 const sha = '0123456789abcdef0123456789abcdef01234567';
 function blogWidget(xml: string): string {
-  const match = xml.match(/<b:widget id="Blog2"[\s\S]*?<\/b:widget>/);
-  if (!match) throw new Error('Blog2 widget was not generated.');
+  const match = xml.match(/<b:widget id="Blog1"[\s\S]*?<\/b:widget>/);
+  if (!match) throw new Error('Blog1 widget was not generated.');
   return match[0];
 }
 
-describe('M2 render bisect: Contempo-aligned shell with native Blog dispatch', () => {
+describe('M2 render path: Contempo-aligned shell and widget bindings', () => {
   it('carries the Blogger locale and direction expressions on html', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
     expect(xml).toContain('expr:dir="data:blog.languageDirection"');
@@ -23,14 +23,19 @@ describe('M2 render bisect: Contempo-aligned shell with native Blog dispatch', (
 
   it('wraps the Posts section in a main element using Contempo section conventions', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
-    expect(xml).toMatch(/<main class="main-content" id="content" role="main">[\s\S]*<b:section class="main" id="pageBody"/);
+    expect(xml).toMatch(/<main class="main-content" id="content" role="main">[\s\S]*<b:section class="main" id="page_body"/);
   });
 
-  it('keeps every section id letter-first alphanumeric', async () => {
+  it('uses the exact section ids Blogger already has bound in its layout database', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
     const ids = [...xml.matchAll(/<b:section [^>]*id="([^"]+)"/g)].map((match) => match[1]);
-    expect(ids.length).toBeGreaterThan(0);
-    for (const id of ids) expect(id).toMatch(/^[A-Za-z][A-Za-z0-9]*$/);
+    expect(ids).toEqual(['header', 'page_body']);
+  });
+
+  it('uses the exact widget ids Blogger already has bound in its layout database', async () => {
+    const xml = (await generateTheme({ sha, write: false })).xml;
+    const ids = [...xml.matchAll(/<b:widget id="([^"]+)"/g)].map((match) => match[1]);
+    expect(ids).toEqual(['Header1', 'Blog1']);
   });
 
   it('delegates main to the native renderer while providing child overrides', async () => {
