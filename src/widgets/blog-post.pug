@@ -2,7 +2,10 @@ b:includable(id='post' var='post')
   article.post(itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting')
     b:include(name='postHeader' data='post')/
     b:include(name='postTitle' data='post')/
-    b:include(name='postBody' data='post')/
+    b:if(cond='data:view.isSingleItem')
+      b:include(name='postBody' data='post')/
+      b:else/
+      b:include(name='postBodySnippet' data='post')/
     b:include(name='postFooter' data='post')/
 
 b:includable(id='postTitle' var='post')
@@ -24,8 +27,14 @@ b:includable(id='postBody' var='post')
   .post-body(itemprop='articleBody')
     b:eval(expr='data:post.body')/
 
+b:includable(id='postBodySnippet' var='post')
+  .post-excerpt(itemprop='description')
+    b:eval(expr='snippet(data:post.snippets.long, {length: 180})')/
+
 b:includable(id='postFooter' var='post')
   footer.post-footer
+    //- No reading time: not computable from documented V3 accessors without
+    //- fabricating a value, banned by AGENTS.md and contract rule no-fabricated-metadata.
     b:if(cond='data:post.labels')
       .post-labels
         b:loop(values='data:post.labels' var='label')
