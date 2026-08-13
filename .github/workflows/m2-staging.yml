@@ -1,0 +1,64 @@
+name: M2 staging validation
+on:
+  workflow_dispatch:
+    inputs:
+      theme_sha:
+        description: Full 40-character SHA of the theme.xml artifact uploaded to Blogger
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: staging-blog
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    environment: blogger-live
+    timeout-minutes: 15
+    env:
+      STAGING_URL: https://blogs.redwan.work/
+      BLOGGER_BLOG_ID: '5972841034338492159'
+      LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
+      HARNESS_PACE_MS: '4000'
+      EXPECTED_THEME_BUILD: 0.0.0+${{ inputs.theme_sha }}
+    steps:
+      - name: Reject a malformed theme SHA before touching the blog
+        run: |
+          if ! printf '%s' "${{ inputs.theme_sha }}" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::theme_sha must be a full lowercase 40-character commit SHA, got '${{ inputs.theme_sha }}'"
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Refresh short-lived Blogger access token
+        env:
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
+        run: npx tsx tools/google-access-token.ts
+      - run: npm run generate
+      - run: npm run contract:check
+      - run: npm run test:golden
+      - name: Report the deployed build stamp before asserting
+        run: npm run deploy:check
+      - name: Verify rendered HTML across ten views
+        run: npm run harness
+      - name: Verify JS, no-JS, and reduced-motion browser contexts
+        run: npm run harness:browser
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: m2-evidence-${{ github.sha }}
+          path: |
+            dist/theme.xml
+            playwright-report
+            test-results
+          if-no-files-found: warn
+          retention-days: 14

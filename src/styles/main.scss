@@ -1,5 +1,41 @@
+// ---------------------------------------------------------------------------
+// Tokens — docs/PROJECT-PLAN.md §2.2 (colour), §2.3 (type), §2.4 (spacing)
+// ---------------------------------------------------------------------------
+
 $page: oklch(98.4% 0.004 85);
+$surface: oklch(96.2% 0.006 85);
 $ink: oklch(23% 0.012 85);
+$ink-muted: oklch(48% 0.010 85);
+$rule: oklch(89% 0.006 85);
+$accent: oklch(46% 0.148 25);
+$accent-wash: oklch(94% 0.028 25);
+
+$font-serif: georgia, 'Iowan Old Style', 'Palatino Linotype', palatino, serif;
+$font-sans: -apple-system, system-ui, 'Segoe UI', roboto, sans-serif;
+$font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', consolas, monospace;
+
+// Base 4px, deliberately uneven rhythm.
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 48px;
+$space-8: 72px;
+$space-9: 112px;
+
+$measure: 68ch;
+$motion-duration: 160ms;
+$motion-ease: cubic-bezier(0.25, 1, 0.5, 1); // ease-out quart
+
+// ---------------------------------------------------------------------------
+// Reset and base
+// ---------------------------------------------------------------------------
+
+* {
+  box-sizing: border-box;
+}
 
 :root {
   color: $ink;
@@ -9,9 +45,416 @@ $ink: oklch(23% 0.012 85);
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: system-ui, sans-serif;
+  font-family: $font-sans;
+  line-height: 1.5;
 }
 
-main {
-  min-height: 1px;
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: $accent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+pre,
+code {
+  font-family: $font-mono;
+}
+
+pre {
+  overflow-x: auto;
+  background: $surface;
+  padding: $space-4;
+  border-radius: 2px;
+  white-space: pre;
+}
+
+// ---------------------------------------------------------------------------
+// Accessibility — docs/PROJECT-PLAN.md §2.8
+// ---------------------------------------------------------------------------
+
+.skip-link {
+  position: absolute;
+  left: $space-2;
+  top: -48px;
+  z-index: 10;
+  background: $ink;
+  color: $page;
+  padding: $space-2 $space-4;
+  border-radius: 2px;
+  transition: top $motion-duration $motion-ease;
+
+  &:focus {
+    top: $space-2;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid $accent;
+  outline-offset: 2px;
+}
+
+a,
+button,
+.label-link,
+.newer-link,
+.older-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Masthead
+// ---------------------------------------------------------------------------
+
+.header-outer {
+  padding: $space-6 $space-4 $space-5;
+  border-bottom: 1px solid $rule;
+}
+
+.site-title {
+  font-family: $font-serif;
+  font-weight: 700;
+  font-size: 1.777rem;
+  margin: 0;
+  line-height: 1.2;
+
+  a {
+    color: $ink;
+    text-decoration: none;
+  }
+}
+
+.site-tagline {
+  font-family: $font-sans;
+  color: $ink-muted;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  margin: $space-2 0 0;
+}
+
+// ---------------------------------------------------------------------------
+// Layout — docs/PROJECT-PLAN.md §2.4, §2.7
+// ---------------------------------------------------------------------------
+
+.main-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: $space-6 $space-4 $space-9;
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .main-content {
+    padding: $space-7 $space-7 $space-9;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: $space-6;
+    padding: $space-8 $space-6 $space-9;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Post — lead vs. row (Home p1 only). Everything else is a plain list.
+// docs/PROJECT-PLAN.md §2.4, §2.5, §2.6
+// ---------------------------------------------------------------------------
+
+.post,
+.post-row {
+  border-bottom: 1px solid $rule;
+  padding: $space-5 0;
+
+  @media (min-width: 1024px) {
+    grid-column: 1 / -1;
+  }
+}
+
+.post-title {
+  font-family: $font-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  margin: 0 0 $space-2;
+
+  a {
+    color: $ink;
+    text-decoration: none;
+
+    &:hover {
+      color: $accent;
+    }
+  }
+
+  // Row titles clamp; the article's own h1 is never inside this class.
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-date {
+  font-family: $font-sans;
+  color: $ink-muted;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+}
+
+// Excerpt exists in the DOM for every multi-item view (server-rendered via
+// postBodySnippet) but only the homepage-p1 lead shows it. Every other index
+// row is title + date + topic, no excerpt, no card chrome, per §2.4/§2.5.
+.post-excerpt {
+  display: none;
+}
+
+body.is-home-lead .post:first-of-type {
+  padding-top: $space-6;
+
+  @media (min-width: 1024px) {
+    grid-column: 1 / 9; // 8 of 12 columns
+  }
+
+  .post-title {
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 1.777rem);
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+
+  .post-excerpt {
+    display: block;
+    font-family: $font-serif;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    max-width: $measure;
+    color: $ink;
+    margin: $space-3 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+.post-footer {
+  margin-top: $space-3;
+}
+
+.post-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.label-link {
+  font-family: $font-sans;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: $ink-muted;
+  text-decoration: none;
+  background: $surface;
+  padding: $space-1 $space-3;
+  border-radius: 999px;
+
+  &:hover {
+    color: $accent;
+    background: $accent-wash;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Article — single post/page. docs/PROJECT-PLAN.md §2.3, §2.7
+// ---------------------------------------------------------------------------
+
+.is-post .post,
+.is-page .post {
+  border-bottom: none;
+
+  @media (min-width: 1024px) {
+    grid-column: 3 / 11; // columns 3–10
+  }
+
+  .post-title {
+    font-family: $font-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 1.4rem + 2.6vw, 3.15rem);
+    line-height: 1.15;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+}
+
+.post-body {
+  font-family: $font-serif;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  max-width: $measure;
+
+  h2 {
+    font-size: 1.777rem;
+    font-weight: 650;
+  }
+
+  h3 {
+    font-size: 1.333rem;
+    font-weight: 650;
+  }
+
+  p {
+    margin: 0 0 $space-4;
+  }
+
+  img {
+    margin: $space-5 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Comments
+// ---------------------------------------------------------------------------
+
+.comments-section {
+  border-top: 1px solid $rule;
+  margin-top: $space-8;
+  padding-top: $space-6;
+
+  @media (min-width: 1024px) {
+    grid-column: 3 / 11;
+  }
+}
+
+.comments-title {
+  font-family: $font-sans;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: $ink-muted;
+  text-transform: uppercase;
+  margin: 0 0 $space-5;
+}
+
+.comment {
+  border-bottom: 1px solid $rule;
+  padding: $space-4 0;
+}
+
+.comment-tombstone {
+  color: $ink-muted;
+  font-style: italic;
+}
+
+.comment-meta {
+  color: $ink-muted;
+  font-size: 0.8125rem;
+  margin-top: $space-2;
+}
+
+.comment-form {
+  margin-top: $space-5;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 $space-4;
+    background: $accent;
+    color: $page;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: background $motion-duration $motion-ease;
+
+    &:hover {
+      background: oklch(40% 0.148 25);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Empty / error states — docs/PROJECT-PLAN.md §2.6, R-EMPTY. Never blank.
+// ---------------------------------------------------------------------------
+
+.empty-state {
+  grid-column: 1 / -1;
+  background: $surface;
+  border-radius: 4px;
+  padding: $space-7 $space-5;
+  text-align: left;
+  max-width: $measure;
+
+  h2 {
+    font-family: $font-serif;
+    font-size: 1.333rem;
+    margin: 0 0 $space-3;
+  }
+
+  p {
+    color: $ink-muted;
+    margin: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pagination
+// ---------------------------------------------------------------------------
+
+.pagination {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  margin-top: $space-6;
+  padding-top: $space-5;
+  border-top: 1px solid $rule;
+}
+
+.newer-link,
+.older-link {
+  font-family: $font-sans;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: $ink;
+  text-decoration: none;
+
+  &:hover {
+    color: $accent;
+  }
+}
+
+.older-link {
+  margin-left: auto;
+}
+
+// ---------------------------------------------------------------------------
+// Small viewport — docs/PROJECT-PLAN.md §2.7. Lead joins the list.
+// ---------------------------------------------------------------------------
+
+@media (max-width: 639px) {
+  .main-content {
+    padding: $space-5 20px $space-8;
+  }
+
+  body.is-home-lead .post:first-of-type .post-excerpt {
+    display: none;
+  }
+
+  body.is-home-lead .post:first-of-type .post-title {
+    font-size: 1.15rem;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
 }

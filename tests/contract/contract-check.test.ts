@@ -5,14 +5,14 @@ import { generateTheme } from '../../tools/generate.js';
 const sha = '0123456789abcdef0123456789abcdef01234567';
 interface RuleCase { id: string; violate(xml: string): string; comment: string; parserFailure?: boolean }
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
-
+const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const cases: readonly RuleCase[] = [
-  { id: 'well-formed', violate: (xml) => xml.replace('<main id="main">', '<main id="main" id="duplicate">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
+  { id: 'well-formed', violate: (xml) => xml.replace(MAIN_OPEN, '<main class="main-content" id="content" id="duplicate" role="main">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
   { id: 'layouts-v3', violate: (xml) => xml.replace('b:layoutsVersion="3"', 'b:layoutsVersion="2"'), comment: "b:layoutsVersion='2' is forbidden" },
   { id: 'widget-v2', violate: (xml) => xml.replace(' version="2"', ''), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
-  { id: 'section-ids', violate: (xml) => xml.replace('id="mainContent"', 'id="masthead"'), comment: 'duplicate section id masthead' },
+  { id: 'section-ids', violate: (xml) => xml.replace('id="page_body"', 'id="header"'), comment: 'duplicate section id header' },
   { id: 'header-widget', violate: (xml) => xml.replace('type="Header"', 'type="HTML"'), comment: 'missing Header widget' },
   { id: 'no-v2-accessors', violate: (xml) => inject(xml, '<b:with value="data:blog.url == data:blog.homepageUrl" var="wrong"/>'), comment: 'URL equality is fragile view dispatch' },
   { id: 'no-macro-tags', violate: (xml) => xml.replace('xmlns:expr=', 'xmlns:macro="urn:macro" xmlns:expr=').replace('</main>', '<macro:include name="x"/></main>'), comment: 'macro:include is banned' },
@@ -29,38 +29,24 @@ const cases: readonly RuleCase[] = [
 ];
 
 describe('V3 contract checker blind-spot matrix', () => {
-  it('covers every registered rule exactly once', () => {
-    expect(cases.map((item) => item.id).sort()).toEqual(contractRules.map((rule) => rule.id).sort());
-  });
-
-  for (const testCase of cases) it(`${testCase.id}: isolates a violation and ignores both comment forms`, async () => {
+  it('covers every registered rule exactly once', () => { expect(cases.map((item) => item.id).sort()).toEqual(contractRules.map((rule) => rule.id).sort()); });
+  it('anchors every mutation against the real generated output', async () => {
     const { xml } = await generateTheme({ sha, write: false });
-    const violated = testCase.violate(xml);
-    expect(violated).not.toBe(xml);
-    const findings = checkThemeContract(violated).map((finding) => finding.ruleId);
-    if (testCase.parserFailure) expect(findings).toEqual(['well-formed', 'declared-entities']);
-    else expect(findings).toEqual([testCase.id]);
-
-    const safe = testCase.comment.replace(/--/g, '—').replace(/&/g, 'and');
-    const htmlComment = xml.replace('</body>', `<!-- ${safe} --></body>`);
-    const bloggerComment = xml.replace('</main>', `<b:comment>${safe}</b:comment></main>`);
-    expect(checkThemeContract(htmlComment)).toEqual([]);
-    expect(checkThemeContract(bloggerComment)).toEqual([]);
+    expect(xml, 'MAIN_OPEN must match the generated main element exactly').toContain(MAIN_OPEN);
+    expect(xml, 'the Posts section must stay bound to page_body').toContain('id="page_body"');
   });
-
+  for (const testCase of cases) it(`${testCase.id}: isolates a violation and ignores both comment forms`, async () => {
+    const { xml } = await generateTheme({ sha, write: false }); const violated = testCase.violate(xml); expect(violated).not.toBe(xml);
+    const findings = checkThemeContract(violated).map((finding) => finding.ruleId);
+    if (testCase.parserFailure) expect(findings).toEqual(['well-formed', 'declared-entities']); else expect(findings).toEqual([testCase.id]);
+    const safe = testCase.comment.replace(/--/g, '—').replace(/&/g, 'and');
+    expect(checkThemeContract(xml.replace('</body>', `<!-- ${safe} --></body>`))).toEqual([]);
+    expect(checkThemeContract(xml.replace('</main>', `<b:comment>${safe}</b:comment></main>`))).toEqual([]);
+  });
   it('rejects malformed XML classes the regex checker missed', async () => {
     const { xml } = await generateTheme({ sha, write: false });
-    const mutations = [
-      xml.replace('</html>', '</html><extra/>'),
-      xml.replace('<main id="main">', '<bad:main id="main">').replace('</main>', '</bad:main>'),
-      xml.replace('<main id="main">', '<main id="main" broken>'),
-      xml.replace('<main id="main">', '<main id="main"> stray < text')
-    ];
-    for (const mutation of mutations) expect(checkThemeContract(mutation).map((finding) => finding.ruleId)).toContain('well-formed');
+    const mutations = [xml.replace('</html>', '</html><extra/>'), xml.replace(MAIN_OPEN, '<bad:main class="main-content" id="content" role="main">').replace('</main>', '</bad:main>'), xml.replace(MAIN_OPEN, '<main class="main-content" id="content" role="main" broken>'), xml.replace(MAIN_OPEN, `${MAIN_OPEN} stray < text`)];
+    for (const mutation of mutations) { expect(mutation).not.toBe(xml); expect(checkThemeContract(mutation).map((finding) => finding.ruleId)).toContain('well-formed'); }
   });
-
-  it('accepts the actual generated M1 scaffold', async () => {
-    const { xml } = await generateTheme({ sha, write: false });
-    expect(checkThemeContract(xml)).toEqual([]);
-  });
+  it('accepts the actual generated M2 render skeleton', async () => { expect(checkThemeContract((await generateTheme({ sha, write: false })).xml)).toEqual([]); });
 });

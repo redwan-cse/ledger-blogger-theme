@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M1 complete.** Pug, SCSS, and TypeScript compile deterministically into a stamped V3 XML artifact. The hardened contract suite, canonical golden snapshot, watch mode, size budget, and timing gates are green. The generated theme remains an M1 scaffold; M2 owns the real Blog render path.
+> **Status: M2 render path reverted to native dispatch; production confirmed still blank; M3 design system implemented offline.** `Header` and `Blog` render paths delegate top-level dispatch to Blogger's native `super.main` (see `docs/DECISION-M2-NATIVE-DISPATCH.md`). Live evidence as of the `cc6bee8` build: this confirmed-deployed, native-dispatch build still renders `no-items` empty shells for both `Header` and `Blog` on `blogs.redwan.work`, which rules out the dispatch pattern as sole cause — root cause is still open, see `docs/M2-BLANK-RENDER-INVESTIGATION.md`. Complete includable inventory (including `postBodySnippet`), pagination, loud empty/error states, and server-side threaded comments are implemented. The M3 design system (tokens, type scale, grid, states, responsive, a11y) is implemented and offline-verified, but **visual baselines are not captured** because the site does not yet render on production. M2 and M3 are both offline-green only; neither is complete until a real Blogger render confirms it, per this repo's own rules.
 
 ## Rules
 
@@ -24,16 +24,16 @@ npm test
 npm run test:contract
 ```
 
-## M1 generation commands
+## Generation commands
 
 ```sh
-npm run generate         # Pug + SCSS + TypeScript -> dist/theme.xml
-npm run watch            # regenerate after .pug, .scss, or .ts source changes
-npm run contract:check   # validate generated XML against the V3 contract
-npm run test:golden      # byte-diff generated XML after build-SHA normalization
+npm run generate
+npm run watch
+npm run contract:check
+npm run test:golden
 ```
 
-Generation must finish in under 10 seconds, the fetch-denied contract suite in under 5 seconds, and `dist/theme.xml` must remain at or below 200 KB. CI publishes both timings and uploads the verified XML artifact.
+Generation must finish in under 10 seconds, the fetch-denied contract suite in under 5 seconds, and `dist/theme.xml` must remain at or below 200 KB. CI runs on GitHub-hosted Linux runners and uploads the verified XML artifact.
 
 ### Deliberately updating the golden snapshot
 
@@ -46,14 +46,17 @@ Never update the golden file merely to make CI green.
 
 ## Repository source layout
 
-- `src/theme.pug`: generated XML shell and M1 scaffold.
+- `src/theme.pug`: generated XML shell.
+- `src/widgets/header.pug`: locked Header widget and homepage heading switch.
+- `src/widgets/blog.pug`: M2 Blog render path, states, pager, comments, and recovery lists.
 - `src/styles/`: SCSS compiled into the single `b:skin` CDATA block.
 - `src/scripts/`: TypeScript bundled into one inline IIFE.
 - `tools/generate.ts`: deterministic compiler and size gate.
 - `tools/contract-check.ts`: namespace-aware V3 contract validator.
-- `tools/watch.ts`: serialized, coalescing source watcher that survives failed builds.
-- `tests/contract/`: isolated mutation and blind-spot regression suite.
+- `tools/watch.ts`: serialized, coalescing source watcher.
+- `tests/contract/`: isolated mutation and render-contract suite.
 - `tests/golden/theme.xml`: canonical generated output snapshot.
+- `tests/render/`: real Blogger Playwright checks, never hand-written DOM fixtures.
 
 ## Live Blogger commands
 
@@ -64,11 +67,7 @@ npm run harness
 npm run harness:browser
 ```
 
-All Blogger/API configuration uses environment variables documented in `.env.example`. Never commit credentials. Live Layout-mode rendering and the complete Blog-widget includable contract remain M2 gates; M1 does not claim them.
-
-## Self-hosted runner safety
-
-CI currently uses repository-scoped persistent Linux runners while this repository is private. Jobs reject fork pull requests before reaching those runners. Before making the repository public, add a dedicated runner label, restrict runner access to trusted branches/environments, and keep untrusted fork code on ephemeral GitHub-hosted runners.
+All Blogger/API configuration uses environment variables documented in `.env.example`. Upload the exact green artifact before staging validation. A mismatched stamp is STALE, throttling/challenge is BLOCKED, and neither is a pass.
 
 ## Layout zones
 
@@ -81,6 +80,8 @@ CI currently uses repository-scoped persistent Linux runners while this reposito
 | Posts | `main` | `Blog` | 1 | The render path. Locked. |
 | CTA | `cta` | `HTML` | 1 | Closing call to action |
 | Footer | `footer` | `HTML` | 3 | Attribution and social links |
+
+Only Masthead and Posts are implemented in M2. Remaining editable zones belong to M4.
 
 ## License
 

@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main, feat/m1-generation-pipeline]
+    branches: [main, feat/m2-render-path]
   pull_request:
 permissions:
   contents: read
@@ -10,8 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   harness-contract:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -30,9 +29,35 @@ jobs:
           elapsed=$(( $(date +%s%3N) - start ))
           echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
           test "$elapsed" -lt 5000
+      - name: Audit CI policy and Blogger layout bindings
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          failures = []
+          tokens = ('continue-' + 'on-error', '|' + '| true')
+          for path in Path('.github/workflows').glob('*.yml'):
+              text = path.read_text()
+              for token in tokens:
+                  if token in text:
+                      failures.append(f'{path}: forbidden {token}')
+          shell = Path('src/theme.pug').read_text()
+          if "name='all-head-content'" not in shell:
+              failures.append('src/theme.pug: all-head-content include missing')
+          if 'main#content.main-content' not in shell:
+              failures.append('src/theme.pug: Posts section must sit inside a main element')
+          header = Path('src/widgets/header.pug').read_text()
+          if "id='header'" not in header or "id='Header1'" not in header:
+              failures.append('src/widgets/header.pug: must bind section header and widget Header1')
+          blog = Path('src/widgets/blog.pug').read_text()
+          if "b:include(name='super.main')" not in blog:
+              failures.append('src/widgets/blog.pug: native dispatch missing')
+          if "id='page_body'" not in blog or "id='Blog1'" not in blog:
+              failures.append('src/widgets/blog.pug: must bind section page_body and widget Blog1')
+          if failures:
+              raise SystemExit('\n'.join(failures))
+          PY
   generate:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7

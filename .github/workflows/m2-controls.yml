@@ -1,0 +1,38 @@
+name: M2 blank-render controls
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build Contempo swap controls
+        run: npx tsx tools/build-controls.ts
+      - name: Summarize upload order
+        run: |
+          {
+            echo '### M2 blank-render controls'
+            echo ''
+            echo 'Upload one at a time, then report which renders posts.'
+            echo ''
+            echo '1. `control-b-our-shell-contempo-blog.xml` — our shell, Google Blog widget.'
+            echo '   Renders posts => our Blog widget is at fault. Blank => our shell is at fault.'
+            echo '2. `control-a-contempo-shell-our-blog.xml` — Google shell, our Blog widget.'
+            echo '   Renders posts => our shell is at fault. Blank => our Blog widget is at fault.'
+            echo ''
+            echo 'Both blank means the blog configuration is at fault, not the theme.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: m2-controls-${{ github.sha }}
+          path: dist/controls/
+          if-no-files-found: error
+          retention-days: 7

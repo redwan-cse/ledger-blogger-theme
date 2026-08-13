@@ -1,10 +1,19 @@
 # Dependencies
 node_modules/
 
+# AI Agent
+.agents/
+.zed/
+skills-lock.json
+
 # Build output — dist/theme.xml IS committed (golden-file diffing depends on it)
 dist/*
 !dist/.gitkeep
 !dist/theme.xml
+
+# Debugging scratch space — never commit experiments
+scratch/*
+!scratch/README.md
 
 # Test artifacts
 playwright-report/
