@@ -2,6 +2,7 @@
 
 - **Date:** 2026-08-13
 - **Status:** **FALSIFIED 2026-08-13.** The decision below was tested live and did not fix the blank render. See [Falsification](#falsification-2026-08-13). The id-hygiene rules it introduced are retained; the causal claim is withdrawn.
+- **Amended:** 2026-08-13, elimination order corrected. See [Corrected chronology](#corrected-chronology-amended-2026-08-13).
 - **Supersedes:** the working notes in `docs/M2-BLANK-RENDER-INVESTIGATION.md`
 - **Requirements:** R-RENDER-1, R-RENDER-2, R-EMPTY-1, BR-1, BR-7
 
@@ -11,19 +12,38 @@ M2 shipped a Blog widget that rendered nothing on every view for nine days. The 
 rendered its title and tagline correctly on the same page, so the document shell, `b:skin`,
 namespaces, and widget versioning were all provably working. Only `Blog1` produced no output.
 
-Every offline gate stayed green through **five** separate blank uploads: deterministic
-generation, 19 namespace-aware contract rules, the golden snapshot, and the render-contract
-suite. The build stamp was verified against the deployed theme, so none of the failures were
-stale artifacts.
+Every offline gate stayed green through **six** blank uploads: deterministic generation, 19
+namespace-aware contract rules, the golden snapshot, and the render-contract suite. The build
+stamp was verified against the deployed theme, so none of the failures were stale artifacts.
 
-We eliminated causes in this order, each with evidence:
+## Corrected chronology, amended 2026-08-13
 
-1. **Missing `version='2'`**, the predecessor's F1 root cause. Present on both widgets throughout.
-2. **Our custom includables.** A bisect build whose Blog widget contained only
-   `<b:includable id='main'><b:include name='super.main'/></b:includable>` still rendered blank.
+An earlier revision of this ADR listed the minimal-widget bisect as the **second** cause
+eliminated, as though it were a narrowing step taken partway through the investigation. That is
+wrong. **The bisect was upload one**, before any custom widget code existed.
+
+| # | Upload | Result |
+|---|---|---|
+| 1 | **Minimal widget.** `<b:includable id='main'><b:include name='super.main'/></b:includable>` and nothing else. | Blank |
+| 2 | Full render path: complete includable inventory, view dispatch, pager, empty and error states, comments. | Blank |
+| 3 | `version='2'` audit. Present on both widgets throughout; nothing to fix. | Blank |
+| 4 | Pug data-tag mangling fixed (`data:post.title/` was compiling to `<data:post class="title"/>`). | Blank |
+| 5 | Shell parity with Contempo: added `all-head-content`, `expr:dir`, `expr:lang`. | Blank |
+| 6 | Bound ids restored per the decision below. | Blank |
+
+The correction matters for three reasons:
+
+1. **The render path was never once observed working.** There is no known-good state to bisect back to.
+2. **Widget contents were ruled out before any widget content existed.** Upload 1 had no custom includables, no data tags, and no view dispatch, and it still rendered nothing. Hypotheses 3, 4 and 5 were therefore already answered by upload 1 and were investigated anyway.
+3. **Four days of widget development postdate a decisive negative result.** Uploads 2 through 6 added code on top of a render path that had already been observed producing no output at its smallest possible size.
+
+## Causes eliminated, with evidence
+
+1. **Our custom includables.** Eliminated by upload 1, which had none and rendered blank anyway.
+2. **Missing `version='2'`**, the predecessor's F1 root cause. Present on both widgets throughout.
 3. **Pug mangling.** Real bug, found and fixed: `data:post.title/` compiled to
-   `<data:post class="title"/>` because Pug read the dots as CSS class syntax. Fixing it did not
-   restore rendering, so it was a defect but not the cause.
+   `<data:post class="title"/>` because Pug read the dots as CSS class syntax. Could not have been
+   the cause, since upload 1 contained no data tags at all.
 4. **A missing `all-head-content` include** and missing `expr:dir`/`expr:lang`. Real gaps against
    Google's shipped Contempo export. Fixing them did not restore rendering either.
 
@@ -108,25 +128,32 @@ match reality.
 
 ## Alternatives considered
 
-- **Keep iterating on widget markup.** Rejected after the zero-includable bisect proved the
-  markup was irrelevant. Still rejected; the bisect result is unchallenged.
+- **Keep iterating on widget markup.** Rejected. Upload 1 proved the markup was irrelevant before
+  any markup was written, and nothing since has challenged that result.
 - **Adopt Contempo's shell wholesale.** Rejected as it would discard the M2 render contract, and
   it would have masked the real cause rather than explaining it. **Now worth reconsidering** if
   the export diff is inconclusive: a known-rendering shell that we strip back toward our contract
-  converts an open-ended search into a bisect with a guaranteed-good starting point.
+  converts an open-ended search into a bisect with a guaranteed-good starting point. Note that
+  this is currently the *only* route to a known-good baseline, because our own theme has never
+  rendered posts even once.
 - **Drop `version='2'` to match Contempo's Blog widget.** Rejected permanently. Contempo relies on
   `b:defaultwidgetversion='2'`; removing the explicit attribute reproduces failure F1 exactly.
 
 ## Lessons, added to the standing rules
 
-1. A green contract suite proves the XML is valid. It proves nothing about whether Blogger will
+1. **When the minimal case fails, stop.** Upload 1 was a correct experiment with a decisive
+   result, and development continued straight past it for four days. A failing minimal case is a
+   diagnosis instruction, not a data point to note and move on from.
+2. A green contract suite proves the XML is valid. It proves nothing about whether Blogger will
    execute it. This is finding F1 in a new costume, and it cost nine days.
-2. When one widget renders and another does not, the difference is **configuration**, not markup.
+3. When one widget renders and another does not, the difference is **configuration**, not markup.
    Check the platform's own state first.
-3. Cheap diagnostics before expensive ones.
-4. Never rename a bound id to satisfy a lint rule. Fix the rule.
-5. **Inspect what the platform stored, not only what you sent.** Six uploads were reasoned about
+4. Cheap diagnostics before expensive ones.
+5. Never rename a bound id to satisfy a lint rule. Fix the rule.
+6. **Inspect what the platform stored, not only what you sent.** Six uploads were reasoned about
    from our own output. The round-trip export was available the entire time and was never taken.
-6. A decision record written before live confirmation is a hypothesis with formatting. This one
+7. A decision record written before live confirmation is a hypothesis with formatting. This one
    was marked "Accepted, pending live confirmation" and was wrong within the hour. Do not mark an
    ADR accepted until the evidence is in hand.
+8. **Record the order of experiments as they happen.** This ADR misplaced its own most important
+   result, which made a dead end look like progress.
