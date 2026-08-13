@@ -8,7 +8,7 @@ const CONTEMPO = path.join(ROOT, 'docs/contempo-1.3.3.xml');
 const OUT = path.join(ROOT, 'dist/controls');
 
 const BLOG_WIDGET = /<b:widget id='Blog1'[\s\S]*?<\/b:widget>/;
-const OUR_BLOG_WIDGET = /<b:widget id="Blog1"[\s\S]*?<\/b:widget>/;
+const OUR_BLOG_WIDGET = /<b:widget id="Blog2"[\s\S]*?<\/b:widget>/;
 
 function requireMatch(source: string, pattern: RegExp, label: string): string {
   const match = source.match(pattern);
@@ -25,7 +25,7 @@ export async function buildControls(sha: string): Promise<string[]> {
   const ours = await generateTheme({ sha, write: false });
   const contempo = await readFile(CONTEMPO, 'utf8');
   const contempoBlog = requireMatch(contempo, BLOG_WIDGET, "Contempo's Blog1 widget");
-  const ourBlog = requireMatch(ours.xml, OUR_BLOG_WIDGET, 'our Blog1 widget');
+  const ourBlog = requireMatch(ours.xml, OUR_BLOG_WIDGET, 'our Blog2 widget');
 
   const controlA = stamp(contempo.replace(BLOG_WIDGET, ourBlog), ours.build);
   const controlB = stamp(ours.xml.replace(OUR_BLOG_WIDGET, contempoBlog), ours.build);

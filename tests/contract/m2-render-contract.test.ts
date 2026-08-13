@@ -3,8 +3,8 @@ import { generateTheme } from '../../tools/generate.js';
 
 const sha = '0123456789abcdef0123456789abcdef01234567';
 function blogWidget(xml: string): string {
-  const match = xml.match(/<b:widget id="Blog1"[\s\S]*?<\/b:widget>/);
-  if (!match) throw new Error('Blog1 widget was not generated.');
+  const match = xml.match(/<b:widget id="Blog2"[\s\S]*?<\/b:widget>/);
+  if (!match) throw new Error('Blog2 widget was not generated.');
   return match[0];
 }
 
