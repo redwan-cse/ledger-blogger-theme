@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M2 completion candidate, staging verification pending.** Header and Blog render paths, complete includable inventory, first-page lead dispatch, pagination, loud empty/error states, server-side threaded comments, five-post recovery lists, and JS/no-JS/reduced-motion checks are implemented. M2 is not complete until the exact stamped artifact passes all ten staging views, including Layout mode.
+> **Status: M2 completion candidate, staging verification pending.** Header and Blog render paths delegate top-level dispatch to Blogger's native `super.main` (see `docs/DECISION-M2-NATIVE-DISPATCH.md`); a hand-rolled dispatcher was reintroduced and reverted twice after it rendered a blank production page, most recently 2026-08-12. Complete includable inventory, pagination, loud empty/error states, and server-side threaded comments are implemented. A homepage lead/row split is not implemented — the native includable contract has no per-item position hook, and adding one requires either a verified `post`-level heuristic or a separate widget; see the decision log before attempting it. M2 is not complete until the exact stamped artifact passes all ten staging views, including Layout mode.
 
 ## Rules
 

@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+e27199e38675cb2f535b9d74c584173ad17c3b11" name="theme-build"/>
+    <meta content="0.0.0+dadc3c01649edbad0efae1b7fc80d3ab1f695b5f" name="theme-build"/>
     <title>
       <b:eval expr="data:view.title.escaped"/>
     </title>
@@ -38,30 +38,8 @@
     <main class="main-content" id="content" role="main">
       <b:section class="main" id="pageBody" name="Page Body" showaddelement="no">
         <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
-          <b:includable id="main" var="top">
-            <b:if cond="data:posts.empty">
-              <b:include name="status-message"/>
-              <b:else/>
-              <div class="post-list">
-                <b:loop values="data:posts" var="post" index="i">
-                  <b:if cond="data:view.isPost or data:view.isPage">
-                    <b:include name="post" data="post"/>
-                    <b:if cond="data:view.isPost">
-                      <b:include name="comments" data="post"/>
-                    </b:if>
-                    <b:else/>
-                    <b:if cond="data:view.isHomepage and not data:newerPageUrl and data:i == 0">
-                      <b:include name="postLead" data="post"/>
-                      <b:else/>
-                      <b:include name="postRow" data="post"/>
-                    </b:if>
-                  </b:if>
-                </b:loop>
-              </div>
-              <b:if cond="not data:view.isPost and not data:view.isPage">
-                <b:include name="postPagination"/>
-              </b:if>
-            </b:if>
+          <b:includable id="main">
+            <b:include name="super.main"/>
           </b:includable>
           <b:includable id="post" var="post">
             <article class="post" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
@@ -104,30 +82,6 @@
                 </div>
               </b:if>
             </footer>
-          </b:includable>
-          <b:includable id="postLead" var="post">
-            <article class="post-lead" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
-              <b:include name="postHeader" data="post"/>
-              <b:include name="postTitle" data="post"/>
-              <div class="post-excerpt" itemprop="description">
-                <b:eval expr="snippet(data:post.snippets.long, {length: 180})"/>
-              </div>
-              <b:include name="postFooter" data="post"/>
-            </article>
-          </b:includable>
-          <b:includable id="postRow" var="post">
-            <article class="post-row" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
-              <b:include name="postTitle" data="post"/>
-              <div class="row-meta">
-                <b:if cond="data:post.date">
-                  <time expr:datetime="data:post.date.iso8601" itemprop="datePublished">
-                    <b:eval expr="data:post.date"/>
-                  </time>
-                </b:if>
-                <b:if cond="data:post.labels and not data:post.labels.empty"><span class="topic">
-                    <b:eval expr="data:post.labels.first.name"/></span></b:if>
-              </div>
-            </article>
           </b:includable>
           <b:includable id="comments" var="post">
             <section class="comments-section" id="comments">
@@ -179,10 +133,10 @@
                 <p>But you can search for something else:</p>
                 <b:elseif cond="data:view.isSearch and not data:view.isLabelSearch"/>
                 <h2>Nothing matched your search.</h2>
-                <p>We couldn't find anything matching &quot;<b:eval(expr='data:view.search.query.escaped')/>&quot;.</p>
+                <p>We couldn't find anything matching &quot;<b:eval expr='data:view.search.query.escaped'/>&quot;.</p>
                 <b:elseif cond="data:view.isLabelSearch"/>
                 <h2>Nothing filed under this label yet.</h2>
-                <p>No posts are tagged with &quot;<b:eval(expr='data:view.search.label.escaped')/>&quot;.</p>
+                <p>No posts are tagged with &quot;<b:eval expr='data:view.search.label.escaped'/>&quot;.</p>
                 <b:elseif cond="data:view.isArchive"/>
                 <h2>No posts in this period.</h2>
                 <p>

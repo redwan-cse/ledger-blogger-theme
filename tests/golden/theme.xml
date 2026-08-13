@@ -104,11 +104,15 @@
               <b:if cond="data:post.comments">
                 <b:loop values="data:post.comments" var="comment">
                   <div class="comment" expr:id="&quot;c&quot; + data:comment.id">
-                    <b:eval expr="data:comment.body"/>
-                    <div class="comment-meta">
-                      <b:eval expr="data:comment.author"/> · 
-                      <b:eval expr="data:comment.timestamp"/>
-                    </div>
+                    <b:if cond="data:comment.isDeleted">
+                      <div class="comment-tombstone">This comment has been deleted.</div>
+                      <b:else/>
+                      <b:eval expr="data:comment.body"/>
+                      <div class="comment-meta">
+                        <b:eval expr="data:comment.author"/> · 
+                        <b:eval expr="data:comment.timestamp"/>
+                      </div>
+                    </b:if>
                   </div>
                 </b:loop>
               </b:if>
@@ -123,11 +127,26 @@
             </div>
           </b:includable>
           <b:includable id="status-message">
-            <b:if cond="data:navMessage">
-              <div class="status-message">
-                <b:eval expr="data:navMessage"/>
-              </div>
-            </b:if>
+            <div class="empty-state">
+              <b:if cond="data:view.isError">
+                <h2>That page doesn't exist.</h2>
+                <p>But you can search for something else:</p>
+                <b:elseif cond="data:view.isSearch and not data:view.isLabelSearch"/>
+                <h2>Nothing matched your search.</h2>
+                <p>We couldn't find anything matching &quot;<b:eval expr='data:view.search.query.escaped'/>&quot;.</p>
+                <b:elseif cond="data:view.isLabelSearch"/>
+                <h2>Nothing filed under this label yet.</h2>
+                <p>No posts are tagged with &quot;<b:eval expr='data:view.search.label.escaped'/>&quot;.</p>
+                <b:elseif cond="data:view.isArchive"/>
+                <h2>No posts in this period.</h2>
+                <p>
+                  <b:eval expr="data:view.archive.rangeMessage"/>
+                </p>
+                <b:else/>
+                <h2>No posts published yet.</h2>
+                <p>Check back later.</p>
+              </b:if>
+            </div>
           </b:includable>
           <b:includable id="postPagination">
             <div class="pagination">

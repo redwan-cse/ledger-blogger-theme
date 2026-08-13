@@ -31,23 +31,3 @@ b:includable(id='postFooter' var='post')
         b:loop(values='data:post.labels' var='label')
           a.label-link(expr:href='data:label.url' rel='tag')
             b:eval(expr='data:label.name')/
-
-b:includable(id='postLead' var='post')
-  article.post-lead(itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting')
-    b:include(name='postHeader' data='post')/
-    b:include(name='postTitle' data='post')/
-    .post-excerpt(itemprop='description')
-      b:eval(expr='snippet(data:post.snippets.long, {length: 180})')/
-    b:include(name='postFooter' data='post')/
-
-b:includable(id='postRow' var='post')
-  article.post-row(itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting')
-    b:include(name='postTitle' data='post')/
-    .row-meta
-      b:if(cond='data:post.date')
-        time(expr:datetime='data:post.date.iso8601' itemprop='datePublished')
-          b:eval(expr='data:post.date')/
-      //- Will add reading time and topic here later
-      b:if(cond='data:post.labels and not data:post.labels.empty')
-        span.topic
-          b:eval(expr='data:post.labels.first.name')/
