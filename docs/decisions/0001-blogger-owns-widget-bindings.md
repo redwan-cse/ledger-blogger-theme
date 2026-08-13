@@ -1,7 +1,7 @@
 # ADR 0001: Blogger owns widget bindings; the theme must match them
 
 - **Date:** 2026-08-13
-- **Status:** Accepted, pending live confirmation
+- **Status:** **FALSIFIED 2026-08-13.** The decision below was tested live and did not fix the blank render. See [Falsification](#falsification-2026-08-13). The id-hygiene rules it introduced are retained; the causal claim is withdrawn.
 - **Supersedes:** the working notes in `docs/M2-BLANK-RENDER-INVESTIGATION.md`
 - **Requirements:** R-RENDER-1, R-RENDER-2, R-EMPTY-1, BR-1, BR-7
 
@@ -27,11 +27,11 @@ We eliminated causes in this order, each with evidence:
 4. **A missing `all-head-content` include** and missing `expr:dir`/`expr:lang`. Real gaps against
    Google's shipped Contempo export. Fixing them did not restore rendering either.
 
-The answer arrived from the Blogger dashboard, not the codebase. **Layout mode showed the
-`Header` and `Page Body` sections completely empty**, while a Contempo screenshot of the same
+The answer appeared to arrive from the Blogger dashboard, not the codebase. **Layout mode showed
+the `Header` and `Page Body` sections completely empty**, while a Contempo screenshot of the same
 blog showed every section populated with gadgets.
 
-## Decision
+## Decision (withdrawn, see Falsification)
 
 Blogger stores widget-to-section bindings in its own layout database, keyed by widget id and
 section id. The uploaded XML does not create those bindings; it must **match** them. A widget
@@ -58,22 +58,62 @@ one came from a local agent that also renamed the widgets to `Header2` and `Blog
 guaranteed a fresh binding miss. **Renaming a section or widget id is a breaking change to a live
 blog**, not a cosmetic edit.
 
+## Falsification, 2026-08-13
+
+The artifact built from commit `8dde01f6e4a4dacef11089798da292e70d68a9c8`, containing exactly the
+bindings frozen above, was uploaded to production. **The page is still blank.**
+`https://blogs.redwan.work/` serves the Header widget's `h1` and tagline and zero posts, which is
+byte-for-byte the same symptom as uploads one through five.
+
+This is upload six. The binding hypothesis predicted a fix and delivered none, so it is withdrawn
+as the cause.
+
+**What survives.** The id-hygiene rules stand on their own merits and are kept:
+
+- Matching Blogger's existing bound ids is correct regardless, because a mismatch is a real
+  failure mode even if it was not *this* failure.
+- Underscores remain legal in section ids. Google's own Contempo ships `page_body`; a lint rule
+  that rejects Google's own output is a broken lint rule.
+- Renaming a bound id on a live blog remains a breaking change.
+- Layout-mode inspection remains a cheap first diagnostic.
+
+**What is withdrawn.** The claim that a binding mismatch caused the M2 blank render. Four
+hypotheses are now eliminated with live evidence, and the cause is still unknown.
+
+**The untested hypothesis that should be tested next, before any further code change:**
+**Blogger is dropping the `Blog1` widget at upload time.** We have never once looked at what
+Blogger *stored*, only at what we sent. Blogger rewrites a theme when it saves it. Export the
+theme back out of the dashboard immediately after an upload and diff that export against the
+`theme.xml` we uploaded. Three outcomes, all decisive:
+
+1. `Blog1` is **absent** from the export. Blogger rejected the widget during parsing. The diff
+   shows exactly what it objected to, and the question becomes what in our widget it refuses.
+2. `Blog1` is **present but rewritten**. The rewrite is the answer, and it is visible in the diff.
+3. `Blog1` is **present and identical**. The theme is stored correctly and the fault is in the
+   render layer or in dashboard configuration (posts-per-page, widget visibility, a display
+   setting), not in the XML at all.
+
+This costs one upload and one export. Every hypothesis so far has cost a full build-and-verify
+cycle and has been argued from the XML we *sent*, which is the one artifact already proven not to
+match reality.
+
 ## Consequences
 
-- Underscores are now allowed in section ids. Our contract required letter-first alphanumeric,
-  which would have rejected `page_body` outright even though Google's own theme ships it.
+- Underscores are now allowed in section ids.
 - Offline gates cannot detect this class of failure at all. Nothing in generated XML reveals a
   binding mismatch; only Layout mode or a live render does.
-- Layout-mode inspection is now the **first** diagnostic step for any blank widget, before code.
+- Layout-mode inspection is now an early diagnostic step for any blank widget, before code.
 - If bindings are ever lost, recovery is a layout repair in the Blogger dashboard, not a
   template change.
 
 ## Alternatives considered
 
 - **Keep iterating on widget markup.** Rejected after the zero-includable bisect proved the
-  markup was irrelevant.
+  markup was irrelevant. Still rejected; the bisect result is unchallenged.
 - **Adopt Contempo's shell wholesale.** Rejected as it would discard the M2 render contract, and
-  it would have masked the real cause rather than explaining it.
+  it would have masked the real cause rather than explaining it. **Now worth reconsidering** if
+  the export diff is inconclusive: a known-rendering shell that we strip back toward our contract
+  converts an open-ended search into a bisect with a guaranteed-good starting point.
 - **Drop `version='2'` to match Contempo's Blog widget.** Rejected permanently. Contempo relies on
   `b:defaultwidgetversion='2'`; removing the explicit attribute reproduces failure F1 exactly.
 
@@ -83,13 +123,10 @@ blog**, not a cosmetic edit.
    execute it. This is finding F1 in a new costume, and it cost nine days.
 2. When one widget renders and another does not, the difference is **configuration**, not markup.
    Check the platform's own state first.
-3. Cheap diagnostics before expensive ones. One Layout-mode screenshot outranked five upload
-   cycles, four hypotheses, and roughly thirty commits.
+3. Cheap diagnostics before expensive ones.
 4. Never rename a bound id to satisfy a lint rule. Fix the rule.
-
-## Follow-up
-
-1. Upload the artifact built from the restored bindings.
-2. Run stamp-gated staging validation across all ten views in HTTP, no-JavaScript, and
-   reduced-motion contexts.
-3. Only then may M2 be claimed complete.
+5. **Inspect what the platform stored, not only what you sent.** Six uploads were reasoned about
+   from our own output. The round-trip export was available the entire time and was never taken.
+6. A decision record written before live confirmation is a hypothesis with formatting. This one
+   was marked "Accepted, pending live confirmation" and was wrong within the hour. Do not mark an
+   ADR accepted until the evidence is in hand.
