@@ -12,7 +12,7 @@ const cases: readonly RuleCase[] = [
   { id: 'widget-v2', violate: (xml) => xml.replace(' version="2"', ''), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
-  { id: 'section-ids', violate: (xml) => xml.replace('id="pageBody"', 'id="header"'), comment: 'duplicate section id header' },
+  { id: 'section-ids', violate: (xml) => xml.replace('id="page_body"', 'id="header"'), comment: 'duplicate section id header' },
   { id: 'header-widget', violate: (xml) => xml.replace('type="Header"', 'type="HTML"'), comment: 'missing Header widget' },
   { id: 'no-v2-accessors', violate: (xml) => inject(xml, '<b:with value="data:blog.url == data:blog.homepageUrl" var="wrong"/>'), comment: 'URL equality is fragile view dispatch' },
   { id: 'no-macro-tags', violate: (xml) => xml.replace('xmlns:expr=', 'xmlns:macro="urn:macro" xmlns:expr=').replace('</main>', '<macro:include name="x"/></main>'), comment: 'macro:include is banned' },
@@ -33,6 +33,7 @@ describe('V3 contract checker blind-spot matrix', () => {
   it('anchors every mutation against the real generated output', async () => {
     const { xml } = await generateTheme({ sha, write: false });
     expect(xml, 'MAIN_OPEN must match the generated main element exactly').toContain(MAIN_OPEN);
+    expect(xml, 'the Posts section must stay bound to page_body').toContain('id="page_body"');
   });
   for (const testCase of cases) it(`${testCase.id}: isolates a violation and ignores both comment forms`, async () => {
     const { xml } = await generateTheme({ sha, write: false }); const violated = testCase.violate(xml); expect(violated).not.toBe(xml);
