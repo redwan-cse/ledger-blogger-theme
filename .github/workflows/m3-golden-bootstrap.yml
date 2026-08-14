@@ -1,6 +1,7 @@
 name: M3 golden snapshot bootstrap (self-deleting)
-# Run 3: retrigger after adding blind-spot cases for the 3 new style rules,
-# which is what actually failed runs 1-2 (a hardcoded case-coverage test).
+# Run 4: retrigger after fixing the real bug the new rule found: the
+# .post-excerpt exception needs to match the compound mobile-override
+# selector, not just the bare class.
 on:
   push:
     branches: [feat/m3-design-system]

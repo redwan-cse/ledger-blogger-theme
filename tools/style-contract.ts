@@ -56,8 +56,20 @@ const HIDING_DECLARATION = /(?:^|;)\s*(?:opacity\s*:\s*0(?:\.0+)?\b|visibility\s
  * staging render pass. That pass is blocked by issue #7, so the fix is
  * tracked there rather than silently carried here or used to weaken this
  * rule for every other selector.
+ *
+ * Matched as a SUFFIX, not an exact string: the mobile override in
+ * src/styles/index.scss reasserts the same hide at a narrower scope,
+ * compiling to a descendant chain like
+ * `body.is-home-lead .post:first-of-type .post-excerpt`. That is the
+ * identical static hide, just scoped inside a media query, so a selector
+ * ending in `.post-excerpt` (preceded by start-of-string or whitespace, i.e.
+ * it is the rightmost compound in the chain) is exempt regardless of what
+ * precedes it. `.post-excerpt-widget` is a different class that merely
+ * starts with the same text and must NOT match: the trailing `$` anchor
+ * ensures the selector ends exactly at `post-excerpt`, not partway through
+ * a longer class name.
  */
-const DOCUMENTED_STATIC_HIDE_EXCEPTIONS = new Set<string>(['.post-excerpt']);
+const POST_EXCERPT_HIDE_EXCEPTION = /(?:^|\s)\.post-excerpt$/;
 
 /** R-EMPTY-2 AC2: no compiled CSS may hide post/article content outside an interactive or [hidden] context. */
 export function findHiddenPostContent(css: string): string[] {
@@ -65,7 +77,7 @@ export function findHiddenPostContent(css: string): string[] {
   for (const { selector, body } of splitRules(css)) {
     if (!TARGET_SELECTOR.test(selector)) continue;
     if (ALLOWED_HIDE_CONTEXT.test(selector)) continue;
-    if (DOCUMENTED_STATIC_HIDE_EXCEPTIONS.has(selector)) continue;
+    if (POST_EXCERPT_HIDE_EXCEPTION.test(selector)) continue;
     if (HIDING_DECLARATION.test(body)) offenders.push(selector);
   }
   return offenders;

@@ -44,12 +44,20 @@ describe('style-contract — no-hidden-post-content (R-EMPTY-2 AC2)', () => {
     expect(findHiddenPostContent('.post-title{opacity:.8}')).toEqual([]);
   });
 
-  it('allows the one documented exception, .post-excerpt, exact match only', () => {
+  it('allows the bare documented exception, .post-excerpt', () => {
     expect(findHiddenPostContent('.post-excerpt{display:none}')).toEqual([]);
   });
 
-  it('does not extend the documented exception to selectors that merely start with it', () => {
+  it('allows the documented exception as the tail of a descendant chain, matching the real mobile override in src/styles/index.scss', () => {
+    expect(findHiddenPostContent('body.is-home-lead .post:first-of-type .post-excerpt{display:none}')).toEqual([]);
+  });
+
+  it('does not extend the documented exception to a selector that merely starts with the same text', () => {
     expect(findHiddenPostContent('.post-excerpt-widget{display:none}')).toEqual(['.post-excerpt-widget']);
+  });
+
+  it('does not extend the documented exception when the chain continues past it', () => {
+    expect(findHiddenPostContent('.post-excerpt .post-title{display:none}')).toEqual(['.post-excerpt .post-title']);
   });
 });
 
