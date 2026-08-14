@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M2 render path merged unverified; production still blank; M3a design system implemented and offline-green.** The root cause of the blank render is still open and tracked in [`docs/M2-DEBT.md`](docs/M2-DEBT.md) and [`docs/decisions/0001-blogger-owns-widget-bindings.md`](docs/decisions/0001-blogger-owns-widget-bindings.md) (the widget-binding hypothesis was tested live and falsified; the next diagnostic is a round-trip export diff against what Blogger actually stored). M3a splits `src/styles/main.scss` into the seven files [`PROJECT-PLAN.md` §3.3](docs/PROJECT-PLAN.md) specifies, adds computed WCAG contrast verification against the real token values, and adds three compiled-CSS contract rules (no focus suppression, no hidden post content outside hover/focus/hidden, no scroll-triggered reveal). All of it is offline-verified only. **M3b — visual baselines, the ten-view state matrix, responsive confirmation — is blocked on the render path and has not started.** Per this repo's own rules, no milestone is complete until a stamp-gated staging run passes; that has never yet happened for this theme.
+> **Status: M2 render path reverted to native dispatch; production confirmed still blank; M3a design system split and offline-verified.** `Header` and `Blog` render paths delegate top-level dispatch to Blogger's native `super.main` (see `docs/DECISION-M2-NATIVE-DISPATCH.md`). Live evidence as of the `cc6bee8` build: this confirmed-deployed, native-dispatch build still renders `no-items` empty shells for both `Header` and `Blog` on `blogs.redwan.work`, which rules out the dispatch pattern as sole cause — root cause is still open, see `docs/M2-BLANK-RENDER-INVESTIGATION.md` and `docs/decisions/0001-blogger-owns-widget-bindings.md` (falsified). Complete includable inventory (including `postBodySnippet`), pagination, loud empty/error states, and server-side threaded comments are implemented. The M3 design system (tokens, type scale, grid, states, responsive, a11y) is split into seven files per `docs/PROJECT-PLAN.md` §3.3, with computed WCAG contrast checks and three new compiled-CSS contract rules, all offline-verified (M3a, see #12). **Visual baselines are not captured** (M3b) because the site does not yet render on production. M2 and M3a are both offline-green only; neither is complete until a real Blogger render confirms it, per this repo's own rules. See `docs/M2-DEBT.md`.
 
 ## Rules
 
@@ -12,7 +12,7 @@ A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work
 
 ## Start here
 
-Read in this order: [`AGENTS.md`](AGENTS.md), [`docs/POSTMORTEM.md`](docs/POSTMORTEM.md), [`docs/V3-REFERENCE.md`](docs/V3-REFERENCE.md), [`docs/PROJECT-PLAN.md`](docs/PROJECT-PLAN.md). Harness operation lives in [`docs/HARNESS.md`](docs/HARNESS.md). Current blocker and milestone status lives in [`docs/M2-DEBT.md`](docs/M2-DEBT.md).
+Read in this order: [`AGENTS.md`](AGENTS.md), [`docs/POSTMORTEM.md`](docs/POSTMORTEM.md), [`docs/V3-REFERENCE.md`](docs/V3-REFERENCE.md), [`docs/PROJECT-PLAN.md`](docs/PROJECT-PLAN.md). Harness operation lives in [`docs/HARNESS.md`](docs/HARNESS.md).
 
 ## Setup and core checks
 
@@ -49,11 +49,12 @@ Never update the golden file merely to make CI green.
 - `src/theme.pug`: generated XML shell.
 - `src/widgets/header.pug`: locked Header widget and homepage heading switch.
 - `src/widgets/blog.pug`: M2 Blog render path, states, pager, comments, and recovery lists.
-- `src/styles/`: SCSS compiled into the single `b:skin` CDATA block. Split per M3 into `tokens.scss`, `base.scss`, `layout.scss`, `index.scss`, `article.scss`, `states.scss`, with `main.scss` as the `@use` entry point.
+- `src/styles/`: SCSS compiled into the single `b:skin` CDATA block. Split per `docs/PROJECT-PLAN.md` §3.3: `tokens.scss`, `base.scss`, `layout.scss`, `index.scss`, `article.scss`, `states.scss`, `main.scss` (entry).
 - `src/scripts/`: TypeScript bundled into one inline IIFE.
 - `tools/generate.ts`: deterministic compiler and size gate.
-- `tools/contract-check.ts`: namespace-aware V3 contract validator, plus compiled-CSS rules from `tools/style-contract.ts`.
-- `tools/color-contrast.ts`: OKLCH → linear sRGB → WCAG contrast ratio, used to verify R-A11Y-1 AC3 against the actual token values.
+- `tools/contract-check.ts`: namespace-aware V3 contract validator, including compiled-CSS style-contract rules.
+- `tools/style-contract.ts`: regex-based rules over the compiled CSS inside `<b:skin>` (focus suppression, hidden post/article content, scroll-triggered motion).
+- `tools/color-contrast.ts`: OKLCH → linear sRGB → WCAG contrast ratio, used to assert R-A11Y-1 AC3 by computation.
 - `tools/watch.ts`: serialized, coalescing source watcher.
 - `tests/contract/`: isolated mutation and render-contract suite.
 - `tests/golden/theme.xml`: canonical generated output snapshot.
@@ -74,15 +75,15 @@ All Blogger/API configuration uses environment variables documented in `.env.exa
 
 | Zone | `id` | Widget | Max | Purpose |
 |---|---|---|---|---|
-| Masthead | `header` | `Header` | 1 | Site title and tagline. Locked. Bound id, see ADR 0001. |
+| Masthead | `masthead` | `Header` | 1 | Site title and tagline. Locked. |
 | Nav | `navlinks` | `LinkList` | 1 | Menu items |
 | Intro | `intro` | `HTML` | 1 | Editorial standfirst |
 | Topics | `topics` | `Label` | 1 | Topic pills from real labels |
-| Posts | `page_body` | `Blog` | 1 | The render path. Locked. Bound id, see ADR 0001. |
+| Posts | `main` | `Blog` | 1 | The render path. Locked. |
 | CTA | `cta` | `HTML` | 1 | Closing call to action |
 | Footer | `footer` | `HTML` | 3 | Attribution and social links |
 
-Only Masthead and Posts are implemented. Remaining editable zones belong to M4.
+Only Masthead and Posts are implemented in M2. Remaining editable zones belong to M4.
 
 ## License
 
