@@ -1,6 +1,6 @@
 name: M3 golden snapshot bootstrap (self-deleting)
-# Run 2: retrigger after fixing the noUncheckedIndexedAccess typecheck break
-# in tools/color-contrast.ts that failed run 1.
+# Run 3: retrigger after adding blind-spot cases for the 3 new style rules,
+# which is what actually failed runs 1-2 (a hardcoded case-coverage test).
 on:
   push:
     branches: [feat/m3-design-system]

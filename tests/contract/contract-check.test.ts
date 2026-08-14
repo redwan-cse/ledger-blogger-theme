@@ -5,6 +5,7 @@ import { generateTheme } from '../../tools/generate.js';
 const sha = '0123456789abcdef0123456789abcdef01234567';
 interface RuleCase { id: string; violate(xml: string): string; comment: string; parserFailure?: boolean }
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
+const injectCss = (xml: string, css: string): string => xml.replace('<![CDATA[', `<![CDATA[${css}`);
 const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const cases: readonly RuleCase[] = [
   { id: 'well-formed', violate: (xml) => xml.replace(MAIN_OPEN, '<main class="main-content" id="content" id="duplicate" role="main">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
@@ -25,7 +26,10 @@ const cases: readonly RuleCase[] = [
   { id: 'no-fabricated-metadata', violate: (xml) => inject(xml, '<span class="author-name">Fake Author</span>'), comment: 'hardcoded author identity is fabricated' },
   { id: 'build-stamp', violate: (xml) => xml.replace('</head>', '<meta content="0.0.0+0123456789abcdef0123456789abcdef01234567" name="theme-build"/></head>'), comment: 'duplicate build stamps are invalid' },
   { id: 'size-budget', violate: (xml) => `${xml.slice(0, -1)}<!--${'x'.repeat(200_001)}-->\n`, comment: 'output over 200000 bytes is invalid' },
-  { id: 'css-disabled', violate: (xml) => xml.replace('b:css="false"', 'b:css="true"'), comment: "b:css='false' is required" }
+  { id: 'css-disabled', violate: (xml) => xml.replace('b:css="false"', 'b:css="true"'), comment: "b:css='false' is required" },
+  { id: 'no-focus-suppression', violate: (xml) => injectCss(xml, 'a:focus{outline:none}'), comment: 'outline:none must never suppress the focus indicator' },
+  { id: 'no-hidden-post-content', violate: (xml) => injectCss(xml, '.post-title{display:none}'), comment: 'hiding post or article content outside hover, focus, or hidden is forbidden' },
+  { id: 'no-scroll-triggered-motion', violate: (xml) => injectCss(xml, '.reveal{opacity:1}'), comment: 'scroll-triggered reveal animation is forbidden' }
 ];
 
 describe('V3 contract checker blind-spot matrix', () => {
@@ -34,6 +38,7 @@ describe('V3 contract checker blind-spot matrix', () => {
     const { xml } = await generateTheme({ sha, write: false });
     expect(xml, 'MAIN_OPEN must match the generated main element exactly').toContain(MAIN_OPEN);
     expect(xml, 'the Posts section must stay bound to page_body').toContain('id="page_body"');
+    expect(xml, 'the skin CDATA anchor used to inject CSS-level violations must exist exactly once').toContain('<![CDATA[');
   });
   for (const testCase of cases) it(`${testCase.id}: isolates a violation and ignores both comment forms`, async () => {
     const { xml } = await generateTheme({ sha, write: false }); const violated = testCase.violate(xml); expect(violated).not.toBe(xml);
