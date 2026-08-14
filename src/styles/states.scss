@@ -1,0 +1,25 @@
+// ---------------------------------------------------------------------------
+// Empty / error states — docs/PROJECT-PLAN.md §2.6, R-EMPTY. Never blank.
+// ---------------------------------------------------------------------------
+
+@use 'tokens' as *;
+
+.empty-state {
+  grid-column: 1 / -1;
+  background: $surface;
+  border-radius: 4px;
+  padding: $space-7 $space-5;
+  text-align: left;
+  max-width: $measure;
+
+  h2 {
+    font-family: $font-serif;
+    font-size: 1.333rem;
+    margin: 0 0 $space-3;
+  }
+
+  p {
+    color: $ink-muted;
+    margin: 0;
+  }
+}

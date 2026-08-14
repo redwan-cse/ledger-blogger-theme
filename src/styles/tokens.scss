@@ -1,0 +1,35 @@
+// ---------------------------------------------------------------------------
+// Tokens — docs/PROJECT-PLAN.md §2.2 (colour), §2.3 (type), §2.4 (spacing)
+//
+// The seven colour roles below are the ONLY colour tokens this theme has.
+// Do not add more. PROJECT-PLAN §11 explicitly rejects Theme Designer-style
+// colour customisation as scope creep for a marketplace product this is not;
+// every extra variable is a surface for someone to break the ratios below.
+// ---------------------------------------------------------------------------
+
+$page: oklch(98.4% 0.004 85);
+$surface: oklch(96.2% 0.006 85);
+$ink: oklch(23% 0.012 85);
+$ink-muted: oklch(48% 0.010 85);
+$rule: oklch(89% 0.006 85);
+$accent: oklch(46% 0.148 25);
+$accent-wash: oklch(94% 0.028 25);
+
+$font-serif: georgia, 'Iowan Old Style', 'Palatino Linotype', palatino, serif;
+$font-sans: -apple-system, system-ui, 'Segoe UI', roboto, sans-serif;
+$font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', consolas, monospace;
+
+// Base 4px, deliberately uneven rhythm.
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 48px;
+$space-8: 72px;
+$space-9: 112px;
+
+$measure: 68ch;
+$motion-duration: 160ms;
+$motion-ease: cubic-bezier(0.25, 1, 0.5, 1); // ease-out quart
