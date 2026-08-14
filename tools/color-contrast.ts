@@ -35,10 +35,15 @@ export function oklchToLinearSrgb([L, C, hDegrees]: Oklch): LinearRgb {
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 
-/** WCAG relative luminance, per https://www.w3.org/TR/WCAG21/#dfn-relative-luminance. */
-export function relativeLuminance(rgb: LinearRgb): number {
-  const [r, g, b] = rgb.map(clamp01);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+/**
+ * WCAG relative luminance, per https://www.w3.org/TR/WCAG21/#dfn-relative-luminance.
+ * Destructures directly from the fixed-length LinearRgb tuple rather than
+ * going through Array.map first: mapping a tuple returns a plain number[],
+ * which loses the known length and makes every destructured element
+ * `number | undefined` under noUncheckedIndexedAccess.
+ */
+export function relativeLuminance([r, g, b]: LinearRgb): number {
+  return 0.2126 * clamp01(r) + 0.7152 * clamp01(g) + 0.0722 * clamp01(b);
 }
 
 /** WCAG contrast ratio between two OKLCH colours, always >= 1. */
