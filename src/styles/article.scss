@@ -1,0 +1,109 @@
+// ---------------------------------------------------------------------------
+// Article — single post/page, and comments. docs/PROJECT-PLAN.md §2.3, §2.7
+// ---------------------------------------------------------------------------
+
+@use 'tokens' as *;
+
+.is-post .post,
+.is-page .post {
+  border-bottom: none;
+
+  @media (min-width: 1024px) {
+    grid-column: 3 / 11; // columns 3–10
+  }
+
+  .post-title {
+    font-family: $font-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 1.4rem + 2.6vw, 3.15rem);
+    line-height: 1.15;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+}
+
+.post-body {
+  font-family: $font-serif;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  max-width: $measure;
+
+  h2 {
+    font-size: 1.777rem;
+    font-weight: 650;
+  }
+
+  h3 {
+    font-size: 1.333rem;
+    font-weight: 650;
+  }
+
+  p {
+    margin: 0 0 $space-4;
+  }
+
+  img {
+    margin: $space-5 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Comments
+// ---------------------------------------------------------------------------
+
+.comments-section {
+  border-top: 1px solid $rule;
+  margin-top: $space-8;
+  padding-top: $space-6;
+
+  @media (min-width: 1024px) {
+    grid-column: 3 / 11;
+  }
+}
+
+.comments-title {
+  font-family: $font-sans;
+  font-weight: 500; // §2.3 meta/label row
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: $ink-muted;
+  text-transform: uppercase;
+  margin: 0 0 $space-5;
+}
+
+.comment {
+  border-bottom: 1px solid $rule;
+  padding: $space-4 0;
+}
+
+.comment-tombstone {
+  color: $ink-muted;
+  font-style: italic;
+}
+
+.comment-meta {
+  font-weight: 500; // §2.3 meta/label row
+  color: $ink-muted;
+  font-size: 0.8125rem;
+  margin-top: $space-2;
+}
+
+.comment-form {
+  margin-top: $space-5;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 $space-4;
+    background: $accent;
+    color: $page;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: background $motion-duration $motion-ease;
+
+    &:hover {
+      background: oklch(40% 0.148 25);
+    }
+  }
+}

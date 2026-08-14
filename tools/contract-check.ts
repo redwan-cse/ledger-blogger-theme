@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { findFocusSuppression, findHiddenPostContent, findScrollTriggeredMotion } from './style-contract.js';
 
 export interface ContractFinding { ruleId: string; requirementId: string; message: string }
 export interface ContractRule { id: string; requirementId: string; message: string; check(document: XmlDocument, xml: string): boolean }
@@ -65,6 +66,11 @@ function jsonLdScript(element: XmlElement): boolean {
   }
   return false;
 }
+function skinCss(document: XmlDocument): string {
+  const skins = named(document, BLOGGER_NS, 'skin');
+  const cdata = skins[0]?.children.find((child): child is XmlCdata => child.kind === 'cdata');
+  return cdata?.value ?? '';
+}
 
 export const contractRules: readonly ContractRule[] = [
   { id: 'well-formed', requirementId: 'R-V3-1 AC9', message: 'Generated output must be namespace-aware, well-formed XML.', check: () => true },
@@ -85,7 +91,10 @@ export const contractRules: readonly ContractRule[] = [
   { id: 'no-fabricated-metadata', requirementId: 'R-BUILD-1 AC7', message: 'Fabricated reading time, author identity, or Gravatar fallback is not allowed.', check: (doc, xml) => { if (/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar/i.test(xml)) return false; return active(doc).filter((element) => /(?:^|\s)(?:author-name|post-author)(?:\s|$)/.test(attr(element, 'class') ?? '')).every((element) => !/[A-Za-z0-9]/.test(literalText(element))); } },
   { id: 'build-stamp', requirementId: 'R-BUILD-2 AC1', message: 'A unique direct-child head meta stamp must equal b:templateVersion plus a full SHA.', check: (doc) => { const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head'); if (heads.length !== 1) return false; const stamps = heads[0]!.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'meta' && attr(child, 'name') === 'theme-build'); const version = attr(doc.root, 'b:templateVersion'); return stamps.length === 1 && version !== null && new RegExp(`^${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\+[0-9a-f]{40}$`, 'i').test(attr(stamps[0]!, 'content') ?? ''); } },
   { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 200000 bytes.', check: (_doc, xml) => Buffer.byteLength(xml, 'utf8') <= 200_000 },
-  { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (doc) => attr(doc.root, 'b:css') === 'false' }
+  { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (doc) => attr(doc.root, 'b:css') === 'false' },
+  { id: 'no-focus-suppression', requirementId: 'R-A11Y-2 AC2', message: 'Compiled CSS must never set outline:none; :focus-visible must be the only outline override.', check: (doc) => !findFocusSuppression(skinCss(doc)) },
+  { id: 'no-hidden-post-content', requirementId: 'R-EMPTY-2 AC2', message: 'Compiled CSS must not hide .post-*/.article-* content via opacity:0, visibility:hidden, or display:none outside :hover, :focus, or [hidden].', check: (doc) => findHiddenPostContent(skinCss(doc)).length === 0 },
+  { id: 'no-scroll-triggered-motion', requirementId: 'R-EMPTY-2 (F3)', message: 'No scroll-triggered reveal animation or IntersectionObserver reveal hook is allowed (F3).', check: (doc) => !findScrollTriggeredMotion(skinCss(doc)) }
 ];
 export function checkThemeContract(xml: string): ContractFinding[] { let document: XmlDocument; try { document = parseXml(xml); } catch (error) { const message = error instanceof Error ? error.message : String(error); return [{ ruleId: 'well-formed', requirementId: 'R-V3-1 AC9', message }, { ruleId: 'declared-entities', requirementId: 'R-BUILD-1 AC6', message }]; } return contractRules.filter((rule) => !rule.check(document, xml)).map((rule) => ({ ruleId: rule.id, requirementId: rule.requirementId, message: rule.message })); }
 export function assertThemeContract(xml: string): void { const findings = checkThemeContract(xml); if (findings.length) throw new Error(findings.map((finding) => `[${finding.requirementId}] ${finding.ruleId}: ${finding.message}`).join('\n')); }
