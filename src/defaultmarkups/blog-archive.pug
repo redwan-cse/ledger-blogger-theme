@@ -1,0 +1,39 @@
+b:defaultmarkup(type='BlogArchive')
+  b:includable(id='main' var='this')
+    div.widget-content.blog-archive-content
+      b:include(name='widgetTitle')/
+      b:if(cond='data:this.data and not data:this.data.empty')
+        details.blog-archive-details
+          b:attr(cond='data:view.isArchive' name='open' value='open')/
+          summary.blog-archive-summary
+            b:eval(expr='data:messages.archive')/
+          b:include(name='content')/
+        b:else/
+        p.empty-blog-archive
+          b:eval(expr='data:messages.noPosts')/
+  b:includable(id='content')
+    b:if(cond='data:this.style == "FLAT"')
+      b:include(name='flat')/
+      b:else/
+      b:include(name='hierarchy')/
+  b:includable(id='flat')
+    ul.blog-archive-list
+      b:loop(values='data:this.data' var='interval')
+        li.blog-archive-item
+          a.blog-archive-link(expr:href='data:interval.url')
+            b:eval(expr='data:interval.name')/
+          span.blog-archive-count
+            b:eval(expr='data:interval.post-count')/
+  b:includable(id='hierarchy')
+    ul.blog-archive-tree
+      b:loop(values='data:this.data' var='interval')
+        li.blog-archive-node
+          b:include(data='interval' name='interval')/
+  b:includable(id='interval' var='interval')
+    a.blog-archive-interval-link(expr:href='data:interval.url')
+      b:eval(expr='data:interval.name')/
+    b:if(cond='data:interval.data and not data:interval.data.empty')
+      ul.blog-archive-sublist
+        b:loop(values='data:interval.data' var='subInterval')
+          li.blog-archive-subitem
+            b:include(data='subInterval' name='interval')/

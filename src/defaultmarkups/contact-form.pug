@@ -1,0 +1,23 @@
+b:defaultmarkup(type='ContactForm')
+  b:includable(id='main' var='this')
+    div.widget-content.contact-form-widget
+      b:include(name='widgetTitle')/
+      b:include(name='formContent')/
+  b:includable(id='formContent')
+    form.contact-form(name='contact-form')
+      div.contact-form-group
+        label.contact-form-label(expr:for='data:widget.instanceId + "_contact-form-name"')
+          b:eval(expr='data:messages.name')/
+        input.contact-form-name(expr:id='data:widget.instanceId + "_contact-form-name"' name='name' type='text' value='')/
+      div.contact-form-group
+        label.contact-form-label(expr:for='data:widget.instanceId + "_contact-form-email"')
+          b:eval(expr='data:messages.email')/
+        input.contact-form-email(expr:id='data:widget.instanceId + "_contact-form-email"' name='email' type='email' value='')/
+      div.contact-form-group
+        label.contact-form-label(expr:for='data:widget.instanceId + "_contact-form-email-message"')
+          b:eval(expr='data:messages.message')/
+        textarea.contact-form-email-message(cols='25' expr:id='data:widget.instanceId + "_contact-form-email-message"' name='email-message' rows='5')
+      input.contact-form-button.contact-form-button-submit(expr:id='data:widget.instanceId + "_contact-form-submit"' expr:value='data:messages.send' type='button')/
+      div.contact-form-status
+        p.contact-form-error-message(expr:id='data:widget.instanceId + "_contact-form-error-message"')
+        p.contact-form-success-message(expr:id='data:widget.instanceId + "_contact-form-success-message"')

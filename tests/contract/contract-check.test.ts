@@ -9,7 +9,7 @@ const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const cases: readonly RuleCase[] = [
   { id: 'well-formed', violate: (xml) => xml.replace(MAIN_OPEN, '<main class="main-content" id="content" id="duplicate" role="main">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
   { id: 'layouts-v3', violate: (xml) => xml.replace('b:layoutsVersion="3"', 'b:layoutsVersion="2"'), comment: "b:layoutsVersion='2' is forbidden" },
-  { id: 'widget-v2', violate: (xml) => inject(xml, '<b:section id="sec_extra"><b:widget id="Extra" type="HTML"/></b:section>'), comment: "widget version='2' is required" },
+  { id: 'widget-v2', violate: (xml) => xml.replace('id="HTML1" locked="false" title="Intro" type="HTML" version="2"', 'id="HTML1" locked="false" title="Intro" type="HTML"'), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
   { id: 'section-ids', violate: (xml) => inject(xml, '<b:section id="invalid-hyphen"/>'), comment: 'section ids must use underscores rather than hyphens' },
@@ -28,7 +28,12 @@ const cases: readonly RuleCase[] = [
   { id: 'css-disabled', violate: (xml) => xml.replace('b:css="false"', 'b:css="true"'), comment: "b:css='false' is required" },
   { id: 'bound-section-and-widget-ids', violate: (xml) => xml.replace('id="Blog1" locked="true"', 'id="Blog1" locked="false"'), comment: 'Blog1 widget must remain locked' },
   { id: 'all-head-content-include', violate: (xml) => xml.replace('<b:include data="blog" name="all-head-content"/>', ''), comment: 'all-head-content include is mandatory in head' },
-  { id: 'main-container-structure', violate: (xml) => xml.replace(MAIN_OPEN, '<div class="main-content" id="content">').replace('</main>', '</div>'), comment: 'main container must enclose page body' }
+  { id: 'main-container-structure', violate: (xml) => xml.replace(MAIN_OPEN, '<div class="main-content" id="content">').replace('</main>', '</div>'), comment: 'main container must enclose page body' },
+  { id: 'all-seven-config-zones', violate: (xml) => xml.replace('id="topics" maxwidgets="1" name="Topics" showaddelement="no"', 'id="topics" maxwidgets="1" name="Topics" showaddelement="yes"'), comment: 'section showaddelement must match zone configuration' },
+  { id: 'defensive-defaultmarkups', violate: (xml) => xml.replace('<b:defaultmarkup type="PopularPosts">', '<b:defaultmarkup type="DisabledPosts">'), comment: 'defensive defaultmarkups must cover PopularPosts' },
+  { id: 'no-hardcoded-search-label', violate: (xml) => inject(xml, '<a href="/search/label/tech">Tech</a>'), comment: 'hardcoded search label URLs are forbidden' },
+  { id: 'readme-zone-parity', violate: (xml) => xml.replace('id="intro" maxwidgets="1"', 'id="intro" maxwidgets="99"'), comment: 'intro maxwidgets must match README table' },
+  { id: 'clean-section-containers', violate: (xml) => xml.replace('<b:if cond="data:view.isLayoutMode or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">', '<b:if cond="data:view.isHomepage or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">'), comment: 'optional sections must be guarded with isLayoutMode' }
 ];
 
 describe('V3 contract checker blind-spot matrix', () => {

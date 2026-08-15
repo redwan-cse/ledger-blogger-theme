@@ -1,0 +1,31 @@
+b:defaultmarkup(type='PopularPosts')
+  b:includable(id='main' var='this')
+    div.widget-content.popular-posts-content
+      b:include(name='widgetTitle')/
+      b:if(cond='data:posts and not data:posts.empty')
+        ul.popular-posts-list
+          b:loop(values='data:posts' var='post')
+            li.popular-post-item
+              b:include(data='post' name='snippetedPostContent')/
+        b:else/
+        p.empty-popular-posts
+          b:eval(expr='data:messages.noPosts')/
+  b:includable(id='snippetedPostContent' var='post')
+    article.popular-post-entry
+      b:include(data='post' name='snippetedPostThumbnail')/
+      div.popular-post-body
+        b:include(data='post' name='snippetedPostTitle')/
+        b:include(data='post' name='postSnippet')/
+  b:includable(id='snippetedPostTitle' var='post')
+    h3.popular-post-title
+      a(expr:href='data:post.url')
+        b:eval(expr='data:post.title')/
+  b:includable(id='snippetedPostThumbnail' var='post')
+    b:if(cond='data:post.featuredImage and data:post.featuredImage.isResizable')
+      b:with(value='resizeImage(data:post.featuredImage, 128, "1:1")' var='thumbUrl')
+        a.popular-post-thumbnail-link(expr:href='data:post.url')
+          img.popular-post-thumbnail(alt='' expr:src='data:thumbUrl' height='64' loading='lazy' width='64')/
+  b:includable(id='postSnippet' var='post')
+    b:if(cond='data:post.snippets.short')
+      p.popular-post-snippet
+        b:eval(expr='snippet(data:post.snippets.short, {length: 100})')/

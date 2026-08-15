@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M2 render path and M3 design system implemented and offline-verified.** `Header` and `Blog` render paths delegate top-level dispatch to Blogger's native `super.main` (see `docs/DECISION-M2-NATIVE-DISPATCH.md`). Complete includable inventory (including `postBodySnippet`), pagination, loud empty/error states, and server-side threaded comments are implemented. The M3 design system (tokens, type scale, grid, states, responsive, a11y) is split into seven files per `docs/PROJECT-PLAN.md` §3.3, with computed WCAG contrast checks and compiled-CSS contract rules, all offline-verified. Ready for M4. See `docs/M2-DEBT.md`.
+> **Status: M4 config zones & defensive defaultmarkups implemented and offline-verified.** All seven layout zones (`header`, `navlinks`, `intro`, `topics`, `page_body`, `cta`, `footer`) and six defensive `b:defaultmarkup` templates (`Common`, `PopularPosts`, `FeaturedPost`, `ContactForm`, `BlogArchive`, `Label`) are implemented and verified. Top-level dispatch delegates to Blogger's native `super.main` with zero empty container artifacts on unpopulated sections.
 
 ## Rules
 
@@ -47,8 +47,8 @@ Never update the golden file merely to make CI green.
 ## Repository source layout
 
 - `src/theme.pug`: generated XML shell.
-- `src/widgets/header.pug`: locked Header widget and homepage heading switch.
-- `src/widgets/blog.pug`: M2 Blog render path, states, pager, comments, and recovery lists.
+- `src/defaultmarkups/`: defensive defaultmarkups for Common, PopularPosts, FeaturedPost, ContactForm, BlogArchive, Label.
+- `src/widgets/`: modular widget templates (header, blog, linklist, label, intro, cta, footer, html).
 - `src/styles/`: SCSS compiled into the single `b:skin` CDATA block. Split per `docs/PROJECT-PLAN.md` §3.3: `tokens.scss`, `base.scss`, `layout.scss`, `index.scss`, `article.scss`, `states.scss`, `main.scss` (entry).
 - `src/scripts/`: TypeScript bundled into one inline IIFE.
 - `tools/generate.ts`: deterministic compiler and size gate.
@@ -73,15 +73,15 @@ All Blogger/API configuration uses environment variables documented in `.env.exa
 
 | Zone | `id` | Widget | Max | Purpose |
 |---|---|---|---|---|
-| Masthead | `masthead` | `Header` | 1 | Site title and tagline. Locked. |
+| Masthead | `header` | `Header` | 1 | Site title and tagline. Locked. |
 | Nav | `navlinks` | `LinkList` | 1 | Menu items |
 | Intro | `intro` | `HTML` | 1 | Editorial standfirst |
 | Topics | `topics` | `Label` | 1 | Topic pills from real labels |
-| Posts | `main` | `Blog` | 1 | The render path. Locked. |
+| Posts | `page_body` | `Blog` | 1 | The render path. Locked. |
 | CTA | `cta` | `HTML` | 1 | Closing call to action |
 | Footer | `footer` | `HTML` | 3 | Attribution and social links |
 
-Only Masthead and Posts are implemented in M2. Remaining editable zones belong to M4.
+All seven layout zones and defensive defaultmarkups implemented in M4.
 
 ## License
 

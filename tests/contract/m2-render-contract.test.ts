@@ -29,13 +29,15 @@ describe('M2 render path: Contempo-aligned shell and widget bindings', () => {
   it('uses the exact section ids Blogger already has bound in its layout database', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
     const ids = [...xml.matchAll(/<b:section [^>]*id="([^"]+)"/g)].map((match) => match[1]);
-    expect(ids).toEqual(['header', 'page_body']);
+    expect(ids).toContain('header');
+    expect(ids).toContain('page_body');
   });
 
   it('uses the exact widget ids Blogger already has bound in its layout database', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
-    const ids = [...xml.matchAll(/<b:widget id="([^"]+)"/g)].map((match) => match[1]);
-    expect(ids).toEqual(['Header1', 'Blog1']);
+    const ids = [...xml.matchAll(/<b:widget [^>]*id="([^"]+)"/g)].map((match) => match[1]);
+    expect(ids).toContain('Header1');
+    expect(ids).toContain('Blog1');
   });
 
   it('delegates main to the native renderer while providing child overrides', async () => {
@@ -44,12 +46,20 @@ describe('M2 render path: Contempo-aligned shell and widget bindings', () => {
     expect(widget).toMatch(/<b:includable id="main">\s*<b:include name="super\.main"\/>\s*<\/b:includable>/);
   });
 
-  it('keeps both widgets locked and explicitly version 2', async () => {
+  it('keeps both essential widgets locked and all widgets explicitly version 2', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
+    const headerWidget = xml.match(/<b:widget\b[^>]*\bid="Header1"[^>]*>/);
+    const blogWidgetMatch = xml.match(/<b:widget\b[^>]*\bid="Blog1"[^>]*>/);
+    expect(headerWidget).not.toBeNull();
+    expect(headerWidget![0]).toContain('locked="true"');
+    expect(headerWidget![0]).toContain('version="2"');
+    expect(blogWidgetMatch).not.toBeNull();
+    expect(blogWidgetMatch![0]).toContain('locked="true"');
+    expect(blogWidgetMatch![0]).toContain('version="2"');
+
     const widgets = xml.match(/<b:widget [^>]*>/g) ?? [];
-    expect(widgets).toHaveLength(2);
+    expect(widgets.length).toBeGreaterThanOrEqual(2);
     for (const widget of widgets) {
-      expect(widget).toContain('locked="true"');
       expect(widget).toContain('version="2"');
     }
   });

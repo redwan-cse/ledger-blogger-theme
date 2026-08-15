@@ -1,0 +1,32 @@
+b:defaultmarkup(type='Label')
+  b:includable(id='main' var='this')
+    div.widget-content.label-widget-content
+      b:include(name='widgetTitle')/
+      b:if(cond='data:labels and not data:labels.empty')
+        b:include(name='content')/
+        b:else/
+        p.empty-labels
+          b:eval(expr='data:messages.noLabels')/
+  b:includable(id='content')
+    b:if(cond='data:this.display == "list"')
+      b:include(name='list')/
+      b:else/
+      b:include(name='cloud')/
+  b:includable(id='list')
+    ul.label-list
+      b:loop(values='data:labels' var='label')
+        li.label-item
+          a.label-link(expr:href='data:label.url' rel='tag')
+            b:eval(expr='data:label.name')/
+          b:if(cond='data:this.showFreqNumbers')
+            span.label-count
+              b:eval(expr='data:label.count')/
+  b:includable(id='cloud')
+    nav.topics-cloud(aria-label='Topics')
+      b:loop(values='data:labels' var='label')
+        a.topic-pill(expr:href='data:label.url' rel='tag')
+          span.topic-name
+            b:eval(expr='data:label.name')/
+          b:if(cond='data:this.showFreqNumbers')
+            span.topic-count
+              b:eval(expr='data:label.count')/

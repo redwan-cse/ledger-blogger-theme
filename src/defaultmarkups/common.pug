@@ -1,0 +1,11 @@
+b:defaultmarkup(type='Common')
+  b:includable(id='widgetTitle')
+    b:if(cond='data:widget.title')
+      h2.widget-title
+        b:eval(expr='data:widget.title')/
+  b:includable(id='widget-title')
+    b:include(name='widgetTitle')/
+  b:includable(id='widgetNotAvailableInPreview')
+    div.widget-preview-placeholder
+      p
+        b:eval(expr='data:widget.title')/

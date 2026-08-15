@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -125,6 +126,125 @@ export const contractRules: readonly ContractRule[] = [
         if (cur.localName === 'main' && attr(cur, 'role') === 'main') return true;
       }
       return false;
+    }
+  },
+  {
+    id: 'all-seven-config-zones',
+    requirementId: 'R-NAV-2 AC1',
+    message: "Theme must declare all seven editable layout zones: 'header', 'navlinks', 'intro', 'topics', 'page_body', 'cta', and 'footer' with valid showaddelement attributes.",
+    check: (doc) => {
+      const sections = named(doc, BLOGGER_NS, 'section');
+      const expected: Record<string, { showaddelement: string }> = {
+        header: { showaddelement: 'no' },
+        navlinks: { showaddelement: 'no' },
+        intro: { showaddelement: 'no' },
+        topics: { showaddelement: 'no' },
+        page_body: { showaddelement: 'no' },
+        cta: { showaddelement: 'no' },
+        footer: { showaddelement: 'yes' }
+      };
+      for (const [id, exp] of Object.entries(expected)) {
+        const sec = sections.find((s) => attr(s, 'id') === id);
+        if (!sec) return false;
+        if (attr(sec, 'showaddelement') !== exp.showaddelement) return false;
+      }
+      return sections.length >= 7;
+    }
+  },
+  {
+    id: 'defensive-defaultmarkups',
+    requirementId: 'R-NAV-2 AC5',
+    message: 'Theme must declare <b:defaultmarkups> in <head> covering Common, PopularPosts, FeaturedPost, ContactForm, BlogArchive, and Label.',
+    check: (doc) => {
+      const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head');
+      if (heads.length !== 1) return false;
+      const defMarkups = descendants(heads[0]!).filter((e) => e.namespaceUri === BLOGGER_NS && e.localName === 'defaultmarkups');
+      if (defMarkups.length !== 1) return false;
+      const markups = descendants(defMarkups[0]!).filter((e) => e.namespaceUri === BLOGGER_NS && e.localName === 'defaultmarkup');
+      const types = new Set<string>();
+      for (const m of markups) {
+        const typeAttr = attr(m, 'type');
+        if (typeAttr) {
+          for (const t of typeAttr.split(',')) {
+            types.add(t.trim());
+          }
+        }
+      }
+      const required = ['Common', 'PopularPosts', 'FeaturedPost', 'ContactForm', 'BlogArchive', 'Label'];
+      return required.every((req) => types.has(req));
+    }
+  },
+  {
+    id: 'no-hardcoded-search-label',
+    requirementId: 'R-NAV-1 AC2',
+    message: 'Hardcoded /search/label/ URLs are forbidden; use data:label.url or dynamic path composition.',
+    check: (doc) => {
+      for (const element of active(doc)) {
+        for (const [, value] of element.attributes) {
+          if (/\/search\/label\//i.test(value)) return false;
+        }
+        for (const child of element.children) {
+          if (child.kind === 'text' && /\/search\/label\//i.test(child.value)) return false;
+        }
+      }
+      return true;
+    }
+  },
+  {
+    id: 'readme-zone-parity',
+    requirementId: 'R-NAV-2 AC6',
+    message: 'Layout zone declarations in README.md must match the seven sections declared in theme.xml exactly.',
+    check: (doc) => {
+      try {
+        const readme = readFileSync(path.join(ROOT, 'README.md'), 'utf8').replace(/\r\n/g, '\n');
+        const match = readme.match(/## Layout zones[\s\S]*?(?=\n##|$)/);
+        if (!match) return false;
+        const rows = match[0].split('\n').filter((l) => l.startsWith('|') && !l.includes('---') && !l.includes('Zone'));
+        const readmeZones: Array<{ id: string; max: string }> = [];
+        for (const row of rows) {
+          const cells = row.split('|').map((c) => c.trim()).filter(Boolean);
+          if (cells.length >= 4) {
+            const rawId = cells[1]?.replace(/[`]/g, '') ?? '';
+            const max = cells[3] ?? '';
+            if (rawId && max) readmeZones.push({ id: rawId, max });
+          }
+        }
+        if (readmeZones.length !== 7) return false;
+        const sections = named(doc, BLOGGER_NS, 'section');
+        for (const rz of readmeZones) {
+          const sec = sections.find((s) => attr(s, 'id') === rz.id);
+          if (!sec) return false;
+          if (attr(sec, 'maxwidgets') !== rz.max) return false;
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  },
+  {
+    id: 'clean-section-containers',
+    requirementId: 'R-NAV-2 AC3',
+    message: 'Optional layout sections must be guarded with layout mode checks to prevent empty HTML containers on live views.',
+    check: (doc) => {
+      const optionalIds = ['navlinks', 'intro', 'topics', 'cta', 'footer'];
+      const sections = named(doc, BLOGGER_NS, 'section');
+      for (const optId of optionalIds) {
+        const section = sections.find((s) => attr(s, 'id') === optId);
+        if (!section) return false;
+        let hasGuard = false;
+        for (let cur: XmlElement | null = section.parent; cur; cur = cur.parent) {
+          if (cur.namespaceUri === BLOGGER_NS && cur.localName === 'if') {
+            const cond = attr(cur, 'cond') ?? '';
+            if (/data:view\.isLayoutMode/i.test(cond) && (/data:widgets/i.test(cond) || new RegExp(optId, 'i').test(cond))) {
+              hasGuard = true;
+              break;
+            }
+          }
+        }
+        if (!hasGuard) return false;
+      }
+      return true;
     }
   }
 ];

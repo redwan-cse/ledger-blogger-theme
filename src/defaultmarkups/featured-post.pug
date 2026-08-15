@@ -1,0 +1,26 @@
+b:defaultmarkup(type='FeaturedPost')
+  b:includable(id='main' var='this')
+    div.widget-content.featured-post-content
+      b:include(name='widgetTitle')/
+      b:if(cond='data:post')
+        b:include(data='post' name='snippetedPostContent')/
+        b:else/
+        p.empty-featured-post
+          b:eval(expr='data:messages.noPosts')/
+  b:includable(id='snippetedPostContent' var='post')
+    article.featured-post-card
+      b:include(data='post' name='snippetedPostThumbnail')/
+      div.featured-post-body
+        b:include(data='post' name='snippetedPostTitle')/
+        b:if(cond='data:post.snippets.short')
+          p.featured-post-snippet
+            b:eval(expr='snippet(data:post.snippets.short, {length: 160})')/
+  b:includable(id='snippetedPostTitle' var='post')
+    h3.featured-post-title
+      a(expr:href='data:post.url')
+        b:eval(expr='data:post.title')/
+  b:includable(id='snippetedPostThumbnail' var='post')
+    b:if(cond='data:post.featuredImage and data:post.featuredImage.isResizable')
+      b:with(value='resizeImage(data:post.featuredImage, 800, "16:9")' var='heroImg')
+        a.featured-post-thumbnail-link(expr:href='data:post.url')
+          img.featured-post-thumbnail(alt='' expr:src='data:heroImg' loading='lazy')/

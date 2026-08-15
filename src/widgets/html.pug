@@ -1,0 +1,5 @@
+b:widget(expr:id='data:widget.instanceId' locked='false' title='HTML Gadget' type='HTML' version='2' visible='true')
+  b:includable(id='main' var='this')
+    b:if(cond='data:content')
+      div.html-widget-content
+        b:eval(expr='data:content')/

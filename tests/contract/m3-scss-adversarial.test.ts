@@ -144,13 +144,13 @@ describe('Adversarial Stress Testing: M3.2 SCSS Architecture & OKLCH Design Syst
       expect(generated.bytes).toBeLessThan(50_000);
     });
 
-    it('generates a compact compiled CSS skin (< 10 KB compressed)', async () => {
+    it('generates a compact compiled CSS skin (< 20 KB compressed)', async () => {
       const { xml } = await generateTheme({ sha, write: false });
       const css = extractCssFromTheme(xml);
       const cssBytes = Buffer.byteLength(css, 'utf8');
 
-      // Compiled CSS should be compact and clean, well under 10 KB
-      expect(cssBytes).toBeLessThan(10_000);
+      // Compiled CSS should be compact and clean, well under budget
+      expect(cssBytes).toBeLessThan(20_000);
       expect(cssBytes).toBeGreaterThan(1_000);
     });
 

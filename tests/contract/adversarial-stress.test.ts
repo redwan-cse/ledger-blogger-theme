@@ -22,12 +22,12 @@ const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
 const rules = (xml: string): string[] => checkThemeContract(xml).map((f) => f.ruleId);
 
-describe('Adversarial Stress Test: All 22 Contract Rules', () => {
-  it('verifies exact registration of all 22 rules', () => {
-    expect(CONTRACT_RULES.length).toBe(22);
-    expect(contractRules.length).toBe(22);
+describe('Adversarial Stress Test: All 27 Contract Rules', () => {
+  it('verifies exact registration of all 27 rules', () => {
+    expect(CONTRACT_RULES.length).toBe(27);
+    expect(contractRules.length).toBe(27);
     const ids = contractRules.map((r) => r.id);
-    expect(new Set(ids).size).toBe(22);
+    expect(new Set(ids).size).toBe(27);
   });
 
   it('validates baseline generated theme has zero findings', async () => {
@@ -317,6 +317,52 @@ describe('Adversarial Stress Test: All 22 Contract Rules', () => {
     });
   });
 
+  describe('Rule 23: all-seven-config-zones (R-NAV-2 AC1)', () => {
+    it('catches missing section or invalid showaddelement', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const badShowAdd = xml.replace('id="topics" maxwidgets="1" name="Topics" showaddelement="no"', 'id="topics" maxwidgets="1" name="Topics" showaddelement="yes"');
+      expect(rules(badShowAdd)).toEqual(['all-seven-config-zones']);
+
+      const missingSec = xml.replace(/<b:section\b[^>]*\bid="cta"[^>]*>[\s\S]*?<\/b:section>/, '');
+      expect(rules(missingSec)).toContain('all-seven-config-zones');
+    });
+  });
+
+  describe('Rule 24: defensive-defaultmarkups (R-NAV-2 AC5)', () => {
+    it('catches missing or malformed defaultmarkups in head', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const missingPp = xml.replace(/<b:defaultmarkup\b[^>]*\btype="PopularPosts"[\s\S]*?<\/b:defaultmarkup>/, '');
+      expect(rules(missingPp)).toEqual(['defensive-defaultmarkups']);
+
+      const noDef = xml.replace(/<b:defaultmarkups>[\s\S]*?<\/b:defaultmarkups>/, '');
+      expect(rules(noDef)).toEqual(['defensive-defaultmarkups']);
+    });
+  });
+
+  describe('Rule 25: no-hardcoded-search-label (R-NAV-1 AC2)', () => {
+    it('catches hardcoded /search/label/ in attributes or text', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(rules(inject(xml, '<a href="/search/label/Security">Topic</a>'))).toEqual(['no-hardcoded-search-label']);
+      expect(rules(inject(xml, '<p>See /search/label/news for updates</p>'))).toEqual(['no-hardcoded-search-label']);
+    });
+  });
+
+  describe('Rule 26: readme-zone-parity (R-NAV-2 AC6)', () => {
+    it('catches maxwidgets mismatch against README table', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const badMax = xml.replace('id="intro" maxwidgets="1"', 'id="intro" maxwidgets="99"');
+      expect(rules(badMax)).toEqual(['readme-zone-parity']);
+    });
+  });
+
+  describe('Rule 27: clean-section-containers (R-NAV-2 AC3)', () => {
+    it('catches missing isLayoutMode guards on optional sections', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const badGuard = xml.replace('<b:if cond="data:view.isLayoutMode or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">', '<b:if cond="data:view.isHomepage or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">');
+      expect(rules(badGuard)).toEqual(['clean-section-containers']);
+    });
+  });
+
   describe('Comment Immunity for all violation patterns', () => {
     const commentPayloads = [
       'b:layoutsVersion="2"',
@@ -344,7 +390,10 @@ describe('Adversarial Stress Test: All 22 Contract Rules', () => {
       'b:css="true"',
       'locked="false" on Blog1',
       'all-head-content missing',
-      'page_body outside main'
+      'page_body outside main',
+      'href="/search/label/tech"',
+      'type="DisabledPosts" in defaultmarkup',
+      'id="topics" maxwidgets="99"'
     ];
 
     it('ignores violation patterns inside standard XML comments <!-- ... -->', async () => {
