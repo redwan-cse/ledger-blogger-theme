@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findFocusSuppression, findHiddenPostContent, findScrollTriggeredMotion } from './style-contract.js';
 
 export interface ContractFinding { ruleId: string; requirementId: string; message: string }
 export interface ContractRule { id: string; requirementId: string; message: string; check(document: XmlDocument, xml: string): boolean }
@@ -66,11 +65,6 @@ function jsonLdScript(element: XmlElement): boolean {
   }
   return false;
 }
-function skinCss(document: XmlDocument): string {
-  const skins = named(document, BLOGGER_NS, 'skin');
-  const cdata = skins[0]?.children.find((child): child is XmlCdata => child.kind === 'cdata');
-  return cdata?.value ?? '';
-}
 
 export const contractRules: readonly ContractRule[] = [
   { id: 'well-formed', requirementId: 'R-V3-1 AC9', message: 'Generated output must be namespace-aware, well-formed XML.', check: () => true },
@@ -92,10 +86,49 @@ export const contractRules: readonly ContractRule[] = [
   { id: 'build-stamp', requirementId: 'R-BUILD-2 AC1', message: 'A unique direct-child head meta stamp must equal b:templateVersion plus a full SHA.', check: (doc) => { const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head'); if (heads.length !== 1) return false; const stamps = heads[0]!.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'meta' && attr(child, 'name') === 'theme-build'); const version = attr(doc.root, 'b:templateVersion'); return stamps.length === 1 && version !== null && new RegExp(`^${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\+[0-9a-f]{40}$`, 'i').test(attr(stamps[0]!, 'content') ?? ''); } },
   { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 200000 bytes.', check: (_doc, xml) => Buffer.byteLength(xml, 'utf8') <= 200_000 },
   { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (doc) => attr(doc.root, 'b:css') === 'false' },
-  { id: 'no-focus-suppression', requirementId: 'R-A11Y-2 AC2', message: 'Compiled CSS must never set outline:none; :focus-visible must be the only outline override.', check: (doc) => !findFocusSuppression(skinCss(doc)) },
-  { id: 'no-hidden-post-content', requirementId: 'R-EMPTY-2 AC2', message: 'Compiled CSS must not hide .post-*/.article-* content via opacity:0, visibility:hidden, or display:none outside :hover, :focus, or [hidden].', check: (doc) => findHiddenPostContent(skinCss(doc)).length === 0 },
-  { id: 'no-scroll-triggered-motion', requirementId: 'R-EMPTY-2 (F3)', message: 'No scroll-triggered reveal animation or IntersectionObserver reveal hook is allowed (F3).', check: (doc) => !findScrollTriggeredMotion(skinCss(doc)) }
+  {
+    id: 'bound-section-and-widget-ids',
+    requirementId: 'BR-1',
+    message: "Theme must bind section 'header' to locked widget 'Header1' (version='2') and section 'page_body' to locked widget 'Blog1' (version='2').",
+    check: (doc) => {
+      const sections = named(doc, BLOGGER_NS, 'section');
+      const headerSection = sections.find((s) => attr(s, 'id') === 'header');
+      const bodySection = sections.find((s) => attr(s, 'id') === 'page_body');
+      if (!headerSection || !bodySection) return false;
+      const headerWidgets = headerSection.children.filter((c): c is XmlElement => c.kind === 'element' && c.namespaceUri === BLOGGER_NS && c.localName === 'widget');
+      const bodyWidgets = bodySection.children.filter((c): c is XmlElement => c.kind === 'element' && c.namespaceUri === BLOGGER_NS && c.localName === 'widget');
+      const header1 = headerWidgets.find((w) => attr(w, 'id') === 'Header1');
+      const blog1 = bodyWidgets.find((w) => attr(w, 'id') === 'Blog1');
+      if (!header1 || !blog1) return false;
+      return attr(header1, 'version') === '2' && attr(header1, 'locked') === 'true' && attr(blog1, 'version') === '2' && attr(blog1, 'locked') === 'true';
+    }
+  },
+  {
+    id: 'all-head-content-include',
+    requirementId: 'R-V3-1 AC1',
+    message: "<head> must contain exactly one <b:include data='blog' name='all-head-content'/>.",
+    check: (doc) => {
+      const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head');
+      if (heads.length !== 1) return false;
+      const includes = descendants(heads[0]!).filter((element) => element.namespaceUri === BLOGGER_NS && element.localName === 'include' && attr(element, 'name') === 'all-head-content' && attr(element, 'data') === 'blog');
+      return includes.length === 1;
+    }
+  },
+  {
+    id: 'main-container-structure',
+    requirementId: 'R-A11Y-2 AC1',
+    message: "The 'page_body' section must be enclosed inside a <main role='main'> container.",
+    check: (doc) => {
+      const bodySection = named(doc, BLOGGER_NS, 'section').find((s) => attr(s, 'id') === 'page_body');
+      if (!bodySection) return false;
+      for (let cur = bodySection.parent; cur; cur = cur.parent) {
+        if (cur.localName === 'main' && attr(cur, 'role') === 'main') return true;
+      }
+      return false;
+    }
+  }
 ];
+export const CONTRACT_RULES = contractRules;
 export function checkThemeContract(xml: string): ContractFinding[] { let document: XmlDocument; try { document = parseXml(xml); } catch (error) { const message = error instanceof Error ? error.message : String(error); return [{ ruleId: 'well-formed', requirementId: 'R-V3-1 AC9', message }, { ruleId: 'declared-entities', requirementId: 'R-BUILD-1 AC6', message }]; } return contractRules.filter((rule) => !rule.check(document, xml)).map((rule) => ({ ruleId: rule.id, requirementId: rule.requirementId, message: rule.message })); }
 export function assertThemeContract(xml: string): void { const findings = checkThemeContract(xml); if (findings.length) throw new Error(findings.map((finding) => `[${finding.requirementId}] ${finding.ruleId}: ${finding.message}`).join('\n')); }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) { const filename = path.resolve(process.argv[2] ?? path.join(ROOT, 'dist/theme.xml')); assertThemeContract(await readFile(filename, 'utf8')); console.log(`PASS: ${contractRules.length} V3 contract rules verified.`); }

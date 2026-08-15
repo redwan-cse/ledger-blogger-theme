@@ -1,12 +1,8 @@
 // ---------------------------------------------------------------------------
-// Tokens — docs/PROJECT-PLAN.md §2.2 (colour), §2.3 (type), §2.4 (spacing)
-//
-// The seven colour roles below are the ONLY colour tokens this theme has.
-// Do not add more. PROJECT-PLAN §11 explicitly rejects Theme Designer-style
-// colour customisation as scope creep for a marketplace product this is not;
-// every extra variable is a surface for someone to break the ratios below.
+// Design Tokens — docs/PROJECT-PLAN.md §2.2 (colour), §2.3 (type), §2.4 (spacing)
 // ---------------------------------------------------------------------------
 
+// OKLCH Palette (7 canonical tokens)
 $page: oklch(98.4% 0.004 85);
 $surface: oklch(96.2% 0.006 85);
 $ink: oklch(23% 0.012 85);
@@ -15,11 +11,29 @@ $rule: oklch(89% 0.006 85);
 $accent: oklch(46% 0.148 25);
 $accent-wash: oklch(94% 0.028 25);
 
+// Typography font stacks (Zero external dependencies)
 $font-serif: georgia, 'Iowan Old Style', 'Palatino Linotype', palatino, serif;
 $font-sans: -apple-system, system-ui, 'Segoe UI', roboto, sans-serif;
 $font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', consolas, monospace;
 
-// Base 4px, deliberately uneven rhythm.
+// Typography Scale (1.333 ratio)
+$font-size-h1: clamp(2.0rem, 1.4rem + 2.6vw, 3.15rem);
+$font-size-h2: 1.777rem;
+$font-size-h3: 1.333rem;
+$font-size-body: 1.0625rem;
+$font-size-row: 1.15rem;
+$font-size-meta: 0.8125rem;
+
+$line-height-body: 1.7;
+
+$font-weight-h1: 700;
+$font-weight-h2: 650;
+$font-weight-h3: 650;
+$font-weight-body: 400;
+$font-weight-row: 600;
+$font-weight-meta: 500;
+
+// Spacing Rhythm (Base 4px, deliberately uneven)
 $space-1: 4px;
 $space-2: 8px;
 $space-3: 12px;
@@ -30,6 +44,11 @@ $space-7: 48px;
 $space-8: 72px;
 $space-9: 112px;
 
+// Layout & Measure
 $measure: 68ch;
+$breakpoint-mobile: 640px;
+$breakpoint-desktop: 1024px;
+
+// Motion (Colour and opacity only, 120-200ms, ease-out quart)
 $motion-duration: 160ms;
-$motion-ease: cubic-bezier(0.25, 1, 0.5, 1); // ease-out quart
+$motion-ease: cubic-bezier(0.25, 1, 0.5, 1);

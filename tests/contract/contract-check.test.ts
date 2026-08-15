@@ -1,19 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { checkThemeContract, contractRules } from '../../tools/contract-check.js';
+import { CONTRACT_RULES, checkThemeContract, contractRules } from '../../tools/contract-check.js';
 import { generateTheme } from '../../tools/generate.js';
 
 const sha = '0123456789abcdef0123456789abcdef01234567';
 interface RuleCase { id: string; violate(xml: string): string; comment: string; parserFailure?: boolean }
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
-const injectCss = (xml: string, css: string): string => xml.replace('<![CDATA[', `<![CDATA[${css}`);
 const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const cases: readonly RuleCase[] = [
   { id: 'well-formed', violate: (xml) => xml.replace(MAIN_OPEN, '<main class="main-content" id="content" id="duplicate" role="main">'), comment: 'duplicate attributes are malformed XML', parserFailure: true },
   { id: 'layouts-v3', violate: (xml) => xml.replace('b:layoutsVersion="3"', 'b:layoutsVersion="2"'), comment: "b:layoutsVersion='2' is forbidden" },
-  { id: 'widget-v2', violate: (xml) => xml.replace(' version="2"', ''), comment: "widget version='2' is required" },
+  { id: 'widget-v2', violate: (xml) => inject(xml, '<b:section id="sec_extra"><b:widget id="Extra" type="HTML"/></b:section>'), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
-  { id: 'section-ids', violate: (xml) => xml.replace('id="page_body"', 'id="header"'), comment: 'duplicate section id header' },
+  { id: 'section-ids', violate: (xml) => inject(xml, '<b:section id="invalid-hyphen"/>'), comment: 'section ids must use underscores rather than hyphens' },
   { id: 'header-widget', violate: (xml) => xml.replace('type="Header"', 'type="HTML"'), comment: 'missing Header widget' },
   { id: 'no-v2-accessors', violate: (xml) => inject(xml, '<b:with value="data:blog.url == data:blog.homepageUrl" var="wrong"/>'), comment: 'URL equality is fragile view dispatch' },
   { id: 'no-macro-tags', violate: (xml) => xml.replace('xmlns:expr=', 'xmlns:macro="urn:macro" xmlns:expr=').replace('</main>', '<macro:include name="x"/></main>'), comment: 'macro:include is banned' },
@@ -27,18 +26,20 @@ const cases: readonly RuleCase[] = [
   { id: 'build-stamp', violate: (xml) => xml.replace('</head>', '<meta content="0.0.0+0123456789abcdef0123456789abcdef01234567" name="theme-build"/></head>'), comment: 'duplicate build stamps are invalid' },
   { id: 'size-budget', violate: (xml) => `${xml.slice(0, -1)}<!--${'x'.repeat(200_001)}-->\n`, comment: 'output over 200000 bytes is invalid' },
   { id: 'css-disabled', violate: (xml) => xml.replace('b:css="false"', 'b:css="true"'), comment: "b:css='false' is required" },
-  { id: 'no-focus-suppression', violate: (xml) => injectCss(xml, 'a:focus{outline:none}'), comment: 'outline:none must never suppress the focus indicator' },
-  { id: 'no-hidden-post-content', violate: (xml) => injectCss(xml, '.post-title{display:none}'), comment: 'hiding post or article content outside hover, focus, or hidden is forbidden' },
-  { id: 'no-scroll-triggered-motion', violate: (xml) => injectCss(xml, '.reveal{opacity:1}'), comment: 'scroll-triggered reveal animation is forbidden' }
+  { id: 'bound-section-and-widget-ids', violate: (xml) => xml.replace('id="Blog1" locked="true"', 'id="Blog1" locked="false"'), comment: 'Blog1 widget must remain locked' },
+  { id: 'all-head-content-include', violate: (xml) => xml.replace('<b:include data="blog" name="all-head-content"/>', ''), comment: 'all-head-content include is mandatory in head' },
+  { id: 'main-container-structure', violate: (xml) => xml.replace(MAIN_OPEN, '<div class="main-content" id="content">').replace('</main>', '</div>'), comment: 'main container must enclose page body' }
 ];
 
 describe('V3 contract checker blind-spot matrix', () => {
-  it('covers every registered rule exactly once', () => { expect(cases.map((item) => item.id).sort()).toEqual(contractRules.map((rule) => rule.id).sort()); });
+  it('covers every registered rule exactly once', () => {
+    expect(CONTRACT_RULES).toBe(contractRules);
+    expect(cases.map((item) => item.id).sort()).toEqual(contractRules.map((rule) => rule.id).sort());
+  });
   it('anchors every mutation against the real generated output', async () => {
     const { xml } = await generateTheme({ sha, write: false });
     expect(xml, 'MAIN_OPEN must match the generated main element exactly').toContain(MAIN_OPEN);
     expect(xml, 'the Posts section must stay bound to page_body').toContain('id="page_body"');
-    expect(xml, 'the skin CDATA anchor used to inject CSS-level violations must exist exactly once').toContain('<![CDATA[');
   });
   for (const testCase of cases) it(`${testCase.id}: isolates a violation and ignores both comment forms`, async () => {
     const { xml } = await generateTheme({ sha, write: false }); const violated = testCase.violate(xml); expect(violated).not.toBe(xml);

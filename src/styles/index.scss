@@ -1,9 +1,12 @@
 // ---------------------------------------------------------------------------
-// Index — lead + list for home/label/search/archive, and pagination.
-// docs/PROJECT-PLAN.md §2.4, §2.5, §2.6
+// Index Views & Post Rows — docs/PROJECT-PLAN.md §2.4, §2.5, §2.6
 // ---------------------------------------------------------------------------
 
 @use 'tokens' as *;
+
+// ---------------------------------------------------------------------------
+// Standard Post Row (Hairline-separated list row)
+// ---------------------------------------------------------------------------
 
 .post,
 .post-row {
@@ -17,8 +20,8 @@
 
 .post-title {
   font-family: $font-serif;
-  font-weight: 600;
-  font-size: 1.15rem;
+  font-weight: $font-weight-row;
+  font-size: $font-size-row;
   line-height: 1.3;
   margin: 0 0 $space-2;
 
@@ -31,7 +34,7 @@
     }
   }
 
-  // Row titles clamp; the article's own h1 is never inside this class.
+  // Row titles clamp to 3 lines; article h1 is never clamped
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -41,20 +44,45 @@
 
 .post-date {
   font-family: $font-sans;
-  font-weight: 500; // §2.3 meta/label row
   color: $ink-muted;
-  font-size: 0.8125rem;
+  font-size: $font-size-meta;
   letter-spacing: 0.01em;
 }
 
-// Excerpt exists in the DOM for every multi-item view (server-rendered via
-// postBodySnippet) but only the homepage-p1 lead shows it. Every other index
-// row is title + date + topic, no excerpt, no card chrome, per §2.4/§2.5.
-// This is a static, JS-independent hide; see the documented exception in
-// tools/style-contract.ts before touching this selector.
+// Excerpt exists in DOM for multi-item views but hidden for compact rows
 .post-excerpt {
   display: none;
 }
+
+.post-footer {
+  margin-top: $space-3;
+}
+
+.post-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.label-link {
+  font-family: $font-sans;
+  font-size: $font-size-meta;
+  letter-spacing: 0.01em;
+  color: $ink-muted;
+  text-decoration: none;
+  background: $surface;
+  padding: $space-1 $space-3;
+  border-radius: 999px;
+
+  &:hover {
+    color: $accent;
+    background: $accent-wash;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lead Post (Homepage Page 1 only)
+// ---------------------------------------------------------------------------
 
 body.is-home-lead .post:first-of-type {
   padding-top: $space-6;
@@ -72,8 +100,8 @@ body.is-home-lead .post:first-of-type {
   .post-excerpt {
     display: block;
     font-family: $font-serif;
-    font-size: 1.0625rem;
-    line-height: 1.7;
+    font-size: $font-size-body;
+    line-height: $line-height-body;
     max-width: $measure;
     color: $ink;
     margin: $space-3 0;
@@ -85,67 +113,8 @@ body.is-home-lead .post:first-of-type {
   }
 }
 
-.post-footer {
-  margin-top: $space-3;
-}
-
-.post-labels {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-2;
-}
-
-.label-link {
-  font-family: $font-sans;
-  font-weight: 500; // §2.3 meta/label row
-  font-size: 0.8125rem;
-  letter-spacing: 0.01em;
-  color: $ink-muted;
-  text-decoration: none;
-  background: $surface;
-  padding: $space-1 $space-3;
-  border-radius: 999px;
-
-  &:hover {
-    color: $accent;
-    background: $accent-wash;
-  }
-}
-
 // ---------------------------------------------------------------------------
-// Pagination
-// ---------------------------------------------------------------------------
-
-.pagination {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: space-between;
-  margin-top: $space-6;
-  padding-top: $space-5;
-  border-top: 1px solid $rule;
-}
-
-.newer-link,
-.older-link {
-  font-family: $font-sans;
-  font-weight: 500; // §2.3 meta/label row
-  font-size: 0.8125rem;
-  letter-spacing: 0.01em;
-  color: $ink;
-  text-decoration: none;
-
-  &:hover {
-    color: $accent;
-  }
-}
-
-.older-link {
-  margin-left: auto;
-}
-
-// ---------------------------------------------------------------------------
-// Small viewport — docs/PROJECT-PLAN.md §2.7. Lead joins the list. The
-// .main-content padding override for this breakpoint lives in layout.scss.
+// Small Viewport Adjustments (<640px): Lead joins the list
 // ---------------------------------------------------------------------------
 
 @media (max-width: 639px) {
@@ -154,7 +123,7 @@ body.is-home-lead .post:first-of-type {
   }
 
   body.is-home-lead .post:first-of-type .post-title {
-    font-size: 1.15rem;
+    font-size: $font-size-row;
     -webkit-line-clamp: 3;
     line-clamp: 3;
   }

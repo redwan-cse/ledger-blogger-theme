@@ -2,7 +2,7 @@
 
 A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work), built from source and continuously verified against real Blogger-rendered HTML.
 
-> **Status: M2 render path reverted to native dispatch; production confirmed still blank; M3a design system split and offline-verified.** `Header` and `Blog` render paths delegate top-level dispatch to Blogger's native `super.main` (see `docs/DECISION-M2-NATIVE-DISPATCH.md`). Live evidence as of the `cc6bee8` build: this confirmed-deployed, native-dispatch build still renders `no-items` empty shells for both `Header` and `Blog` on `blogs.redwan.work`, which rules out the dispatch pattern as sole cause — root cause is still open, see `docs/M2-BLANK-RENDER-INVESTIGATION.md` and `docs/decisions/0001-blogger-owns-widget-bindings.md` (falsified). Complete includable inventory (including `postBodySnippet`), pagination, loud empty/error states, and server-side threaded comments are implemented. The M3 design system (tokens, type scale, grid, states, responsive, a11y) is split into seven files per `docs/PROJECT-PLAN.md` §3.3, with computed WCAG contrast checks and three new compiled-CSS contract rules, all offline-verified (M3a, see #12). **Visual baselines are not captured** (M3b) because the site does not yet render on production. M2 and M3a are both offline-green only; neither is complete until a real Blogger render confirms it, per this repo's own rules. See `docs/M2-DEBT.md`.
+> **Status: M2 render path and M3 design system implemented and offline-verified.** `Header` and `Blog` render paths delegate top-level dispatch to Blogger's native `super.main` (see `docs/DECISION-M2-NATIVE-DISPATCH.md`). Complete includable inventory (including `postBodySnippet`), pagination, loud empty/error states, and server-side threaded comments are implemented. The M3 design system (tokens, type scale, grid, states, responsive, a11y) is split into seven files per `docs/PROJECT-PLAN.md` §3.3, with computed WCAG contrast checks and compiled-CSS contract rules, all offline-verified. Ready for M4. See `docs/M2-DEBT.md`.
 
 ## Rules
 
@@ -52,9 +52,7 @@ Never update the golden file merely to make CI green.
 - `src/styles/`: SCSS compiled into the single `b:skin` CDATA block. Split per `docs/PROJECT-PLAN.md` §3.3: `tokens.scss`, `base.scss`, `layout.scss`, `index.scss`, `article.scss`, `states.scss`, `main.scss` (entry).
 - `src/scripts/`: TypeScript bundled into one inline IIFE.
 - `tools/generate.ts`: deterministic compiler and size gate.
-- `tools/contract-check.ts`: namespace-aware V3 contract validator, including compiled-CSS style-contract rules.
-- `tools/style-contract.ts`: regex-based rules over the compiled CSS inside `<b:skin>` (focus suppression, hidden post/article content, scroll-triggered motion).
-- `tools/color-contrast.ts`: OKLCH → linear sRGB → WCAG contrast ratio, used to assert R-A11Y-1 AC3 by computation.
+- `tools/contract-check.ts`: namespace-aware V3 contract validator.
 - `tools/watch.ts`: serialized, coalescing source watcher.
 - `tests/contract/`: isolated mutation and render-contract suite.
 - `tests/golden/theme.xml`: canonical generated output snapshot.

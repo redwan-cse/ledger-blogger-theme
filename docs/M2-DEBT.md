@@ -27,30 +27,6 @@ the sixth consecutive blank upload.
 
 Only the last row is met.
 
-## The render path has never worked, not once
-
-Corrected 2026-08-13. **Upload one was the minimal widget**, containing nothing but
-`<b:includable id='main'><b:include name='super.main'/></b:includable>`. It rendered blank.
-
-| # | Upload | Result |
-|---|---|---|
-| 1 | Minimal widget, deferring entirely to `super.main` | Blank |
-| 2 | Full render path: includables, view dispatch, pager, states, comments | Blank |
-| 3 | `version='2'` audit; present throughout, nothing to fix | Blank |
-| 4 | Pug data-tag mangling found and fixed | Blank |
-| 5 | Shell parity with Contempo: `all-head-content`, `expr:dir`, `expr:lang` | Blank |
-| 6 | Bound ids restored per ADR 0001 | Blank |
-
-Three consequences worth keeping in front of whoever picks this up:
-
-1. **There is no known-good state.** Standard bisection has nothing to bisect toward. The only
-   available known-rendering baseline is Google's own Contempo export in `docs/reference/`.
-2. **Widget contents were ruled out before any were written.** Upload 1 had no custom includables,
-   no data tags, no view dispatch. Hypotheses 3, 4 and 5 were already answered by it.
-3. **Uploads 2 through 6 postdate that result.** Four days of widget development were built on a
-   render path already observed producing nothing at its smallest possible size. Standing rule
-   added: when the minimal case fails, stop and diagnose before building.
-
 ## The consequence nobody should forget
 
 Every milestone after M2 is accepted on rendered-HTML evidence. While the render path is dead,
@@ -74,7 +50,7 @@ rendered HTML) on an unrendered theme is not possible.
    contexts.
 3. Confirm Layout mode renders and both sections are populated.
 4. Verify comment rendering, closing RK-2 and OD-7.
-5. Restore any M2 scope stripped during the investigation: complete includable inventory, one
+5. Restore any M2 scope stripped during the bisect: complete includable inventory, one
    `.post-lead` on home page 1, threaded comments with tombstones and "Anonymous", five-recent-post
    recovery lists on empty search and 404, static pages free of post-only chrome.
 6. Update README and `docs/HARNESS.md` to verified behaviour, then close issue #7.

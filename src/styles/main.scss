@@ -1,12 +1,8 @@
 // ---------------------------------------------------------------------------
-// Ledger Blogger Theme — compiled skin entry point.
-// File split matches docs/PROJECT-PLAN.md §3.3. Each partial @uses 'tokens'
-// as * privately, so variables stay unprefixed without leaking cross-partial
-// state. Cascade order below is deliberate: base before layout before
-// content before states, matching how a browser would need to see them for
-// specificity to behave predictably.
+// Ledger Blogger Theme — Modular SCSS Entry Point (docs/PROJECT-PLAN.md §3.3)
 // ---------------------------------------------------------------------------
 
+@use 'tokens';
 @use 'base';
 @use 'layout';
 @use 'index';

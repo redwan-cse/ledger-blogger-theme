@@ -1,8 +1,5 @@
 // ---------------------------------------------------------------------------
-// Base — reset, document defaults, cross-view a11y foundation, and the
-// masthead. The Header widget renders on every view, not just the index, so
-// its styles live here rather than in index.scss. docs/PROJECT-PLAN.md §2.8,
-// §3.2.
+// Reset, Base, and Accessibility Defaults — docs/PROJECT-PLAN.md §2.8
 // ---------------------------------------------------------------------------
 
 @use 'tokens' as *;
@@ -88,35 +85,4 @@ button,
     transition-duration: 0.001ms !important;
     animation-duration: 0.001ms !important;
   }
-}
-
-// ---------------------------------------------------------------------------
-// Masthead — Header widget. docs/PROJECT-PLAN.md §3.2
-// ---------------------------------------------------------------------------
-
-.header-outer {
-  padding: $space-6 $space-4 $space-5;
-  border-bottom: 1px solid $rule;
-}
-
-.site-title {
-  font-family: $font-serif;
-  font-weight: 700;
-  font-size: 1.777rem;
-  margin: 0;
-  line-height: 1.2;
-
-  a {
-    color: $ink;
-    text-decoration: none;
-  }
-}
-
-.site-tagline {
-  font-family: $font-sans;
-  font-weight: 500; // §2.3 meta/label row: 0.8125rem / 500 / +0.01em
-  color: $ink-muted;
-  font-size: 0.8125rem;
-  letter-spacing: 0.01em;
-  margin: $space-2 0 0;
 }
