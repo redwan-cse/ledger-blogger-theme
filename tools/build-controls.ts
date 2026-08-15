@@ -7,13 +7,22 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTEMPO = path.join(ROOT, 'docs/contempo-1.3.3.xml');
 const OUT = path.join(ROOT, 'dist/controls');
 
-const BLOG_WIDGET = /<b:widget id='Blog1'[\s\S]*?<\/b:widget>/;
-const OUR_BLOG_WIDGET = /<b:widget id="Blog2"[\s\S]*?<\/b:widget>/;
+export function getWidgetPattern(widgetId: string): RegExp {
+  const escapedId = widgetId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`<b:widget\\b(?=[^>]*?\\bid=['"]${escapedId}['"])[^>]*?>[\\s\\S]*?<\\/b:widget>`, 'i');
+}
 
-function requireMatch(source: string, pattern: RegExp, label: string): string {
-  const match = source.match(pattern);
-  if (!match) throw new Error(`Could not locate ${label}.`);
+export function extractWidget(xml: string, widgetId: string): string {
+  const pattern = getWidgetPattern(widgetId);
+  const match = xml.match(pattern);
+  if (!match) throw new Error(`Could not locate ${widgetId} widget.`);
   return match[0];
+}
+
+export function replaceWidget(xml: string, widgetId: string, replacement: string): string {
+  const pattern = getWidgetPattern(widgetId);
+  if (!pattern.test(xml)) throw new Error(`Could not locate ${widgetId} widget for replacement.`);
+  return xml.replace(pattern, () => replacement);
 }
 
 function stamp(xml: string, build: string): string {
@@ -24,11 +33,11 @@ function stamp(xml: string, build: string): string {
 export async function buildControls(sha: string): Promise<string[]> {
   const ours = await generateTheme({ sha, write: false });
   const contempo = await readFile(CONTEMPO, 'utf8');
-  const contempoBlog = requireMatch(contempo, BLOG_WIDGET, "Contempo's Blog1 widget");
-  const ourBlog = requireMatch(ours.xml, OUR_BLOG_WIDGET, 'our Blog2 widget');
+  const contempoBlog = extractWidget(contempo, 'Blog1');
+  const ourBlog = extractWidget(ours.xml, 'Blog1');
 
-  const controlA = stamp(contempo.replace(BLOG_WIDGET, ourBlog), ours.build);
-  const controlB = stamp(ours.xml.replace(OUR_BLOG_WIDGET, contempoBlog), ours.build);
+  const controlA = stamp(replaceWidget(contempo, 'Blog1', ourBlog), ours.build);
+  const controlB = stamp(replaceWidget(ours.xml, 'Blog1', contempoBlog), ours.build);
 
   await mkdir(OUT, { recursive: true });
   const written: string[] = [];
@@ -41,7 +50,8 @@ export async function buildControls(sha: string): Promise<string[]> {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const sha = (process.env.GITHUB_SHA ?? '').trim();
+  const { execFileSync } = await import('node:child_process');
+  const sha = (process.env.GITHUB_SHA ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' })).trim();
   if (!/^[0-9a-f]{40}$/i.test(sha)) throw new Error('GITHUB_SHA with a full 40-character SHA is required.');
   const files = await buildControls(sha);
   for (const file of files) console.log(`Wrote ${path.relative(ROOT, file)}`);

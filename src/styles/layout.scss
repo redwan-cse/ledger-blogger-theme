@@ -1,0 +1,69 @@
+// ---------------------------------------------------------------------------
+// Masthead & 12-Column Responsive Layout — docs/PROJECT-PLAN.md §2.4, §2.7
+// ---------------------------------------------------------------------------
+
+@use 'tokens' as *;
+
+// ---------------------------------------------------------------------------
+// Masthead / Header
+// ---------------------------------------------------------------------------
+
+.header-outer {
+  padding: $space-6 $space-4 $space-5;
+  border-bottom: 1px solid $rule;
+}
+
+.site-title {
+  font-family: $font-serif;
+  font-weight: 700;
+  font-size: 1.777rem;
+  margin: 0;
+  line-height: 1.2;
+
+  a {
+    color: $ink;
+    text-decoration: none;
+  }
+}
+
+.site-tagline {
+  font-family: $font-sans;
+  color: $ink-muted;
+  font-size: $font-size-meta;
+  letter-spacing: 0.01em;
+  margin: $space-2 0 0;
+}
+
+// ---------------------------------------------------------------------------
+// 12-Column Responsive Main Container
+// ---------------------------------------------------------------------------
+
+.main-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: $space-6 $space-4 $space-9;
+}
+
+// Mobile (<640px): single column, 20px gutters
+@media (max-width: 639px) {
+  .main-content {
+    padding: $space-5 20px $space-8;
+  }
+}
+
+// Tablet (640-1023px): single column, 48px gutters
+@media (min-width: 640px) and (max-width: 1023px) {
+  .main-content {
+    padding: $space-7 $space-7 $space-9;
+  }
+}
+
+// Desktop (>=1024px): 12-column grid layout, max 1280px
+@media (min-width: 1024px) {
+  .main-content {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: $space-6;
+    padding: $space-8 $space-6 $space-9;
+  }
+}

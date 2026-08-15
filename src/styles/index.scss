@@ -1,0 +1,130 @@
+// ---------------------------------------------------------------------------
+// Index Views & Post Rows — docs/PROJECT-PLAN.md §2.4, §2.5, §2.6
+// ---------------------------------------------------------------------------
+
+@use 'tokens' as *;
+
+// ---------------------------------------------------------------------------
+// Standard Post Row (Hairline-separated list row)
+// ---------------------------------------------------------------------------
+
+.post,
+.post-row {
+  border-bottom: 1px solid $rule;
+  padding: $space-5 0;
+
+  @media (min-width: 1024px) {
+    grid-column: 1 / -1;
+  }
+}
+
+.post-title {
+  font-family: $font-serif;
+  font-weight: $font-weight-row;
+  font-size: $font-size-row;
+  line-height: 1.3;
+  margin: 0 0 $space-2;
+
+  a {
+    color: $ink;
+    text-decoration: none;
+
+    &:hover {
+      color: $accent;
+    }
+  }
+
+  // Row titles clamp to 3 lines; article h1 is never clamped
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-date {
+  font-family: $font-sans;
+  color: $ink-muted;
+  font-size: $font-size-meta;
+  letter-spacing: 0.01em;
+}
+
+// Excerpt exists in DOM for multi-item views but hidden for compact rows
+.post-excerpt {
+  display: none;
+}
+
+.post-footer {
+  margin-top: $space-3;
+}
+
+.post-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.label-link {
+  font-family: $font-sans;
+  font-size: $font-size-meta;
+  letter-spacing: 0.01em;
+  color: $ink-muted;
+  text-decoration: none;
+  background: $surface;
+  padding: $space-1 $space-3;
+  border-radius: 999px;
+
+  &:hover {
+    color: $accent;
+    background: $accent-wash;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lead Post (Homepage Page 1 only)
+// ---------------------------------------------------------------------------
+
+body.is-home-lead .post:first-of-type {
+  padding-top: $space-6;
+
+  @media (min-width: 1024px) {
+    grid-column: 1 / 9; // 8 of 12 columns
+  }
+
+  .post-title {
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 1.777rem);
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+
+  .post-excerpt {
+    display: block;
+    font-family: $font-serif;
+    font-size: $font-size-body;
+    line-height: $line-height-body;
+    max-width: $measure;
+    color: $ink;
+    margin: $space-3 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Small Viewport Adjustments (<640px): Lead joins the list
+// ---------------------------------------------------------------------------
+
+@media (max-width: 639px) {
+  body.is-home-lead .post:first-of-type .post-excerpt {
+    display: none;
+  }
+
+  body.is-home-lead .post:first-of-type .post-title {
+    font-size: $font-size-row;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+}
