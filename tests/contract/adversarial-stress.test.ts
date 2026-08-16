@@ -22,12 +22,12 @@ const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
 const rules = (xml: string): string[] => checkThemeContract(xml).map((f) => f.ruleId);
 
-describe('Adversarial Stress Test: All 27 Contract Rules', () => {
-  it('verifies exact registration of all 27 rules', () => {
-    expect(CONTRACT_RULES.length).toBe(27);
-    expect(contractRules.length).toBe(27);
+describe('Adversarial Stress Test: All 33 Contract Rules', () => {
+  it('verifies exact registration of all 33 rules', () => {
+    expect(CONTRACT_RULES.length).toBe(33);
+    expect(contractRules.length).toBe(33);
     const ids = contractRules.map((r) => r.id);
-    expect(new Set(ids).size).toBe(27);
+    expect(new Set(ids).size).toBe(33);
   });
 
   it('validates baseline generated theme has zero findings', async () => {
@@ -309,10 +309,10 @@ describe('Adversarial Stress Test: All 27 Contract Rules', () => {
   describe('Rule 22: main-container-structure (R-A11Y-2 AC1)', () => {
     it('catches page_body outside main role="main" container', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const divMain = xml.replace(MAIN_OPEN, '<div class="main-content" id="content">').replace('</main>', '</div>');
+      const divMain = xml.replace(MAIN_OPEN, '<div role="region">').replace('</main>', '</div><main class="main-content" id="content" role="main"><p/></main>');
       expect(rules(divMain)).toEqual(['main-container-structure']);
 
-      const noRole = xml.replace(MAIN_OPEN, '<main class="main-content" id="content">');
+      const noRole = xml.replace(MAIN_OPEN, '<main class="main-content" id="content">').replace('</main>', '</main><main class="main-content" id="content-extra" role="main"><p/></main>');
       expect(rules(noRole)).toEqual(['main-container-structure']);
     });
   });
@@ -363,6 +363,75 @@ describe('Adversarial Stress Test: All 27 Contract Rules', () => {
     });
   });
 
+  describe('Rule 28: rel-canonical (R-SEO-2 AC4)', () => {
+    it('catches missing or invalid rel=canonical link in head', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const noCanonical = xml.replace('<link rel="canonical" expr:href="data:view.url.canonical"/>', '');
+      expect(rules(noCanonical)).toEqual(['rel-canonical']);
+
+      const wrongHref = xml.replace('expr:href="data:view.url.canonical"', 'expr:href="data:blog.canonicalHomepageUrl"');
+      expect(rules(wrongHref)).toEqual(['rel-canonical']);
+    });
+  });
+
+  describe('Rule 29: opengraph-metadata (R-SEO-2 AC1)', () => {
+    it('catches missing OpenGraph metadata tags in head', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const noTitle = xml.replace('<meta property="og:title" expr:content="data:view.title.escaped"/>', '');
+      expect(rules(noTitle)).toEqual(['opengraph-metadata']);
+
+      const noType = xml.replace('<meta property="og:type" content="article"/>', '').replace('<meta property="og:type" content="website"/>', '');
+      expect(rules(noType)).toEqual(['opengraph-metadata']);
+    });
+  });
+
+  describe('Rule 30: twitter-metadata (R-SEO-2 AC1)', () => {
+    it('catches missing Twitter card metadata tags in head', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const noTitle = xml.replace('<meta name="twitter:title" expr:content="data:view.title.escaped"/>', '');
+      expect(rules(noTitle)).toEqual(['twitter-metadata']);
+
+      const noCard = xml.replace('<meta name="twitter:card" content="summary_large_image"/>', '').replace('<meta name="twitter:card" content="summary"/>', '');
+      expect(rules(noCard)).toEqual(['twitter-metadata']);
+    });
+  });
+
+  describe('Rule 31: single-h1-hierarchy (R-A11Y-3 AC1)', () => {
+    it('catches missing single item demotion in Header1 or stray h1 elements', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const noDemotion = xml.replace('cond="not data:view.isSingleItem"', 'cond="data:view.isHomepage"');
+      expect(rules(noDemotion)).toEqual(['single-h1-hierarchy']);
+
+      const strayH1 = xml.replace('<b:widget id="HTML1" locked="false" title="Intro" type="HTML" version="2" visible="true">', '<b:widget id="HTML1" locked="false" title="Intro" type="HTML" version="2" visible="true"><b:includable id="extra"><h1>Stray Heading</h1></b:includable>');
+      expect(rules(strayH1)).toContain('single-h1-hierarchy');
+    });
+  });
+
+  describe('Rule 32: skip-link-structure (R-A11Y-2 AC2)', () => {
+    it('catches missing skip link or missing main#content target', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const noSkipLink = xml.replace('<a class="skip-link" href="#content">Skip to content</a>', '');
+      expect(rules(noSkipLink)).toEqual(['skip-link-structure']);
+
+      const badTarget = xml.replace('href="#content"', 'href="#main"');
+      expect(rules(badTarget)).toEqual(['skip-link-structure']);
+    });
+  });
+
+  describe('Rule 33: clean-aria-landmarks (R-A11Y-1)', () => {
+    it('catches missing landmarks or nested nav elements', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const noBanner = xml.replace('role="banner"', 'role="none"');
+      expect(rules(noBanner)).toEqual(['clean-aria-landmarks']);
+
+      const noContentInfo = xml.replace('role="contentinfo"', 'role="none"');
+      expect(rules(noContentInfo)).toEqual(['clean-aria-landmarks']);
+
+      const nestedNav = xml.replace('<nav class="site-nav" aria-label="Main Navigation">', '<nav class="site-nav" aria-label="Main Navigation"><nav class="nested-nav"></nav>');
+      expect(rules(nestedNav)).toEqual(['clean-aria-landmarks']);
+    });
+  });
+
   describe('Comment Immunity for all violation patterns', () => {
     const commentPayloads = [
       'b:layoutsVersion="2"',
@@ -393,7 +462,13 @@ describe('Adversarial Stress Test: All 27 Contract Rules', () => {
       'page_body outside main',
       'href="/search/label/tech"',
       'type="DisabledPosts" in defaultmarkup',
-      'id="topics" maxwidgets="99"'
+      'id="topics" maxwidgets="99"',
+      'rel="canonical" missing',
+      'og:title metadata missing',
+      'twitter:title metadata missing',
+      'Header1 cond="data:view.isHomepage"',
+      'skip-link missing',
+      'nested nav landmark'
     ];
 
     it('ignores violation patterns inside standard XML comments <!-- ... -->', async () => {

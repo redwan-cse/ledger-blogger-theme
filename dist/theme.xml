@@ -3,11 +3,116 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+59184fc8d1aacd4f8d4b8ecdeeb665b78dc58a7b" name="theme-build"/>
+    <meta content="0.0.0+1c7297a16c246b556a3f4d0032329a194a097e87" name="theme-build"/>
     <title>
       <b:eval expr="data:view.title.escaped"/>
     </title>
     <b:include data="blog" name="all-head-content"/>
+    <link rel="canonical" expr:href="data:view.url.canonical"/>
+    <b:if cond="data:view.description">
+      <meta name="description" expr:content="data:view.description.escaped"/>
+      <b:elseif cond="data:blog.metaDescription"/>
+      <meta name="description" expr:content="data:blog.metaDescription.escaped"/>
+    </b:if>
+    <meta property="og:site_name" expr:content="data:blog.title.escaped"/>
+    <b:if cond="data:view.isPost">
+      <meta property="og:type" content="article"/>
+      <b:else/>
+      <meta property="og:type" content="website"/>
+    </b:if>
+    <meta property="og:title" expr:content="data:view.title.escaped"/>
+    <meta property="og:url" expr:content="data:view.url.canonical"/>
+    <b:if cond="data:view.description">
+      <meta property="og:description" expr:content="data:view.description.escaped"/>
+      <b:elseif cond="data:blog.metaDescription"/>
+      <meta property="og:description" expr:content="data:blog.metaDescription.escaped"/>
+      <b:else/>
+      <meta property="og:description" expr:content="data:view.title.escaped"/>
+    </b:if>
+    <b:if cond="data:view.featuredImage">
+      <meta property="og:image" expr:content="data:view.featuredImage"/>
+      <b:else/>
+      <b:with value="data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path &quot;favicon.ico&quot;)" var="fallbackImg">
+        <meta property="og:image" expr:content="data:fallbackImg"/>
+      </b:with>
+    </b:if>
+    <b:if cond="data:view.featuredImage">
+      <meta name="twitter:card" content="summary_large_image"/>
+      <meta name="twitter:image" expr:content="data:view.featuredImage"/>
+      <b:else/>
+      <meta name="twitter:card" content="summary"/>
+      <b:with value="data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path &quot;favicon.ico&quot;)" var="fallbackImg">
+        <meta name="twitter:image" expr:content="data:fallbackImg"/>
+      </b:with>
+    </b:if>
+    <meta name="twitter:title" expr:content="data:view.title.escaped"/>
+    <b:if cond="data:view.description">
+      <meta name="twitter:description" expr:content="data:view.description.escaped"/>
+      <b:elseif cond="data:blog.metaDescription"/>
+      <meta name="twitter:description" expr:content="data:blog.metaDescription.escaped"/>
+      <b:else/>
+      <meta name="twitter:description" expr:content="data:view.title.escaped"/>
+    </b:if>
+    <b:if cond="data:view.isHomepage or data:view.isSearch">
+      <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "<data:blog.title.jsonEscaped/>",
+          "url": "<data:blog.canonicalHomepageUrl.jsonEscaped/>",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "<b:eval expr='(data:blog.canonicalHomepageUrl path "search" params {q: "{search_term_string}"}).jsonEscaped'/>"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        }
+        
+      </script>
+    </b:if>
+    <b:if cond="data:view.isPost">
+      <b:with value="data:widgets.Blog.first.posts.first" var="post">
+        <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": "<data:view.url.canonical.jsonEscaped/>"
+            },
+            "headline": "<data:view.title.jsonEscaped/>",
+            "description": "<b:eval expr='snippet(data:post.snippets.long ?: (data:view.description ?: data:view.title), {length: 250, links: false, linebreaks: false, ellipsis: true}).jsonEscaped'/>",
+            "datePublished": "<data:post.date.iso8601.jsonEscaped/>"
+            <b:if cond='data:post.lastUpdated'>
+            , "dateModified": "<data:post.lastUpdated.iso8601.jsonEscaped/>"
+            </b:if>
+            <b:if cond='data:view.featuredImage'>
+            , "image": "<data:view.featuredImage.jsonEscaped/>"
+            </b:if>
+            , "author": {
+              "@type": "Person",
+              "name": "<data:post.author.name.jsonEscaped/>"
+              <b:if cond='data:post.author.profileUrl'>
+              , "url": "<data:post.author.profileUrl.jsonEscaped/>"
+              </b:if>
+              <b:if cond='data:post.author.authorPhoto.image'>
+              , "image": "<data:post.author.authorPhoto.image.jsonEscaped/>"
+              </b:if>
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "<data:blog.title.jsonEscaped/>",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "<b:eval expr='(data:blog.canonicalHomepageUrl path "favicon.ico").jsonEscaped'/>"
+              }
+            }
+          }
+        </script>
+      </b:with>
+    </b:if>
     <b:defaultmarkups>
       <b:defaultmarkup type="Common">
         <b:includable id="widgetTitle">
@@ -256,24 +361,28 @@
       <b:section class="header" id="header" maxwidgets="1" name="Header" showaddelement="no">
         <b:widget id="Header1" locked="true" title="Blog Header" type="Header" version="2" visible="true">
           <b:includable id="main" var="this">
-            <b:if cond="data:view.isHomepage">
-              <h1 class="site-title"><a expr:href="data:blog.homepageUrl">
-                  <b:eval expr="data:title"/></a></h1>
-              <b:else/>
-              <p class="site-title"><a expr:href="data:blog.homepageUrl">
-                  <b:eval expr="data:title"/></a></p>
-            </b:if>
-            <b:if cond="data:description">
-              <p class="site-tagline">
-                <b:eval expr="data:description"/>
-              </p>
-            </b:if>
+            <b:with value="data:this.title ?: data:blog.title" var="headerTitle">
+              <b:with value="data:this.description ?: data:blog.description" var="headerDescription">
+                <b:if cond="not data:view.isSingleItem">
+                  <h1 class="site-title"><a expr:href="data:blog.homepageUrl">
+                      <b:eval expr="data:headerTitle"/></a></h1>
+                  <b:else/>
+                  <p class="site-title"><a expr:href="data:blog.homepageUrl">
+                      <b:eval expr="data:headerTitle"/></a></p>
+                </b:if>
+                <b:if cond="data:headerDescription">
+                  <p class="site-tagline">
+                    <b:eval expr="data:headerDescription"/>
+                  </p>
+                </b:if>
+              </b:with>
+            </b:with>
           </b:includable>
         </b:widget>
       </b:section>
     </div>
     <b:if cond="data:view.isLayoutMode or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">
-      <nav class="nav-container" role="navigation">
+      <div class="nav-container">
         <b:section class="navlinks" id="navlinks" maxwidgets="1" name="Navigation" showaddelement="no">
           <b:widget id="LinkList1" locked="false" title="Navigation" type="LinkList" version="2" visible="true">
             <b:includable id="main" var="this">
@@ -290,7 +399,7 @@
             </b:includable>
           </b:widget>
         </b:section>
-      </nav>
+      </div>
     </b:if>
     <b:if cond="data:view.isLayoutMode or data:widgets any (w =&gt; w.sectionId == &quot;intro&quot;)">
       <div class="intro-container">
@@ -341,7 +450,38 @@
             <b:widget-setting name="showShareButtons">false</b:widget-setting>
           </b:widget-settings>
           <b:includable id="main">
-            <b:include name="super.main"/>
+            <b:if cond="data:view.isError">
+              <b:include name="status-message"/>
+              <b:elseif cond="data:view.isMultipleItems"/>
+              <b:if cond="data:posts.empty">
+                <b:include name="status-message"/>
+                <b:else/>
+                <b:loop values="data:posts" var="post">
+                  <b:include data="post" name="post"/>
+                </b:loop>
+                <b:include name="postPagination"/>
+              </b:if>
+              <b:elseif cond="data:view.isSingleItem"/>
+              <b:if cond="data:posts.empty">
+                <b:include name="status-message"/>
+                <b:else/>
+                <b:loop values="data:posts" var="post">
+                  <b:include data="post" name="post"/>
+                  <b:if cond="data:view.isPost">
+                    <b:include data="post" name="comments"/>
+                  </b:if>
+                </b:loop>
+              </b:if>
+              <b:else/>
+              <b:if cond="not data:posts.empty">
+                <b:loop values="data:posts" var="post">
+                  <b:include data="post" name="post"/>
+                </b:loop>
+                <b:include name="postPagination"/>
+                <b:else/>
+                <b:include name="status-message"/>
+              </b:if>
+            </b:if>
           </b:includable>
           <b:includable id="post" var="post">
             <article class="post" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
@@ -465,6 +605,27 @@
               <b:if cond="data:olderPageUrl"><a class="older-link" expr:href="data:olderPageUrl">Older Posts</a></b:if>
             </div>
           </b:includable>
+          <b:includable id="inlineAd"/>
+          <b:includable id="postJumpLink"/>
+          <b:includable id="feedLinks"/>
+          <b:includable id="feedLinksBody"/>
+          <b:includable id="nextPageLink"/>
+          <b:includable id="previousPageLink"/>
+          <b:includable id="homePageLink"/>
+          <b:includable id="postCommentsAndAd"/>
+          <b:includable id="postCommentsLink"/>
+          <b:includable id="postFooterAuthorProfile"/>
+          <b:includable id="aboutPostAuthor"/>
+          <b:includable id="commentPicker"/>
+          <b:includable id="addComments"/>
+          <b:includable id="commentAuthorAvatar"/>
+          <b:includable id="commentDeleteIcon"/>
+          <b:includable id="commentsTitle"/>
+          <b:includable id="commentList"/>
+          <b:includable id="commentItem"/>
+          <b:includable id="commentForm"/>
+          <b:includable id="commentFormIframeSrc"/>
+          <b:includable id="threadedCommentJs"/>
         </b:widget>
       </b:section>
     </main>

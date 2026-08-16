@@ -246,6 +246,97 @@ export const contractRules: readonly ContractRule[] = [
       }
       return true;
     }
+  },
+  {
+    id: 'rel-canonical',
+    requirementId: 'R-SEO-2 AC4',
+    message: "<head> must contain a <link rel='canonical'> element binding expr:href to data:view.url.canonical.",
+    check: (doc) => {
+      const heads = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'head');
+      if (heads.length !== 1) return false;
+      const links = descendants(heads[0]!).filter((e) => e.localName === 'link' && attr(e, 'rel') === 'canonical');
+      return links.length === 1 && attr(links[0]!, 'expr:href') === 'data:view.url.canonical';
+    }
+  },
+  {
+    id: 'opengraph-metadata',
+    requirementId: 'R-SEO-2 AC1',
+    message: "<head> must declare OpenGraph meta tags for og:title, og:type, og:url, og:image, and og:description with dynamic bindings.",
+    check: (doc) => {
+      const heads = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'head');
+      if (heads.length !== 1) return false;
+      const metas = descendants(heads[0]!).filter((e) => e.localName === 'meta');
+      const ogProperties = metas.map((m) => attr(m, 'property')).filter((p): p is string => p !== null && p.startsWith('og:'));
+      const required = ['og:title', 'og:type', 'og:url', 'og:image', 'og:description'];
+      return required.every((req) => ogProperties.includes(req));
+    }
+  },
+  {
+    id: 'twitter-metadata',
+    requirementId: 'R-SEO-2 AC1',
+    message: "<head> must declare Twitter card meta tags for twitter:card, twitter:title, twitter:description, and twitter:image.",
+    check: (doc) => {
+      const heads = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'head');
+      if (heads.length !== 1) return false;
+      const metas = descendants(heads[0]!).filter((e) => e.localName === 'meta');
+      const twitterNames = metas.map((m) => attr(m, 'name')).filter((n): n is string => n !== null && n.startsWith('twitter:'));
+      const required = ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'];
+      return required.every((req) => twitterNames.includes(req));
+    }
+  },
+  {
+    id: 'single-h1-hierarchy',
+    requirementId: 'R-A11Y-3 AC1',
+    message: "Theme must enforce exactly one <h1> per view: Header1 must demote site title on single item views (data:view.isSingleItem) while post titles use <h1> on single items and <h2> elsewhere.",
+    check: (doc) => {
+      const headerWidget = named(doc, BLOGGER_NS, 'widget').find((w) => attr(w, 'id') === 'Header1');
+      if (!headerWidget) return false;
+      const headerIfs = descendants(headerWidget).filter((e) => e.namespaceUri === BLOGGER_NS && e.localName === 'if');
+      const headerHasSingleItemDemotion = headerIfs.some((i) => {
+        const cond = attr(i, 'cond') ?? '';
+        return /isSingleItem/i.test(cond);
+      });
+      if (!headerHasSingleItemDemotion) return false;
+
+      const otherWidgets = named(doc, BLOGGER_NS, 'widget').filter((w) => attr(w, 'id') !== 'Header1' && attr(w, 'id') !== 'Blog1');
+      for (const w of otherWidgets) {
+        const strayH1 = descendants(w).some((e) => e.localName === 'h1');
+        if (strayH1) return false;
+      }
+      return true;
+    }
+  },
+  {
+    id: 'skip-link-structure',
+    requirementId: 'R-A11Y-2 AC2',
+    message: "Theme body must start with a functional skip link (<a class='skip-link' href='#content'>) targeting the main content landmark (<main id='content'>).",
+    check: (doc) => {
+      const bodies = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'body');
+      if (bodies.length !== 1) return false;
+      const bodyChildren = bodies[0]!.children.filter((c): c is XmlElement => c.kind === 'element' && !ignored(c));
+      const skipLink = bodyChildren.find((e) => e.localName === 'a' && attr(e, 'class') === 'skip-link' && attr(e, 'href') === '#content');
+      const mainContent = descendants(bodies[0]!).find((e) => e.localName === 'main' && attr(e, 'id') === 'content');
+      return Boolean(skipLink && mainContent);
+    }
+  },
+  {
+    id: 'clean-aria-landmarks',
+    requirementId: 'R-A11Y-1',
+    message: "Theme must declare top-level landmarks (role='banner', role='main', role='contentinfo') without illegal landmark nesting.",
+    check: (doc) => {
+      const activeElements = active(doc);
+      const hasBanner = activeElements.some((e) => attr(e, 'role') === 'banner');
+      const hasMain = activeElements.some((e) => e.localName === 'main' && attr(e, 'role') === 'main');
+      const hasContentInfo = activeElements.some((e) => attr(e, 'role') === 'contentinfo');
+      if (!hasBanner || !hasMain || !hasContentInfo) return false;
+
+      const navElements = activeElements.filter((e) => e.localName === 'nav');
+      for (const n of navElements) {
+        const nestedNav = descendants(n).some((e) => e.localName === 'nav');
+        if (nestedNav) return false;
+      }
+      return true;
+    }
   }
 ];
 export const CONTRACT_RULES = contractRules;

@@ -1,0 +1,102 @@
+//- Canonical URL
+link(rel='canonical' expr:href='data:view.url.canonical')/
+
+//- Meta description
+b:if(cond='data:view.description')
+  meta(name='description' expr:content='data:view.description.escaped')/
+  b:elseif(cond='data:blog.metaDescription')/
+  meta(name='description' expr:content='data:blog.metaDescription.escaped')/
+
+//- OpenGraph Social Metadata
+meta(property='og:site_name' expr:content='data:blog.title.escaped')/
+b:if(cond='data:view.isPost')
+  meta(property='og:type' content='article')/
+  b:else/
+  meta(property='og:type' content='website')/
+meta(property='og:title' expr:content='data:view.title.escaped')/
+meta(property='og:url' expr:content='data:view.url.canonical')/
+b:if(cond='data:view.description')
+  meta(property='og:description' expr:content='data:view.description.escaped')/
+  b:elseif(cond='data:blog.metaDescription')/
+  meta(property='og:description' expr:content='data:blog.metaDescription.escaped')/
+  b:else/
+  meta(property='og:description' expr:content='data:view.title.escaped')/
+b:if(cond='data:view.featuredImage')
+  meta(property='og:image' expr:content='data:view.featuredImage')/
+  b:else/
+  b:with(value='data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path "favicon.ico")' var='fallbackImg')
+    meta(property='og:image' expr:content='data:fallbackImg')/
+
+//- Twitter Card Metadata
+b:if(cond='data:view.featuredImage')
+  meta(name='twitter:card' content='summary_large_image')/
+  meta(name='twitter:image' expr:content='data:view.featuredImage')/
+  b:else/
+  meta(name='twitter:card' content='summary')/
+  b:with(value='data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path "favicon.ico")' var='fallbackImg')
+    meta(name='twitter:image' expr:content='data:fallbackImg')/
+meta(name='twitter:title' expr:content='data:view.title.escaped')/
+b:if(cond='data:view.description')
+  meta(name='twitter:description' expr:content='data:view.description.escaped')/
+  b:elseif(cond='data:blog.metaDescription')/
+  meta(name='twitter:description' expr:content='data:blog.metaDescription.escaped')/
+  b:else/
+  meta(name='twitter:description' expr:content='data:view.title.escaped')/
+
+//- Schema.org WebSite JSON-LD
+b:if(cond='data:view.isHomepage or data:view.isSearch')
+  script(type='application/ld+json').
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "<data:blog.title.jsonEscaped/>",
+      "url": "<data:blog.canonicalHomepageUrl.jsonEscaped/>",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "<b:eval expr='(data:blog.canonicalHomepageUrl path "search" params {q: "{search_term_string}"}).jsonEscaped'/>"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+
+//- Schema.org BlogPosting JSON-LD
+b:if(cond='data:view.isPost')
+  b:with(value='data:widgets.Blog.first.posts.first' var='post')
+    script(type='application/ld+json').
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": "<data:view.url.canonical.jsonEscaped/>"
+        },
+        "headline": "<data:view.title.jsonEscaped/>",
+        "description": "<b:eval expr='snippet(data:post.snippets.long ?: (data:view.description ?: data:view.title), {length: 250, links: false, linebreaks: false, ellipsis: true}).jsonEscaped'/>",
+        "datePublished": "<data:post.date.iso8601.jsonEscaped/>"
+        <b:if cond='data:post.lastUpdated'>
+        , "dateModified": "<data:post.lastUpdated.iso8601.jsonEscaped/>"
+        </b:if>
+        <b:if cond='data:view.featuredImage'>
+        , "image": "<data:view.featuredImage.jsonEscaped/>"
+        </b:if>
+        , "author": {
+          "@type": "Person",
+          "name": "<data:post.author.name.jsonEscaped/>"
+          <b:if cond='data:post.author.profileUrl'>
+          , "url": "<data:post.author.profileUrl.jsonEscaped/>"
+          </b:if>
+          <b:if cond='data:post.author.authorPhoto.image'>
+          , "image": "<data:post.author.authorPhoto.image.jsonEscaped/>"
+          </b:if>
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "<data:blog.title.jsonEscaped/>",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "<b:eval expr='(data:blog.canonicalHomepageUrl path "favicon.ico").jsonEscaped'/>"
+          }
+        }
+      }

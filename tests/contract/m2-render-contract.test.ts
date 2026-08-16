@@ -40,10 +40,10 @@ describe('M2 render path: Contempo-aligned shell and widget bindings', () => {
     expect(ids).toContain('Blog1');
   });
 
-  it('delegates main to the native renderer while providing child overrides', async () => {
+  it('dispatches main via explicit V3 data:posts loop while providing child overrides', async () => {
     const widget = blogWidget((await generateTheme({ sha, write: false })).xml);
     expect(widget.match(/<b:includable /g)?.length ?? 0).toBeGreaterThan(1);
-    expect(widget).toMatch(/<b:includable id="main">\s*<b:include name="super\.main"\/>\s*<\/b:includable>/);
+    expect(widget).toMatch(/<b:includable id="main">[\s\S]*<b:loop values="data:posts" var="post">/);
   });
 
   it('keeps both essential widgets locked and all widgets explicitly version 2', async () => {

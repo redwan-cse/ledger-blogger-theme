@@ -1,14 +1,16 @@
 b:section(class='header' id='header' maxwidgets='1' name='Header' showaddelement='no')
   b:widget(id='Header1' locked='true' title='Blog Header' type='Header' version='2' visible='true')
     b:includable(id='main' var='this')
-      b:if(cond='data:view.isHomepage')
-        h1.site-title
-          a(expr:href='data:blog.homepageUrl')
-            b:eval(expr='data:title')/
-        b:else/
-        p.site-title
-          a(expr:href='data:blog.homepageUrl')
-            b:eval(expr='data:title')/
-      b:if(cond='data:description')
-        p.site-tagline
-          b:eval(expr='data:description')/
+      b:with(value='data:this.title ?: data:blog.title' var='headerTitle')
+        b:with(value='data:this.description ?: data:blog.description' var='headerDescription')
+          b:if(cond='not data:view.isSingleItem')
+            h1.site-title
+              a(expr:href='data:blog.homepageUrl')
+                b:eval(expr='data:headerTitle')/
+            b:else/
+            p.site-title
+              a(expr:href='data:blog.homepageUrl')
+                b:eval(expr='data:headerTitle')/
+          b:if(cond='data:headerDescription')
+            p.site-tagline
+              b:eval(expr='data:headerDescription')/

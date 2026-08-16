@@ -28,12 +28,18 @@ const cases: readonly RuleCase[] = [
   { id: 'css-disabled', violate: (xml) => xml.replace('b:css="false"', 'b:css="true"'), comment: "b:css='false' is required" },
   { id: 'bound-section-and-widget-ids', violate: (xml) => xml.replace('id="Blog1" locked="true"', 'id="Blog1" locked="false"'), comment: 'Blog1 widget must remain locked' },
   { id: 'all-head-content-include', violate: (xml) => xml.replace('<b:include data="blog" name="all-head-content"/>', ''), comment: 'all-head-content include is mandatory in head' },
-  { id: 'main-container-structure', violate: (xml) => xml.replace(MAIN_OPEN, '<div class="main-content" id="content">').replace('</main>', '</div>'), comment: 'main container must enclose page body' },
+  { id: 'main-container-structure', violate: (xml) => xml.replace(MAIN_OPEN, '<div role="region">').replace('</main>', '</div><main class="main-content" id="content" role="main"><p/></main>'), comment: 'main container must enclose page body' },
   { id: 'all-seven-config-zones', violate: (xml) => xml.replace('id="topics" maxwidgets="1" name="Topics" showaddelement="no"', 'id="topics" maxwidgets="1" name="Topics" showaddelement="yes"'), comment: 'section showaddelement must match zone configuration' },
   { id: 'defensive-defaultmarkups', violate: (xml) => xml.replace('<b:defaultmarkup type="PopularPosts">', '<b:defaultmarkup type="DisabledPosts">'), comment: 'defensive defaultmarkups must cover PopularPosts' },
   { id: 'no-hardcoded-search-label', violate: (xml) => inject(xml, '<a href="/search/label/tech">Tech</a>'), comment: 'hardcoded search label URLs are forbidden' },
   { id: 'readme-zone-parity', violate: (xml) => xml.replace('id="intro" maxwidgets="1"', 'id="intro" maxwidgets="99"'), comment: 'intro maxwidgets must match README table' },
-  { id: 'clean-section-containers', violate: (xml) => xml.replace('<b:if cond="data:view.isLayoutMode or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">', '<b:if cond="data:view.isHomepage or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">'), comment: 'optional sections must be guarded with isLayoutMode' }
+  { id: 'clean-section-containers', violate: (xml) => xml.replace('<b:if cond="data:view.isLayoutMode or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">', '<b:if cond="data:view.isHomepage or data:widgets any (w =&gt; w.sectionId == &quot;navlinks&quot;)">'), comment: 'optional sections must be guarded with isLayoutMode' },
+  { id: 'rel-canonical', violate: (xml) => xml.replace('<link rel="canonical" expr:href="data:view.url.canonical"/>', ''), comment: 'canonical link is mandatory in head' },
+  { id: 'opengraph-metadata', violate: (xml) => xml.replace('<meta property="og:title" expr:content="data:view.title.escaped"/>', ''), comment: 'og:title metadata is mandatory in head' },
+  { id: 'twitter-metadata', violate: (xml) => xml.replace('<meta name="twitter:title" expr:content="data:view.title.escaped"/>', ''), comment: 'twitter:title metadata is mandatory in head' },
+  { id: 'single-h1-hierarchy', violate: (xml) => xml.replace('cond="not data:view.isSingleItem"', 'cond="data:view.isHomepage"'), comment: 'header must demote H1 on single items' },
+  { id: 'skip-link-structure', violate: (xml) => xml.replace('<a class="skip-link" href="#content">Skip to content</a>', ''), comment: 'skip link must target main content' },
+  { id: 'clean-aria-landmarks', violate: (xml) => xml.replace('role="banner"', 'role="none"'), comment: 'theme must declare all top-level landmarks' }
 ];
 
 describe('V3 contract checker blind-spot matrix', () => {

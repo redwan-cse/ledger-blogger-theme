@@ -6,6 +6,7 @@ html&attributes(rootAttributes)
     title
       b:eval(expr='data:view.title.escaped')/
     b:include(data='blog' name='all-head-content')/
+    include partials/head-meta.pug
     b:defaultmarkups
       include defaultmarkups/common.pug
       include defaultmarkups/popular-posts.pug
@@ -25,7 +26,7 @@ html&attributes(rootAttributes)
     div.header-outer(role='banner')
       include widgets/header.pug
     b:if(cond='data:view.isLayoutMode or data:widgets any (w => w.sectionId == "navlinks")')
-      nav.nav-container(role='navigation')
+      div.nav-container
         include widgets/linklist.pug
     b:if(cond='data:view.isLayoutMode or data:widgets any (w => w.sectionId == "intro")')
       div.intro-container

@@ -10,8 +10,53 @@ b:section(class='main' id='page_body' maxwidgets='1' name='Page Body' showaddele
       b:widget-setting(name='showInlineAds') false
       b:widget-setting(name='showShareButtons') false
     b:includable(id='main')
-      b:include(name='super.main')/
+      b:if(cond='data:view.isError')
+        b:include(name='status-message')/
+        b:elseif(cond='data:view.isMultipleItems')/
+        b:if(cond='data:posts.empty')
+          b:include(name='status-message')/
+          b:else/
+          b:loop(values='data:posts' var='post')
+            b:include(data='post' name='post')/
+          b:include(name='postPagination')/
+        b:elseif(cond='data:view.isSingleItem')/
+        b:if(cond='data:posts.empty')
+          b:include(name='status-message')/
+          b:else/
+          b:loop(values='data:posts' var='post')
+            b:include(data='post' name='post')/
+            b:if(cond='data:view.isPost')
+              b:include(data='post' name='comments')/
+        b:else/
+        b:if(cond='not data:posts.empty')
+          b:loop(values='data:posts' var='post')
+            b:include(data='post' name='post')/
+          b:include(name='postPagination')/
+          b:else/
+          b:include(name='status-message')/
     include blog-post.pug
     include blog-comments.pug
     include blog-empty.pug
     include blog-archive.pug
+    //- Defensive empty includables to prevent unwanted default Blogger V3 chrome
+    b:includable(id='inlineAd')/
+    b:includable(id='postJumpLink')/
+    b:includable(id='feedLinks')/
+    b:includable(id='feedLinksBody')/
+    b:includable(id='nextPageLink')/
+    b:includable(id='previousPageLink')/
+    b:includable(id='homePageLink')/
+    b:includable(id='postCommentsAndAd')/
+    b:includable(id='postCommentsLink')/
+    b:includable(id='postFooterAuthorProfile')/
+    b:includable(id='aboutPostAuthor')/
+    b:includable(id='commentPicker')/
+    b:includable(id='addComments')/
+    b:includable(id='commentAuthorAvatar')/
+    b:includable(id='commentDeleteIcon')/
+    b:includable(id='commentsTitle')/
+    b:includable(id='commentList')/
+    b:includable(id='commentItem')/
+    b:includable(id='commentForm')/
+    b:includable(id='commentFormIframeSrc')/
+    b:includable(id='threadedCommentJs')/
