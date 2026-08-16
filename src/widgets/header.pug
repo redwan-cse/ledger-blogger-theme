@@ -7,7 +7,7 @@ b:section(class='header' id='header' maxwidgets='1' name='Header' showaddelement
             h1.site-title
               a(expr:href='data:blog.homepageUrl')
                 b:eval(expr='data:headerTitle')/
-            b:else/
+          b:if(cond='data:view.isSingleItem')
             p.site-title
               a(expr:href='data:blog.homepageUrl')
                 b:eval(expr='data:headerTitle')/

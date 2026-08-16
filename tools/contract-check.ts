@@ -337,6 +337,58 @@ export const contractRules: readonly ContractRule[] = [
       }
       return true;
     }
+  },
+  {
+    id: 'no-control-flow-hazards',
+    requirementId: 'R-RENDER-1',
+    message: 'Control-flow conditionals must avoid flat <b:elseif> or self-closing <b:else/> tags; use clean distinct <b:if> blocks or <b:switch>.',
+    check: (doc) => {
+      const activeEls = active(doc);
+      for (const el of activeEls) {
+        if (el.namespaceUri === BLOGGER_NS && (el.localName === 'elseif' || el.localName === 'else')) {
+          return false;
+        }
+      }
+      return true;
+    }
+  },
+  {
+    id: 'skin-before-defaultmarkups',
+    requirementId: 'R-V3-1',
+    message: '<head> must declare <b:skin> before <b:defaultmarkups> matching native Blogger V3 ordering.',
+    check: (doc) => {
+      const heads = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'head');
+      if (heads.length !== 1) return true;
+      const headChildren = heads[0]!.children.filter((c): c is XmlElement => c.kind === 'element');
+      const skinIdx = headChildren.findIndex((c) => c.namespaceUri === BLOGGER_NS && c.localName === 'skin');
+      const defIdx = headChildren.findIndex((c) => c.namespaceUri === BLOGGER_NS && c.localName === 'defaultmarkups');
+      if (skinIdx === -1 || defIdx === -1) return true;
+      return skinIdx < defIdx;
+    }
+  },
+  {
+    id: 'section-v3-attributes',
+    requirementId: 'R-NAV-2',
+    message: "All <b:section> elements must declare required V3 attributes: id, class, name, maxwidgets, and valid showaddelement ('false', 'true', 'no', 'yes').",
+    check: (doc) => {
+      const sections = named(doc, BLOGGER_NS, 'section');
+      if (sections.length === 0) return false;
+      return sections.every((sec) => {
+        const id = attr(sec, 'id');
+        const className = attr(sec, 'class');
+        const name = attr(sec, 'name');
+        const maxwidgets = attr(sec, 'maxwidgets');
+        const showadd = attr(sec, 'showaddelement');
+        return Boolean(
+          id &&
+          className &&
+          name &&
+          maxwidgets &&
+          showadd &&
+          ['false', 'true', 'no', 'yes'].includes(showadd)
+        );
+      });
+    }
   }
 ];
 export const CONTRACT_RULES = contractRules;

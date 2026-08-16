@@ -1,23 +1,23 @@
 b:includable(id='comments' var='post')
-  section.comments-section(id='comments')
-    b:if(cond='data:post.allowComments')
-      b:if(cond='data:post.numberOfComments > 0')
+  b:if(cond='data:post.allowComments or (data:post.numberOfComments and data:post.numberOfComments > 0)')
+    section.comments-section(id='comments')
+      b:if(cond='data:post.numberOfComments and data:post.numberOfComments > 0')
         h3.comments-title
           b:eval(expr='data:post.numberOfComments')/
           |  Comments
-      b:include(name='threadedComments' data='post')/
-      b:else/
-      b:if(cond='data:post.numberOfComments > 0')
+      b:if(cond='data:post.allowComments')
+        b:include(name='threadedComments' data='post')/
+      b:if(cond='not data:post.allowComments and (data:post.numberOfComments and data:post.numberOfComments > 0)')
         h3.comments-title Comments are closed.
 
 b:includable(id='threadedComments' var='post')
   .comments-content
-    b:if(cond='data:post.comments')
+    b:if(cond='data:post.comments and not data:post.comments.empty')
       b:loop(values='data:post.comments' var='comment')
         .comment(expr:id='"c" + data:comment.id')
           b:if(cond='data:comment.isDeleted')
             .comment-tombstone This comment has been deleted.
-            b:else/
+          b:if(cond='not data:comment.isDeleted')
             b:eval(expr='data:comment.body')/
             .comment-meta
               b:eval(expr='data:comment.author')/

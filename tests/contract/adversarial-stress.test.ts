@@ -22,12 +22,12 @@ const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
 const rules = (xml: string): string[] => checkThemeContract(xml).map((f) => f.ruleId);
 
-describe('Adversarial Stress Test: All 33 Contract Rules', () => {
-  it('verifies exact registration of all 33 rules', () => {
-    expect(CONTRACT_RULES.length).toBe(33);
-    expect(contractRules.length).toBe(33);
+describe('Adversarial Stress Test: All 36 Contract Rules', () => {
+  it('verifies exact registration of all 36 rules', () => {
+    expect(CONTRACT_RULES.length).toBe(36);
+    expect(contractRules.length).toBe(36);
     const ids = contractRules.map((r) => r.id);
-    expect(new Set(ids).size).toBe(33);
+    expect(new Set(ids).size).toBe(36);
   });
 
   it('validates baseline generated theme has zero findings', async () => {
@@ -101,14 +101,14 @@ describe('Adversarial Stress Test: All 33 Contract Rules', () => {
   describe('Rule 6: section-ids (R-V3-1 AC5)', () => {
     it('catches invalid or duplicate section ids', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      expect(rules(inject(xml, '<b:section id="123_invalid"/>'))).toEqual(['section-ids']);
-      expect(rules(inject(xml, '<b:section id="hyphen-name"/>'))).toEqual(['section-ids']);
-      expect(rules(inject(xml, '<b:section id="header"/>'))).toContain('section-ids');
+      expect(rules(inject(xml, '<b:section class="sidebar" id="123_invalid" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toEqual(['section-ids']);
+      expect(rules(inject(xml, '<b:section class="sidebar" id="hyphen-name" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toEqual(['section-ids']);
+      expect(rules(inject(xml, '<b:section class="sidebar" id="header" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toContain('section-ids');
     });
 
     it('allows valid alphanumeric and underscore section ids', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      expect(rules(inject(xml, '<b:section id="sidebar_secondary_1"/>'))).toEqual([]);
+      expect(rules(inject(xml, '<b:section class="sidebar" id="sidebar_secondary_1" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toEqual([]);
     });
   });
 
@@ -399,7 +399,7 @@ describe('Adversarial Stress Test: All 33 Contract Rules', () => {
   describe('Rule 31: single-h1-hierarchy (R-A11Y-3 AC1)', () => {
     it('catches missing single item demotion in Header1 or stray h1 elements', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const noDemotion = xml.replace('cond="not data:view.isSingleItem"', 'cond="data:view.isHomepage"');
+      const noDemotion = xml.replaceAll('isSingleItem', 'isHomepage');
       expect(rules(noDemotion)).toEqual(['single-h1-hierarchy']);
 
       const strayH1 = xml.replace('<b:widget id="HTML1" locked="false" title="Intro" type="HTML" version="2" visible="true">', '<b:widget id="HTML1" locked="false" title="Intro" type="HTML" version="2" visible="true"><b:includable id="extra"><h1>Stray Heading</h1></b:includable>');
@@ -429,6 +429,35 @@ describe('Adversarial Stress Test: All 33 Contract Rules', () => {
 
       const nestedNav = xml.replace('<nav class="site-nav" aria-label="Main Navigation">', '<nav class="site-nav" aria-label="Main Navigation"><nav class="nested-nav"></nav>');
       expect(rules(nestedNav)).toEqual(['clean-aria-landmarks']);
+    });
+  });
+
+  describe('Rule 34: no-control-flow-hazards (R-RENDER-1)', () => {
+    it('catches b:elseif and b:else tags', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(rules(inject(xml, '<b:if cond="data:view.isError"><b:elseif cond="data:view.isPost"/></b:if>'))).toEqual(['no-control-flow-hazards']);
+      expect(rules(inject(xml, '<b:if cond="data:view.isError"><b:else/></b:if>'))).toEqual(['no-control-flow-hazards']);
+    });
+  });
+
+  describe('Rule 35: skin-before-defaultmarkups (R-V3-1)', () => {
+    it('catches b:defaultmarkups declared before b:skin in head', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const skinMatch = xml.match(/<b:skin\b[\s\S]*?<\/b:skin>/);
+      const defMatch = xml.match(/<b:defaultmarkups\b[\s\S]*?<\/b:defaultmarkups>/);
+      const reordered = xml.replace(skinMatch![0], '').replace(defMatch![0], `${defMatch![0]}\n${skinMatch![0]}`);
+      expect(rules(reordered)).toEqual(['skin-before-defaultmarkups']);
+    });
+  });
+
+  describe('Rule 36: section-v3-attributes (R-NAV-2)', () => {
+    it('catches sections missing required attributes (class, name, maxwidgets, showaddelement)', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const missingName = xml.replace('id="header" maxwidgets="1" name="Header"', 'id="header" maxwidgets="1"');
+      expect(rules(missingName)).toContain('section-v3-attributes');
+
+      const missingClass = xml.replace('class="header" id="header"', 'id="header"');
+      expect(rules(missingClass)).toContain('section-v3-attributes');
     });
   });
 
@@ -468,7 +497,11 @@ describe('Adversarial Stress Test: All 33 Contract Rules', () => {
       'twitter:title metadata missing',
       'Header1 cond="data:view.isHomepage"',
       'skip-link missing',
-      'nested nav landmark'
+      'nested nav landmark',
+      '<b:elseif cond="data:view.isPost"/> hazard',
+      '<b:else/> hazard',
+      'b:defaultmarkups before b:skin',
+      'missing section attributes'
     ];
 
     it('ignores violation patterns inside standard XML comments <!-- ... -->', async () => {

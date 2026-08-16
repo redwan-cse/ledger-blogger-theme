@@ -7,6 +7,10 @@ html&attributes(rootAttributes)
       b:eval(expr='data:view.title.escaped')/
     b:include(data='blog' name='all-head-content')/
     include partials/head-meta.pug
+    b:skin(version=templateVersion).
+      <![CDATA[
+      !{css}
+      ]]>
     b:defaultmarkups
       include defaultmarkups/common.pug
       include defaultmarkups/popular-posts.pug
@@ -14,10 +18,6 @@ html&attributes(rootAttributes)
       include defaultmarkups/contact-form.pug
       include defaultmarkups/blog-archive.pug
       include defaultmarkups/label.pug
-    b:skin(version=templateVersion).
-      <![CDATA[
-      !{css}
-      ]]>
   body
     b:class(cond='data:view.isHomepage and not data:newerPageUrl' name='is-home-lead')/
     b:class(cond='data:view.isPost' name='is-post')/

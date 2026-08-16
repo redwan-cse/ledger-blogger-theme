@@ -4,26 +4,26 @@ link(rel='canonical' expr:href='data:view.url.canonical')/
 //- Meta description
 b:if(cond='data:view.description')
   meta(name='description' expr:content='data:view.description.escaped')/
-  b:elseif(cond='data:blog.metaDescription')/
+b:if(cond='not data:view.description and data:blog.metaDescription')
   meta(name='description' expr:content='data:blog.metaDescription.escaped')/
 
 //- OpenGraph Social Metadata
 meta(property='og:site_name' expr:content='data:blog.title.escaped')/
 b:if(cond='data:view.isPost')
   meta(property='og:type' content='article')/
-  b:else/
+b:if(cond='not data:view.isPost')
   meta(property='og:type' content='website')/
 meta(property='og:title' expr:content='data:view.title.escaped')/
 meta(property='og:url' expr:content='data:view.url.canonical')/
 b:if(cond='data:view.description')
   meta(property='og:description' expr:content='data:view.description.escaped')/
-  b:elseif(cond='data:blog.metaDescription')/
+b:if(cond='not data:view.description and data:blog.metaDescription')
   meta(property='og:description' expr:content='data:blog.metaDescription.escaped')/
-  b:else/
+b:if(cond='not data:view.description and not data:blog.metaDescription')
   meta(property='og:description' expr:content='data:view.title.escaped')/
 b:if(cond='data:view.featuredImage')
   meta(property='og:image' expr:content='data:view.featuredImage')/
-  b:else/
+b:if(cond='not data:view.featuredImage')
   b:with(value='data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path "favicon.ico")' var='fallbackImg')
     meta(property='og:image' expr:content='data:fallbackImg')/
 
@@ -31,16 +31,16 @@ b:if(cond='data:view.featuredImage')
 b:if(cond='data:view.featuredImage')
   meta(name='twitter:card' content='summary_large_image')/
   meta(name='twitter:image' expr:content='data:view.featuredImage')/
-  b:else/
+b:if(cond='not data:view.featuredImage')
   meta(name='twitter:card' content='summary')/
   b:with(value='data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path "favicon.ico")' var='fallbackImg')
     meta(name='twitter:image' expr:content='data:fallbackImg')/
 meta(name='twitter:title' expr:content='data:view.title.escaped')/
 b:if(cond='data:view.description')
   meta(name='twitter:description' expr:content='data:view.description.escaped')/
-  b:elseif(cond='data:blog.metaDescription')/
+b:if(cond='not data:view.description and data:blog.metaDescription')
   meta(name='twitter:description' expr:content='data:blog.metaDescription.escaped')/
-  b:else/
+b:if(cond='not data:view.description and not data:blog.metaDescription')
   meta(name='twitter:description' expr:content='data:view.title.escaped')/
 
 //- Schema.org WebSite JSON-LD

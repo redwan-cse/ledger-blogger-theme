@@ -152,14 +152,14 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   } else if (blogDesc) {
     resolvedDesc = `<meta name="description" content="${bloggerHtmlEscape(blogDesc)}"/>`;
   }
-  output = output.replace(/<b:if cond="data:view\.description">[\s\S]*?<meta name="description"[^>]+>[\s\S]*?<b:elseif cond="data:blog\.metaDescription"\/>[\s\S]*?<meta name="description"[^>]+>[\s\S]*?<\/b:if>/g, resolvedDesc);
+  output = output.replace(/<b:if cond="data:view\.description">\s*<meta name="description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta name="description"[^>]+>\s*<\/b:if>/g, resolvedDesc);
 
   // 3. Resolve OpenGraph Site Name
   output = output.replace(/<meta property="og:site_name" expr:content="data:blog\.title\.escaped"\/>/g, `<meta property="og:site_name" content="${bloggerHtmlEscape(ctx.blog.title)}"/>`);
 
   // 4. Resolve OpenGraph Type (article on isPost, website elsewhere)
   const ogType = ctx.view.isPost ? 'article' : 'website';
-  output = output.replace(/<b:if cond="data:view\.isPost">\s*<meta property="og:type" content="article"\/>\s*<b:else\/>\s*<meta property="og:type" content="website"\/>\s*<\/b:if>/g, `<meta property="og:type" content="${ogType}"/>`);
+  output = output.replace(/<b:if cond="data:view\.isPost">\s*<meta property="og:type" content="article"\/>\s*<\/b:if>\s*<b:if cond="not data:view\.isPost">\s*<meta property="og:type" content="website"\/>\s*<\/b:if>/g, `<meta property="og:type" content="${ogType}"/>`);
 
   // 5. Resolve OpenGraph Title & URL
   output = output.replace(/<meta property="og:title" expr:content="data:view\.title\.escaped"\/>/g, `<meta property="og:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
@@ -167,20 +167,20 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
 
   // 6. Resolve OpenGraph Description
   const ogDesc = viewDesc || blogDesc || ctx.view.title;
-  output = output.replace(/<b:if cond="data:view\.description">[\s\S]*?property="og:description"[\s\S]*?<\/b:if>/g, `<meta property="og:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.description">\s*<meta property="og:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta property="og:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta property="og:description"[^>]+>\s*<\/b:if>/g, `<meta property="og:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
 
   // 7. Resolve OpenGraph Image
   const fallbackFavicon = `${ctx.blog.canonicalHomepageUrl.replace(/\/+$/, '')}/favicon.ico`;
   const ogImg = ctx.view.featuredImage || ctx.blog.postImageThumbnailUrl || fallbackFavicon;
-  output = output.replace(/<b:if cond="data:view\.featuredImage">[\s\S]*?property="og:image"[\s\S]*?<\/b:if>/g, `<meta property="og:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta property="og:image"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">\s*<b:with[^>]+>\s*<meta property="og:image"[^>]+>\s*<\/b:with>\s*<\/b:if>/g, `<meta property="og:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
 
   // 8. Resolve Twitter Card
   const twitterCardType = ctx.view.featuredImage ? 'summary_large_image' : 'summary';
-  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta name="twitter:card" content="summary_large_image"\/>[\s\S]*?<b:else\/>\s*<meta name="twitter:card" content="summary"\/>[\s\S]*?<\/b:if>/g, `<meta name="twitter:card" content="${twitterCardType}"/>\n<meta name="twitter:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta name="twitter:card"[^>]+>\s*<meta name="twitter:image"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">\s*<meta name="twitter:card"[^>]+>\s*<b:with[^>]+>\s*<meta name="twitter:image"[^>]+>\s*<\/b:with>\s*<\/b:if>/g, `<meta name="twitter:card" content="${twitterCardType}"/>\n<meta name="twitter:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
 
   // 9. Resolve Twitter Title & Description
   output = output.replace(/<meta name="twitter:title" expr:content="data:view\.title\.escaped"\/>/g, `<meta name="twitter:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
-  output = output.replace(/<b:if cond="data:view\.description">[\s\S]*?name="twitter:description"[\s\S]*?<\/b:if>/g, `<meta name="twitter:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.description">\s*<meta name="twitter:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta name="twitter:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta name="twitter:description"[^>]+>\s*<\/b:if>/g, `<meta name="twitter:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
 
   // 10. Resolve WebSite JSON-LD
   const shouldRenderWebSite = Boolean(ctx.view.isHomepage || ctx.view.isSearch);

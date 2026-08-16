@@ -8,13 +8,13 @@ b:defaultmarkup(type='BlogArchive')
           summary.blog-archive-summary
             b:eval(expr='data:messages.archive')/
           b:include(name='content')/
-        b:else/
+      b:if(cond='not data:this.data or data:this.data.empty')
         p.empty-blog-archive
           b:eval(expr='data:messages.noPosts')/
   b:includable(id='content')
     b:if(cond='data:this.style == "FLAT"')
       b:include(name='flat')/
-      b:else/
+    b:if(cond='data:this.style != "FLAT"')
       b:include(name='hierarchy')/
   b:includable(id='flat')
     ul.blog-archive-list

@@ -4,13 +4,13 @@ b:defaultmarkup(type='Label')
       b:include(name='widgetTitle')/
       b:if(cond='data:labels and not data:labels.empty')
         b:include(name='content')/
-        b:else/
+      b:if(cond='not data:labels or data:labels.empty')
         p.empty-labels
           b:eval(expr='data:messages.noLabels')/
   b:includable(id='content')
     b:if(cond='data:this.display == "list"')
       b:include(name='list')/
-      b:else/
+    b:if(cond='data:this.display != "list"')
       b:include(name='cloud')/
   b:includable(id='list')
     ul.label-list

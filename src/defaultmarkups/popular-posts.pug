@@ -7,7 +7,7 @@ b:defaultmarkup(type='PopularPosts')
           b:loop(values='data:posts' var='post')
             li.popular-post-item
               b:include(data='post' name='snippetedPostContent')/
-        b:else/
+      b:if(cond='not data:posts or data:posts.empty')
         p.empty-popular-posts
           b:eval(expr='data:messages.noPosts')/
   b:includable(id='snippetedPostContent' var='post')

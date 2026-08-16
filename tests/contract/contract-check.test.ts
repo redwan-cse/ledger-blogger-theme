@@ -12,7 +12,7 @@ const cases: readonly RuleCase[] = [
   { id: 'widget-v2', violate: (xml) => xml.replace('id="HTML1" locked="false" title="Intro" type="HTML" version="2"', 'id="HTML1" locked="false" title="Intro" type="HTML"'), comment: "widget version='2' is required" },
   { id: 'no-v2-html', violate: (xml) => xml.replace('<html ', '<html class="foo v2 bar" '), comment: 'v2 class tokens are legacy' },
   { id: 'single-cdata-skin', violate: (xml) => xml.replace('<![CDATA[', 'literal<![CDATA['), comment: 'all skin content belongs in CDATA' },
-  { id: 'section-ids', violate: (xml) => inject(xml, '<b:section id="invalid-hyphen"/>'), comment: 'section ids must use underscores rather than hyphens' },
+  { id: 'section-ids', violate: (xml) => inject(xml, '<b:section class="sidebar" id="invalid-hyphen" maxwidgets="1" name="Sidebar" showaddelement="no"/>'), comment: 'section ids must use underscores rather than hyphens' },
   { id: 'header-widget', violate: (xml) => xml.replace('type="Header"', 'type="HTML"'), comment: 'missing Header widget' },
   { id: 'no-v2-accessors', violate: (xml) => inject(xml, '<b:with value="data:blog.url == data:blog.homepageUrl" var="wrong"/>'), comment: 'URL equality is fragile view dispatch' },
   { id: 'no-macro-tags', violate: (xml) => xml.replace('xmlns:expr=', 'xmlns:macro="urn:macro" xmlns:expr=').replace('</main>', '<macro:include name="x"/></main>'), comment: 'macro:include is banned' },
@@ -37,9 +37,29 @@ const cases: readonly RuleCase[] = [
   { id: 'rel-canonical', violate: (xml) => xml.replace('<link rel="canonical" expr:href="data:view.url.canonical"/>', ''), comment: 'canonical link is mandatory in head' },
   { id: 'opengraph-metadata', violate: (xml) => xml.replace('<meta property="og:title" expr:content="data:view.title.escaped"/>', ''), comment: 'og:title metadata is mandatory in head' },
   { id: 'twitter-metadata', violate: (xml) => xml.replace('<meta name="twitter:title" expr:content="data:view.title.escaped"/>', ''), comment: 'twitter:title metadata is mandatory in head' },
-  { id: 'single-h1-hierarchy', violate: (xml) => xml.replace('cond="not data:view.isSingleItem"', 'cond="data:view.isHomepage"'), comment: 'header must demote H1 on single items' },
+  { id: 'single-h1-hierarchy', violate: (xml) => xml.replaceAll('isSingleItem', 'isHomepage'), comment: 'header must demote H1 on single items' },
   { id: 'skip-link-structure', violate: (xml) => xml.replace('<a class="skip-link" href="#content">Skip to content</a>', ''), comment: 'skip link must target main content' },
-  { id: 'clean-aria-landmarks', violate: (xml) => xml.replace('role="banner"', 'role="none"'), comment: 'theme must declare all top-level landmarks' }
+  { id: 'clean-aria-landmarks', violate: (xml) => xml.replace('role="banner"', 'role="none"'), comment: 'theme must declare all top-level landmarks' },
+  {
+    id: 'no-control-flow-hazards',
+    violate: (xml) => inject(xml, '<b:if cond="data:view.isPost"><p>Post</p><b:else/><p>Not Post</p></b:if>'),
+    comment: 'flat elseif and self-closing else tags are banned control-flow hazards'
+  },
+  {
+    id: 'skin-before-defaultmarkups',
+    violate: (xml) => {
+      const skinMatch = xml.match(/<b:skin\b[\s\S]*?<\/b:skin>/);
+      const defMatch = xml.match(/<b:defaultmarkups\b[\s\S]*?<\/b:defaultmarkups>/);
+      if (!skinMatch || !defMatch) return xml;
+      return xml.replace(skinMatch[0], '').replace(defMatch[0], `${defMatch[0]}\n${skinMatch[0]}`);
+    },
+    comment: 'b:skin must appear before b:defaultmarkups in head'
+  },
+  {
+    id: 'section-v3-attributes',
+    violate: (xml) => xml.replace('id="header" maxwidgets="1" name="Header"', 'id="header" maxwidgets="1"'),
+    comment: 'all sections must declare name, class, and maxwidgets'
+  }
 ];
 
 describe('V3 contract checker blind-spot matrix', () => {
