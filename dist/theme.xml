@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+1c7297a16c246b556a3f4d0032329a194a097e87" name="theme-build"/>
+    <meta content="0.0.0+be389c390aee334fa59085655011547c4737996f" name="theme-build"/>
     <title>
       <b:eval expr="data:view.title.escaped"/>
     </title>
