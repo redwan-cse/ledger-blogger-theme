@@ -389,6 +389,12 @@ export const contractRules: readonly ContractRule[] = [
         );
       });
     }
+  },
+  {
+    id: 'no-dot-empty',
+    requirementId: 'R-V3-2 AC6',
+    message: 'Expressions and data tags must not use .empty; use truthiness checks (data:collection or not data:collection) directly.',
+    check: (doc) => semanticValues(doc).every((value) => !/\.empty\b/.test(value))
   }
 ];
 export const CONTRACT_RULES = contractRules;

@@ -22,12 +22,12 @@ const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
 const rules = (xml: string): string[] => checkThemeContract(xml).map((f) => f.ruleId);
 
-describe('Adversarial Stress Test: All 36 Contract Rules', () => {
-  it('verifies exact registration of all 36 rules', () => {
-    expect(CONTRACT_RULES.length).toBe(36);
-    expect(contractRules.length).toBe(36);
+describe('Adversarial Stress Test: All 37 Contract Rules', () => {
+  it('verifies exact registration of all 37 rules', () => {
+    expect(CONTRACT_RULES.length).toBe(37);
+    expect(contractRules.length).toBe(37);
     const ids = contractRules.map((r) => r.id);
-    expect(new Set(ids).size).toBe(36);
+    expect(new Set(ids).size).toBe(37);
   });
 
   it('validates baseline generated theme has zero findings', async () => {
@@ -461,6 +461,41 @@ describe('Adversarial Stress Test: All 36 Contract Rules', () => {
     });
   });
 
+  describe('Rule 37: no-dot-empty (R-V3-2 AC6)', () => {
+    it('catches .empty accessors on collections and expressions', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const violations = [
+        inject(xml, '<b:if cond="data:posts.empty"/>'),
+        inject(xml, '<b:if cond="not data:posts.empty"/>'),
+        inject(xml, '<b:if cond="data:labels.empty"/>'),
+        inject(xml, '<b:if cond="data:links.empty"/>'),
+        inject(xml, '<b:if cond="data:comments.empty"/>'),
+        inject(xml, '<b:if cond="data:this.data.empty"/>'),
+        inject(xml, '<b:if cond="data:post.labels.empty"/>'),
+        inject(xml, '<data:posts.empty/>'),
+        inject(xml, '<b:with value="data:posts.empty" var="x"/>')
+      ];
+      for (const v of violations) {
+        expect(rules(v)).toContain('no-dot-empty');
+      }
+    });
+
+    it('allows valid boolean checks and CSS class names', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const valid = [
+        inject(xml, '<b:if cond="data:posts"/>'),
+        inject(xml, '<b:if cond="not data:posts"/>'),
+        inject(xml, '<b:if cond="data:labels"/>'),
+        inject(xml, '<b:if cond="not data:labels"/>'),
+        inject(xml, '<p class="empty-state">No items</p>'),
+        inject(xml, '<p class="empty-labels">No topics</p>')
+      ];
+      for (const val of valid) {
+        expect(rules(val)).toEqual([]);
+      }
+    });
+  });
+
   describe('Comment Immunity for all violation patterns', () => {
     const commentPayloads = [
       'b:layoutsVersion="2"',
@@ -501,7 +536,10 @@ describe('Adversarial Stress Test: All 36 Contract Rules', () => {
       '<b:elseif cond="data:view.isPost"/> hazard',
       '<b:else/> hazard',
       'b:defaultmarkups before b:skin',
-      'missing section attributes'
+      'missing section attributes',
+      'data:posts.empty',
+      'not data:posts.empty',
+      'data:labels.empty'
     ];
 
     it('ignores violation patterns inside standard XML comments <!-- ... -->', async () => {

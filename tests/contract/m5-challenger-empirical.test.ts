@@ -225,6 +225,12 @@ class BloggerV3Simulator {
     }
   }
 
+  isTruthy(val: any): boolean {
+    if (val === null || val === undefined || val === false || val === '') return false;
+    if (Array.isArray(val)) return val.length > 0;
+    return Boolean(val);
+  }
+
   evaluateExpr(expr: string, context: Record<string, any>): any {
     const trimmed = expr.trim();
     if (trimmed === 'true') return true;
@@ -278,7 +284,7 @@ class BloggerV3Simulator {
     const elvisIdx = trimmed.indexOf('?:');
     if (elvisIdx !== -1) {
       const left = this.evaluateExpr(trimmed.slice(0, elvisIdx).trim(), context);
-      if (left !== null && left !== undefined && left !== false && left !== '') {
+      if (this.isTruthy(left)) {
         return left;
       }
       return this.evaluateExpr(trimmed.slice(elvisIdx + 2).trim(), context);
@@ -287,16 +293,16 @@ class BloggerV3Simulator {
     // Handle 'and' / 'or'
     const andMatch = trimmed.match(/^(.+?)\s+and\s+(.+)$/);
     if (andMatch) {
-      return Boolean(this.evaluateExpr(andMatch[1]!, context)) && Boolean(this.evaluateExpr(andMatch[2]!, context));
+      return this.isTruthy(this.evaluateExpr(andMatch[1]!, context)) && this.isTruthy(this.evaluateExpr(andMatch[2]!, context));
     }
     const orMatch = trimmed.match(/^(.+?)\s+or\s+(.+)$/);
     if (orMatch) {
-      return Boolean(this.evaluateExpr(orMatch[1]!, context)) || Boolean(this.evaluateExpr(orMatch[2]!, context));
+      return this.isTruthy(this.evaluateExpr(orMatch[1]!, context)) || this.isTruthy(this.evaluateExpr(orMatch[2]!, context));
     }
 
     // Handle 'not'
     if (trimmed.startsWith('not ')) {
-      return !this.evaluateExpr(trimmed.slice(4).trim(), context);
+      return !this.isTruthy(this.evaluateExpr(trimmed.slice(4).trim(), context));
     }
 
     // Handle comparisons >
@@ -448,7 +454,7 @@ class BloggerV3Simulator {
       }
 
       if (name === 'b:if') {
-        const cond = this.evaluateExpr(attrs.cond ?? '', context);
+        const cond = this.isTruthy(this.evaluateExpr(attrs.cond ?? '', context));
         if (cond) {
           const ifBranches = this.extractIfBranches(children);
           output += this.renderNodes(ifBranches.main, context, currentWidgetId);
@@ -456,7 +462,7 @@ class BloggerV3Simulator {
           const ifBranches = this.extractIfBranches(children);
           let executed = false;
           for (const elseif of ifBranches.elseifs) {
-            if (this.evaluateExpr(elseif.cond, context)) {
+            if (this.isTruthy(this.evaluateExpr(elseif.cond, context))) {
               output += this.renderNodes(elseif.children, context, currentWidgetId);
               executed = true;
               break;

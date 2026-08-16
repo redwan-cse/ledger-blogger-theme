@@ -13,16 +13,16 @@ b:section(class='main' id='page_body' maxwidgets='1' name='Page Body' showaddele
       b:if(cond='data:view.isError')
         b:include(name='status-message')/
       b:if(cond='data:view.isMultipleItems')
-        b:if(cond='data:posts.empty')
+        b:if(cond='not data:posts')
           b:include(name='status-message')/
-        b:if(cond='not data:posts.empty')
+        b:if(cond='data:posts')
           b:loop(values='data:posts' var='post')
             b:include(data='post' name='post')/
           b:include(name='postPagination')/
       b:if(cond='data:view.isSingleItem')
-        b:if(cond='data:posts.empty')
+        b:if(cond='not data:posts')
           b:include(name='status-message')/
-        b:if(cond='not data:posts.empty')
+        b:if(cond='data:posts')
           b:loop(values='data:posts' var='post')
             b:include(data='post' name='post')/
             b:if(cond='data:view.isPost')

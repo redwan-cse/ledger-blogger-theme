@@ -34,7 +34,7 @@ b:includable(id='postBodySnippet' var='post')
 b:includable(id='postFooter' var='post')
   //- No reading time: not computable from documented V3 accessors without
   //- fabricating a value, banned by AGENTS.md and contract rule no-fabricated-metadata.
-  b:if(cond='data:post.labels and not data:post.labels.empty')
+  b:if(cond='data:post.labels')
     footer.post-footer
       .post-labels
         b:loop(values='data:post.labels' var='label')

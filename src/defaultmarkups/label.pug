@@ -2,9 +2,9 @@ b:defaultmarkup(type='Label')
   b:includable(id='main' var='this')
     div.widget-content.label-widget-content
       b:include(name='widgetTitle')/
-      b:if(cond='data:labels and not data:labels.empty')
+      b:if(cond='data:labels')
         b:include(name='content')/
-      b:if(cond='not data:labels or data:labels.empty')
+      b:if(cond='not data:labels')
         p.empty-labels
           b:eval(expr='data:messages.noLabels')/
   b:includable(id='content')

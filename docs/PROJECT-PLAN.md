@@ -154,7 +154,7 @@ Ten. Each is a distinct V3 render path and each gets a test.
 | Archive | `isArchive` | `view.archive.rangeMessage`, list, pager |
 | Post | `isPost` | Article, share, bio, comments, related |
 | Static page | `isPage` | Article only |
-| Empty result | `data:posts.empty` on any index | Named empty state |
+| Empty result | `not data:posts` on any index | Named empty state |
 | Error | `isError` | Error state, search box, recent posts |
 | Layout mode | `isLayoutMode` | Must render without throwing |
 

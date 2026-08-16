@@ -59,6 +59,11 @@ const cases: readonly RuleCase[] = [
     id: 'section-v3-attributes',
     violate: (xml) => xml.replace('id="header" maxwidgets="1" name="Header"', 'id="header" maxwidgets="1"'),
     comment: 'all sections must declare name, class, and maxwidgets'
+  },
+  {
+    id: 'no-dot-empty',
+    violate: (xml) => inject(xml, '<b:if cond="not data:posts.empty"><p>Posts</p></b:if>'),
+    comment: '.empty property accessor is forbidden in V3'
   }
 ];
 

@@ -2,13 +2,13 @@ b:defaultmarkup(type='BlogArchive')
   b:includable(id='main' var='this')
     div.widget-content.blog-archive-content
       b:include(name='widgetTitle')/
-      b:if(cond='data:this.data and not data:this.data.empty')
+      b:if(cond='data:this.data')
         details.blog-archive-details
           b:attr(cond='data:view.isArchive' name='open' value='open')/
           summary.blog-archive-summary
             b:eval(expr='data:messages.archive')/
           b:include(name='content')/
-      b:if(cond='not data:this.data or data:this.data.empty')
+      b:if(cond='not data:this.data')
         p.empty-blog-archive
           b:eval(expr='data:messages.noPosts')/
   b:includable(id='content')
@@ -32,7 +32,7 @@ b:defaultmarkup(type='BlogArchive')
   b:includable(id='interval' var='interval')
     a.blog-archive-interval-link(expr:href='data:interval.url')
       b:eval(expr='data:interval.name')/
-    b:if(cond='data:interval.data and not data:interval.data.empty')
+    b:if(cond='data:interval.data')
       ul.blog-archive-sublist
         b:loop(values='data:interval.data' var='subInterval')
           li.blog-archive-subitem

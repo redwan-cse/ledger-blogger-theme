@@ -2,12 +2,12 @@ b:defaultmarkup(type='PopularPosts')
   b:includable(id='main' var='this')
     div.widget-content.popular-posts-content
       b:include(name='widgetTitle')/
-      b:if(cond='data:posts and not data:posts.empty')
+      b:if(cond='data:posts')
         ul.popular-posts-list
           b:loop(values='data:posts' var='post')
             li.popular-post-item
               b:include(data='post' name='snippetedPostContent')/
-      b:if(cond='not data:posts or data:posts.empty')
+      b:if(cond='not data:posts')
         p.empty-popular-posts
           b:eval(expr='data:messages.noPosts')/
   b:includable(id='snippetedPostContent' var='post')

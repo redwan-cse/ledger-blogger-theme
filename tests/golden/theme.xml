@@ -150,7 +150,7 @@
         <b:includable id="main" var="this">
           <div class="widget-content popular-posts-content">
             <b:include name="widgetTitle"/>
-            <b:if cond="data:posts and not data:posts.empty">
+            <b:if cond="data:posts">
               <ul class="popular-posts-list">
                 <b:loop values="data:posts" var="post">
                   <li class="popular-post-item">
@@ -159,7 +159,7 @@
                 </b:loop>
               </ul>
             </b:if>
-            <b:if cond="not data:posts or data:posts.empty">
+            <b:if cond="not data:posts">
               <p class="empty-popular-posts">
                 <b:eval expr="data:messages.noPosts"/>
               </p>
@@ -268,7 +268,7 @@
         <b:includable id="main" var="this">
           <div class="widget-content blog-archive-content">
             <b:include name="widgetTitle"/>
-            <b:if cond="data:this.data and not data:this.data.empty">
+            <b:if cond="data:this.data">
               <details class="blog-archive-details">
                 <b:attr cond="data:view.isArchive" name="open" value="open"/>
                 <summary class="blog-archive-summary">
@@ -277,7 +277,7 @@
                 <b:include name="content"/>
               </details>
             </b:if>
-            <b:if cond="not data:this.data or data:this.data.empty">
+            <b:if cond="not data:this.data">
               <p class="empty-blog-archive">
                 <b:eval expr="data:messages.noPosts"/>
               </p>
@@ -312,7 +312,7 @@
         </b:includable>
         <b:includable id="interval" var="interval"><a class="blog-archive-interval-link" expr:href="data:interval.url">
             <b:eval expr="data:interval.name"/></a>
-          <b:if cond="data:interval.data and not data:interval.data.empty">
+          <b:if cond="data:interval.data">
             <ul class="blog-archive-sublist">
               <b:loop values="data:interval.data" var="subInterval">
                 <li class="blog-archive-subitem">
@@ -327,10 +327,10 @@
         <b:includable id="main" var="this">
           <div class="widget-content label-widget-content">
             <b:include name="widgetTitle"/>
-            <b:if cond="data:labels and not data:labels.empty">
+            <b:if cond="data:labels">
               <b:include name="content"/>
             </b:if>
-            <b:if cond="not data:labels or data:labels.empty">
+            <b:if cond="not data:labels">
               <p class="empty-labels">
                 <b:eval expr="data:messages.noLabels"/>
               </p>
@@ -374,9 +374,9 @@
     <div class="header-outer" role="banner">
       <b:section class="header" id="header" maxwidgets="1" name="Header" showaddelement="no">
         <b:widget id="Header1" locked="true" title="Blog Header" type="Header" version="2" visible="true">
-          <b:includable id="main" var="this">
-            <b:with value="data:this.title ?: data:blog.title" var="headerTitle">
-              <b:with value="data:this.description ?: data:blog.description" var="headerDescription">
+          <b:includable id="main">
+            <b:with value="data:title ?: data:blog.title" var="headerTitle">
+              <b:with value="data:description ?: data:blog.description" var="headerDescription">
                 <b:if cond="not data:view.isSingleItem">
                   <h1 class="site-title"><a expr:href="data:blog.homepageUrl">
                       <b:eval expr="data:headerTitle"/></a></h1>
@@ -400,8 +400,8 @@
       <div class="nav-container">
         <b:section class="navlinks" id="navlinks" maxwidgets="1" name="Navigation" showaddelement="no">
           <b:widget id="LinkList1" locked="false" title="Navigation" type="LinkList" version="2" visible="true">
-            <b:includable id="main" var="this">
-              <b:if cond="data:links and not data:links.empty">
+            <b:includable id="main">
+              <b:if cond="data:links">
                 <nav class="site-nav" aria-label="Main Navigation">
                   <ul class="nav-list">
                     <b:loop values="data:links" var="link">
@@ -420,7 +420,7 @@
       <div class="intro-container">
         <b:section class="intro" id="intro" maxwidgets="1" name="Intro" showaddelement="no">
           <b:widget id="HTML1" locked="false" title="Intro" type="HTML" version="2" visible="true">
-            <b:includable id="main" var="this">
+            <b:includable id="main">
               <b:if cond="data:content">
                 <div class="intro-content">
                   <b:eval expr="data:content"/>
@@ -435,8 +435,8 @@
       <div class="topics-container">
         <b:section class="topics" id="topics" maxwidgets="1" name="Topics" showaddelement="no">
           <b:widget id="Label1" locked="false" title="Topics" type="Label" version="2" visible="true">
-            <b:includable id="main" var="this">
-              <b:if cond="data:labels and not data:labels.empty">
+            <b:includable id="main">
+              <b:if cond="data:labels">
                 <nav class="topics-bar" aria-label="Topic Navigation">
                   <ul class="topics-list">
                     <b:loop values="data:labels" var="label">
@@ -469,10 +469,10 @@
               <b:include name="status-message"/>
             </b:if>
             <b:if cond="data:view.isMultipleItems">
-              <b:if cond="data:posts.empty">
+              <b:if cond="not data:posts">
                 <b:include name="status-message"/>
               </b:if>
-              <b:if cond="not data:posts.empty">
+              <b:if cond="data:posts">
                 <b:loop values="data:posts" var="post">
                   <b:include data="post" name="post"/>
                 </b:loop>
@@ -480,10 +480,10 @@
               </b:if>
             </b:if>
             <b:if cond="data:view.isSingleItem">
-              <b:if cond="data:posts.empty">
+              <b:if cond="not data:posts">
                 <b:include name="status-message"/>
               </b:if>
-              <b:if cond="not data:posts.empty">
+              <b:if cond="data:posts">
                 <b:loop values="data:posts" var="post">
                   <b:include data="post" name="post"/>
                   <b:if cond="data:view.isPost">
@@ -537,7 +537,7 @@
             </div>
           </b:includable>
           <b:includable id="postFooter" var="post">
-            <b:if cond="data:post.labels and not data:post.labels.empty">
+            <b:if cond="data:post.labels">
               <footer class="post-footer">
                 <div class="post-labels">
                   <b:loop values="data:post.labels" var="label"><a class="label-link" expr:href="data:label.url" rel="tag">
@@ -565,7 +565,7 @@
           </b:includable>
           <b:includable id="threadedComments" var="post">
             <div class="comments-content">
-              <b:if cond="data:post.comments and not data:post.comments.empty">
+              <b:if cond="data:post.comments">
                 <b:loop values="data:post.comments" var="comment">
                   <div class="comment" expr:id="&quot;c&quot; + data:comment.id">
                     <b:if cond="data:comment.isDeleted">
@@ -653,7 +653,7 @@
       <div class="cta-container">
         <b:section class="cta" id="cta" maxwidgets="1" name="Call to Action" showaddelement="no">
           <b:widget id="HTML2" locked="false" title="Call to Action" type="HTML" version="2" visible="true">
-            <b:includable id="main" var="this">
+            <b:includable id="main">
               <b:if cond="data:content">
                 <aside class="cta-box">
                   <b:eval expr="data:content"/>
@@ -668,7 +668,7 @@
       <footer class="footer-container" role="contentinfo">
         <b:section class="footer" id="footer" maxwidgets="3" name="Footer" showaddelement="yes">
           <b:widget id="HTML3" locked="false" title="Footer" type="HTML" version="2" visible="true">
-            <b:includable id="main" var="this">
+            <b:includable id="main">
               <b:if cond="data:content">
                 <div class="footer-content">
                   <b:eval expr="data:content"/>

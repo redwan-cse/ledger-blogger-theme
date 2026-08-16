@@ -1,7 +1,7 @@
 b:section(class='topics' id='topics' maxwidgets='1' name='Topics' showaddelement='no')
   b:widget(id='Label1' locked='false' title='Topics' type='Label' version='2' visible='true')
-    b:includable(id='main' var='this')
-      b:if(cond='data:labels and not data:labels.empty')
+    b:includable(id='main')
+      b:if(cond='data:labels')
         nav.topics-bar(aria-label='Topic Navigation')
           ul.topics-list
             b:loop(values='data:labels' var='label')

@@ -165,8 +165,8 @@ This is the part most tutorials get wrong.
 | `snippet` | `snippet(text, {length, links, linebreaks, ellipsis})` — server-side excerpting |
 
 > The predecessor's post guard was `data:posts.size gt 0`. That is doubly invalid:
-> **neither `.size` nor `gt` exists in V3.** The expression could never have
-> evaluated. Correct form: `not data:posts.empty`.
+> **neither `.size`, `gt`, nor `.empty` exists in V3.** The expression could never have
+> evaluated. Correct form: `data:posts` (or `not data:posts` for empty checks).
 
 ---
 
@@ -479,7 +479,7 @@ Each is rejected by the contract suite with a message naming the V3 replacement.
 | `data:blog.url == data:blog.homepageUrl` | `data:view.isHomepage` | Fragile URL comparison |
 | `data:blog.searchLabel` | `data:view.search.label` | V2 accessor |
 | `data:blog.searchQuery` | `data:view.search.query` | V2 accessor |
-| `data:posts.size gt 0` | `not data:posts.empty` | **Neither `.size` nor `gt` exists in V3** |
+| `data:posts.size gt 0` | `data:posts` | **Neither `.size`, `gt`, nor `.empty` exists in V3** |
 | `&&`, `\|\|` | `and`, `or` | Unreliable in V3 expressions |
 | `data:post.dateHeader` | `data:post.date` | Only set on the first post of a day |
 | `macro:include`, `macro:if` | `b:include`, `b:if` | Undocumented, unstable |

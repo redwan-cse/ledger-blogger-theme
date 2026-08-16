@@ -12,7 +12,7 @@ b:includable(id='comments' var='post')
 
 b:includable(id='threadedComments' var='post')
   .comments-content
-    b:if(cond='data:post.comments and not data:post.comments.empty')
+    b:if(cond='data:post.comments')
       b:loop(values='data:post.comments' var='comment')
         .comment(expr:id='"c" + data:comment.id')
           b:if(cond='data:comment.isDeleted')
