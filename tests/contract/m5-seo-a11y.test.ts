@@ -101,20 +101,21 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
     });
   });
 
-  describe('Blog1 Widget Dispatch & 21 Defensive Empty Includables', () => {
-    it('dispatches views via explicit V3 data:posts loop without super.main', async () => {
+  describe('Blog1 Widget Dispatch & 20 Defensive Empty Includables', () => {
+    it('dispatches views via native super.main delegation with custom sub-includables', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       const blogWidget = xml.match(/<b:widget\b[^>]*\bid="Blog1"[\s\S]*?<\/b:widget>/);
       expect(blogWidget).not.toBeNull();
       const content = blogWidget![0];
-      expect(content).not.toContain('super.main');
-      expect(content).toContain('cond="data:view.isError"');
-      expect(content).toContain('cond="data:view.isMultipleItems"');
-      expect(content).toContain('cond="data:view.isSingleItem"');
-      expect(content).toContain('<b:loop values="data:posts" var="post">');
+      expect(content).toMatch(/<b:include\s+name=["']super\.main["']\s*\/>/);
+      expect(content).toMatch(/<b:includable id="postCommentsAndAd" var="post">/);
+      expect(content).toMatch(/<b:includable id="post" var="post">/);
+      expect(content).toMatch(/<b:includable id="postTitle" var="post">/);
+      expect(content).toMatch(/<b:includable id="status-message">/);
+      expect(content).toMatch(/<b:includable id="postPagination">/);
     });
 
-    it('declares all 21 defensive empty includables to prevent unwanted Blogger chrome', async () => {
+    it('declares all 20 defensive empty includables to prevent unwanted Blogger chrome', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       const blogWidget = xml.match(/<b:widget\b[^>]*\bid="Blog1"[\s\S]*?<\/b:widget>/);
       expect(blogWidget).not.toBeNull();
@@ -128,7 +129,6 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
         'nextPageLink',
         'previousPageLink',
         'homePageLink',
-        'postCommentsAndAd',
         'postCommentsLink',
         'postFooterAuthorProfile',
         'aboutPostAuthor',

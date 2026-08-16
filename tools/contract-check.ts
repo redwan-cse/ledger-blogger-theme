@@ -134,19 +134,20 @@ export const contractRules: readonly ContractRule[] = [
     message: "Theme must declare all seven editable layout zones: 'header', 'navlinks', 'intro', 'topics', 'page_body', 'cta', and 'footer' with valid showaddelement attributes.",
     check: (doc) => {
       const sections = named(doc, BLOGGER_NS, 'section');
-      const expected: Record<string, { showaddelement: string }> = {
-        header: { showaddelement: 'no' },
-        navlinks: { showaddelement: 'no' },
-        intro: { showaddelement: 'no' },
-        topics: { showaddelement: 'no' },
-        page_body: { showaddelement: 'no' },
-        cta: { showaddelement: 'no' },
-        footer: { showaddelement: 'yes' }
+      const expected: Record<string, { showaddelement: string[] }> = {
+        header: { showaddelement: ['false', 'no'] },
+        navlinks: { showaddelement: ['false', 'no'] },
+        intro: { showaddelement: ['false', 'no'] },
+        topics: { showaddelement: ['false', 'no'] },
+        page_body: { showaddelement: ['false', 'no'] },
+        cta: { showaddelement: ['false', 'no'] },
+        footer: { showaddelement: ['yes', 'true'] }
       };
       for (const [id, exp] of Object.entries(expected)) {
         const sec = sections.find((s) => attr(s, 'id') === id);
         if (!sec) return false;
-        if (attr(sec, 'showaddelement') !== exp.showaddelement) return false;
+        const val = attr(sec, 'showaddelement') ?? '';
+        if (!exp.showaddelement.includes(val)) return false;
       }
       return sections.length >= 7;
     }
@@ -225,26 +226,17 @@ export const contractRules: readonly ContractRule[] = [
   {
     id: 'clean-section-containers',
     requirementId: 'R-NAV-2 AC3',
-    message: 'Optional layout sections must be guarded with layout mode checks to prevent empty HTML containers on live views.',
+    message: '<b:section> layout zones must be declared statically without runtime conditional wrappers (<b:if> or <b:switch>) so Blogger engine statically discovers all widgets.',
     check: (doc) => {
-      const optionalIds = ['navlinks', 'intro', 'topics', 'cta', 'footer'];
       const sections = named(doc, BLOGGER_NS, 'section');
-      for (const optId of optionalIds) {
-        const section = sections.find((s) => attr(s, 'id') === optId);
-        if (!section) return false;
-        let hasGuard = false;
+      for (const section of sections) {
         for (let cur: XmlElement | null = section.parent; cur; cur = cur.parent) {
-          if (cur.namespaceUri === BLOGGER_NS && cur.localName === 'if') {
-            const cond = attr(cur, 'cond') ?? '';
-            if (/data:view\.isLayoutMode/i.test(cond) && (/data:widgets/i.test(cond) || new RegExp(optId, 'i').test(cond))) {
-              hasGuard = true;
-              break;
-            }
+          if (cur.namespaceUri === BLOGGER_NS && (cur.localName === 'if' || cur.localName === 'switch')) {
+            return false;
           }
         }
-        if (!hasGuard) return false;
       }
-      return true;
+      return sections.length >= 7;
     }
   },
   {

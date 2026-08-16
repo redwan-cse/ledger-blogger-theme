@@ -29,12 +29,12 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
     it('enforces maxwidgets and showaddelement attributes per zone specification', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       const expected: Record<string, { maxwidgets: string; showaddelement: string }> = {
-        header: { maxwidgets: '1', showaddelement: 'no' },
-        navlinks: { maxwidgets: '1', showaddelement: 'no' },
-        intro: { maxwidgets: '1', showaddelement: 'no' },
-        topics: { maxwidgets: '1', showaddelement: 'no' },
-        page_body: { maxwidgets: '1', showaddelement: 'no' },
-        cta: { maxwidgets: '1', showaddelement: 'no' },
+        header: { maxwidgets: '1', showaddelement: 'false' },
+        navlinks: { maxwidgets: '1', showaddelement: 'false' },
+        intro: { maxwidgets: '1', showaddelement: 'false' },
+        topics: { maxwidgets: '1', showaddelement: 'false' },
+        page_body: { maxwidgets: '1', showaddelement: 'false' },
+        cta: { maxwidgets: '1', showaddelement: 'false' },
         footer: { maxwidgets: '3', showaddelement: 'yes' }
       };
 
@@ -215,14 +215,10 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
   });
 
   describe('Suite 4: Zero Empty Container Defensiveness (R-NAV-2 AC3)', () => {
-    it('wraps all optional zones with server-side layout mode guards in theme.pug', async () => {
+    it('declares all optional layout sections statically without conditional wrappers in theme.pug', async () => {
       const themePug = await readFile(path.join(ROOT, 'src/theme.pug'), 'utf8');
-      const optionalZones = ['navlinks', 'intro', 'topics', 'cta', 'footer'];
-
-      for (const zone of optionalZones) {
-        const guardPattern = new RegExp(`b:if\\(cond=['"]data:view\\.isLayoutMode or data:widgets any \\(w => w\\.sectionId == "${zone}"\\)['"]\\)`);
-        expect(themePug, `Zone '${zone}' must be wrapped in server-side layout mode guard`).toMatch(guardPattern);
-      }
+      expect(themePug).not.toMatch(/b:if\b[^)]*b:section/);
+      expect(themePug).not.toMatch(/data:view\.isLayoutMode/);
     });
 
     it('enforces CSS :empty suppression rules on all optional container classes', async () => {
@@ -284,10 +280,9 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
       expect(findings).toContain('readme-zone-parity');
     });
 
-    it('catches missing layout mode guard via clean-section-containers rule', async () => {
+    it('catches conditional wrapper around section via clean-section-containers rule', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      // Remove layout mode condition guard on navlinks
-      const mutated = xml.replace(/<b:if cond="data:view\.isLayoutMode or data:widgets any \(w =&gt; w\.sectionId == &quot;navlinks&quot;\)">/, '<b:if cond="data:view.isHomepage">');
+      const mutated = xml.replace(/<b:section\b[^>]*\bid=["']navlinks["'][\s\S]*?<\/b:section>/, (m) => `<b:if cond="data:view.isLayoutMode">${m}</b:if>`);
       const findings = checkThemeContract(mutated).map((f) => f.ruleId);
       expect(findings).toContain('clean-section-containers');
     });

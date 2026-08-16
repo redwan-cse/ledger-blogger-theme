@@ -290,6 +290,38 @@ class BloggerV3Simulator {
       return this.evaluateExpr(trimmed.slice(elvisIdx + 2).trim(), context);
     }
 
+    // Handle 'not in'
+    const notInMatch = trimmed.match(/^(.+?)\s+not\s+in\s+\{(.+)\}$/);
+    if (notInMatch) {
+      const val = String(this.evaluateExpr(notInMatch[1]!.trim(), context) ?? '');
+      const set = notInMatch[2]!.split(',').map((s) => s.trim().replace(/^["']|["']$/g, ''));
+      return !set.includes(val);
+    }
+
+    // Handle 'in'
+    const inMatch = trimmed.match(/^(.+?)\s+in\s+\{(.+)\}$/);
+    if (inMatch) {
+      const val = String(this.evaluateExpr(inMatch[1]!.trim(), context) ?? '');
+      const set = inMatch[2]!.split(',').map((s) => s.trim().replace(/^["']|["']$/g, ''));
+      return set.includes(val);
+    }
+
+    // Handle '!='
+    const neMatch = trimmed.match(/^(.+?)\s*!=\s*(.+)$/);
+    if (neMatch) {
+      const left = this.evaluateExpr(neMatch[1]!.trim(), context);
+      const right = this.evaluateExpr(neMatch[2]!.trim(), context);
+      return left != right;
+    }
+
+    // Handle '=='
+    const eqMatch = trimmed.match(/^(.+?)\s*==\s*(.+)$/);
+    if (eqMatch) {
+      const left = this.evaluateExpr(eqMatch[1]!.trim(), context);
+      const right = this.evaluateExpr(eqMatch[2]!.trim(), context);
+      return left == right;
+    }
+
     // Handle 'and' / 'or'
     const andMatch = trimmed.match(/^(.+?)\s+and\s+(.+)$/);
     if (andMatch) {
@@ -345,10 +377,25 @@ class BloggerV3Simulator {
     // Path resolution on context
     const cleanExpr = trimmed.replace(/^data:/, '');
     const pathParts = cleanExpr.split('.');
-    let current = context;
+    let current: any = context;
     for (const part of pathParts) {
-      if (current === undefined || current === null) return undefined;
+      if (current === undefined || current === null) {
+        current = undefined;
+        break;
+      }
       current = current[part];
+    }
+    if (current === undefined && pathParts.length === 1) {
+      const single = pathParts[0]!;
+      if (context.this && context.this[single] !== undefined) {
+        return context.this[single];
+      }
+      if (context.widget && context.widget[single] !== undefined) {
+        return context.widget[single];
+      }
+      if (context.blog && context.blog[single] !== undefined) {
+        return context.blog[single];
+      }
     }
     return current;
   }
@@ -429,7 +476,9 @@ class BloggerV3Simulator {
           const widgetData = {
             title: attrs.title,
             instanceId: widgetId,
-            sectionId: attrs.sectionId
+            sectionId: attrs.sectionId,
+            imagePlacement: 'BEHIND',
+            useImage: false
           };
           const widgetCtx = { ...context, this: widgetData, widget: widgetData };
           output += this.renderNodes(mainNodes, widgetCtx, widgetId);
@@ -438,8 +487,43 @@ class BloggerV3Simulator {
       }
 
       if (name === 'b:include') {
+        if (attrs.cond !== undefined && !this.isTruthy(this.evaluateExpr(attrs.cond, context))) {
+          continue;
+        }
         const includableName = attrs.name ?? '';
         const dataExpr = attrs.data;
+
+        if (includableName === 'super.main' && currentWidgetId === 'Blog1') {
+          const isError = this.isTruthy(this.evaluateExpr('data:view.isError', context));
+          const posts = this.evaluateExpr('data:posts', context);
+          const hasPosts = Array.isArray(posts) && posts.length > 0;
+          const widgetMap = this.widgetIncludables.get('Blog1');
+          if (isError || !hasPosts) {
+            const statusNodes = widgetMap?.get('status-message') || this.globalIncludables.get('status-message');
+            if (statusNodes) {
+              output += this.renderNodes(statusNodes, context, currentWidgetId);
+            }
+          } else {
+            const postCommentsAndAdNodes = widgetMap?.get('postCommentsAndAd');
+            const postNodes = widgetMap?.get('post');
+            const targetNodes = postCommentsAndAdNodes || postNodes;
+            if (targetNodes) {
+              for (const p of posts) {
+                const itemCtx = { ...context, post: p };
+                output += this.renderNodes(targetNodes, itemCtx, currentWidgetId);
+              }
+            }
+            const isMultiple = this.isTruthy(this.evaluateExpr('data:view.isMultipleItems', context));
+            if (isMultiple) {
+              const pagNodes = widgetMap?.get('postPagination') || this.globalIncludables.get('postPagination');
+              if (pagNodes) {
+                output += this.renderNodes(pagNodes, context, currentWidgetId);
+              }
+            }
+          }
+          continue;
+        }
+
         const widgetMap = currentWidgetId ? this.widgetIncludables.get(currentWidgetId) : undefined;
         const includableNodes = (includableName && widgetMap ? widgetMap.get(includableName) : undefined) || (includableName ? this.globalIncludables.get(includableName) : undefined);
         if (includableNodes) {

@@ -326,12 +326,25 @@
 .topics-container:empty,
 .cta-container:empty,
 .footer-container:empty,
-.section:empty {
+.section:empty,
+.no-items.section {
   display: none !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
 }
+
+.nav-container:has(> .no-items.section),
+.intro-container:has(> .no-items.section),
+.topics-container:has(> .no-items.section),
+.cta-container:has(> .no-items.section),
+.footer-container:has(> .no-items.section) {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
 
 // ---------------------------------------------------------------------------
 // 12-Column Responsive Main Container

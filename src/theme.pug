@@ -25,23 +25,19 @@ html&attributes(rootAttributes)
     a.skip-link(href='#content') Skip to content
     div.header-outer(role='banner')
       include widgets/header.pug
-    b:if(cond='data:view.isLayoutMode or data:widgets any (w => w.sectionId == "navlinks")')
-      div.nav-container
-        include widgets/linklist.pug
-    b:if(cond='data:view.isLayoutMode or data:widgets any (w => w.sectionId == "intro")')
-      div.intro-container
-        include widgets/intro.pug
-    b:if(cond='data:view.isLayoutMode or data:widgets any (w => w.sectionId == "topics")')
-      div.topics-container
-        include widgets/label.pug
+    div.nav-container
+      include widgets/linklist.pug
+    div.intro-container
+      include widgets/intro.pug
+    div.topics-container
+      include widgets/label.pug
     main#content.main-content(role='main')
       include widgets/blog.pug
-    b:if(cond='data:view.isLayoutMode or data:widgets any (w => w.sectionId == "cta")')
-      div.cta-container
-        include widgets/cta.pug
-    b:if(cond='data:view.isLayoutMode or data:widgets any (w => w.sectionId == "footer")')
-      footer.footer-container(role='contentinfo')
-        include widgets/footer.pug
+    div.cta-container
+      include widgets/cta.pug
+    footer.footer-container(role='contentinfo')
+      include widgets/footer.pug
     if script
       script.
         !{script}
+
