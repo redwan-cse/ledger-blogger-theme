@@ -1,0 +1,8 @@
+b:defaultmarkup(type='PageList')
+  b:includable(id='content')
+    div.widget-content
+      b:include(cond='data:widget.sectionId == "page_list_top"' name='overflowablePageList')/
+      b:include(cond='data:widget.sectionId != "page_list_top"' name='pageList')/
+  b:includable(id='overflowButton')
+    a
+      b:eval(expr='data:messages.moreEllipsis')/

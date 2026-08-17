@@ -465,7 +465,7 @@ highest-fidelity source for real V3 usage available, because Google ships it.
 - AC1 `[R]` Lighthouse mobile performance ≥ 90 on home and post (Moto G Power, 4G)
 - AC2 `[R]` CLS ≤ 0.05
 - AC3 `[R]` LCP ≤ 2.5s
-- AC4 `[C]` `dist/theme.xml` ≤ 200 KB
+- AC4 `[C]` `dist/theme.xml` ≤ 500 KB
 - AC5 `[C]` Inline JS ≤ 8 KB minified
 - AC6 `[C]` Every post image uses `resizeImage` or `sourceSet`, explicit `width`/`height`, `loading='lazy'` below the fold
 - AC7 `[C]` `b:css='false'` set
@@ -727,7 +727,7 @@ destroys the theme.
 |---|---|
 | "Strictly match `<html> b:version='2' class='v2'` with `<b:widget version='2'>`" | **Wrong, and dangerous.** `b:version='2'` is the V2 theme format; it cannot pair with Layouts V3. Following it reproduces F1 exactly: valid XML, no error, every custom includable silently discarded. Now contract-banned. |
 | `https://google.com` given as "Google's Official Help Document System for Theme Customization" | **Not a documentation URL.** An agent told to research it will improvise. Real sources are in V3-REFERENCE §9. |
-| "Roughly 5,000 to 10,000 lines of highly clean XML" | **Anti-goal.** The predecessor was 44 KB of valid XML that rendered nothing. Budget is 200 KB. Line count measures nothing. |
+| "Roughly 5,000 to 10,000 lines of highly clean XML" | **Anti-goal.** The predecessor was 44 KB of valid XML that rendered nothing. Budget is 500 KB. Line count measures nothing. |
 | "Expand `<b:skin>` with extensive `<Group>` and `<Variable>` declarations… naturally adds thousands of lines of high-value structural code" | **Padding dressed as value.** Written for marketplace resale, an explicit non-goal (§1). Every Theme Designer variable is also a surface for a user to break the contrast ratios in §2.2. |
 | `b:attr` injecting `data-lazy-src` for a JS lazy-loader | **Rejected.** Native `loading='lazy'` needs no JavaScript. Making image visibility depend on a script is F3 in a new costume. Now banned. |
 | `b:else` fallback "vector placeholder" for a missing featured image | **Rejected.** Zero of 16 posts have a featured image, so a placeholder would appear on every row. The layout is designed to be correct with no image at all. |

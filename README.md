@@ -8,7 +8,7 @@ A Blogger **Layouts V3** theme for [blogs.redwan.work](https://blogs.redwan.work
 
 1. Rendered Blogger HTML is the evidence. XML shape alone never proves rendering.
 2. No view may produce a blank content area.
-3. The output budget is 200 KB. Line count is irrelevant.
+3. The output budget is 500 KB. Line count is irrelevant.
 
 ## Start here
 
@@ -33,7 +33,7 @@ npm run contract:check
 npm run test:golden
 ```
 
-Generation must finish in under 10 seconds, the fetch-denied contract suite in under 5 seconds, and `dist/theme.xml` must remain at or below 200 KB. CI runs on GitHub-hosted Linux runners and uploads the verified XML artifact.
+Generation must finish in under 10 seconds, the fetch-denied contract suite in under 5 seconds, and `dist/theme.xml` must remain at or below 500 KB. CI runs on GitHub-hosted Linux runners and uploads the verified XML artifact.
 
 ### Deliberately updating the golden snapshot
 

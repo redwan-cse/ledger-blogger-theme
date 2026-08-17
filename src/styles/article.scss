@@ -186,10 +186,18 @@
     color: $page;
     text-decoration: none;
     border-radius: 2px;
-    transition: background $motion-duration $motion-ease;
+    box-shadow: $shadow-sm;
+    transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
     &:hover {
-      background: oklch(40% 0.148 25);
+      background-color: oklch(40% 0.148 25);
+      box-shadow: $shadow-md;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px) scale(0.96);
+      box-shadow: 0 1px 2px oklch(23% 0.012 85 / 0.15);
     }
   }
 }

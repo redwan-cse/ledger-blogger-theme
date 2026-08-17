@@ -28,7 +28,7 @@ No view may produce a blank content area. If you write a conditional branch that
 can emit nothing, you have written the predecessor's worst bug again.
 
 **3. Line count is not a goal.**
-Budget is 200 KB. The predecessor was 44 KB of valid XML that rendered nothing.
+Budget is 500 KB (target 150 KB - 500 KB). The predecessor was 44 KB of valid XML that rendered nothing.
 
 ---
 

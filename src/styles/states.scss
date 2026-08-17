@@ -11,10 +11,18 @@
 .empty-state {
   grid-column: 1 / -1;
   background: $surface;
+  border: 1px solid $rule;
   border-radius: 4px;
   padding: $space-7 $space-5;
   text-align: left;
   max-width: $measure;
+  box-shadow: $shadow-sm;
+  transition: box-shadow $motion-base $ease-out-quart, transform $motion-base $ease-out-quart;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-1px);
+  }
 
   h2 {
     font-family: $font-serif;
@@ -53,9 +61,14 @@
     color: $ink;
     min-height: 44px;
     flex: 1;
+    width: 240px;
     max-width: 360px;
+    transition: width $motion-moderate $ease-out-quart, box-shadow $motion-moderate $ease-out-quart, border-color $motion-fast $ease-out-quart;
 
     &:focus {
+      width: 360px;
+      border-color: $accent;
+      box-shadow: $shadow-md;
       outline: 2px solid $accent;
       outline-offset: 2px;
     }
@@ -73,10 +86,18 @@
     border-radius: 2px;
     cursor: pointer;
     min-height: 44px;
-    transition: background $motion-duration $motion-ease;
+    box-shadow: $shadow-sm;
+    transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
     &:hover {
-      background: oklch(40% 0.148 25);
+      background-color: oklch(40% 0.148 25);
+      box-shadow: $shadow-md;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px) scale(0.96);
+      box-shadow: 0 1px 2px oklch(23% 0.012 85 / 0.15);
     }
   }
 }
@@ -94,19 +115,32 @@
   border-top: 1px solid $rule;
 }
 
-.newer-link,
+.newer-link {
+  font-family: $font-sans;
+  font-size: $font-size-meta;
+  letter-spacing: 0.01em;
+  color: $ink;
+  text-decoration: none;
+  transition: color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+
+  &:hover {
+    color: $accent;
+    transform: translateX(-4px);
+  }
+}
+
 .older-link {
   font-family: $font-sans;
   font-size: $font-size-meta;
   letter-spacing: 0.01em;
   color: $ink;
   text-decoration: none;
+  margin-left: auto;
+  transition: color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
 
   &:hover {
     color: $accent;
+    transform: translateX(4px);
   }
 }
 
-.older-link {
-  margin-left: auto;
-}

@@ -58,7 +58,9 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
       expect(blogWidget).not.toBeNull();
       expect(blogWidget![0]).toContain('locked="true"');
       expect(blogWidget![0]).toContain('version="2"');
-      expect(blogWidget![0]).toContain('preferred="yes"');
+      // 'preferred' is a b:section attribute, not a b:widget attribute; Contempo's
+      // Blog1 does not carry it and it is an import hazard. It must stay absent.
+      expect(blogWidget![0]).not.toContain('preferred=');
 
       const otherWidgets = ['LinkList1', 'HTML1', 'Label1', 'HTML2', 'HTML3'];
       for (const id of otherWidgets) {

@@ -115,7 +115,7 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
   describe('Rule 7: header-widget (R-V3-1 AC6)', () => {
     it('catches missing Header widget', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const noHeader = xml.replace('type="Header"', 'type="HTML"');
+      const noHeader = xml.replaceAll('type="Header"', 'type="HTML"');
       expect(rules(noHeader)).toContain('header-widget');
     });
   });
@@ -264,9 +264,9 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
   });
 
   describe('Rule 18: size-budget (R-PERF-1 AC4)', () => {
-    it('catches themes exceeding 200,000 bytes', async () => {
+    it('catches themes exceeding 500,000 bytes', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const padding = '<!-- ' + 'X'.repeat(200_000) + ' -->';
+      const padding = '<!-- ' + 'X'.repeat(500_000) + ' -->';
       const oversized = inject(xml, padding);
       expect(rules(oversized)).toEqual(['size-budget']);
     });

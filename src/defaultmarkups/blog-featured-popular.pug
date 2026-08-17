@@ -1,0 +1,30 @@
+b:defaultmarkup(type='Blog,FeaturedPost,PopularPosts')
+  b:includable(id='commentsLink')
+    a.comment-link(expr:href='data:post.commentsUrl' expr:onclick='data:post.commentsUrlOnclick')
+      b:include(data='{ iconClass: "touch-icon" }' name='commentIcon')/
+      span.num_comments
+        b:if(cond='data:post.numberOfComments != 0')
+          b:message(name='messages.numberOfComments')
+            b:param(expr:value='data:post.numberOfComments' name='numComments')/
+        b:if(cond='data:post.numberOfComments == 0')
+          b:eval(expr='data:messages.postAComment')/
+  b:includable(id='snippetedPostByline')
+    b:include(name='headerByline')/
+  b:includable(id='postLabels')
+    b:if(cond='data:view.isSingleItem and data:widget.type == "Blog"')
+      b:include(name='super.postLabels')/
+  b:includable(id='postShareButtons' var='post')
+  b:includable(id='postJumpLink')
+  b:includable(id='postFooterJumpLink')
+    div.jump-link.flat-button.ripple
+      a(expr:href='data:post.hasJumpLink ? data:post.url fragment "more" : data:post.url' expr:title='data:post.title')
+        b:eval(expr='data:blog.jumpLinkMessage')/
+  b:includable(id='postFooter' var='post')
+    div.post-bottom
+      div.post-footer.float-container
+        b:include(name='footerBylines')/
+        b:include(cond='data:widget.type == "Blog"' data='post' name='postFooterAuthorProfile')/
+      b:if(cond='data:view.isSingleItem')
+        b:include(data='{ shareButtonClass: "post-share-buttons-bottom invisible", overridden: true }' name='maybeAddShareButtons')/
+      b:if(cond='not data:view.isSingleItem')
+        b:include(data='post' name='postFooterJumpLink')/

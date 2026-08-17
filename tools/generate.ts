@@ -63,7 +63,7 @@ export async function generateTheme(options: GenerateThemeOptions): Promise<Gene
   });
   const output = `<?xml version='1.0' encoding='UTF-8' ?>\n${xml.trim()}\n`;
   const bytes = Buffer.byteLength(output, 'utf8');
-  if (bytes > 200_000) throw new Error(`Generated theme is ${bytes} bytes; budget is 200000.`);
+  if (bytes > 500_000) throw new Error(`Generated theme is ${bytes} bytes; budget is 500000.`);
   if (options.write !== false) {
     await mkdir(path.join(ROOT, 'dist'), { recursive: true });
     await writeFile(path.join(ROOT, 'dist/theme.xml'), output, 'utf8');

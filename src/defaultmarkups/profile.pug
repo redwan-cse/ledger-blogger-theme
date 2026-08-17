@@ -1,0 +1,18 @@
+b:defaultmarkup(type='Profile')
+  b:includable(id='main' var='this')
+    div.wrapper
+      b:class(cond='not data:this.team' name='solo')/
+      b:with(value='data:messages.blogAuthors' var='defaultTitle')
+        b:include(cond='data:this.team' name='widget-title')/
+      b:include(name='content')/
+  b:includable(id='defaultProfileImage')
+    div.default-avatar-wrapper
+      b:include(data='{ iconClass: "avatar-icon" }' name='defaultAvatarIcon')/
+  b:includable(id='userProfileText')
+    dd.profile-textblock.profile-snippet.snippet-container.r-snippet-container
+      div.snippet-item.r-snippetized
+        b:eval(expr='data:aboutme')/
+      div.snippet-fade.r-snippet-fade.hidden
+  b:includable(id='viewProfileLink')
+    a.profile-link.visit-profile.pill-button(expr:href='data:userUrl' rel='author')
+      b:eval(expr='data:messages.visitProfile')/

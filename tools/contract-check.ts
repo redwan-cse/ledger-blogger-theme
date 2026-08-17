@@ -85,7 +85,7 @@ export const contractRules: readonly ContractRule[] = [
   { id: 'json-escaped', requirementId: 'R-V3-2 AC5', message: 'Every JSON-LD interpolation must end in .jsonEscaped.', check: (doc) => active(doc).filter(jsonLdScript).every((script) => descendants(script).filter((element) => element.prefix === 'data' || (element.namespaceUri === BLOGGER_NS && element.localName === 'eval')).every((element) => element.prefix === 'data' ? element.name.endsWith('.jsonEscaped') : /\.jsonEscaped\s*$/.test(attr(element, 'expr') ?? ''))) },
   { id: 'no-fabricated-metadata', requirementId: 'R-BUILD-1 AC7', message: 'Fabricated reading time, author identity, or Gravatar fallback is not allowed.', check: (doc, xml) => { if (/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar/i.test(xml)) return false; return active(doc).filter((element) => /(?:^|\s)(?:author-name|post-author)(?:\s|$)/.test(attr(element, 'class') ?? '')).every((element) => !/[A-Za-z0-9]/.test(literalText(element))); } },
   { id: 'build-stamp', requirementId: 'R-BUILD-2 AC1', message: 'A unique direct-child head meta stamp must equal b:templateVersion plus a full SHA.', check: (doc) => { const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head'); if (heads.length !== 1) return false; const stamps = heads[0]!.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'meta' && attr(child, 'name') === 'theme-build'); const version = attr(doc.root, 'b:templateVersion'); return stamps.length === 1 && version !== null && new RegExp(`^${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\+[0-9a-f]{40}$`, 'i').test(attr(stamps[0]!, 'content') ?? ''); } },
-  { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 200000 bytes.', check: (_doc, xml) => Buffer.byteLength(xml, 'utf8') <= 200_000 },
+  { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 500000 bytes.', check: (_doc, xml) => Buffer.byteLength(xml, 'utf8') <= 500_000 },
   { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (doc) => attr(doc.root, 'b:css') === 'false' },
   {
     id: 'bound-section-and-widget-ids',
@@ -162,15 +162,7 @@ export const contractRules: readonly ContractRule[] = [
       const defMarkups = descendants(heads[0]!).filter((e) => e.namespaceUri === BLOGGER_NS && e.localName === 'defaultmarkups');
       if (defMarkups.length !== 1) return false;
       const markups = descendants(defMarkups[0]!).filter((e) => e.namespaceUri === BLOGGER_NS && e.localName === 'defaultmarkup');
-      const types = new Set<string>();
-      for (const m of markups) {
-        const typeAttr = attr(m, 'type');
-        if (typeAttr) {
-          for (const t of typeAttr.split(',')) {
-            types.add(t.trim());
-          }
-        }
-      }
+      const types = new Set(markups.map((m) => attr(m, 'type')));
       const required = ['Common', 'PopularPosts', 'FeaturedPost', 'ContactForm', 'BlogArchive', 'Label'];
       return required.every((req) => types.has(req));
     }

@@ -1,4 +1,12 @@
 b:section(class='footer' id='footer' maxwidgets='3' name='Footer' showaddelement='yes')
+  b:widget(id='Attribution1' locked='true' title='' type='Attribution' version='2' visible='true')
+    b:widget-settings
+      b:widget-setting(name='copyright')
+    b:includable(id='main' var='this')
+      .widget-content
+        .blogger
+          a(expr:href='data:bloggerUrl' rel='nofollow')
+            b:message(name='messages.poweredByBlogger')/
   b:widget(id='HTML3' locked='false' title='Footer' type='HTML' version='2' visible='true')
     b:includable(id='main')
       b:if(cond='data:content')

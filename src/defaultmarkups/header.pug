@@ -1,0 +1,21 @@
+b:defaultmarkup(type='Header')
+  b:includable(id='image')
+    b:include(name='super.image')/
+    b:include(cond='data:this.imagePlacement == "REPLACE"' name='title')/
+  b:includable(id='title')
+    div
+      b:class(cond='data:this.imagePlacement == "REPLACE"' name='replaced')/
+      b:include(name='super.title')/
+  b:includable(id='description')
+    b:if(cond='data:this.description')
+      p
+        b:eval(expr='data:this.description')/
+  b:includable(id='behindImageStyle')
+    b:if(cond='data:sourceUrl')
+      b:include(cond='data:this.image' data='{ image: data:this.image, selector: ".header-widget" }' name='responsiveImageStyle')/
+      style(type='text/css').
+        .header-widget {
+          background-position: <data:blog.locale.languageAlignment/>;
+          background-repeat: no-repeat;
+          background-size: cover;
+        }

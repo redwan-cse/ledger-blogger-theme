@@ -1,24 +1,62 @@
 b:section(class='main' id='page_body' maxwidgets='1' name='Page Body' showaddelement='false')
-  b:widget(id='Blog1' locked='true' preferred='yes' title='Blog Posts' type='Blog' version='2' visible='true')
+  b:widget(id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true')
     b:widget-settings
       b:widget-setting(name='showDateHeader') false
-      b:widget-setting(name='showAuthor') true
-      b:widget-setting(name='showLabels') true
-      b:widget-setting(name='showTimestamp') true
-      b:widget-setting(name='showCommentLink') true
-      b:widget-setting(name='showBacklinks') false
-      b:widget-setting(name='showInlineAds') false
+      b:widget-setting(name='style.textcolor') #ffffff
       b:widget-setting(name='showShareButtons') false
+      b:widget-setting(name='showCommentLink') true
+      b:widget-setting(name='style.urlcolor') #ffffff
+      b:widget-setting(name='showAuthor') true
+      b:widget-setting(name='style.linkcolor') #ffffff
+      b:widget-setting(name='style.unittype') TextAndImage
+      b:widget-setting(name='style.bgcolor') #ffffff
+      b:widget-setting(name='timestampLabel')
+      b:widget-setting(name='reactionsLabel')
+      b:widget-setting(name='showAuthorProfile') false
+      b:widget-setting(name='style.layout') 1x1
+      b:widget-setting(name='showLabels') true
+      b:widget-setting(name='showLocation') false
+      b:widget-setting(name='postLabelsLabel')
+      b:widget-setting(name='showTimestamp') true
+      b:widget-setting(name='postsPerAd') 1
+      b:widget-setting(name='showBacklinks') false
+      b:widget-setting(name='style.bordercolor') #ffffff
+      b:widget-setting(name='showInlineAds') false
+      b:widget-setting(name='showReactions') false
     b:includable(id='main')
       b:include(name='super.main')/
     b:includable(id='postCommentsAndAd' var='post')
       b:include(data='post' name='post')/
       b:if(cond='data:view.isSingleItem and data:view.isPost')
-        b:include(data='post' name='comments')/
+        b:include(data='post' name='commentPicker')/
     include blog-post.pug
     include blog-comments.pug
     include blog-empty.pug
     include blog-archive.pug
+    //- Engine includables ported from Contempo so super.main finds a complete
+    //- dispatch surface instead of silent empty stubs.
+    b:includable(id='headerByline')
+      b:include(cond='data:view.isMultipleItems or data:widgets.Blog.first.headerByline.items.share' data='{ shareButtonClass: "post-share-buttons-top", overridden: true }' name='maybeAddShareButtons')/
+      b:include(name='super.headerByline')/
+    b:includable(id='snippetedPostByline')
+      b:include(name='headerByline')/
+    b:includable(id='commentsLink')
+      a.comment-link(expr:href='data:post.commentsUrl' expr:onclick='data:post.commentsUrlOnclick')
+        span.num_comments
+          b:if(cond='data:post.numberOfComments != 0')
+            b:message(name='messages.numberOfComments')
+              b:param(expr:value='data:post.numberOfComments' name='numComments')/
+          b:if(cond='data:post.numberOfComments == 0')
+            b:eval(expr='data:messages.postAComment')/
+    b:includable(id='defaultAdUnit')
+      b:with(value='"/* Done in css. */"' var='style')
+        b:include(name='super.defaultAdUnit')/
+    b:includable(id='postFooterJumpLink' var='post')
+      .jump-link
+        a(expr:href='data:post.hasJumpLink ? data:post.url fragment "more" : data:post.url' expr:title='data:post.title')
+          b:eval(expr='data:blog.jumpLinkMessage')/
+    //- G+ comments, no longer available. Retained for engine compatibility.
+    b:includable(id='iframeComments' var='post')
     //- Defensive empty includables to prevent unwanted default Blogger V3 chrome
     b:includable(id='inlineAd')/
     b:includable(id='postJumpLink')/
@@ -30,14 +68,4 @@ b:section(class='main' id='page_body' maxwidgets='1' name='Page Body' showaddele
     b:includable(id='postCommentsLink')/
     b:includable(id='postFooterAuthorProfile')/
     b:includable(id='aboutPostAuthor')/
-    b:includable(id='commentPicker')/
-    b:includable(id='addComments')/
-    b:includable(id='commentAuthorAvatar')/
-    b:includable(id='commentDeleteIcon')/
-    b:includable(id='commentsTitle')/
-    b:includable(id='commentList')/
-    b:includable(id='commentItem')/
-    b:includable(id='commentForm')/
-    b:includable(id='commentFormIframeSrc')/
-    b:includable(id='threadedCommentJs')/
-
+    b:includable(id='postShareButtons')/

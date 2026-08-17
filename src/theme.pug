@@ -13,11 +13,19 @@ html&attributes(rootAttributes)
       ]]>
     b:defaultmarkups
       include defaultmarkups/common.pug
-      include defaultmarkups/popular-posts.pug
-      include defaultmarkups/featured-post.pug
-      include defaultmarkups/contact-form.pug
+      include defaultmarkups/adsense-blog.pug
+      include defaultmarkups/blog-featured-post.pug
+      include defaultmarkups/blog-featured-popular.pug
+      include defaultmarkups/blog.pug
+      include defaultmarkups/header.pug
       include defaultmarkups/blog-archive.pug
+      include defaultmarkups/blog-search.pug
       include defaultmarkups/label.pug
+      include defaultmarkups/featured-post.pug
+      include defaultmarkups/popular-posts.pug
+      include defaultmarkups/page-list.pug
+      include defaultmarkups/profile.pug
+      include defaultmarkups/contact-form.pug
   body
     b:class(cond='data:view.isHomepage and not data:newerPageUrl' name='is-home-lead')/
     b:class(cond='data:view.isPost' name='is-post')/

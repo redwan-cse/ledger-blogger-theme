@@ -6,6 +6,9 @@ b:defaultmarkup(type='Common')
   b:includable(id='widget-title')
     b:include(name='widgetTitle')/
   b:includable(id='widgetNotAvailableInPreview')
-    div.widget-preview-placeholder
-      p
-        b:eval(expr='data:widget.title')/
+    b:if(cond='data:widget.type == "AdSense"')
+      div.vertical-ad-placeholder
+        span
+          b:message(name='messages.adsGoHere')/
+    b:if(cond='data:widget.type != "AdSense"')
+      b:include(name='super.widgetNotAvailableInPreview')/

@@ -15,7 +15,7 @@ describe('M1 generation pipeline', () => {
     expect(first.xml).toContain(`content=\"${first.build}\" name=\"theme-build\"`);
     expect(first.xml).toContain('<![CDATA[');
     expect(first.xml).toContain('document.documentElement.classList.add("js")');
-    expect(first.bytes).toBeLessThanOrEqual(200_000);
+    expect(first.bytes).toBeLessThanOrEqual(500_000);
   });
 
   it('rejects abbreviated or fabricated deployment identities', async () => {

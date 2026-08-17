@@ -115,13 +115,14 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
       expect(content).toMatch(/<b:includable id="postPagination">/);
     });
 
-    it('declares all 20 defensive empty includables to prevent unwanted Blogger chrome', async () => {
+    it('declares defensive empty includables and Contempo engine bodies (comparison rec. 1)', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       const blogWidget = xml.match(/<b:widget\b[^>]*\bid="Blog1"[\s\S]*?<\/b:widget>/);
       expect(blogWidget).not.toBeNull();
       const content = blogWidget![0];
 
-      const expectedIncludables = [
+      // Includables that must stay EMPTY (declared empty rather than omitted).
+      const expectedEmpty = [
         'inlineAd',
         'postJumpLink',
         'feedLinks',
@@ -132,6 +133,16 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
         'postCommentsLink',
         'postFooterAuthorProfile',
         'aboutPostAuthor',
+        'postShareButtons'
+      ];
+
+      for (const id of expectedEmpty) {
+        expect(content, `Blog1 must declare defensive empty includable '${id}'`).toMatch(new RegExp(`<b:includable id="${id}"\\s*\\/>`));
+      }
+
+      // Comment machinery ported from Contempo: declared with REAL bodies so the
+      // super.main dispatch chain executes instead of silently rendering nothing.
+      const expectedEngineBodies = [
         'commentPicker',
         'addComments',
         'commentAuthorAvatar',
@@ -144,9 +155,60 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
         'threadedCommentJs'
       ];
 
-      for (const id of expectedIncludables) {
-        expect(content, `Blog1 must declare defensive empty includable '${id}'`).toMatch(new RegExp(`<b:includable id="${id}"\\s*\\/>`));
+      for (const id of expectedEngineBodies) {
+        expect(content, `Blog1 must declare engine includable '${id}' with a body`).toMatch(new RegExp(`<b:includable id="${id}"(?:\\s+var="[^"]*")?>[\\s\\S]+?<\\/b:includable>`));
       }
+
+      // Remaining Contempo elements that were previously missing entirely.
+      const expectedDeclared = [
+        'headerByline',
+        'snippetedPostByline',
+        'commentsLink',
+        'defaultAdUnit',
+        'postFooterJumpLink',
+        'iframeComments',
+        'postMeta'
+      ];
+      for (const id of expectedDeclared) {
+        expect(content, `Blog1 must declare includable '${id}'`).toMatch(new RegExp(`<b:includable id="${id}"[\\s>]`));
+      }
+    });
+
+    it('carries Contempo-complete widget-settings and Attribution (comparison rec. 2)', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const blogWidget = xml.match(/<b:widget\b[^>]*\bid="Blog1"[\s\S]*?<\/b:widget>/);
+      expect(blogWidget).not.toBeNull();
+      const content = blogWidget![0];
+      const expectedSettings = [
+        'showDateHeader',
+        'style.textcolor',
+        'showShareButtons',
+        'showCommentLink',
+        'style.urlcolor',
+        'showAuthor',
+        'style.linkcolor',
+        'style.unittype',
+        'style.bgcolor',
+        'timestampLabel',
+        'reactionsLabel',
+        'showAuthorProfile',
+        'style.layout',
+        'showLabels',
+        'showLocation',
+        'postLabelsLabel',
+        'showTimestamp',
+        'postsPerAd',
+        'showBacklinks',
+        'style.bordercolor',
+        'showInlineAds',
+        'showReactions'
+      ];
+      for (const setting of expectedSettings) {
+        expect(content, `Blog1 must declare widget-setting '${setting}'`).toContain(`<b:widget-setting name="${setting}">`);
+      }
+      const attribution = xml.match(/<b:widget\b[^>]*\bid="Attribution1"[^>]*>/);
+      expect(attribution, 'Footer must declare the Attribution widget').not.toBeNull();
+      expect(attribution![0]).toContain('version="2"');
     });
   });
 });

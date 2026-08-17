@@ -1,5 +1,9 @@
+b:includable(id='postMeta' var='post')
+  b:include(data='post' name='postMetadataJSON')/
+
 b:includable(id='post' var='post')
   article.post(itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting')
+    b:include(name='postMeta' data='post')/
     b:include(name='postHeader' data='post')/
     b:include(name='postTitle' data='post')/
     b:if(cond='data:view.isSingleItem')
@@ -40,3 +44,5 @@ b:includable(id='postFooter' var='post')
         b:loop(values='data:post.labels' var='label')
           a.label-link(expr:href='data:label.url' rel='tag')
             b:eval(expr='data:label.name')/
+  b:if(cond='not data:view.isSingleItem')
+    b:include(data='post' name='postFooterJumpLink')/

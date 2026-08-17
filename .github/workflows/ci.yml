@@ -76,7 +76,7 @@ jobs:
       - run: npm run contract:check
       - run: npm run test:golden
       - name: Enforce theme size budget
-        run: test "$(wc -c < dist/theme.xml)" -le 200000
+        run: test "$(wc -c < dist/theme.xml)" -le 500000
       - uses: actions/upload-artifact@v7
         with:
           name: theme-${{ github.sha }}

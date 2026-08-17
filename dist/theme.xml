@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale.language" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+caad086318925af80d3016aebcffc1feaebbabc9" name="theme-build"/>
+    <meta content="0.0.0+76865555d86d3ae8df7c7aacd98421c9f0f38504" name="theme-build"/>
     <title>
       <b:eval expr="data:view.title.escaped"/>
     </title>
@@ -123,7 +123,7 @@
     </b:if>
     <b:skin version="0.0.0">
       <![CDATA[
-*{box-sizing:border-box}:root{color:oklch(.23 .012 85);background:oklch(.984 .004 85)}body{margin:0;min-height:100vh;font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;line-height:1.5}img,svg{max-width:100%;display:block}a{color:oklch(.46 .148 25);text-decoration-thickness:1px;text-underline-offset:.15em}pre,code{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",consolas,monospace}pre{overflow-x:auto;background:oklch(.962 .006 85);padding:16px;border-radius:2px;white-space:pre}.skip-link{position:absolute;left:8px;top:-48px;z-index:10;background:oklch(.23 .012 85);color:oklch(.984 .004 85);padding:8px 16px;border-radius:2px;transition:top 160ms cubic-bezier(0.25, 1, 0.5, 1)}.skip-link:focus{top:8px}:focus-visible{outline:2px solid oklch(.46 .148 25);outline-offset:2px}a,button,.label-link,.newer-link,.older-link{min-height:44px;display:inline-flex;align-items:center}@media(prefers-reduced-motion: reduce){*{transition-duration:.001ms !important;animation-duration:.001ms !important}}.header-outer{padding:32px 16px 24px;border-bottom:1px solid oklch(.89 .006 85)}.site-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-weight:700;font-size:1.777rem;margin:0;line-height:1.2}.site-title a{color:oklch(.23 .012 85);text-decoration:none}.site-tagline{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;color:oklch(.48 .01 85);font-size:.8125rem;letter-spacing:.01em;margin:8px 0 0}.nav-container,.intro-container,.topics-container,.cta-container,.footer-container{max-width:1280px;margin:0 auto;padding:16px}.nav-container{border-bottom:1px solid oklch(.89 .006 85);padding-top:8px;padding-bottom:8px}.nav-container .nav-list{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}.nav-container .nav-link{color:oklch(.23 .012 85);font-size:.8125rem;text-decoration:none}.nav-container .nav-link:hover{color:oklch(.46 .148 25)}.intro-container .intro-content{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.15rem;line-height:1.6;max-width:68ch}.topics-container{padding-top:8px;padding-bottom:8px}.topics-container .topics-list,.topics-container .topics-cloud{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}.topics-container .topic-pill{font-size:.8125rem;letter-spacing:.01em;color:oklch(.48 .01 85);text-decoration:none;background:oklch(.962 .006 85);padding:4px 12px;border-radius:999px;gap:8px}.topics-container .topic-pill:hover{color:oklch(.46 .148 25);background:oklch(.94 .028 25)}.cta-container .cta-box{background:oklch(.962 .006 85);border-radius:4px;padding:32px;max-width:68ch}.footer-container{border-top:1px solid oklch(.89 .006 85);color:oklch(.48 .01 85);font-size:.8125rem;padding-bottom:112px}.footer-container a{color:oklch(.23 .012 85);text-decoration:none}.footer-container a:hover{color:oklch(.46 .148 25)}.widget-title{font-size:.8125rem;letter-spacing:.05em;text-transform:uppercase;color:oklch(.48 .01 85);margin:0 0 16px}.popular-posts-list{list-style:none;margin:0;padding:0}.popular-post-item{border-bottom:1px solid oklch(.89 .006 85);padding:12px 0}.popular-post-item:last-child{border-bottom:none}.popular-post-entry{display:flex;gap:12px;align-items:flex-start}.popular-post-thumbnail{border-radius:2px;object-fit:cover}.popular-post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1rem;margin:0 0 4px}.popular-post-title a{color:oklch(.23 .012 85);text-decoration:none}.popular-post-title a:hover{color:oklch(.46 .148 25)}.popular-post-snippet{font-size:.8125rem;color:oklch(.48 .01 85);margin:0}.featured-post-card{background:oklch(.962 .006 85);border-radius:4px;padding:24px}.featured-post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.333rem;margin:12px 0 8px}.featured-post-title a{color:oklch(.23 .012 85);text-decoration:none}.featured-post-title a:hover{color:oklch(.46 .148 25)}.featured-post-snippet{font-size:1.0625rem;color:oklch(.23 .012 85);line-height:1.7;margin:0}.contact-form{max-width:480px}.contact-form .contact-form-group{margin-bottom:16px}.contact-form .contact-form-label{display:block;font-size:.8125rem;color:oklch(.23 .012 85);margin-bottom:4px}.contact-form input[type=text],.contact-form input[type=email],.contact-form textarea{width:100%;font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:1rem;padding:8px 12px;border:1px solid oklch(.89 .006 85);border-radius:2px;background:oklch(.984 .004 85);color:oklch(.23 .012 85);min-height:44px}.contact-form input[type=text]:focus,.contact-form input[type=email]:focus,.contact-form textarea:focus{outline:2px solid oklch(.46 .148 25);outline-offset:2px}.contact-form textarea{min-height:120px;resize:vertical}.contact-form .contact-form-button-submit{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.875rem;font-weight:600;padding:8px 24px;background:oklch(.46 .148 25);color:oklch(.984 .004 85);border:none;border-radius:2px;cursor:pointer;min-height:44px;transition:background 160ms cubic-bezier(0.25, 1, 0.5, 1)}.contact-form .contact-form-button-submit:hover{background:oklch(.4 .148 25)}.blog-archive-details summary{cursor:pointer;font-size:.8125rem;font-weight:600;min-height:44px}.blog-archive-list,.blog-archive-tree,.blog-archive-sublist{list-style:none;padding-left:16px;margin:8px 0}.blog-archive-item,.blog-archive-node,.blog-archive-subitem{margin:8px 0;display:flex;align-items:center;gap:8px}.blog-archive-item a,.blog-archive-node a,.blog-archive-subitem a{color:oklch(.23 .012 85);text-decoration:none}.blog-archive-item a:hover,.blog-archive-node a:hover,.blog-archive-subitem a:hover{color:oklch(.46 .148 25)}.blog-archive-count{font-size:.8125rem;color:oklch(.48 .01 85)}.nav-container:empty,.intro-container:empty,.topics-container:empty,.cta-container:empty,.footer-container:empty,.section:empty,.no-items.section{display:none !important;margin:0 !important;padding:0 !important;border:0 !important}.nav-container:has(>.no-items.section),.intro-container:has(>.no-items.section),.topics-container:has(>.no-items.section),.cta-container:has(>.no-items.section),.footer-container:has(>.no-items.section){display:none !important;margin:0 !important;padding:0 !important;border:0 !important}.main-content{max-width:1280px;margin:0 auto;padding:32px 16px 112px}@media(max-width: 639px){.main-content{padding:24px 20px 72px}}@media(min-width: 640px)and (max-width: 1023px){.main-content{padding:48px 48px 112px}}@media(min-width: 1024px){.main-content{display:grid;grid-template-columns:repeat(12, 1fr);column-gap:32px;padding:72px 32px 112px}}.post,.post-row{border-bottom:1px solid oklch(.89 .006 85);padding:24px 0}@media(min-width: 1024px){.post,.post-row{grid-column:1/-1}}.post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-weight:600;font-size:1.15rem;line-height:1.3;margin:0 0 8px}.post-title a{color:oklch(.23 .012 85);text-decoration:none}.post-title a:hover{color:oklch(.46 .148 25)}.post-title{display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.post-date{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;color:oklch(.48 .01 85);font-size:.8125rem;letter-spacing:.01em}.post-excerpt{display:none}.post-footer{margin-top:12px}.post-labels{display:flex;flex-wrap:wrap;gap:8px}.label-link{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.8125rem;letter-spacing:.01em;color:oklch(.48 .01 85);text-decoration:none;background:oklch(.962 .006 85);padding:4px 12px;border-radius:999px}.label-link:hover{color:oklch(.46 .148 25);background:oklch(.94 .028 25)}body.is-home-lead .post:first-of-type{padding-top:32px}@media(min-width: 1024px){body.is-home-lead .post:first-of-type{grid-column:1/9}}body.is-home-lead .post:first-of-type .post-title{font-size:clamp(1.4rem,1.1rem + 1.4vw,1.777rem);-webkit-line-clamp:unset;line-clamp:unset}body.is-home-lead .post:first-of-type .post-excerpt{display:block;font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.0625rem;line-height:1.7;max-width:68ch;color:oklch(.23 .012 85);margin:12px 0;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}@media(max-width: 639px){body.is-home-lead .post:first-of-type .post-excerpt{display:none}body.is-home-lead .post:first-of-type .post-title{font-size:1.15rem;-webkit-line-clamp:3;line-clamp:3}}.is-post .post,.is-page .post{border-bottom:none}@media(min-width: 1024px){.is-post .post,.is-page .post{grid-column:3/11}}.is-post .post .post-title,.is-page .post .post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-weight:700;font-size:clamp(2rem,1.4rem + 2.6vw,3.15rem);line-height:1.15;-webkit-line-clamp:unset;line-clamp:unset}.post-body{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.0625rem;line-height:1.7;max-width:68ch}.post-body h1{font-size:clamp(2rem,1.4rem + 2.6vw,3.15rem);font-weight:700;line-height:1.15;margin:32px 0 16px}.post-body h2{font-size:1.777rem;font-weight:650;line-height:1.25;margin:32px 0 12px}.post-body h3{font-size:1.333rem;font-weight:650;line-height:1.3;margin:24px 0 8px}.post-body p{margin:0 0 16px}.post-body blockquote{background:oklch(.962 .006 85);border-left:3px solid oklch(.46 .148 25);font-style:italic;padding:16px 24px;margin:24px 0}.post-body table{width:100%;border-collapse:collapse;margin:24px 0}.post-body table th,.post-body table td{border:1px solid oklch(.89 .006 85);padding:8px 12px;text-align:left}.post-body table th{background:oklch(.962 .006 85);font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-weight:600}.post-body pre{overflow-x:auto;background:oklch(.962 .006 85);padding:16px;border-radius:2px;white-space:pre;margin:24px 0}.post-body code{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",consolas,monospace;background:oklch(.962 .006 85);padding:.15em .35em;border-radius:2px;font-size:.9em}.post-body pre code{background:rgba(0,0,0,0);padding:0;font-size:inherit}.post-body ul,.post-body ol{margin:0 0 16px;padding-left:24px}.post-body ul li,.post-body ol li{margin-bottom:8px}.post-body hr{border:none;border-top:1px solid oklch(.89 .006 85);margin:48px 0}.post-body img{max-width:100%;height:auto;margin:24px 0}#comments,.comments-section{border-top:1px solid oklch(.89 .006 85);margin-top:72px;padding-top:32px}@media(min-width: 1024px){#comments,.comments-section{grid-column:3/11}}.comments-title{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.8125rem;letter-spacing:.01em;color:oklch(.48 .01 85);text-transform:uppercase;margin:0 0 24px}.comment{border-bottom:1px solid oklch(.89 .006 85);padding:16px 0}.comment-tombstone{color:oklch(.48 .01 85);font-style:italic}.comment-meta{color:oklch(.48 .01 85);font-size:.8125rem;margin-top:8px}.comment-form{margin-top:24px}.comment-form a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;background:oklch(.46 .148 25);color:oklch(.984 .004 85);text-decoration:none;border-radius:2px;transition:background 160ms cubic-bezier(0.25, 1, 0.5, 1)}.comment-form a:hover{background:oklch(.4 .148 25)}.empty-state{grid-column:1/-1;background:oklch(.962 .006 85);border-radius:4px;padding:48px 24px;text-align:left;max-width:68ch}.empty-state h2{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.333rem;margin:0 0 12px}.empty-state p{color:oklch(.48 .01 85);margin:0 0 16px}.empty-state p:last-child{margin-bottom:0}.search-box,.search-form{margin-top:16px;display:flex;gap:8px}.search-box input[type=text],.search-box input[type=search],.search-form input[type=text],.search-form input[type=search]{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:1rem;padding:8px 12px;border:1px solid oklch(.89 .006 85);border-radius:2px;background:oklch(.984 .004 85);color:oklch(.23 .012 85);min-height:44px;flex:1;max-width:360px}.search-box input[type=text]:focus,.search-box input[type=search]:focus,.search-form input[type=text]:focus,.search-form input[type=search]:focus{outline:2px solid oklch(.46 .148 25);outline-offset:2px}.search-box button,.search-box input[type=submit],.search-form button,.search-form input[type=submit]{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.875rem;font-weight:600;padding:8px 16px;background:oklch(.46 .148 25);color:oklch(.984 .004 85);border:none;border-radius:2px;cursor:pointer;min-height:44px;transition:background 160ms cubic-bezier(0.25, 1, 0.5, 1)}.search-box button:hover,.search-box input[type=submit]:hover,.search-form button:hover,.search-form input[type=submit]:hover{background:oklch(.4 .148 25)}.pagination{grid-column:1/-1;display:flex;justify-content:space-between;margin-top:32px;padding-top:24px;border-top:1px solid oklch(.89 .006 85)}.newer-link,.older-link{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.8125rem;letter-spacing:.01em;color:oklch(.23 .012 85);text-decoration:none}.newer-link:hover,.older-link:hover{color:oklch(.46 .148 25)}.older-link{margin-left:auto}
+*{box-sizing:border-box}:root{color:oklch(.23 .012 85);background:oklch(.984 .004 85)}body{margin:0;min-height:100vh;font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;line-height:1.5}img,svg{max-width:100%;display:block}a{color:oklch(.46 .148 25);text-decoration-thickness:1px;text-underline-offset:.15em}pre,code{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",consolas,monospace}pre{overflow-x:auto;background:oklch(.962 .006 85);padding:16px;border-radius:2px;white-space:pre}.skip-link{position:absolute;left:8px;top:-48px;z-index:10;background:oklch(.23 .012 85);color:oklch(.984 .004 85);padding:8px 16px;border-radius:2px;transition:top 180ms cubic-bezier(0.25, 1, 0.5, 1)}.skip-link:focus{top:8px}:focus-visible{outline:2px solid oklch(.46 .148 25);outline-offset:2px}a,button,.label-link,.newer-link,.older-link{min-height:44px;display:inline-flex;align-items:center}@media(prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}.header-outer{padding:32px 16px 24px;border-bottom:1px solid oklch(.89 .006 85)}.site-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-weight:700;font-size:1.777rem;margin:0;line-height:1.2}.site-title a{color:oklch(.23 .012 85);text-decoration:none}.site-tagline{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;color:oklch(.48 .01 85);font-size:.8125rem;letter-spacing:.01em;margin:8px 0 0}.nav-container,.intro-container,.topics-container,.cta-container,.footer-container{max-width:1280px;margin:0 auto;padding:16px}.nav-container{border-bottom:1px solid oklch(.89 .006 85);padding-top:8px;padding-bottom:8px}.nav-container .nav-list{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}.nav-container .nav-link{color:oklch(.23 .012 85);font-size:.8125rem;text-decoration:none}.nav-container .nav-link:hover{color:oklch(.46 .148 25)}.intro-container .intro-content{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.15rem;line-height:1.6;max-width:68ch}.topics-container{padding-top:8px;padding-bottom:8px}.topics-container .topics-list,.topics-container .topics-cloud{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}.topics-container .topic-pill{position:relative;overflow:hidden;display:inline-flex;align-items:center;font-size:.8125rem;letter-spacing:.01em;color:oklch(.48 .01 85);text-decoration:none;background:oklch(.962 .006 85);padding:4px 12px;border-radius:999px;gap:8px;transition:background-color 120ms cubic-bezier(0.25, 1, 0.5, 1),color 120ms cubic-bezier(0.25, 1, 0.5, 1),transform 120ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 120ms cubic-bezier(0.25, 1, 0.5, 1)}.topics-container .topic-pill:hover{color:oklch(.46 .148 25);background-color:oklch(.94 .028 25);transform:translateY(-1px);box-shadow:0 2px 6px oklch(.46 .148 25/.12)}.topics-container .topic-pill:active{transform:scale(0.96);box-shadow:0 1px 2px oklch(.46 .148 25/.08)}.topics-container .topic-pill::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at center, oklch(46% 0.148 25deg / 0.25) 10%, transparent 10.01%);transform:scale(10);opacity:0;transition:transform .4s cubic-bezier(0.25, 1, 0.5, 1),opacity .6s cubic-bezier(0.25, 1, 0.5, 1);pointer-events:none}.topics-container .topic-pill:active::after{transform:scale(0);opacity:1;transition:0s}.cta-container .cta-box{background:oklch(.962 .006 85);border:1px solid oklch(.89 .006 85);border-radius:4px;padding:32px;max-width:68ch;box-shadow:0 1px 3px oklch(.23 .012 85/.05),0 1px 2px oklch(.23 .012 85/.08);transition:box-shadow 180ms cubic-bezier(0.25, 1, 0.5, 1),transform 180ms cubic-bezier(0.25, 1, 0.5, 1)}.cta-container .cta-box:hover{box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);transform:translateY(-1px)}.footer-container{border-top:1px solid oklch(.89 .006 85);color:oklch(.48 .01 85);font-size:.8125rem;padding-bottom:112px}.footer-container a{color:oklch(.23 .012 85);text-decoration:none}.footer-container a:hover{color:oklch(.46 .148 25)}.widget-title{font-size:.8125rem;letter-spacing:.05em;text-transform:uppercase;color:oklch(.48 .01 85);margin:0 0 16px}.popular-posts-list{list-style:none;margin:0;padding:0}.popular-post-item{border-bottom:1px solid oklch(.89 .006 85);padding:12px 0}.popular-post-item:last-child{border-bottom:none}.popular-post-entry{display:flex;gap:12px;align-items:flex-start;padding:8px;border-radius:4px;transition:background-color 120ms cubic-bezier(0.25, 1, 0.5, 1),transform 120ms cubic-bezier(0.25, 1, 0.5, 1)}.popular-post-entry:hover{background-color:oklch(.962 .006 85);transform:translateX(3px)}.popular-post-thumbnail-link{display:block;overflow:hidden;border-radius:2px;flex-shrink:0}.popular-post-thumbnail{border-radius:2px;object-fit:cover;transition:transform 180ms cubic-bezier(0.25, 1, 0.5, 1)}.popular-post-entry:hover .popular-post-thumbnail{transform:scale(1.04)}.popular-post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1rem;margin:0 0 4px}.popular-post-title a{color:oklch(.23 .012 85);text-decoration:none}.popular-post-title a:hover{color:oklch(.46 .148 25)}.popular-post-snippet{font-size:.8125rem;color:oklch(.48 .01 85);margin:0}.featured-post-card{background:oklch(.962 .006 85);border:1px solid oklch(.89 .006 85);border-radius:4px;padding:24px;box-shadow:0 1px 3px oklch(.23 .012 85/.05),0 1px 2px oklch(.23 .012 85/.08);transition:transform 180ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 180ms cubic-bezier(0.25, 1, 0.5, 1),border-color 180ms cubic-bezier(0.25, 1, 0.5, 1)}.featured-post-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);border-color:oklch(.8 .01 85)}.featured-post-thumbnail-link{display:block;overflow:hidden;border-radius:2px;margin-bottom:12px}.featured-post-thumbnail{width:100%;height:auto;object-fit:cover;transition:transform 240ms cubic-bezier(0.25, 1, 0.5, 1)}.featured-post-card:hover .featured-post-thumbnail{transform:scale(1.03)}.featured-post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.333rem;margin:12px 0 8px}.featured-post-title a{color:oklch(.23 .012 85);text-decoration:none}.featured-post-title a:hover{color:oklch(.46 .148 25)}.featured-post-snippet{font-size:1.0625rem;color:oklch(.23 .012 85);line-height:1.7;margin:0}.contact-form{max-width:480px}.contact-form .contact-form-group{margin-bottom:16px}.contact-form .contact-form-label{display:block;font-size:.8125rem;color:oklch(.23 .012 85);margin-bottom:4px}.contact-form input[type=text],.contact-form input[type=email],.contact-form textarea{width:100%;font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:1rem;padding:8px 12px;border:1px solid oklch(.89 .006 85);border-radius:2px;background:oklch(.984 .004 85);color:oklch(.23 .012 85);min-height:44px}.contact-form input[type=text]:focus,.contact-form input[type=email]:focus,.contact-form textarea:focus{outline:2px solid oklch(.46 .148 25);outline-offset:2px}.contact-form textarea{min-height:120px;resize:vertical}.contact-form .contact-form-button-submit{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.875rem;font-weight:600;padding:8px 24px;background:oklch(.46 .148 25);color:oklch(.984 .004 85);border:none;border-radius:2px;cursor:pointer;min-height:44px;box-shadow:0 1px 3px oklch(.23 .012 85/.05),0 1px 2px oklch(.23 .012 85/.08);transition:transform 120ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 120ms cubic-bezier(0.25, 1, 0.5, 1),background-color 120ms cubic-bezier(0.25, 1, 0.5, 1)}.contact-form .contact-form-button-submit:hover{background-color:oklch(.4 .148 25);box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);transform:translateY(-1px)}.contact-form .contact-form-button-submit:active{transform:translateY(1px) scale(0.96);box-shadow:0 1px 2px oklch(.23 .012 85/.15)}.blog-archive-details summary{cursor:pointer;font-size:.8125rem;font-weight:600;min-height:44px;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:4px;background:oklch(.962 .006 85);transition:background-color 120ms cubic-bezier(0.25, 1, 0.5, 1)}.blog-archive-details summary::-webkit-details-marker{display:none}.blog-archive-details summary::marker{display:none}.blog-archive-details summary::after{content:"";display:inline-block;width:6px;height:6px;border-right:2px solid oklch(.48 .01 85);border-bottom:2px solid oklch(.48 .01 85);transform:rotate(-45deg);transition:transform 240ms cubic-bezier(0.25, 1, 0.5, 1),border-color 120ms cubic-bezier(0.25, 1, 0.5, 1)}.blog-archive-details summary:hover{background-color:oklch(.94 .028 25)}.blog-archive-details summary:hover::after{border-color:oklch(.46 .148 25)}.blog-archive-details[open]>summary::after{transform:rotate(45deg)}.blog-archive-list,.blog-archive-tree{list-style:none;padding-left:16px;margin:8px 0}.blog-archive-sublist{list-style:none;padding-left:16px;margin:8px 0;border-left:1px solid oklch(.89 .006 85);animation:accordionExpand 240ms cubic-bezier(0.25, 1, 0.5, 1)}@keyframes accordionExpand{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}.blog-archive-item,.blog-archive-node,.blog-archive-subitem{margin:8px 0;display:flex;align-items:center;gap:8px}.blog-archive-item a,.blog-archive-node a,.blog-archive-subitem a{color:oklch(.23 .012 85);text-decoration:none}.blog-archive-item a:hover,.blog-archive-node a:hover,.blog-archive-subitem a:hover{color:oklch(.46 .148 25)}.blog-archive-count{font-size:.8125rem;color:oklch(.48 .01 85)}.profile-card{background:oklch(.962 .006 85);border:1px solid oklch(.89 .006 85);border-radius:4px;padding:24px;box-shadow:0 1px 3px oklch(.23 .012 85/.05),0 1px 2px oklch(.23 .012 85/.08);transition:box-shadow 180ms cubic-bezier(0.25, 1, 0.5, 1),transform 180ms cubic-bezier(0.25, 1, 0.5, 1)}.profile-card:hover{box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);transform:translateY(-1px)}.pill-button{position:relative;overflow:hidden;display:inline-flex;align-items:center;font-size:.8125rem;letter-spacing:.01em;color:oklch(.48 .01 85);text-decoration:none;background:oklch(.962 .006 85);padding:4px 12px;border-radius:999px;gap:8px;transition:background-color 120ms cubic-bezier(0.25, 1, 0.5, 1),color 120ms cubic-bezier(0.25, 1, 0.5, 1),transform 120ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 120ms cubic-bezier(0.25, 1, 0.5, 1)}.pill-button:hover{color:oklch(.46 .148 25);background-color:oklch(.94 .028 25);transform:translateY(-1px);box-shadow:0 2px 6px oklch(.46 .148 25/.12)}.pill-button:active{transform:scale(0.96);box-shadow:0 1px 2px oklch(.46 .148 25/.08)}@media(max-width: 639px){.mobile-nav-drawer{position:fixed;top:0;left:0;width:280px;height:100vh;background:oklch(.984 .004 85/.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-right:1px solid oklch(.89 .006 85);box-shadow:0 8px 24px oklch(.23 .012 85/.12),0 4px 8px oklch(.23 .012 85/.06);transform:translateX(-100%);transition:transform 240ms cubic-bezier(0.25, 1, 0.5, 1);z-index:100}.mobile-nav-drawer.is-open{transform:translateX(0)}}.nav-container:empty,.intro-container:empty,.topics-container:empty,.cta-container:empty,.footer-container:empty,.section:empty,.no-items.section{display:none !important;margin:0 !important;padding:0 !important;border:0 !important}.nav-container:has(>.no-items.section),.intro-container:has(>.no-items.section),.topics-container:has(>.no-items.section),.cta-container:has(>.no-items.section),.footer-container:has(>.no-items.section){display:none !important;margin:0 !important;padding:0 !important;border:0 !important}.main-content{max-width:1280px;margin:0 auto;padding:32px 16px 112px}@media(max-width: 639px){.main-content{padding:24px 20px 72px}}@media(min-width: 640px)and (max-width: 1023px){.main-content{padding:48px 48px 112px}}@media(min-width: 1024px){.main-content{display:grid;grid-template-columns:repeat(12, 1fr);column-gap:32px;padding:72px 32px 112px}}.post,.post-row{border-bottom:1px solid oklch(.89 .006 85);padding:24px 0;transition:border-color 120ms cubic-bezier(0.25, 1, 0.5, 1),background-color 120ms cubic-bezier(0.25, 1, 0.5, 1)}@media(min-width: 1024px){.post,.post-row{grid-column:1/-1}}.post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-weight:600;font-size:1.15rem;line-height:1.3;margin:0 0 8px}.post-title a{color:oklch(.23 .012 85);text-decoration:none;transition:color 120ms cubic-bezier(0.25, 1, 0.5, 1)}.post-title a:hover{color:oklch(.46 .148 25)}.post-title{display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.post-date{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;color:oklch(.48 .01 85);font-size:.8125rem;letter-spacing:.01em}.post-excerpt{display:none}.post-footer{margin-top:12px}.post-labels{display:flex;flex-wrap:wrap;gap:8px}.label-link{position:relative;overflow:hidden;display:inline-flex;align-items:center;font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.8125rem;letter-spacing:.01em;color:oklch(.48 .01 85);text-decoration:none;background:oklch(.962 .006 85);padding:4px 12px;border-radius:999px;transition:background-color 120ms cubic-bezier(0.25, 1, 0.5, 1),color 120ms cubic-bezier(0.25, 1, 0.5, 1),transform 120ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 120ms cubic-bezier(0.25, 1, 0.5, 1)}.label-link:hover{color:oklch(.46 .148 25);background-color:oklch(.94 .028 25);transform:translateY(-1px);box-shadow:0 2px 6px oklch(.46 .148 25/.12)}.label-link:active{transform:scale(0.96);box-shadow:0 1px 2px oklch(.46 .148 25/.08)}.label-link::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at center, oklch(46% 0.148 25deg / 0.25) 10%, transparent 10.01%);transform:scale(10);opacity:0;transition:transform .4s cubic-bezier(0.25, 1, 0.5, 1),opacity .6s cubic-bezier(0.25, 1, 0.5, 1);pointer-events:none}.label-link:active::after{transform:scale(0);opacity:1;transition:0s}body.is-home-lead .post:first-of-type{padding-top:32px}@media(min-width: 1024px){body.is-home-lead .post:first-of-type{grid-column:1/9}}body.is-home-lead .post:first-of-type .post-title{font-size:clamp(1.4rem,1.1rem + 1.4vw,1.777rem);-webkit-line-clamp:unset;line-clamp:unset}body.is-home-lead .post:first-of-type .post-excerpt{display:block;font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.0625rem;line-height:1.7;max-width:68ch;color:oklch(.23 .012 85);margin:12px 0;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}@media(max-width: 639px){body.is-home-lead .post:first-of-type .post-excerpt{display:none}body.is-home-lead .post:first-of-type .post-title{font-size:1.15rem;-webkit-line-clamp:3;line-clamp:3}}.is-post .post,.is-page .post{border-bottom:none}@media(min-width: 1024px){.is-post .post,.is-page .post{grid-column:3/11}}.is-post .post .post-title,.is-page .post .post-title{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-weight:700;font-size:clamp(2rem,1.4rem + 2.6vw,3.15rem);line-height:1.15;-webkit-line-clamp:unset;line-clamp:unset}.post-body{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.0625rem;line-height:1.7;max-width:68ch}.post-body h1{font-size:clamp(2rem,1.4rem + 2.6vw,3.15rem);font-weight:700;line-height:1.15;margin:32px 0 16px}.post-body h2{font-size:1.777rem;font-weight:650;line-height:1.25;margin:32px 0 12px}.post-body h3{font-size:1.333rem;font-weight:650;line-height:1.3;margin:24px 0 8px}.post-body p{margin:0 0 16px}.post-body blockquote{background:oklch(.962 .006 85);border-left:3px solid oklch(.46 .148 25);font-style:italic;padding:16px 24px;margin:24px 0}.post-body table{width:100%;border-collapse:collapse;margin:24px 0}.post-body table th,.post-body table td{border:1px solid oklch(.89 .006 85);padding:8px 12px;text-align:left}.post-body table th{background:oklch(.962 .006 85);font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-weight:600}.post-body pre{overflow-x:auto;background:oklch(.962 .006 85);padding:16px;border-radius:2px;white-space:pre;margin:24px 0}.post-body code{font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",consolas,monospace;background:oklch(.962 .006 85);padding:.15em .35em;border-radius:2px;font-size:.9em}.post-body pre code{background:rgba(0,0,0,0);padding:0;font-size:inherit}.post-body ul,.post-body ol{margin:0 0 16px;padding-left:24px}.post-body ul li,.post-body ol li{margin-bottom:8px}.post-body hr{border:none;border-top:1px solid oklch(.89 .006 85);margin:48px 0}.post-body img{max-width:100%;height:auto;margin:24px 0}#comments,.comments-section{border-top:1px solid oklch(.89 .006 85);margin-top:72px;padding-top:32px}@media(min-width: 1024px){#comments,.comments-section{grid-column:3/11}}.comments-title{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.8125rem;letter-spacing:.01em;color:oklch(.48 .01 85);text-transform:uppercase;margin:0 0 24px}.comment{border-bottom:1px solid oklch(.89 .006 85);padding:16px 0}.comment-tombstone{color:oklch(.48 .01 85);font-style:italic}.comment-meta{color:oklch(.48 .01 85);font-size:.8125rem;margin-top:8px}.comment-form{margin-top:24px}.comment-form a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;background:oklch(.46 .148 25);color:oklch(.984 .004 85);text-decoration:none;border-radius:2px;box-shadow:0 1px 3px oklch(.23 .012 85/.05),0 1px 2px oklch(.23 .012 85/.08);transition:transform 120ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 120ms cubic-bezier(0.25, 1, 0.5, 1),background-color 120ms cubic-bezier(0.25, 1, 0.5, 1)}.comment-form a:hover{background-color:oklch(.4 .148 25);box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);transform:translateY(-1px)}.comment-form a:active{transform:translateY(1px) scale(0.96);box-shadow:0 1px 2px oklch(.23 .012 85/.15)}.empty-state{grid-column:1/-1;background:oklch(.962 .006 85);border:1px solid oklch(.89 .006 85);border-radius:4px;padding:48px 24px;text-align:left;max-width:68ch;box-shadow:0 1px 3px oklch(.23 .012 85/.05),0 1px 2px oklch(.23 .012 85/.08);transition:box-shadow 180ms cubic-bezier(0.25, 1, 0.5, 1),transform 180ms cubic-bezier(0.25, 1, 0.5, 1)}.empty-state:hover{box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);transform:translateY(-1px)}.empty-state h2{font-family:georgia,"Iowan Old Style","Palatino Linotype",palatino,serif;font-size:1.333rem;margin:0 0 12px}.empty-state p{color:oklch(.48 .01 85);margin:0 0 16px}.empty-state p:last-child{margin-bottom:0}.search-box,.search-form{margin-top:16px;display:flex;gap:8px}.search-box input[type=text],.search-box input[type=search],.search-form input[type=text],.search-form input[type=search]{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:1rem;padding:8px 12px;border:1px solid oklch(.89 .006 85);border-radius:2px;background:oklch(.984 .004 85);color:oklch(.23 .012 85);min-height:44px;flex:1;width:240px;max-width:360px;transition:width 240ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 240ms cubic-bezier(0.25, 1, 0.5, 1),border-color 120ms cubic-bezier(0.25, 1, 0.5, 1)}.search-box input[type=text]:focus,.search-box input[type=search]:focus,.search-form input[type=text]:focus,.search-form input[type=search]:focus{width:360px;border-color:oklch(.46 .148 25);box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);outline:2px solid oklch(.46 .148 25);outline-offset:2px}.search-box button,.search-box input[type=submit],.search-form button,.search-form input[type=submit]{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.875rem;font-weight:600;padding:8px 16px;background:oklch(.46 .148 25);color:oklch(.984 .004 85);border:none;border-radius:2px;cursor:pointer;min-height:44px;box-shadow:0 1px 3px oklch(.23 .012 85/.05),0 1px 2px oklch(.23 .012 85/.08);transition:transform 120ms cubic-bezier(0.25, 1, 0.5, 1),box-shadow 120ms cubic-bezier(0.25, 1, 0.5, 1),background-color 120ms cubic-bezier(0.25, 1, 0.5, 1)}.search-box button:hover,.search-box input[type=submit]:hover,.search-form button:hover,.search-form input[type=submit]:hover{background-color:oklch(.4 .148 25);box-shadow:0 4px 12px oklch(.23 .012 85/.08),0 2px 4px oklch(.23 .012 85/.05);transform:translateY(-1px)}.search-box button:active,.search-box input[type=submit]:active,.search-form button:active,.search-form input[type=submit]:active{transform:translateY(1px) scale(0.96);box-shadow:0 1px 2px oklch(.23 .012 85/.15)}.pagination{grid-column:1/-1;display:flex;justify-content:space-between;margin-top:32px;padding-top:24px;border-top:1px solid oklch(.89 .006 85)}.newer-link{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.8125rem;letter-spacing:.01em;color:oklch(.23 .012 85);text-decoration:none;transition:color 120ms cubic-bezier(0.25, 1, 0.5, 1),transform 120ms cubic-bezier(0.25, 1, 0.5, 1)}.newer-link:hover{color:oklch(.46 .148 25);transform:translateX(-4px)}.older-link{font-family:-apple-system,system-ui,"Segoe UI",roboto,sans-serif;font-size:.8125rem;letter-spacing:.01em;color:oklch(.23 .012 85);text-decoration:none;margin-left:auto;transition:color 120ms cubic-bezier(0.25, 1, 0.5, 1),transform 120ms cubic-bezier(0.25, 1, 0.5, 1)}.older-link:hover{color:oklch(.46 .148 25);transform:translateX(4px)}
       ]]>
     </b:skin>
     <b:defaultmarkups>
@@ -139,129 +139,137 @@
           <b:include name="widgetTitle"/>
         </b:includable>
         <b:includable id="widgetNotAvailableInPreview">
-          <div class="widget-preview-placeholder">
-            <p>
-              <b:eval expr="data:widget.title"/>
-            </p>
-          </div>
-        </b:includable>
-      </b:defaultmarkup>
-      <b:defaultmarkup type="PopularPosts">
-        <b:includable id="main" var="this">
-          <div class="widget-content popular-posts-content">
-            <b:include name="widgetTitle"/>
-            <b:if cond="data:posts">
-              <ul class="popular-posts-list">
-                <b:loop values="data:posts" var="post">
-                  <li class="popular-post-item">
-                    <b:include data="post" name="snippetedPostContent"/>
-                  </li>
-                </b:loop>
-              </ul>
-            </b:if>
-            <b:if cond="not data:posts">
-              <p class="empty-popular-posts">
-                <b:eval expr="data:messages.noPosts"/>
-              </p>
-            </b:if>
-          </div>
-        </b:includable>
-        <b:includable id="snippetedPostContent" var="post">
-          <article class="popular-post-entry">
-            <b:include data="post" name="snippetedPostThumbnail"/>
-            <div class="popular-post-body">
-              <b:include data="post" name="snippetedPostTitle"/>
-              <b:include data="post" name="postSnippet"/>
-            </div>
-          </article>
-        </b:includable>
-        <b:includable id="snippetedPostTitle" var="post">
-          <h3 class="popular-post-title"><a expr:href="data:post.url">
-              <b:eval expr="data:post.title"/></a></h3>
-        </b:includable>
-        <b:includable id="snippetedPostThumbnail" var="post">
-          <b:if cond="data:post.featuredImage and data:post.featuredImage.isResizable">
-            <b:with value="resizeImage(data:post.featuredImage, 128, &quot;1:1&quot;)" var="thumbUrl"><a class="popular-post-thumbnail-link" expr:href="data:post.url"><img class="popular-post-thumbnail" alt="" expr:src="data:thumbUrl" height="64" loading="lazy" width="64"/></a></b:with>
+          <b:if cond="data:widget.type == &quot;AdSense&quot;">
+            <div class="vertical-ad-placeholder"><span>
+                <b:message name="messages.adsGoHere"/></span></div>
           </b:if>
-        </b:includable>
-        <b:includable id="postSnippet" var="post">
-          <b:if cond="data:post.snippets.short">
-            <p class="popular-post-snippet">
-              <b:eval expr="snippet(data:post.snippets.short, {length: 100})"/>
-            </p>
+          <b:if cond="data:widget.type != &quot;AdSense&quot;">
+            <b:include name="super.widgetNotAvailableInPreview"/>
           </b:if>
         </b:includable>
       </b:defaultmarkup>
-      <b:defaultmarkup type="FeaturedPost">
-        <b:includable id="main" var="this">
-          <div class="widget-content featured-post-content">
-            <b:include name="widgetTitle"/>
-            <b:if cond="data:post">
-              <b:include data="post" name="snippetedPostContent"/>
-            </b:if>
-            <b:if cond="not data:post">
-              <p class="empty-featured-post">
-                <b:eval expr="data:messages.noPosts"/>
-              </p>
-            </b:if>
-          </div>
+      <b:defaultmarkup type="AdSense,Blog">
+        <b:includable id="defaultAdUnit">
+          <b:with value="&quot;/* Done in css. */&quot;" var="style">
+            <b:include name="super.defaultAdUnit"/>
+          </b:with>
         </b:includable>
-        <b:includable id="snippetedPostContent" var="post">
-          <article class="featured-post-card">
-            <b:include data="post" name="snippetedPostThumbnail"/>
-            <div class="featured-post-body">
-              <b:include data="post" name="snippetedPostTitle"/>
-              <b:if cond="data:post.snippets.short">
-                <p class="featured-post-snippet">
-                  <b:eval expr="snippet(data:post.snippets.short, {length: 160})"/>
-                </p>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="Blog,FeaturedPost">
+        <b:includable id="headerByline">
+          <b:include cond="data:view.isMultipleItems or data:widgets.Blog.first.headerByline.items.share" data="{ shareButtonClass: &quot;post-share-buttons-top&quot;, overridden: true }" name="maybeAddShareButtons"/>
+          <b:include name="super.headerByline"/>
+        </b:includable>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="Blog,FeaturedPost,PopularPosts">
+        <b:includable id="commentsLink"><a class="comment-link" expr:href="data:post.commentsUrl" expr:onclick="data:post.commentsUrlOnclick">
+            <b:include data="{ iconClass: &quot;touch-icon&quot; }" name="commentIcon"/><span class="num_comments">
+              <b:if cond="data:post.numberOfComments != 0">
+                <b:message name="messages.numberOfComments">
+                  <b:param expr:value="data:post.numberOfComments" name="numComments"/>
+                </b:message>
               </b:if>
-            </div>
-          </article>
+              <b:if cond="data:post.numberOfComments == 0">
+                <b:eval expr="data:messages.postAComment"/>
+              </b:if></span></a></b:includable>
+        <b:includable id="snippetedPostByline">
+          <b:include name="headerByline"/>
         </b:includable>
-        <b:includable id="snippetedPostTitle" var="post">
-          <h3 class="featured-post-title"><a expr:href="data:post.url">
-              <b:eval expr="data:post.title"/></a></h3>
-        </b:includable>
-        <b:includable id="snippetedPostThumbnail" var="post">
-          <b:if cond="data:post.featuredImage and data:post.featuredImage.isResizable">
-            <b:with value="resizeImage(data:post.featuredImage, 800, &quot;16:9&quot;)" var="heroImg"><a class="featured-post-thumbnail-link" expr:href="data:post.url"><img class="featured-post-thumbnail" alt="" expr:src="data:heroImg" loading="lazy"/></a></b:with>
+        <b:includable id="postLabels">
+          <b:if cond="data:view.isSingleItem and data:widget.type == &quot;Blog&quot;">
+            <b:include name="super.postLabels"/>
           </b:if>
         </b:includable>
-      </b:defaultmarkup>
-      <b:defaultmarkup type="ContactForm">
-        <b:includable id="main" var="this">
-          <div class="widget-content contact-form-widget">
-            <b:include name="widgetTitle"/>
-            <b:include name="formContent"/>
+        <b:includable id="postShareButtons" var="post"></b:includable>
+        <b:includable id="postJumpLink"></b:includable>
+        <b:includable id="postFooterJumpLink">
+          <div class="jump-link flat-button ripple"><a expr:href="data:post.hasJumpLink ? data:post.url fragment &quot;more&quot; : data:post.url" expr:title="data:post.title">
+              <b:eval expr="data:blog.jumpLinkMessage"/></a></div>
+        </b:includable>
+        <b:includable id="postFooter" var="post">
+          <div class="post-bottom">
+            <div class="post-footer float-container">
+              <b:include name="footerBylines"/>
+              <b:include cond="data:widget.type == &quot;Blog&quot;" data="post" name="postFooterAuthorProfile"/>
+            </div>
+            <b:if cond="data:view.isSingleItem">
+              <b:include data="{ shareButtonClass: &quot;post-share-buttons-bottom invisible&quot;, overridden: true }" name="maybeAddShareButtons"/>
+            </b:if>
+            <b:if cond="not data:view.isSingleItem">
+              <b:include data="post" name="postFooterJumpLink"/>
+            </b:if>
           </div>
         </b:includable>
-        <b:includable id="formContent">
-          <form class="contact-form" name="contact-form">
-            <div class="contact-form-group">
-              <label class="contact-form-label" expr:for="data:widget.instanceId + &quot;_contact-form-name&quot;">
-                <b:eval expr="data:messages.name"/>
-              </label>
-              <input class="contact-form-name" expr:id="data:widget.instanceId + &quot;_contact-form-name&quot;" name="name" type="text" value=""/>
-            </div>
-            <div class="contact-form-group">
-              <label class="contact-form-label" expr:for="data:widget.instanceId + &quot;_contact-form-email&quot;">
-                <b:eval expr="data:messages.email"/>
-              </label>
-              <input class="contact-form-email" expr:id="data:widget.instanceId + &quot;_contact-form-email&quot;" name="email" type="email" value=""/>
-            </div>
-            <div class="contact-form-group">
-              <label class="contact-form-label" expr:for="data:widget.instanceId + &quot;_contact-form-email-message&quot;">
-                <b:eval expr="data:messages.message"/>
-              </label>
-              <textarea class="contact-form-email-message" cols="25" expr:id="data:widget.instanceId + &quot;_contact-form-email-message&quot;" name="email-message" rows="5"></textarea>
-            </div>
-            <input class="contact-form-button contact-form-button-submit" expr:id="data:widget.instanceId + &quot;_contact-form-submit&quot;" expr:value="data:messages.send" type="button"/>
-            <div class="contact-form-status">
-              <p class="contact-form-error-message" expr:id="data:widget.instanceId + &quot;_contact-form-error-message&quot;"></p>
-              <p class="contact-form-success-message" expr:id="data:widget.instanceId + &quot;_contact-form-success-message&quot;"></p>
-            </div>
-          </form>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="Blog">
+        <b:includable id="main">
+          <b:include name="noContentPlaceholder"/>
+          <b:with value="3" var="maxNumAds">
+            <b:with value="data:widgets.AdSense count (w =&gt; true)" var="numDesktopAds">
+              <b:with value="data:widgets.AdSense count (w =&gt; w.sectionId != &quot;ads&quot;)" var="numMobileAds">
+                <b:with value="data:widgets.FeaturedPost filter (w =&gt; w.sectionId == &quot;page_body&quot;) map (w =&gt; w.postId)" var="featuredPostIds">
+                  <b:with value="data:view.isHomepage ? data:posts filter (post =&gt; post.id not in data:featuredPostIds) : data:posts" var="posts">
+                    <b:include name="super.main"/>
+                  </b:with>
+                </b:with>
+              </b:with>
+            </b:with>
+          </b:with>
+        </b:includable>
+        <b:includable id="feedLinks"></b:includable>
+        <b:includable id="postBodySnippet" var="post">
+          <div class="container post-body entry-content" expr:id="&quot;post-snippet-&quot; + data:post.id">
+            <b:if cond="data:post.featuredImage">
+              <div class="snippet-thumbnail">
+                <b:include data="{ image: data:post.featuredImage, imageSizes: [32, 64, 128, 256], imageRatio: &quot;1:1&quot;, sourceSizes: &quot;(max-width: 800px) 20vw, 128px&quot; }" name="responsiveImage"/>
+              </div>
+            </b:if>
+            <b:include cond="data:post" data="post" name="postSnippet"/>
+          </div>
+        </b:includable>
+        <b:includable id="previousPageLink"></b:includable>
+        <b:includable id="homePageLink"></b:includable>
+        <b:includable id="nextPageLink">
+          <b:if cond="data:olderPageUrl"><a class="blog-pager-older-link flat-button ripple" expr:href="data:olderPageUrl" expr:title="data:messages.morePosts">
+              <b:eval expr="data:messages.morePosts"/></a></b:if>
+        </b:includable>
+        <b:includable id="inlineAd" var="post">
+          <div>
+            <b:class cond="data:post.adNumber + data:numDesktopAds &lt; data:maxNumAds" name="desktop-ad"/>
+            <b:class cond="data:post.adNumber + data:numMobileAds &lt; data:maxNumAds" name="mobile-ad"/>
+            <b:include data="post" name="super.inlineAd"/>
+          </div>
+        </b:includable>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="Header">
+        <b:includable id="image">
+          <b:include name="super.image"/>
+          <b:include cond="data:this.imagePlacement == &quot;REPLACE&quot;" name="title"/>
+        </b:includable>
+        <b:includable id="title">
+          <div>
+            <b:class cond="data:this.imagePlacement == &quot;REPLACE&quot;" name="replaced"/>
+            <b:include name="super.title"/>
+          </div>
+        </b:includable>
+        <b:includable id="description">
+          <b:if cond="data:this.description">
+            <p>
+              <b:eval expr="data:this.description"/>
+            </p>
+          </b:if>
+        </b:includable>
+        <b:includable id="behindImageStyle">
+          <b:if cond="data:sourceUrl">
+            <b:include cond="data:this.image" data="{ image: data:this.image, selector: &quot;.header-widget&quot; }" name="responsiveImageStyle"/>
+            <style type="text/css">
+              .header-widget {
+                background-position: <data:blog.locale.languageAlignment/>;
+                background-repeat: no-repeat;
+                background-size: cover;
+              }
+            </style>
+          </b:if>
         </b:includable>
       </b:defaultmarkup>
       <b:defaultmarkup type="BlogArchive">
@@ -323,6 +331,11 @@
           </b:if>
         </b:includable>
       </b:defaultmarkup>
+      <b:defaultmarkup type="BlogSearch">
+        <b:includable id="searchSubmit">
+          <input class="search-action flat-button" expr:value="data:messages.search.escaped" type="submit"/>
+        </b:includable>
+      </b:defaultmarkup>
       <b:defaultmarkup type="Label">
         <b:includable id="main" var="this">
           <div class="widget-content label-widget-content">
@@ -363,6 +376,160 @@
                 <b:if cond="data:this.showFreqNumbers"><span class="topic-count">
                     <b:eval expr="data:label.count"/></span></b:if></a></b:loop>
           </nav>
+        </b:includable>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="FeaturedPost">
+        <b:includable id="main" var="this">
+          <div class="widget-content featured-post-content">
+            <b:include name="widgetTitle"/>
+            <b:if cond="data:post">
+              <b:include data="post" name="snippetedPostContent"/>
+            </b:if>
+            <b:if cond="not data:post">
+              <p class="empty-featured-post">
+                <b:eval expr="data:messages.noPosts"/>
+              </p>
+            </b:if>
+          </div>
+        </b:includable>
+        <b:includable id="snippetedPostContent" var="post">
+          <article class="featured-post-card">
+            <b:include data="post" name="snippetedPostThumbnail"/>
+            <div class="featured-post-body">
+              <b:include data="post" name="snippetedPostTitle"/>
+              <b:if cond="data:post.snippets.short">
+                <p class="featured-post-snippet">
+                  <b:eval expr="snippet(data:post.snippets.short, {length: 160})"/>
+                </p>
+              </b:if>
+            </div>
+          </article>
+        </b:includable>
+        <b:includable id="snippetedPostTitle" var="post">
+          <h3 class="featured-post-title"><a expr:href="data:post.url">
+              <b:eval expr="data:post.title"/></a></h3>
+        </b:includable>
+        <b:includable id="snippetedPostThumbnail" var="post">
+          <b:if cond="data:post.featuredImage and data:post.featuredImage.isResizable">
+            <b:with value="resizeImage(data:post.featuredImage, 800, &quot;16:9&quot;)" var="heroImg"><a class="featured-post-thumbnail-link" expr:href="data:post.url"><img class="featured-post-thumbnail" alt="" expr:src="data:heroImg" loading="lazy"/></a></b:with>
+          </b:if>
+        </b:includable>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="PopularPosts">
+        <b:includable id="main" var="this">
+          <div class="widget-content popular-posts-content">
+            <b:include name="widgetTitle"/>
+            <b:if cond="data:posts">
+              <ul class="popular-posts-list">
+                <b:loop values="data:posts" var="post">
+                  <li class="popular-post-item">
+                    <b:include data="post" name="snippetedPostContent"/>
+                  </li>
+                </b:loop>
+              </ul>
+            </b:if>
+            <b:if cond="not data:posts">
+              <p class="empty-popular-posts">
+                <b:eval expr="data:messages.noPosts"/>
+              </p>
+            </b:if>
+          </div>
+        </b:includable>
+        <b:includable id="snippetedPostContent" var="post">
+          <article class="popular-post-entry">
+            <b:include data="post" name="snippetedPostThumbnail"/>
+            <div class="popular-post-body">
+              <b:include data="post" name="snippetedPostTitle"/>
+              <b:include data="post" name="postSnippet"/>
+            </div>
+          </article>
+        </b:includable>
+        <b:includable id="snippetedPostTitle" var="post">
+          <h3 class="popular-post-title"><a expr:href="data:post.url">
+              <b:eval expr="data:post.title"/></a></h3>
+        </b:includable>
+        <b:includable id="snippetedPostThumbnail" var="post">
+          <b:if cond="data:post.featuredImage and data:post.featuredImage.isResizable">
+            <b:with value="resizeImage(data:post.featuredImage, 128, &quot;1:1&quot;)" var="thumbUrl"><a class="popular-post-thumbnail-link" expr:href="data:post.url"><img class="popular-post-thumbnail" alt="" expr:src="data:thumbUrl" height="64" loading="lazy" width="64"/></a></b:with>
+          </b:if>
+        </b:includable>
+        <b:includable id="postSnippet" var="post">
+          <b:if cond="data:post.snippets.short">
+            <p class="popular-post-snippet">
+              <b:eval expr="snippet(data:post.snippets.short, {length: 100})"/>
+            </p>
+          </b:if>
+        </b:includable>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="PageList">
+        <b:includable id="content">
+          <div class="widget-content">
+            <b:include cond="data:widget.sectionId == &quot;page_list_top&quot;" name="overflowablePageList"/>
+            <b:include cond="data:widget.sectionId != &quot;page_list_top&quot;" name="pageList"/>
+          </div>
+        </b:includable>
+        <b:includable id="overflowButton"><a>
+            <b:eval expr="data:messages.moreEllipsis"/></a></b:includable>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="Profile">
+        <b:includable id="main" var="this">
+          <div class="wrapper">
+            <b:class cond="not data:this.team" name="solo"/>
+            <b:with value="data:messages.blogAuthors" var="defaultTitle">
+              <b:include cond="data:this.team" name="widget-title"/>
+            </b:with>
+            <b:include name="content"/>
+          </div>
+        </b:includable>
+        <b:includable id="defaultProfileImage">
+          <div class="default-avatar-wrapper">
+            <b:include data="{ iconClass: &quot;avatar-icon&quot; }" name="defaultAvatarIcon"/>
+          </div>
+        </b:includable>
+        <b:includable id="userProfileText">
+          <dd class="profile-textblock profile-snippet snippet-container r-snippet-container">
+            <div class="snippet-item r-snippetized">
+              <b:eval expr="data:aboutme"/>
+            </div>
+            <div class="snippet-fade r-snippet-fade hidden"></div>
+          </dd>
+        </b:includable>
+        <b:includable id="viewProfileLink"><a class="profile-link visit-profile pill-button" expr:href="data:userUrl" rel="author">
+            <b:eval expr="data:messages.visitProfile"/></a></b:includable>
+      </b:defaultmarkup>
+      <b:defaultmarkup type="ContactForm">
+        <b:includable id="main" var="this">
+          <div class="widget-content contact-form-widget">
+            <b:include name="widgetTitle"/>
+            <b:include name="formContent"/>
+          </div>
+        </b:includable>
+        <b:includable id="formContent">
+          <form class="contact-form" name="contact-form">
+            <div class="contact-form-group">
+              <label class="contact-form-label" expr:for="data:widget.instanceId + &quot;_contact-form-name&quot;">
+                <b:eval expr="data:messages.name"/>
+              </label>
+              <input class="contact-form-name" expr:id="data:widget.instanceId + &quot;_contact-form-name&quot;" name="name" type="text" value=""/>
+            </div>
+            <div class="contact-form-group">
+              <label class="contact-form-label" expr:for="data:widget.instanceId + &quot;_contact-form-email&quot;">
+                <b:eval expr="data:messages.email"/>
+              </label>
+              <input class="contact-form-email" expr:id="data:widget.instanceId + &quot;_contact-form-email&quot;" name="email" type="email" value=""/>
+            </div>
+            <div class="contact-form-group">
+              <label class="contact-form-label" expr:for="data:widget.instanceId + &quot;_contact-form-email-message&quot;">
+                <b:eval expr="data:messages.message"/>
+              </label>
+              <textarea class="contact-form-email-message" cols="25" expr:id="data:widget.instanceId + &quot;_contact-form-email-message&quot;" name="email-message" rows="5"></textarea>
+            </div>
+            <input class="contact-form-button contact-form-button-submit" expr:id="data:widget.instanceId + &quot;_contact-form-submit&quot;" expr:value="data:messages.send" type="button"/>
+            <div class="contact-form-status">
+              <p class="contact-form-error-message" expr:id="data:widget.instanceId + &quot;_contact-form-error-message&quot;"></p>
+              <p class="contact-form-success-message" expr:id="data:widget.instanceId + &quot;_contact-form-success-message&quot;"></p>
+            </div>
+          </form>
         </b:includable>
       </b:defaultmarkup>
     </b:defaultmarkups>
@@ -470,16 +637,30 @@
     </div>
     <main class="main-content" id="content" role="main">
       <b:section class="main" id="page_body" maxwidgets="1" name="Page Body" showaddelement="false">
-        <b:widget id="Blog1" locked="true" preferred="yes" title="Blog Posts" type="Blog" version="2" visible="true">
+        <b:widget id="Blog1" locked="true" title="Blog Posts" type="Blog" version="2" visible="true">
           <b:widget-settings>
             <b:widget-setting name="showDateHeader">false</b:widget-setting>
-            <b:widget-setting name="showAuthor">true</b:widget-setting>
-            <b:widget-setting name="showLabels">true</b:widget-setting>
-            <b:widget-setting name="showTimestamp">true</b:widget-setting>
-            <b:widget-setting name="showCommentLink">true</b:widget-setting>
-            <b:widget-setting name="showBacklinks">false</b:widget-setting>
-            <b:widget-setting name="showInlineAds">false</b:widget-setting>
+            <b:widget-setting name="style.textcolor">#ffffff</b:widget-setting>
             <b:widget-setting name="showShareButtons">false</b:widget-setting>
+            <b:widget-setting name="showCommentLink">true</b:widget-setting>
+            <b:widget-setting name="style.urlcolor">#ffffff</b:widget-setting>
+            <b:widget-setting name="showAuthor">true</b:widget-setting>
+            <b:widget-setting name="style.linkcolor">#ffffff</b:widget-setting>
+            <b:widget-setting name="style.unittype">TextAndImage</b:widget-setting>
+            <b:widget-setting name="style.bgcolor">#ffffff</b:widget-setting>
+            <b:widget-setting name="timestampLabel"></b:widget-setting>
+            <b:widget-setting name="reactionsLabel"></b:widget-setting>
+            <b:widget-setting name="showAuthorProfile">false</b:widget-setting>
+            <b:widget-setting name="style.layout">1x1</b:widget-setting>
+            <b:widget-setting name="showLabels">true</b:widget-setting>
+            <b:widget-setting name="showLocation">false</b:widget-setting>
+            <b:widget-setting name="postLabelsLabel"></b:widget-setting>
+            <b:widget-setting name="showTimestamp">true</b:widget-setting>
+            <b:widget-setting name="postsPerAd">1</b:widget-setting>
+            <b:widget-setting name="showBacklinks">false</b:widget-setting>
+            <b:widget-setting name="style.bordercolor">#ffffff</b:widget-setting>
+            <b:widget-setting name="showInlineAds">false</b:widget-setting>
+            <b:widget-setting name="showReactions">false</b:widget-setting>
           </b:widget-settings>
           <b:includable id="main">
             <b:include name="super.main"/>
@@ -487,11 +668,15 @@
           <b:includable id="postCommentsAndAd" var="post">
             <b:include data="post" name="post"/>
             <b:if cond="data:view.isSingleItem and data:view.isPost">
-              <b:include data="post" name="comments"/>
+              <b:include data="post" name="commentPicker"/>
             </b:if>
+          </b:includable>
+          <b:includable id="postMeta" var="post">
+            <b:include data="post" name="postMetadataJSON"/>
           </b:includable>
           <b:includable id="post" var="post">
             <article class="post" itemprop="blogPost" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+              <b:include name="postMeta" data="post"/>
               <b:include name="postHeader" data="post"/>
               <b:include name="postTitle" data="post"/>
               <b:if cond="data:view.isSingleItem">
@@ -542,51 +727,171 @@
                 </div>
               </footer>
             </b:if>
+            <b:if cond="not data:view.isSingleItem">
+              <b:include data="post" name="postFooterJumpLink"/>
+            </b:if>
+          </b:includable>
+          <b:includable id="commentPicker" var="post">
+            <b:if cond="data:post.showThreadedComments">
+              <b:include data="post" name="threadedComments"/>
+            </b:if>
+            <b:if cond="not data:post.showThreadedComments">
+              <b:include data="post" name="comments"/>
+            </b:if>
           </b:includable>
           <b:includable id="comments" var="post">
-            <b:if cond="data:post.allowComments or (data:post.numberOfComments and data:post.numberOfComments &gt; 0)">
-              <section class="comments-section" id="comments">
-                <b:if cond="data:post.numberOfComments and data:post.numberOfComments &gt; 0">
-                  <h3 class="comments-title">
-                    <b:eval expr="data:post.numberOfComments"/> Comments
-                  </h3>
-                </b:if>
-                <b:if cond="data:post.allowComments">
-                  <b:include name="threadedComments" data="post"/>
-                </b:if>
-                <b:if cond="not data:post.allowComments and (data:post.numberOfComments and data:post.numberOfComments &gt; 0)">
-                  <h3 class="comments-title">Comments are closed.</h3>
-                </b:if>
-              </section>
-            </b:if>
-          </b:includable>
-          <b:includable id="threadedComments" var="post">
-            <div class="comments-content">
-              <b:if cond="data:post.comments">
-                <b:loop values="data:post.comments" var="comment">
-                  <div class="comment" expr:id="&quot;c&quot; + data:comment.id">
-                    <b:if cond="data:comment.isDeleted">
-                      <div class="comment-tombstone">This comment has been deleted.</div>
-                    </b:if>
-                    <b:if cond="not data:comment.isDeleted">
-                      <b:eval expr="data:comment.body"/>
-                      <div class="comment-meta">
-                        <b:eval expr="data:comment.author"/> · 
-                        <b:eval expr="data:comment.timestamp"/>
-                      </div>
-                    </b:if>
+            <section class="comments" expr:class="&quot;comments&quot; + (data:post.embedCommentForm ? &quot; embed&quot; : &quot;&quot;)" expr:data-num-comments="data:post.numberOfComments" id="comments">
+              <b:if cond="data:post.allowComments">
+                <b:include name="commentsTitle"/>
+                <div expr:id="data:widget.instanceId + &quot;_comments-block-wrapper&quot;">
+                  <b:include cond="data:post.comments" data="post.comments" name="commentList"/>
+                </div>
+                <b:if cond="data:post.commentPagingRequired">
+                  <div class="paging-control-container">
+                    <b:if cond="data:post.hasOlderLinks"><a expr:class="data:post.oldLinkClass" expr:href="data:post.oldestLinkUrl">
+                        <b:eval expr="data:messages.oldest"/></a><a expr:class="data:post.oldLinkClass" expr:href="data:post.olderLinkUrl">
+                        <b:eval expr="data:messages.older"/></a></b:if><span class="comment-range-text">
+                      <b:eval expr="data:post.commentRangeText"/></span>
+                    <b:if cond="data:post.hasNewerLinks"><a expr:class="data:post.newLinkClass" expr:href="data:post.newerLinkUrl">
+                        <b:eval expr="data:messages.newer"/></a><a expr:class="data:post.newLinkClass" expr:href="data:post.newestLinkUrl">
+                        <b:eval expr="data:messages.newest"/></a></b:if>
                   </div>
-                </b:loop>
+                </b:if>
+                <div class="footer">
+                  <b:if cond="data:post.embedCommentForm">
+                    <b:if cond="data:post.allowNewComments">
+                      <b:include data="post" name="commentForm"/>
+                    </b:if>
+                    <b:if cond="not data:post.allowNewComments">
+                      <b:eval expr="data:post.noNewCommentsText"/>
+                    </b:if>
+                  </b:if>
+                  <b:if cond="not data:post.embedCommentForm and data:post.allowComments">
+                    <b:include data="post" name="addComments"/>
+                  </b:if>
+                </div>
               </b:if>
+            </section>
+          </b:includable>
+          <b:includable id="commentsTitle">
+            <h3 class="comments-title">
+              <b:eval expr="data:messages.comments"/>
+            </h3>
+          </b:includable>
+          <b:includable id="commentList" var="comments">
+            <div id="comments-block">
+              <b:loop values="data:comments" var="comment">
+                <b:include data="comment" name="commentItem"/>
+              </b:loop>
             </div>
-            <b:if cond="data:post.allowComments">
-              <b:include name="threadedCommentForm" data="post"/>
-            </b:if>
+          </b:includable>
+          <b:includable id="commentItem" var="comment">
+            <div class="comment" expr:id="&quot;c&quot; + data:comment.id">
+              <b:include cond="data:blog.enabledCommentProfileImages" name="commentAuthorAvatar"/>
+              <div class="comment-block">
+                <div class="comment-author">
+                  <b:if cond="data:comment.authorUrl">
+                    <b:message name="messages.authorSaidWithLink">
+                      <b:param expr:value="data:comment.author" name="authorName"/>
+                      <b:param expr:value="data:comment.authorUrl" name="authorUrl"/>
+                    </b:message>
+                  </b:if>
+                  <b:if cond="not data:comment.authorUrl">
+                    <b:message name="messages.authorSaid">
+                      <b:param expr:value="data:comment.author" name="authorName"/>
+                    </b:message>
+                  </b:if>
+                </div>
+                <div expr:class="&quot;comment-body&quot; + (data:comment.isDeleted ? &quot; deleted&quot; : &quot;&quot;)">
+                  <b:eval expr="data:comment.body"/>
+                </div>
+                <div class="comment-footer"><span class="comment-timestamp"><a expr:href="data:comment.url" title="comment permalink">
+                      <b:eval expr="data:comment.timestamp"/></a>
+                    <b:include data="comment" name="commentDeleteIcon"/></span></div>
+              </div>
+            </div>
+          </b:includable>
+          <b:includable id="commentAuthorAvatar">
+            <div class="avatar-image-container"><img class="author-avatar" expr:src="data:comment.authorAvatarSrc" height="35" width="35"/></div>
+          </b:includable>
+          <b:includable id="commentDeleteIcon" var="comment"><span expr:class="&quot;item-control &quot; + data:comment.adminClass">
+              <b:if cond="data:showCmtPopup">
+                <div class="goog-toggle-button">
+                  <div class="goog-inline-block comment-action-icon"></div>
+                </div>
+              </b:if>
+              <b:if cond="not data:showCmtPopup"><a class="comment-delete" expr:href="data:comment.deleteUrl" expr:title="data:messages.deleteComment"><img src="https://resources.blogblog.com/img/icon_delete13.gif"/></a></b:if></span></b:includable>
+          <b:includable id="addComments"><a expr:href="data:post.commentsUrl" expr:onclick="data:post.commentsUrlOnclick">
+              <b:message name="messages.postAComment"/></a></b:includable>
+          <b:includable id="commentForm" var="post">
+            <div class="comment-form"><a name="comment-form"/>
+              <h4 id="comment-post-message">
+                <b:eval expr="data:messages.postAComment"/>
+              </h4>
+              <b:if cond="data:this.messages.blogComment != &quot;&quot;">
+                <p>
+                  <b:eval expr="data:this.messages.blogComment"/>
+                </p>
+              </b:if>
+              <b:include data="post" name="commentFormIframeSrc"/>
+              <iframe class="blogger-iframe-colorize blogger-comment-from-post" expr:height="data:cmtIframeInitialHeight ?: &quot;90px&quot;" frameborder="0" id="comment-editor" name="comment-editor" src="" width="100%"></iframe>
+              <b:eval expr="data:post.cmtfpIframe"/>
+              <script type="text/javascript">
+                BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
+                
+              </script>
+            </div>
+          </b:includable>
+          <b:includable id="commentFormIframeSrc" var="post"><a expr:href="data:post.commentFormIframeSrc" id="comment-editor-src"/></b:includable>
+          <b:includable id="threadedComments" var="post">
+            <section class="comments threaded" expr:data-embed="data:post.embedCommentForm" expr:data-num-comments="data:post.numberOfComments" id="comments">
+              <b:include name="commentsTitle"/>
+              <div class="comments-content">
+                <b:if cond="data:post.embedCommentForm">
+                  <b:include data="post" name="threadedCommentJs"/>
+                </b:if>
+                <div id="comment-holder">
+                  <b:eval expr="data:post.commentHtml"/>
+                </div>
+              </div>
+              <p class="comment-footer">
+                <b:if cond="data:post.allowNewComments">
+                  <b:include data="post" name="threadedCommentForm"/>
+                </b:if>
+                <b:if cond="not data:post.allowNewComments">
+                  <b:eval expr="data:post.noNewCommentsText"/>
+                </b:if>
+              </p>
+            </section>
           </b:includable>
           <b:includable id="threadedCommentForm" var="post">
-            <div class="comment-form">
-              <p>Please leave a comment:</p><a expr:href="data:post.commentFormIframeSrc" id="comment-editor-src">Add Comment</a>
+            <div class="comment-form"><a name="comment-form"/>
+              <h4 id="comment-post-message">
+                <b:eval expr="data:messages.postAComment"/>
+              </h4>
+              <b:if cond="data:this.messages.blogComment != &quot;&quot;">
+                <p>
+                  <b:eval expr="data:this.messages.blogComment"/>
+                </p>
+              </b:if>
+              <b:include data="post" name="commentFormIframeSrc"/>
+              <iframe class="blogger-iframe-colorize blogger-comment-from-post" expr:height="data:cmtIframeInitialHeight ?: &quot;90px&quot;" frameborder="0" id="comment-editor" name="comment-editor" src="" width="100%"></iframe>
+              <b:eval expr="data:post.cmtfpIframe"/>
+              <script type="text/javascript">
+                BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
+                
+              </script>
             </div>
+          </b:includable>
+          <b:includable id="threadedCommentJs" var="post">
+            <script async="async" expr:src="data:post.commentSrc" type="text/javascript"/>
+            <b:template-script inline="true" name="threaded_comments"/>
+            <script type="text/javascript">
+              blogger.widgets.blog.initThreadedComments(
+                  <data:post.commentJso/>,
+                  <data:post.commentMsgs/>,
+                  <data:post.commentConfig/>);
+            </script>
           </b:includable>
           <b:includable id="status-message">
             <div class="empty-state">
@@ -622,6 +927,32 @@
               </div>
             </b:if>
           </b:includable>
+          <b:includable id="headerByline">
+            <b:include cond="data:view.isMultipleItems or data:widgets.Blog.first.headerByline.items.share" data="{ shareButtonClass: &quot;post-share-buttons-top&quot;, overridden: true }" name="maybeAddShareButtons"/>
+            <b:include name="super.headerByline"/>
+          </b:includable>
+          <b:includable id="snippetedPostByline">
+            <b:include name="headerByline"/>
+          </b:includable>
+          <b:includable id="commentsLink"><a class="comment-link" expr:href="data:post.commentsUrl" expr:onclick="data:post.commentsUrlOnclick"><span class="num_comments">
+                <b:if cond="data:post.numberOfComments != 0">
+                  <b:message name="messages.numberOfComments">
+                    <b:param expr:value="data:post.numberOfComments" name="numComments"/>
+                  </b:message>
+                </b:if>
+                <b:if cond="data:post.numberOfComments == 0">
+                  <b:eval expr="data:messages.postAComment"/>
+                </b:if></span></a></b:includable>
+          <b:includable id="defaultAdUnit">
+            <b:with value="&quot;/* Done in css. */&quot;" var="style">
+              <b:include name="super.defaultAdUnit"/>
+            </b:with>
+          </b:includable>
+          <b:includable id="postFooterJumpLink" var="post">
+            <div class="jump-link"><a expr:href="data:post.hasJumpLink ? data:post.url fragment &quot;more&quot; : data:post.url" expr:title="data:post.title">
+                <b:eval expr="data:blog.jumpLinkMessage"/></a></div>
+          </b:includable>
+          <b:includable id="iframeComments" var="post"></b:includable>
           <b:includable id="inlineAd"/>
           <b:includable id="postJumpLink"/>
           <b:includable id="feedLinks"/>
@@ -632,16 +963,7 @@
           <b:includable id="postCommentsLink"/>
           <b:includable id="postFooterAuthorProfile"/>
           <b:includable id="aboutPostAuthor"/>
-          <b:includable id="commentPicker"/>
-          <b:includable id="addComments"/>
-          <b:includable id="commentAuthorAvatar"/>
-          <b:includable id="commentDeleteIcon"/>
-          <b:includable id="commentsTitle"/>
-          <b:includable id="commentList"/>
-          <b:includable id="commentItem"/>
-          <b:includable id="commentForm"/>
-          <b:includable id="commentFormIframeSrc"/>
-          <b:includable id="threadedCommentJs"/>
+          <b:includable id="postShareButtons"/>
         </b:widget>
       </b:section>
     </main>
@@ -660,6 +982,17 @@
     </div>
     <footer class="footer-container" role="contentinfo">
       <b:section class="footer" id="footer" maxwidgets="3" name="Footer" showaddelement="yes">
+        <b:widget id="Attribution1" locked="true" title="" type="Attribution" version="2" visible="true">
+          <b:widget-settings>
+            <b:widget-setting name="copyright"></b:widget-setting>
+          </b:widget-settings>
+          <b:includable id="main" var="this">
+            <div class="widget-content">
+              <div class="blogger"><a expr:href="data:bloggerUrl" rel="nofollow">
+                  <b:message name="messages.poweredByBlogger"/></a></div>
+            </div>
+          </b:includable>
+        </b:widget>
         <b:widget id="HTML3" locked="false" title="Footer" type="HTML" version="2" visible="true">
           <b:includable id="main">
             <b:if cond="data:content">

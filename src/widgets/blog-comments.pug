@@ -1,32 +1,138 @@
+//- Comment machinery ported from Contempo's Blog widget so the engine's
+//- full dispatch chain (commentPicker -> threadedComments / comments ->
+//- commentList -> commentItem, threadedCommentForm + threadedCommentJs)
+//- executes with real bodies instead of empty stubs.
+b:includable(id='commentPicker' var='post')
+  b:if(cond='data:post.showThreadedComments')
+    b:include(data='post' name='threadedComments')/
+  b:if(cond='not data:post.showThreadedComments')
+    b:include(data='post' name='comments')/
+
 b:includable(id='comments' var='post')
-  b:if(cond='data:post.allowComments or (data:post.numberOfComments and data:post.numberOfComments > 0)')
-    section.comments-section(id='comments')
-      b:if(cond='data:post.numberOfComments and data:post.numberOfComments > 0')
-        h3.comments-title
-          b:eval(expr='data:post.numberOfComments')/
-          |  Comments
-      b:if(cond='data:post.allowComments')
-        b:include(name='threadedComments' data='post')/
-      b:if(cond='not data:post.allowComments and (data:post.numberOfComments and data:post.numberOfComments > 0)')
-        h3.comments-title Comments are closed.
+  section.comments(expr:class='"comments" + (data:post.embedCommentForm ? " embed" : "")' expr:data-num-comments='data:post.numberOfComments' id='comments')
+    b:if(cond='data:post.allowComments')
+      b:include(name='commentsTitle')/
+      div(expr:id='data:widget.instanceId + "_comments-block-wrapper"')
+        b:include(cond='data:post.comments' data='post.comments' name='commentList')/
+      b:if(cond='data:post.commentPagingRequired')
+        .paging-control-container
+          b:if(cond='data:post.hasOlderLinks')
+            a(expr:class='data:post.oldLinkClass' expr:href='data:post.oldestLinkUrl')
+              b:eval(expr='data:messages.oldest')/
+            a(expr:class='data:post.oldLinkClass' expr:href='data:post.olderLinkUrl')
+              b:eval(expr='data:messages.older')/
+          span.comment-range-text
+            b:eval(expr='data:post.commentRangeText')/
+          b:if(cond='data:post.hasNewerLinks')
+            a(expr:class='data:post.newLinkClass' expr:href='data:post.newerLinkUrl')
+              b:eval(expr='data:messages.newer')/
+            a(expr:class='data:post.newLinkClass' expr:href='data:post.newestLinkUrl')
+              b:eval(expr='data:messages.newest')/
+      .footer
+        b:if(cond='data:post.embedCommentForm')
+          b:if(cond='data:post.allowNewComments')
+            b:include(data='post' name='commentForm')/
+          b:if(cond='not data:post.allowNewComments')
+            b:eval(expr='data:post.noNewCommentsText')/
+        b:if(cond='not data:post.embedCommentForm and data:post.allowComments')
+          b:include(data='post' name='addComments')/
+
+b:includable(id='commentsTitle')
+  h3.comments-title
+    b:eval(expr='data:messages.comments')/
+
+b:includable(id='commentList' var='comments')
+  #comments-block
+    b:loop(values='data:comments' var='comment')
+      b:include(data='comment' name='commentItem')/
+
+b:includable(id='commentItem' var='comment')
+  .comment(expr:id='"c" + data:comment.id')
+    b:include(cond='data:blog.enabledCommentProfileImages' name='commentAuthorAvatar')/
+    .comment-block
+      .comment-author
+        b:if(cond='data:comment.authorUrl')
+          b:message(name='messages.authorSaidWithLink')
+            b:param(expr:value='data:comment.author' name='authorName')/
+            b:param(expr:value='data:comment.authorUrl' name='authorUrl')/
+        b:if(cond='not data:comment.authorUrl')
+          b:message(name='messages.authorSaid')
+            b:param(expr:value='data:comment.author' name='authorName')/
+      div(expr:class='"comment-body" + (data:comment.isDeleted ? " deleted" : "")')
+        b:eval(expr='data:comment.body')/
+      .comment-footer
+        span.comment-timestamp
+          a(expr:href='data:comment.url' title='comment permalink')
+            b:eval(expr='data:comment.timestamp')/
+          b:include(data='comment' name='commentDeleteIcon')/
+
+b:includable(id='commentAuthorAvatar')
+  .avatar-image-container
+    img.author-avatar(expr:src='data:comment.authorAvatarSrc' height='35' width='35')/
+
+b:includable(id='commentDeleteIcon' var='comment')
+  span(expr:class='"item-control " + data:comment.adminClass')
+    b:if(cond='data:showCmtPopup')
+      .goog-toggle-button
+        .goog-inline-block.comment-action-icon
+    b:if(cond='not data:showCmtPopup')
+      a.comment-delete(expr:href='data:comment.deleteUrl' expr:title='data:messages.deleteComment')
+        img(src='https://resources.blogblog.com/img/icon_delete13.gif')/
+
+b:includable(id='addComments')
+  a(expr:href='data:post.commentsUrl' expr:onclick='data:post.commentsUrlOnclick')
+    b:message(name='messages.postAComment')/
+
+b:includable(id='commentForm' var='post')
+  .comment-form
+    a(name='comment-form')/
+    h4#comment-post-message
+      b:eval(expr='data:messages.postAComment')/
+    b:if(cond='data:this.messages.blogComment != ""')
+      p
+        b:eval(expr='data:this.messages.blogComment')/
+    b:include(data='post' name='commentFormIframeSrc')/
+    iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
+    b:eval(expr='data:post.cmtfpIframe')/
+    script(type='text/javascript').
+      BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
+
+b:includable(id='commentFormIframeSrc' var='post')
+  a(expr:href='data:post.commentFormIframeSrc' id='comment-editor-src')/
 
 b:includable(id='threadedComments' var='post')
-  .comments-content
-    b:if(cond='data:post.comments')
-      b:loop(values='data:post.comments' var='comment')
-        .comment(expr:id='"c" + data:comment.id')
-          b:if(cond='data:comment.isDeleted')
-            .comment-tombstone This comment has been deleted.
-          b:if(cond='not data:comment.isDeleted')
-            b:eval(expr='data:comment.body')/
-            .comment-meta
-              b:eval(expr='data:comment.author')/
-              |  · 
-              b:eval(expr='data:comment.timestamp')/
-  b:if(cond='data:post.allowComments')
-    b:include(name='threadedCommentForm' data='post')/
+  section.comments.threaded(expr:data-embed='data:post.embedCommentForm' expr:data-num-comments='data:post.numberOfComments' id='comments')
+    b:include(name='commentsTitle')/
+    .comments-content
+      b:if(cond='data:post.embedCommentForm')
+        b:include(data='post' name='threadedCommentJs')/
+      #comment-holder
+        b:eval(expr='data:post.commentHtml')/
+    p.comment-footer
+      b:if(cond='data:post.allowNewComments')
+        b:include(data='post' name='threadedCommentForm')/
+      b:if(cond='not data:post.allowNewComments')
+        b:eval(expr='data:post.noNewCommentsText')/
 
 b:includable(id='threadedCommentForm' var='post')
   .comment-form
-    p Please leave a comment:
-    a(expr:href='data:post.commentFormIframeSrc' id='comment-editor-src') Add Comment
+    a(name='comment-form')/
+    h4#comment-post-message
+      b:eval(expr='data:messages.postAComment')/
+    b:if(cond='data:this.messages.blogComment != ""')
+      p
+        b:eval(expr='data:this.messages.blogComment')/
+    b:include(data='post' name='commentFormIframeSrc')/
+    iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
+    b:eval(expr='data:post.cmtfpIframe')/
+    script(type='text/javascript').
+      BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
+
+b:includable(id='threadedCommentJs' var='post')
+  script(async='async' expr:src='data:post.commentSrc' type='text/javascript')/
+  b:template-script(inline='true' name='threaded_comments')/
+  script(type='text/javascript').
+    blogger.widgets.blog.initThreadedComments(
+        <data:post.commentJso/>,
+        <data:post.commentMsgs/>,
+        <data:post.commentConfig/>);

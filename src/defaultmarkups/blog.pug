@@ -1,0 +1,27 @@
+b:defaultmarkup(type='Blog')
+  b:includable(id='main')
+    b:include(name='noContentPlaceholder')/
+    b:with(value='3' var='maxNumAds')
+      b:with(value='data:widgets.AdSense count (w => true)' var='numDesktopAds')
+        b:with(value='data:widgets.AdSense count (w => w.sectionId != "ads")' var='numMobileAds')
+          b:with(value='data:widgets.FeaturedPost filter (w => w.sectionId == "page_body") map (w => w.postId)' var='featuredPostIds')
+            b:with(value='data:view.isHomepage ? data:posts filter (post => post.id not in data:featuredPostIds) : data:posts' var='posts')
+              b:include(name='super.main')/
+  b:includable(id='feedLinks')
+  b:includable(id='postBodySnippet' var='post')
+    div.container.post-body.entry-content(expr:id='"post-snippet-" + data:post.id')
+      b:if(cond='data:post.featuredImage')
+        div.snippet-thumbnail
+          b:include(data='{ image: data:post.featuredImage, imageSizes: [32, 64, 128, 256], imageRatio: "1:1", sourceSizes: "(max-width: 800px) 20vw, 128px" }' name='responsiveImage')/
+      b:include(cond='data:post' data='post' name='postSnippet')/
+  b:includable(id='previousPageLink')
+  b:includable(id='homePageLink')
+  b:includable(id='nextPageLink')
+    b:if(cond='data:olderPageUrl')
+      a.blog-pager-older-link.flat-button.ripple(expr:href='data:olderPageUrl' expr:title='data:messages.morePosts')
+        b:eval(expr='data:messages.morePosts')/
+  b:includable(id='inlineAd' var='post')
+    div
+      b:class(cond='data:post.adNumber + data:numDesktopAds < data:maxNumAds' name='desktop-ad')/
+      b:class(cond='data:post.adNumber + data:numMobileAds < data:maxNumAds' name='mobile-ad')/
+      b:include(data='post' name='super.inlineAd')/

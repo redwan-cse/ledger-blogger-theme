@@ -63,4 +63,193 @@ describe('M2 render path: Contempo-aligned shell and widget bindings', () => {
       expect(widget).toContain('version="2"');
     }
   });
+
+  describe('Contempo Defaultmarkups Suite (Requirement R2)', () => {
+    it('declares all 12 Contempo defaultmarkup blocks plus ContactForm in head', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const defaultMarkupsMatch = xml.match(/<b:defaultmarkups>[\s\S]*?<\/b:defaultmarkups>/);
+      expect(defaultMarkupsMatch).not.toBeNull();
+      const content = defaultMarkupsMatch![0];
+
+      const expectedBlocks = [
+        'Common',
+        'AdSense,Blog',
+        'Blog,FeaturedPost',
+        'Blog,FeaturedPost,PopularPosts',
+        'Blog',
+        'Header',
+        'BlogArchive',
+        'BlogSearch',
+        'Label',
+        'FeaturedPost',
+        'PopularPosts',
+        'PageList',
+        'Profile',
+        'ContactForm'
+      ];
+
+      for (const blockType of expectedBlocks) {
+        expect(content, `Defaultmarkup block '${blockType}' must exist`).toContain(`type="${blockType}"`);
+      }
+    });
+
+    it('implements Common defaultmarkup with title and preview includables', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="Common"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="widgetTitle"');
+      expect(content).toContain('id="widget-title"');
+      expect(content).toContain('id="widgetNotAvailableInPreview"');
+      expect(content).toContain('super.widgetNotAvailableInPreview');
+    });
+
+    it('implements AdSense,Blog defaultmarkup with defaultAdUnit includable', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="AdSense,Blog"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="defaultAdUnit"');
+      expect(content).toContain('super.defaultAdUnit');
+    });
+
+    it('implements Blog,FeaturedPost defaultmarkup with headerByline includable', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="Blog,FeaturedPost"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="headerByline"');
+      expect(content).toContain('super.headerByline');
+      expect(content).toContain('name="maybeAddShareButtons"');
+    });
+
+    it('implements Blog,FeaturedPost,PopularPosts defaultmarkup with all shared post includables', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="Blog,FeaturedPost,PopularPosts"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="commentsLink"');
+      expect(content).toContain('id="snippetedPostByline"');
+      expect(content).toContain('id="postLabels"');
+      expect(content).toContain('id="postShareButtons"');
+      expect(content).toContain('id="postJumpLink"');
+      expect(content).toContain('id="postFooterJumpLink"');
+      expect(content).toContain('id="postFooter"');
+      expect(content).toContain('name="commentIcon"');
+      expect(content).toContain('name="footerBylines"');
+      expect(content).toContain('name="postFooterAuthorProfile"');
+    });
+
+    it('implements Blog defaultmarkup with main, feedLinks, postBodySnippet, nextPageLink, inlineAd', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="Blog"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="main"');
+      expect(content).toContain('super.main');
+      expect(content).toContain('id="feedLinks"');
+      expect(content).toContain('id="postBodySnippet"');
+      expect(content).toContain('id="nextPageLink"');
+      expect(content).toContain('id="inlineAd"');
+      expect(content).toContain('super.inlineAd');
+    });
+
+    it('implements Header defaultmarkup with image, title, description, behindImageStyle', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="Header"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="image"');
+      expect(content).toContain('super.image');
+      expect(content).toContain('id="title"');
+      expect(content).toContain('super.title');
+      expect(content).toContain('id="description"');
+      expect(content).toContain('id="behindImageStyle"');
+    });
+
+    it('implements BlogArchive defaultmarkup with main, flat, hierarchy', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="BlogArchive"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="main"');
+      expect(content).toContain('id="flat"');
+      expect(content).toContain('id="hierarchy"');
+      expect(content).toContain('id="interval"');
+    });
+
+    it('implements BlogSearch defaultmarkup with searchSubmit', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="BlogSearch"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="searchSubmit"');
+      expect(content).toContain('data:messages.search.escaped');
+    });
+
+    it('implements Label defaultmarkup with main, list, cloud', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="Label"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="main"');
+      expect(content).toContain('id="list"');
+      expect(content).toContain('id="cloud"');
+    });
+
+    it('implements FeaturedPost defaultmarkup with main, snippetedPostContent, snippetedPostThumbnail', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="FeaturedPost"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="main"');
+      expect(content).toContain('id="snippetedPostContent"');
+      expect(content).toContain('id="snippetedPostThumbnail"');
+      expect(content).toContain('id="snippetedPostTitle"');
+    });
+
+    it('implements PopularPosts defaultmarkup with main, snippetedPostContent', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="PopularPosts"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="main"');
+      expect(content).toContain('id="snippetedPostContent"');
+      expect(content).toContain('id="snippetedPostTitle"');
+      expect(content).toContain('id="snippetedPostThumbnail"');
+      expect(content).toContain('id="postSnippet"');
+    });
+
+    it('implements PageList defaultmarkup with content, overflowButton', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="PageList"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="content"');
+      expect(content).toContain('id="overflowButton"');
+      expect(content).toContain('data:messages.moreEllipsis');
+    });
+
+    it('implements Profile defaultmarkup with main, defaultProfileImage, userProfileText, viewProfileLink', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="Profile"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="main"');
+      expect(content).toContain('id="defaultProfileImage"');
+      expect(content).toContain('id="userProfileText"');
+      expect(content).toContain('id="viewProfileLink"');
+      expect(content).toContain('name="defaultAvatarIcon"');
+    });
+
+    it('implements ContactForm defaultmarkup with main, formContent', async () => {
+      const xml = (await generateTheme({ sha, write: false })).xml;
+      const match = xml.match(/<b:defaultmarkup\b[^>]*\btype="ContactForm"[\s\S]*?<\/b:defaultmarkup>/);
+      expect(match).not.toBeNull();
+      const content = match![0];
+      expect(content).toContain('id="main"');
+      expect(content).toContain('id="formContent"');
+      expect(content).toContain('contact-form-button-submit');
+    });
+  });
 });
