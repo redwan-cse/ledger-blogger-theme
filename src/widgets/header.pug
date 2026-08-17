@@ -31,5 +31,6 @@ b:section(class='header' id='header' maxwidgets='1' name='Header' showaddelement
             b:eval(expr='data:headerDescription')/
     b:includable(id='image')
       b:include(name='super.image')/
+      b:include(cond='data:this.imagePlacement == "REPLACE"' name='title')/
     b:includable(id='behindImageStyle')
 

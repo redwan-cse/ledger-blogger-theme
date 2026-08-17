@@ -4,7 +4,7 @@ import path from 'node:path';
 import { generateTheme } from './generate.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const CONTEMPO = path.join(ROOT, 'docs/contempo-1.3.3.xml');
+const CONTEMPO = path.join(ROOT, 'example_themes/contempo_light.xml');
 const OUT = path.join(ROOT, 'dist/controls');
 
 export function getWidgetPattern(widgetId: string): RegExp {

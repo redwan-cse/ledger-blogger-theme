@@ -17,3 +17,5 @@ b:includable(id='status-message')
     b:if(cond='not data:view.isError and not data:view.isSearch and not data:view.isArchive')
       h2 No posts published yet.
       p Check back later.
+    p
+      a.pill-button(expr:href='data:blog.homepageUrl') Return to home

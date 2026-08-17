@@ -12,13 +12,19 @@ describe('M2 render path: Contempo-aligned shell and widget bindings', () => {
   it('carries the Blogger locale and direction expressions on html', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
     expect(xml).toContain('expr:dir="data:blog.languageDirection"');
-    expect(xml).toContain('expr:lang="data:blog.locale.language"');
+    expect(xml).toContain('expr:lang="data:blog.locale"');
+    expect(xml).toContain('b:templateUrl="indie.xml"');
   });
 
   it('includes all-head-content exactly once inside head', async () => {
     const xml = (await generateTheme({ sha, write: false })).xml;
     expect(xml.match(/<b:include data="blog" name="all-head-content"\/>/g) ?? []).toHaveLength(1);
     expect(xml).toMatch(/<head>[\s\S]*<b:include data="blog" name="all-head-content"\/>[\s\S]*<\/head>/);
+  });
+
+  it('includes b:template-skin with CDATA layout CSS in head after b:skin', async () => {
+    const xml = (await generateTheme({ sha, write: false })).xml;
+    expect(xml).toMatch(/<b:skin\b[\s\S]*?<\/b:skin>\s*<b:template-skin>[\s\S]*?<!\[CDATA\[[\s\S]*?body#layout[\s\S]*?\]\]>\s*<\/b:template-skin>/);
   });
 
   it('wraps the Posts section in a main element using Contempo section conventions', async () => {

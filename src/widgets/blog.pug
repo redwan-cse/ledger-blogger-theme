@@ -27,7 +27,7 @@ b:section(class='main' id='page_body' maxwidgets='1' name='Page Body' showaddele
       b:include(name='super.main')/
     b:includable(id='postCommentsAndAd' var='post')
       b:include(data='post' name='post')/
-      b:if(cond='data:view.isSingleItem and data:view.isPost')
+      b:if(cond='data:view.isSingleItem')
         b:include(data='post' name='commentPicker')/
     include blog-post.pug
     include blog-comments.pug

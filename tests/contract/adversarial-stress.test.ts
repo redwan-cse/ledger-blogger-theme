@@ -186,6 +186,7 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
       expect(rules(inject(xml, '<data:post..title/>'))).toEqual(['data-tags-are-paths']);
       expect(rules(inject(xml, '<data:123invalid/>'))).toEqual(['data-tags-are-paths']);
       expect(rules(inject(xml, '<data:post.title>inner</data:post.title>'))).toEqual(['data-tags-are-paths']);
+      expect(rules(inject(xml, '<data:view class="title escaped"/>'))).toEqual(['data-tags-are-paths']);
     });
 
     it('permits valid self-closing property paths', async () => {

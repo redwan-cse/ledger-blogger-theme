@@ -4,12 +4,35 @@ html&attributes(rootAttributes)
     meta(content='width=device-width, initial-scale=1' name='viewport')/
     meta(content=build name='theme-build')/
     title
-      b:eval(expr='data:view.title.escaped')/
+      | <data:view.title.escaped/>
     b:include(data='blog' name='all-head-content')/
     include partials/head-meta.pug
     b:skin(version=templateVersion).
       <![CDATA[
       !{css}
+      ]]>
+    b:template-skin.
+      <![CDATA[
+      body#layout .hidden,
+      body#layout .invisible {
+        display: inherit;
+      }
+      body#layout .skip-link,
+      body#layout .mobile-nav-drawer {
+        display: none;
+      }
+      body#layout .header-outer,
+      body#layout .nav-container,
+      body#layout .intro-container,
+      body#layout .topics-container,
+      body#layout .main-content,
+      body#layout .cta-container,
+      body#layout .footer-container {
+        display: block;
+        position: relative;
+        width: 100%;
+        margin: 0 auto;
+      }
       ]]>
     b:defaultmarkups
       include defaultmarkups/common.pug
@@ -45,6 +68,7 @@ html&attributes(rootAttributes)
       include widgets/cta.pug
     footer.footer-container(role='contentinfo')
       include widgets/footer.pug
+    b:template-script(async='true' name='indie' version='1.0.0')
     if script
       script.
         !{script}

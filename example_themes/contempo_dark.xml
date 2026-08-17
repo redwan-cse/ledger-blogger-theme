@@ -24,7 +24,7 @@
 
 <!-- Variable definitions -->
 
-<Variable name="keycolor" description="Main Color" type="color" default="#2196f3"  value="#2196f3"/>
+<Variable name="keycolor" description="Main Color" type="color" default="#2196f3"  value="#ff9800"/>
 <Variable name="startSide" description="Start side in blog language" type="automatic" default="left" hideEditor="true" />
 <Variable name="endSide" description="End side in blog language" type="automatic" default="right" hideEditor="true" />
 
@@ -34,7 +34,7 @@
       default="$(robotoNormal15)"  value="15px Roboto, sans-serif"/>
   <Variable name="body.text.color" description="Color"
       type="color"
-      default="#757575"  value="#757575"/>
+      default="#757575"  value="#9ba2a8"/>
 </Group>
 
 <Group description="Backgrounds">
@@ -46,13 +46,13 @@
   <Variable name="body.background" description="Background"
       color="$(body.background.color)"
       type="background"
-      default="$(color) none repeat scroll top left"  value="$(color) url(https://themes.googleusercontent.com/image?id=L1lcAxxz0CLgsDzixEprHJ2F38TyEjCyE3RSAjynQDks0lT1BDc1OxXKaTEdLc89HPvdB11X9FDw) no-repeat scroll top center /* Credit: Michael Elkan (http://www.offset.com/photos/394244) */;"/>
+      default="$(color) none repeat scroll top left"  value="$(color) url(https://themes.googleusercontent.com/image?id=rabMT9PC10wCtkMoMM2KrjGV5ejCGidFlmg3elSmmoRNnd0FxKwY5T0RGV948R08752LcEb6qEXa) no-repeat scroll top center /* Credit: Radius Images (http://www.offset.com/photos/225860) */;"/>
   <Variable name="body.background.color" description="Body background color"
       type="color"
-      default="#eee"  value="#eeeeee"/>
+      default="#eee"  value="#444444"/>
   <Variable name="posts.background.color" description="Post background color"
       type="color"
-      default="#fff"  value="#ffffff"/>
+      default="#fff"  value="#1d1d1d"/>
   <Variable name="body.background.blur" description="Background blur"
       type="length"
       min="0px"
@@ -99,19 +99,19 @@
       default="#fff"  value="#ffffff"/>
   <Variable name="tabs.overflow.background.color" description="Popup background color"
       type="color"
-      default="$(posts.background.color)"  value="#ffffff"/>
+      default="$(posts.background.color)"  value="#1d1d1d"/>
   <Variable name="tabs.overflow.color" description="Popup text color"
       type="color"
-      default="$(posts.text.color)"  value="#757575"/>
+      default="$(posts.text.color)"  value="#9ba2a8"/>
   <Variable name="tabs.overflow.selected.color" description="Popup selected color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#ffffff"/>
 </Group>
 
 <Group description="Posts" selector="div.widget.Blog">
   <Variable name="posts.title.color" description="Post title color"
       type="color"
-      default="#212121"  value="#212121"/>
+      default="#212121"  value="#ffffff"/>
   <Variable name="posts.title.font" description="Post title font"
       type="font"
       default="$(robotoBold22)"  value="bold 22px Roboto, sans-serif"/>
@@ -123,20 +123,20 @@
       default="$(body.text.font)"  value="15px Roboto, sans-serif"/>
   <Variable name="posts.text.color" description="Post text color"
       type="color"
-      default="$(body.text.color)"  value="#757575"/>
+      default="$(body.text.color)"  value="#9ba2a8"/>
   <Variable name="posts.byline.color" description="Post byline color"
       type="color"
-      default="rgba(0, 0, 0, 0.54)"  value="rgba(0, 0, 0, 0.54)"/>
+      default="rgba(0, 0, 0, 0.54)"  value="rgba(255,255,255,0.54)"/>
   <Variable name="blockquote.font" description="Blockquote font"
       type="font"
       default="$(robotoLightItalic15)"  value="italic 300 15px Roboto, sans-serif"/>
   <Variable name="blockquote.color" description="Blockquote color"
       type="color"
-      default="#444"  value="#444444"/>
+      default="#444"  value="#dddddd"/>
   <Variable name="posts.icons.color"
       description="Post icons color"
       type="color"
-      default="#707070"  value="#707070"/>
+      default="#707070"  value="#ffffff"/>
 </Group>
 
 <Group description="Search">
@@ -155,33 +155,33 @@
   <Variable name="sharing.background.color"
       description="Sharing background color"
       type="color"
-      default="$(posts.background.color)"  value="#ffffff"/>
+      default="$(posts.background.color)"  value="#1d1d1d"/>
   <Variable name="sharing.text.color" description="Sharing text color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#ffffff"/>
   <Variable name="sharing.icons.color"
       description="Sharing icons color"
       type="color"
-      default="$(sharing.text.color)"  value="#212121"/>
+      default="$(sharing.text.color)"  value="#ffffff"/>
 </Group>
 
 <Group description="Popular posts" selector="div.widget.PopularPosts">
   <Variable name="popularposts.background.color"
       description="Popular post background color"
       type="color"
-      default="$(body.background.color)"  value="#eeeeee"/>
+      default="$(body.background.color)"  value="#444444"/>
   <Variable name="popularposts.byline.color"
       description="Popular post byline color"
       type="color"
-      default="$(posts.byline.color)"  value="rgba(0, 0, 0, 0.54)"/>
+      default="$(posts.byline.color)"  value="rgba(255,255,255,0.54)"/>
   <Variable name="popularposts.title.color"
       description="Popular post title color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#ffffff"/>
   <Variable name="popularposts.text.color"
       description="Popular post text color"
       type="color"
-      default="$(posts.text.color)"  value="#757575"/>
+      default="$(posts.text.color)"  value="#9ba2a8"/>
   <Variable name="popularposts.link.color"
       description="Popular post link color"
       type="color"
@@ -207,15 +207,15 @@
   <Variable name="sidebar.backgroundColorTop"
       description="Background color (Top)"
       type="color"
-      default="#f7f7f7"  value="#ffffff"/>
+      default="#f7f7f7"  value="#1d1d1d"/>
   <Variable name="sidebar.backgroundColorTopHD"
       description="Background color (Top) - HD"
       type="color"
-      default="rgba(255, 255, 255, 1)"  value="#f7f7f7"/>
+      default="rgba(255, 255, 255, 1)"  value="#1d1d1d"/>
   <Variable name="sidebar.backgroundColorBottom"
       description="Background color (Bottom)"
       type="color"
-      default="#fff"  value="#ffffff"/>
+      default="#fff"  value="#1d1d1d"/>
   <Variable name="sidebar.separator.color"
       description="Separator color"
       type="color"
@@ -223,50 +223,50 @@
   <Variable name="widget.title.color"
       description="Gadget title color"
       type="color"
-      default="#212121"  value="#212121"/>
+      default="#212121"  value="#c5c1c1"/>
   <Variable name="sidebar.icons.color"
       description="Sidebar icons color"
       type="color"
-      default="#707070"  value="#707070"/>
+      default="#707070"  value="#ffffff"/>
 </Group>
 
 <Group description="Author profile" selector='.widget.Profile'>
   <Variable name="profile.title.color" description="Profile title color"
       type="color"
-      default="rgba(0,0,0,0.52)"  value="rgba(0,0,0,0.52)"/>
+      default="rgba(0,0,0,0.52)"  value="#c5c1c1"/>
   <Variable name="profile.text.color" description="Profile text color"
       type="color"
-      default="rgba(0, 0, 0, 0.54)"  value="rgba(0, 0, 0, 0.54)"/>
+      default="rgba(0, 0, 0, 0.54)"  value="rgba(238, 238, 238, 0.54)"/>
   <Variable name="profile.link.color" description="Profile link color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#ffffff"/>
 </Group>
 
 <Group description="Labels" selector=".widget.Label">
   <Variable name="labels.text.color"
       description="Label text color"
       type="color"
-      default="$(body.link.color)"  value="rgba(0,0,0,0.54)"/>
+      default="$(body.link.color)"  value="#ffffff"/>
   <Variable name="labels.background.color"
       description="Label background color"
       type="color"
       red="$(labels.text.color.red)"
       green="$(labels.text.color.green)"
       blue="$(labels.text.color.blue)"
-      default="rgba($red, $green, $blue, 0.05)"  value="#f7f7f7"/>
+      default="rgba($red, $green, $blue, 0.05)"  value="#444444"/>
 </Group>
 
 <Group description="Attribution" selector=".widget.Attribution">
   <Variable name="attribution.text.color" description="Attribution text color"
       type="color"
-      default="$(body.text.color)"  value="#757575"/>
+      default="$(body.text.color)"  value="#9ba2a8"/>
   <Variable name="attribution.link.color" description="Attribution link color"
       type="color"
       default="$(body.link.color)"  value="#2196f3"/>
   <Variable name="attribution.icon.color" description="Attribution icon color"
       type="color"
       default="#707070"
-      hideEditor="true"  value="#707070"/>
+      hideEditor="true"  value="#ffffff"/>
 </Group>
 
 <Group description="Widths">
@@ -3084,7 +3084,7 @@ margin-left:40px
                   <b:comment>Nav primarily intended for sections that consist of major navigation blocks.</b:comment>
                   <nav role='navigation'>
                     <b:section class='clearboth' id='page_list_top' name='Page List (Top)' showaddelement='false'>
-                      <b:widget cond='!data:view.isPost' id='PageList1' locked='true' title='' type='PageList' visible='false'>
+                      <b:widget cond='!data:view.isPost' id='PageList1' locked='true' title='Pages' type='PageList' visible='false'>
                         <b:widget-settings>
                           <b:widget-setting name='pageListJson'><![CDATA[{"home":{"href":"http://blogs.redwan.work/","position":0,"title":"Home"}}]]></b:widget-setting>
                           <b:widget-setting name='homeTitle'>Home</b:widget-setting>
@@ -3198,7 +3198,7 @@ margin-left:40px
                   </div>
                 </b:if>
                 <b:section class='main' id='page_body' name='Page Body' showaddelement='false'>
-                  <b:widget cond='data:view.isHomepage' id='FeaturedPost1' locked='true' title='Featured Post' type='FeaturedPost' visible='true'>
+                  <b:widget cond='data:view.isHomepage' id='FeaturedPost1' locked='true' title='' type='FeaturedPost' visible='true'>
                     <b:widget-settings>
                       <b:widget-setting name='showSnippet'>true</b:widget-setting>
                       <b:widget-setting name='showPostTitle'>true</b:widget-setting>
@@ -3286,7 +3286,6 @@ margin-left:40px
                       <b:widget-setting name='showDateHeader'>false</b:widget-setting>
                       <b:widget-setting name='style.textcolor'>#ffffff</b:widget-setting>
                       <b:widget-setting name='showShareButtons'>true</b:widget-setting>
-                      <b:widget-setting name='authorLabel'/>
                       <b:widget-setting name='showCommentLink'>true</b:widget-setting>
                       <b:widget-setting name='style.urlcolor'>#ffffff</b:widget-setting>
                       <b:widget-setting name='showAuthor'>false</b:widget-setting>
@@ -3298,7 +3297,7 @@ margin-left:40px
                       <b:widget-setting name='showAuthorProfile'>false</b:widget-setting>
                       <b:widget-setting name='style.layout'>1x1</b:widget-setting>
                       <b:widget-setting name='showLabels'>true</b:widget-setting>
-                      <b:widget-setting name='showLocation'>false</b:widget-setting>
+                      <b:widget-setting name='showLocation'>true</b:widget-setting>
                       <b:widget-setting name='postLabelsLabel'/>
                       <b:widget-setting name='showTimestamp'>true</b:widget-setting>
                       <b:widget-setting name='postsPerAd'>1</b:widget-setting>
@@ -3766,7 +3765,7 @@ margin-left:40px
   <!-- LINT.ThenChange(//depot/google3/java/com/google/blogger/b2/layouts/widgets/v2-style.css) -->
 </b:includable>
                   </b:widget>
-                  <b:widget cond='data:view.isSingleItem and data:posts any (p =&gt; p.id != data:view.postId)' id='PopularPosts1' locked='true' title='Popular Posts' type='PopularPosts' visible='true'>
+                  <b:widget cond='data:view.isSingleItem and data:posts any (p =&gt; p.id != data:view.postId)' id='PopularPosts1' locked='true' title='' type='PopularPosts' visible='true'>
                     <b:widget-settings>
                       <b:widget-setting name='numItemsToShow'>3</b:widget-setting>
                       <b:widget-setting name='showThumbnails'>true</b:widget-setting>
@@ -3848,7 +3847,7 @@ margin-left:40px
               </main>
             </div>
             <b:section class='footer' id='footer' name='Footer' showaddelement='false' tag='footer'>
-              <b:widget id='Attribution1' locked='true' title='' type='Attribution' visible='false'>
+              <b:widget id='Attribution1' locked='true' title='' type='Attribution' visible='true'>
                 <b:widget-settings>
                   <b:widget-setting name='copyright'/>
                 </b:widget-settings>
@@ -3882,18 +3881,6 @@ margin-left:40px
   </div>
 </b:includable>
               </b:widget>
-              <b:widget id='HTML4' locked='false' title='' type='HTML' version='2' visible='true'>
-                <b:includable id='main'>
-          <b:if cond='data:content'>
-            <div class='footer-widget'>
-              <b:if cond='data:title'>
-                <h3 class='footer-widget-title'><data:title/></h3>
-              </b:if>
-              <div class='widget-content'><data:content/></div>
-            </div>
-          </b:if>
-        </b:includable>
-              </b:widget>
             </b:section>
           </div>
         </div>
@@ -3907,7 +3894,7 @@ margin-left:40px
         <b:class cond='data:widgets none w =&gt; w.sectionId == &quot;sidebar_top&quot;' name='no-items'/>
 
         <b:section class='sidebar_top' id='sidebar_top' name='Sidebar (Top)'>
-          <b:widget id='Profile1' locked='true' title='About Me' type='Profile' visible='true'>
+          <b:widget id='Profile1' locked='true' title='About Me' type='Profile' visible='false'>
             <b:widget-settings>
               <b:widget-setting name='showaboutme'>true</b:widget-setting>
               <b:widget-setting name='showlocation'>false</b:widget-setting>
@@ -4014,7 +4001,7 @@ margin-left:40px
         </b:section>
       </div>
       <b:section class='sidebar_bottom' id='sidebar_bottom' name='Sidebar (Bottom)' preferred='yes'>
-        <b:widget id='BlogArchive1' locked='false' title='Archive' type='BlogArchive' visible='true'>
+        <b:widget id='BlogArchive1' locked='false' title='' type='BlogArchive' visible='true'>
           <b:widget-settings>
             <b:widget-setting name='showStyle'>FLAT</b:widget-setting>
             <b:widget-setting name='yearPattern'>yyyy</b:widget-setting>
@@ -4080,30 +4067,6 @@ margin-left:40px
   </ul>
 </b:includable>
         </b:widget>
-        <b:widget id='BlogSearch2' locked='false' title='Search This Blog' type='BlogSearch' visible='true'>
-          <b:includable id='main'>
-  <b:include name='widget-title'/>
-  <b:include name='content'/>
-</b:includable>
-          <b:includable id='content'>
-  <div class='widget-content' role='search'>
-    <b:include name='searchForm'/>
-  </div>
-</b:includable>
-          <b:includable id='searchForm'>
-  <form expr:action='data:blog.searchUrl'>
-    <b:attr cond='not data:view.isPreview' name='target' value='_top'/>
-    <b:include name='urlParamsAsFormInput'/>
-    <div class='search-input'>
-      <input autocomplete='off' expr:aria-label='data:messages.searchThisBlog' expr:placeholder='data:messages.searchThisBlog' expr:value='data:view.isSearch ? data:view.search.query.escaped : &quot;&quot;' name='q'/>
-    </div>
-    <b:include name='searchSubmit'/>
-  </form>
-</b:includable>
-          <b:includable id='searchSubmit'>
-          <input class='search-action flat-button' expr:value='data:messages.search.escaped' type='submit'/>
-        </b:includable>
-        </b:widget>
         <b:widget id='Label1' locked='false' title='Labels' type='Label' visible='true'>
           <b:widget-settings>
             <b:widget-setting name='sorting'>ALPHA</b:widget-setting>
@@ -4141,24 +4104,7 @@ margin-left:40px
   <b:include name='reportAbuse'/>
 </b:includable>
         </b:widget>
-        <b:widget id='HTML3' locked='false' title='' type='HTML' version='2' visible='true'>
-          <b:widget-settings>
-            <b:widget-setting name='content'><![CDATA[<p>Need a security audit, red team engagement, or a second pair of eyes on your stack?</p><p><a class="cta-button" href="https://redwan.work/" rel="noopener" target="_blank">Work with me</a></p>]]></b:widget-setting>
-          </b:widget-settings>
-          <b:includable id='main'>
-      <b:if cond='data:content'>
-        <section class='cta'>
-          <div class='container'>
-            <b:if cond='data:title'>
-              <h2 class='section-title'><data:title/></h2>
-            </b:if>
-            <div class='cta-content widget-content'><data:content/></div>
-          </div>
-        </section>
-      </b:if>
-    </b:includable>
-        </b:widget>
-        <b:widget id='LinkList1' locked='false' title='Navigation' type='LinkList' visible='true'>
+        <b:widget id='LinkList1' locked='false' title='Navigation' type='LinkList' visible='false'>
           <b:widget-settings>
             <b:widget-setting name='sorting'>NONE</b:widget-setting>
             <b:widget-setting name='text-0'>Home</b:widget-setting>
@@ -4178,30 +4124,41 @@ margin-left:40px
  </div>
 </b:includable>
         </b:widget>
-        <b:widget id='HTML2' locked='false' title='' type='HTML' version='2' visible='true'>
-          <b:includable id='main'>
-      <b:if cond='data:content'>
-        <section class='testimonials'>
-          <div class='container'>
-            <b:if cond='data:title'>
-              <h2 class='section-title'><data:title/></h2>
-            </b:if>
-            <div class='testimonials-content widget-content'><data:content/></div>
-          </div>
-        </section>
-      </b:if>
-    </b:includable>
-        </b:widget>
-        <b:widget id='HTML1' locked='false' title='' type='HTML' version='2' visible='true'>
+        <b:widget id='HTML1' locked='false' title='Intro' type='HTML' version='2' visible='false'>
           <b:widget-settings>
-            <b:widget-setting name='content'>Fast Cyber Defense Editorial &#8212; deep dives into penetration testing, vulnerability research, and practical security engineering.</b:widget-setting>
+            <b:widget-setting name='content'/>
           </b:widget-settings>
           <b:includable id='main'>
-          <b:if cond='data:title'>
-            <h2 class='hero-widget-title'><data:title/></h2>
-          </b:if>
-          <div class='hero-subtitle widget-content'><data:content/></div>
-        </b:includable>
+            <b:if cond='data:content'>
+              <div class='intro-content'>
+                <b:eval expr='data:content'/>
+              </div>
+            </b:if>
+          </b:includable>
+        </b:widget>
+        <b:widget id='HTML2' locked='false' title='Call to Action' type='HTML' version='2' visible='false'>
+          <b:widget-settings>
+            <b:widget-setting name='content'><![CDATA[<p>Need a security audit, red team engagement, or a second pair of eyes on your stack?</p><p><a class="cta-button" href="https://redwan.work/" rel="noopener" target="_blank">Work with me</a></p>]]></b:widget-setting>
+          </b:widget-settings>
+          <b:includable id='main'>
+            <b:if cond='data:content'>
+              <aside class='cta-box'>
+                <b:eval expr='data:content'/>
+              </aside>
+            </b:if>
+          </b:includable>
+        </b:widget>
+        <b:widget id='HTML3' locked='false' title='Footer' type='HTML' version='2' visible='false'>
+          <b:widget-settings>
+            <b:widget-setting name='content'/>
+          </b:widget-settings>
+          <b:includable id='main'>
+            <b:if cond='data:content'>
+              <div class='footer-content'>
+                <b:eval expr='data:content'/>
+              </div>
+            </b:if>
+          </b:includable>
         </b:widget>
       </b:section>
     </aside>

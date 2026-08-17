@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html>
-<html b:css='false' b:defaultwidgetversion='2' b:layoutsVersion='3' b:responsive='true' b:templateUrl='indie.xml' b:templateVersion='1.3.3' expr:dir='data:blog.languageDirection' expr:lang='data:blog.locale' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsVersion='3' b:responsive='true' b:templateUrl='strm.xml' b:templateVersion='1.0.1' expr:dir='data:blog.languageDirection' expr:lang='data:blog.locale' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
   <head>
     <meta content='width=device-width, initial-scale=1' name='viewport'/>
     <title><data:view.title.escaped/></title>
     <b:include data='blog' name='all-head-content'/>
 
-    <b:skin version='1.3.3'><![CDATA[/*! normalize.css v3.0.1 | MIT License | git.io/normalize */html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:transparent}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:bold}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-0.5em}sub{bottom:-0.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{height:auto}input[type="search"]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type="search"]::-webkit-search-cancel-button,input[type="search"]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid #c0c0c0;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:bold}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}
+    <b:skin version='1.0.1'><![CDATA[/*! normalize.css v8.0.0 | MIT License | github.com/necolas/normalize.css */html{line-height:1.15;-webkit-text-size-adjust:100%}body{margin:0}h1{font-size:2em;margin:.67em 0}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace,monospace;font-size:1em}a{background-color:transparent}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-0.25em}sup{top:-0.5em}img{border-style:none}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,input{overflow:visible}button,select{text-transform:none}button,[type="button"],[type="reset"],[type="submit"]{-webkit-appearance:button}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner{border-style:none;padding:0}button:-moz-focusring,[type="button"]:-moz-focusring,[type="reset"]:-moz-focusring,[type="submit"]:-moz-focusring{outline:1px dotted ButtonText}fieldset{padding:.35em .75em .625em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{vertical-align:baseline}textarea{overflow:auto}[type="checkbox"],[type="radio"]{box-sizing:border-box;padding:0}[type="number"]::-webkit-inner-spin-button,[type="number"]::-webkit-outer-spin-button{height:auto}[type="search"]{-webkit-appearance:textfield;outline-offset:-2px}[type="search"]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details{display:block}summary{display:list-item}template{display:none}[hidden]{display:none}
 /*
 <!-- Constants -->
 
@@ -46,10 +46,13 @@
   <Variable name="body.background" description="Background"
       color="$(body.background.color)"
       type="background"
-      default="$(color) none repeat scroll top left"  value="$(color) url(https://themes.googleusercontent.com/image?id=L1lcAxxz0CLgsDzixEprHJ2F38TyEjCyE3RSAjynQDks0lT1BDc1OxXKaTEdLc89HPvdB11X9FDw) no-repeat scroll top center /* Credit: Michael Elkan (http://www.offset.com/photos/394244) */;"/>
+      default="$(color) none repeat scroll top left"  value="$(color) none repeat scroll top left"/>
+  <Variable name="body.background.shadow" description="Background overlay shadow"
+      type="color"
+      default="rgba(0,0,0,.26)"  value="rgba(0, 0, 0 ,0)"/>
   <Variable name="body.background.color" description="Body background color"
       type="color"
-      default="#eee"  value="#eeeeee"/>
+      default="#eee"  value="#f4f4f4"/>
   <Variable name="posts.background.color" description="Post background color"
       type="color"
       default="#fff"  value="#ffffff"/>
@@ -78,11 +81,11 @@
       default="$(robotoBold45)"  value="bold 45px Roboto, sans-serif"/>
   <Variable name="blog.title.color" description="Color"
       type="color"
-      default="#fff"  value="#ffffff"/>
+      default="#fff"  value="#424242"/>
   <Variable name="header.icons.color"
       description="Background icons color"
       type="color"
-      default="#fff"  value="#ffffff"/>
+      default="#fff"  value="#424242"/>
 </Group>
 
 <Group description="Tabs text" selector="div.widget.PageList">
@@ -93,10 +96,10 @@
       default="700 normal $(size) $(family)"  value="700 normal $(size) $(family)"/>
   <Variable name="tabs.color" description="Text color"
       type="color"
-      default="#ccc"  value="#cccccc"/>
+      default="#ccc"  value="#757575"/>
   <Variable name="tabs.selected.color" description="Selected color"
       type="color"
-      default="#fff"  value="#ffffff"/>
+      default="#fff"  value="#424242"/>
   <Variable name="tabs.overflow.background.color" description="Popup background color"
       type="color"
       default="$(posts.background.color)"  value="#ffffff"/>
@@ -105,13 +108,13 @@
       default="$(posts.text.color)"  value="#757575"/>
   <Variable name="tabs.overflow.selected.color" description="Popup selected color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#424242"/>
 </Group>
 
 <Group description="Posts" selector="div.widget.Blog">
   <Variable name="posts.title.color" description="Post title color"
       type="color"
-      default="#212121"  value="#212121"/>
+      default="#424242"  value="#424242"/>
   <Variable name="posts.title.font" description="Post title font"
       type="font"
       default="$(robotoBold22)"  value="bold 22px Roboto, sans-serif"/>
@@ -137,18 +140,21 @@
       description="Post icons color"
       type="color"
       default="#707070"  value="#707070"/>
+  <Variable name="posts.boxshadow.color" description="Post box shadow color"
+      type="color"
+      default="rgba(0, 0, 0, 0)"  value="rgba(60, 64, 67, 0.30)"/>
 </Group>
 
 <Group description="Search">
   <Variable name="search.input.color" description="Input color"
       type="color"
-      default="$(blog.title.color)"  value="#ffffff"/>
+      default="$(blog.title.color)"  value="#424242"/>
   <Variable name="search.input.font" description="Input font"
       type="font"
       default="$(robotoNormal16)"  value="16px Roboto, sans-serif"/>
   <Variable name="search.placeholder.color" description="Placeholder text color"
       type="color"
-      default="$(blog.title.color)"  value="#ffffff"/>
+      default="$(blog.title.color)"  value="#424242"/>
 </Group>
 
 <Group description="Sharing">
@@ -158,18 +164,18 @@
       default="$(posts.background.color)"  value="#ffffff"/>
   <Variable name="sharing.text.color" description="Sharing text color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#424242"/>
   <Variable name="sharing.icons.color"
       description="Sharing icons color"
       type="color"
-      default="$(sharing.text.color)"  value="#212121"/>
+      default="$(sharing.text.color)"  value="#424242"/>
 </Group>
 
 <Group description="Popular posts" selector="div.widget.PopularPosts">
   <Variable name="popularposts.background.color"
       description="Popular post background color"
       type="color"
-      default="$(body.background.color)"  value="#eeeeee"/>
+      default="$(body.background.color)"  value="#f4f4f4"/>
   <Variable name="popularposts.byline.color"
       description="Popular post byline color"
       type="color"
@@ -177,7 +183,7 @@
   <Variable name="popularposts.title.color"
       description="Popular post title color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#424242"/>
   <Variable name="popularposts.text.color"
       description="Popular post text color"
       type="color"
@@ -207,11 +213,11 @@
   <Variable name="sidebar.backgroundColorTop"
       description="Background color (Top)"
       type="color"
-      default="#f7f7f7"  value="#ffffff"/>
+      default="#f7f7f7"  value="#f7f7f7"/>
   <Variable name="sidebar.backgroundColorTopHD"
       description="Background color (Top) - HD"
       type="color"
-      default="rgba(255, 255, 255, 1)"  value="#f7f7f7"/>
+      default="rgba(255, 255, 255, 1)"  value="rgba(255, 255, 255, 1)"/>
   <Variable name="sidebar.backgroundColorBottom"
       description="Background color (Bottom)"
       type="color"
@@ -223,7 +229,7 @@
   <Variable name="widget.title.color"
       description="Gadget title color"
       type="color"
-      default="#212121"  value="#212121"/>
+      default="#424242"  value="#424242"/>
   <Variable name="sidebar.icons.color"
       description="Sidebar icons color"
       type="color"
@@ -239,14 +245,14 @@
       default="rgba(0, 0, 0, 0.54)"  value="rgba(0, 0, 0, 0.54)"/>
   <Variable name="profile.link.color" description="Profile link color"
       type="color"
-      default="$(posts.title.color)"  value="#212121"/>
+      default="$(posts.title.color)"  value="#424242"/>
 </Group>
 
 <Group description="Labels" selector=".widget.Label">
   <Variable name="labels.text.color"
       description="Label text color"
       type="color"
-      default="$(body.link.color)"  value="rgba(0,0,0,0.54)"/>
+      default="$(body.link.color)"  value="#2196f3"/>
   <Variable name="labels.background.color"
       description="Label background color"
       type="color"
@@ -277,11 +283,11 @@
   <Variable name="content.margin" description="Content margin" type="length"
             min="0px" max="1000px" default="117px"  value="117px"/>
 </Group>
- */
+*/
 
 /*!************************************************
  * Blogger Template Style
- * Name: Contempo
+ * Name: Essential
  **************************************************/
 body{
 overflow-wrap:break-word;
@@ -294,7 +300,7 @@ display:none
 .invisible{
 visibility:hidden
 }
-.container::after,.float-container::after{
+.container:after,.float-container:after{
 clear:both;
 content:"";
 display:table
@@ -303,20 +309,19 @@ display:table
 clear:both
 }
 #comments .comment .comment-actions,.subscribe-popup .FollowByEmail .follow-by-email-submit,.widget.Profile .profile-link,.widget.Profile .profile-link.visit-profile{
-background:0 0;
+background:transparent;
 border:0;
 box-shadow:none;
 color:$(body.link.color);
 cursor:pointer;
 font-size:14px;
 font-weight:700;
-outline:0;
+outline:none;
 text-decoration:none;
 text-transform:uppercase;
 width:auto
 }
 .dim-overlay{
-background-color:rgba(0,0,0,.54);
 height:100vh;
 left:0;
 position:fixed;
@@ -334,8 +339,8 @@ fill:#ff9800;
 opacity:1
 }
 .loading-spinner-large{
--webkit-animation:mspin-rotate 1.568s infinite linear;
-animation:mspin-rotate 1.568s infinite linear;
+-webkit-animation:mspin-rotate 1568.63ms linear infinite;
+animation:mspin-rotate 1568.63ms linear infinite;
 height:48px;
 overflow:hidden;
 position:absolute;
@@ -343,12 +348,12 @@ width:48px;
 z-index:200
 }
 .loading-spinner-large>div{
--webkit-animation:mspin-revrot 5332ms infinite steps(4);
-animation:mspin-revrot 5332ms infinite steps(4)
+-webkit-animation:mspin-revrot 5332ms steps(4) infinite;
+animation:mspin-revrot 5332ms steps(4) infinite
 }
 .loading-spinner-large>div>div{
--webkit-animation:mspin-singlecolor-large-film 1333ms infinite steps(81);
-animation:mspin-singlecolor-large-film 1333ms infinite steps(81);
+-webkit-animation:mspin-singlecolor-large-film 1333ms steps(81) infinite;
+animation:mspin-singlecolor-large-film 1333ms steps(81) infinite;
 background-size:100%;
 height:48px;
 width:3888px
@@ -363,7 +368,7 @@ background-image:url(https://www.blogblog.com/indie/mspin_white_large.svg)
 opacity:.54
 }
 @-webkit-keyframes mspin-singlecolor-large-film{
-from{
+0%{
 -webkit-transform:translateX(0);
 transform:translateX(0)
 }
@@ -373,7 +378,7 @@ transform:translateX(-3888px)
 }
 }
 @keyframes mspin-singlecolor-large-film{
-from{
+0%{
 -webkit-transform:translateX(0);
 transform:translateX(0)
 }
@@ -383,43 +388,43 @@ transform:translateX(-3888px)
 }
 }
 @-webkit-keyframes mspin-rotate{
-from{
--webkit-transform:rotate(0);
-transform:rotate(0)
+0%{
+-webkit-transform:rotate(0deg);
+transform:rotate(0deg)
 }
 to{
--webkit-transform:rotate(360deg);
-transform:rotate(360deg)
+-webkit-transform:rotate(1turn);
+transform:rotate(1turn)
 }
 }
 @keyframes mspin-rotate{
-from{
--webkit-transform:rotate(0);
-transform:rotate(0)
+0%{
+-webkit-transform:rotate(0deg);
+transform:rotate(0deg)
 }
 to{
--webkit-transform:rotate(360deg);
-transform:rotate(360deg)
+-webkit-transform:rotate(1turn);
+transform:rotate(1turn)
 }
 }
 @-webkit-keyframes mspin-revrot{
-from{
--webkit-transform:rotate(0);
-transform:rotate(0)
+0%{
+-webkit-transform:rotate(0deg);
+transform:rotate(0deg)
 }
 to{
--webkit-transform:rotate(-360deg);
-transform:rotate(-360deg)
+-webkit-transform:rotate(-1turn);
+transform:rotate(-1turn)
 }
 }
 @keyframes mspin-revrot{
-from{
--webkit-transform:rotate(0);
-transform:rotate(0)
+0%{
+-webkit-transform:rotate(0deg);
+transform:rotate(0deg)
 }
 to{
--webkit-transform:rotate(-360deg);
-transform:rotate(-360deg)
+-webkit-transform:rotate(-1turn);
+transform:rotate(-1turn)
 }
 }
 .skip-navigation{
@@ -445,7 +450,7 @@ box-shadow:0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12),0 2px 4px -1
 height:50px
 }
 #main{
-outline:0
+outline:none
 }
 .main-heading{
 position:absolute;
@@ -488,11 +493,10 @@ border-color:$(body.link.color);
 color:$(body.link.color);
 margin-top:8px
 }
-.extendable .show-less.hidden,.extendable .show-more.hidden{
+.extendable .show-less.hidden,.extendable .show-more.hidden,.inline-ad{
 display:none
 }
 .inline-ad{
-display:none;
 max-width:100%;
 overflow:hidden
 }
@@ -506,13 +510,10 @@ top:auto
 iframe.b-hbp-video{
 border:0
 }
-.post-body img{
+.post-body iframe,.post-body img{
 max-width:100%
 }
-.post-body iframe{
-max-width:100%
-}
-.post-body a[imageanchor="1"]{
+.post-body a[imageanchor=\31]{
 display:inline-block
 }
 .byline{
@@ -529,7 +530,7 @@ outline:0
 margin-top:8px
 }
 .link-copied-dialog .goog-buttonset-default{
-background:0 0;
+background:transparent;
 border:0
 }
 .link-copied-dialog .goog-buttonset-default:focus{
@@ -541,19 +542,19 @@ margin-bottom:16px
 .paging-control-container .paging-control{
 display:inline-block
 }
-.paging-control-container .comment-range-text::after,.paging-control-container .paging-control{
+.paging-control-container .comment-range-text:after,.paging-control-container .paging-control{
 color:$(body.link.color)
 }
 .paging-control-container .comment-range-text,.paging-control-container .paging-control{
 margin-$endSide:8px
 }
-.paging-control-container .comment-range-text::after,.paging-control-container .paging-control::after{
+.paging-control-container .comment-range-text:after,.paging-control-container .paging-control:after{
 content:"\b7";
 cursor:default;
 padding-$startSide:8px;
 pointer-events:none
 }
-.paging-control-container .comment-range-text:last-child::after,.paging-control-container .paging-control:last-child::after{
+.paging-control-container .comment-range-text:last-child:after,.paging-control-container .paging-control:last-child:after{
 content:none
 }
 .byline.reactions iframe{
@@ -562,7 +563,7 @@ height:20px
 .b-notification{
 color:#000;
 background-color:#fff;
-border-bottom:solid 1px #000;
+border-bottom:1px solid #000;
 box-sizing:border-box;
 padding:16px 32px;
 text-align:center
@@ -584,26 +585,26 @@ line-height:40px;
 text-align:center
 }
 @media screen and (max-width:800px){
-body.item-view .post-body a[imageanchor="1"][style*="float: left;"],body.item-view .post-body a[imageanchor="1"][style*="float: right;"]{
+body.item-view .post-body a[imageanchor=\31][style*=float\:\ left\;],body.item-view .post-body a[imageanchor=\31][style*=float\:\ right\;]{
 float:none!important;
 clear:none!important
 }
-body.item-view .post-body a[imageanchor="1"] img{
+body.item-view .post-body a[imageanchor=\31] img{
 display:block;
 height:auto;
 margin:0 auto
 }
-body.item-view .post-body>.separator:first-child>a[imageanchor="1"]:first-child{
+body.item-view .post-body>.separator:first-child>a[imageanchor=\31]:first-child{
 margin-top:20px
 }
 .post-body a[imageanchor]{
 display:block
 }
-body.item-view .post-body a[imageanchor="1"]{
+body.item-view .post-body a[imageanchor=\31]{
 margin-left:0!important;
 margin-right:0!important
 }
-body.item-view .post-body a[imageanchor="1"]+a[imageanchor="1"]{
+body.item-view .post-body a[imageanchor=\31]+a[imageanchor=\31]{
 margin-top:16px
 }
 }
@@ -620,7 +621,7 @@ margin:0;
 padding-left:0;
 padding-$startSide:0
 }
-#comments .comment .comment-replybox-single,#comments .comment-thread .comment-replies{
+#comments .comment-thread .comment-replies,#comments .comment .comment-replybox-single{
 margin-left:60px
 }
 #comments .comment-thread .thread-count{
@@ -642,7 +643,7 @@ border-radius:50%
 }
 .avatar-image-container svg,.comment .avatar-image-container .avatar-icon{
 border-radius:50%;
-border:solid 1px $(posts.icons.color);
+border:1px solid $(posts.icons.color);
 box-sizing:border-box;
 fill:$(posts.icons.color);
 height:35px;
@@ -676,13 +677,12 @@ margin-right:8px
 }
 #comments .comment .comment-header .datetime{
 bottom:0;
-color:rgba($(posts.title.color.red),$(posts.title.color.green),$(posts.title.color.blue),.54);
 display:inline-block;
 font-size:13px;
 font-style:italic;
 margin-$startSide:8px
 }
-#comments .comment .comment-footer .comment-timestamp a,#comments .comment .comment-header .datetime a{
+#comments .comment .comment-footer .comment-timestamp a,#comments .comment .comment-header .datetime,#comments .comment .comment-header .datetime a{
 color:rgba($(posts.title.color.red),$(posts.title.color.green),$(posts.title.color.blue),.54)
 }
 #comments .comment .comment-content,.comment .comment-body{
@@ -692,15 +692,12 @@ word-break:break-word
 .comment-body{
 margin-bottom:12px
 }
-#comments.embed[data-num-comments="0"]{
+#comments.embed[data-num-comments=\30]{
 border:0;
 margin-top:0;
 padding-top:0
 }
-#comments.embed[data-num-comments="0"] #comment-post-message,#comments.embed[data-num-comments="0"] div.comment-form>p,#comments.embed[data-num-comments="0"] p.comment-footer{
-display:none
-}
-#comment-editor-src{
+#comment-editor-src,#comments.embed[data-num-comments=\30] #comment-post-message,#comments.embed[data-num-comments=\30] div.comment-form>p,#comments.embed[data-num-comments=\30] p.comment-footer{
 display:none
 }
 .comments .comments-content .loadmore.loaded{
@@ -728,7 +725,7 @@ margin:-12px;
 padding:12px
 }
 .touch-icon:active,.touch-icon:focus{
-background-color:rgba(153,153,153,.4);
+background-color:hsla(0,0%,60%,.4);
 border-radius:50%
 }
 svg:not(:root).touch-icon{
@@ -736,26 +733,25 @@ overflow:visible
 }
 html[dir=rtl] .rtl-reversible-icon{
 -webkit-transform:scaleX(-1);
--ms-transform:scaleX(-1);
 transform:scaleX(-1)
 }
 .svg-icon-24-button,.touch-icon-button{
-background:0 0;
+background:transparent;
 border:0;
 margin:0;
-outline:0;
+outline:none;
 padding:0
 }
 .touch-icon-button .touch-icon:active,.touch-icon-button .touch-icon:focus{
 background-color:transparent
 }
 .touch-icon-button:active .touch-icon,.touch-icon-button:focus .touch-icon{
-background-color:rgba(153,153,153,.4);
+background-color:hsla(0,0%,60%,.4);
 border-radius:50%
 }
 .Profile .default-avatar-wrapper .avatar-icon{
 border-radius:50%;
-border:solid 1px $(posts.icons.color);
+border:1px solid $(posts.icons.color);
 box-sizing:border-box;
 fill:$(posts.icons.color);
 margin:0
@@ -783,47 +779,29 @@ overflow:hidden
 bottom:0;
 box-sizing:border-box;
 position:absolute;
-width:96px
-}
-.snippet-fade{
+width:96px;
 $endSide:0
 }
 .snippet-fade:after{
-content:"\2026"
-}
-.snippet-fade:after{
+content:"\2026";
 float:$endSide
 }
 .post-bottom{
 -webkit-box-align:center;
--webkit-align-items:center;
--ms-flex-align:center;
 align-items:center;
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex;
--webkit-flex-wrap:wrap;
--ms-flex-wrap:wrap;
 flex-wrap:wrap
 }
 .post-footer{
 -webkit-box-flex:1;
--webkit-flex:1 1 auto;
--ms-flex:1 1 auto;
 flex:1 1 auto;
--webkit-flex-wrap:wrap;
--ms-flex-wrap:wrap;
 flex-wrap:wrap;
 -webkit-box-ordinal-group:2;
--webkit-order:1;
--ms-flex-order:1;
 order:1
 }
 .post-footer>*{
 -webkit-box-flex:0;
--webkit-flex:0 1 auto;
--ms-flex:0 1 auto;
 flex:0 1 auto
 }
 .post-footer .byline:last-child{
@@ -831,12 +809,8 @@ margin-$endSide:1em
 }
 .jump-link{
 -webkit-box-flex:0;
--webkit-flex:0 0 auto;
--ms-flex:0 0 auto;
 flex:0 0 auto;
 -webkit-box-ordinal-group:3;
--webkit-order:2;
--ms-flex-order:2;
 order:2
 }
 .centered-top-container.sticky{
@@ -868,7 +842,7 @@ display:none
 display:block
 }
 .centered-top-container.sticky .Header .header-widget{
-background:0 0
+background:none
 }
 .centered-top-container.sticky .Header .header-image-wrapper{
 display:none
@@ -891,7 +865,7 @@ display:none
 display:block
 }
 .collapsible:focus,.collapsible>summary:focus{
-outline:0
+outline:none
 }
 .collapsible>summary{
 cursor:pointer;
@@ -906,22 +880,14 @@ display:none
 }
 .collapsible-title{
 -webkit-box-align:center;
--webkit-align-items:center;
--ms-flex-align:center;
 align-items:center;
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex
 }
 .collapsible-title .title{
 -webkit-box-flex:1;
--webkit-flex:1 1 auto;
--ms-flex:1 1 auto;
 flex:1 1 auto;
 -webkit-box-ordinal-group:1;
--webkit-order:0;
--ms-flex-order:0;
 order:0;
 overflow:hidden;
 text-overflow:ellipsis;
@@ -934,25 +900,23 @@ display:block
 display:none
 }
 .flat-button{
-cursor:pointer;
-display:inline-block;
 font-weight:700;
 text-transform:uppercase;
 border-radius:2px;
 padding:8px;
 margin:-8px
 }
+.flat-button,.flat-icon-button{
+cursor:pointer;
+display:inline-block
+}
 .flat-icon-button{
-background:0 0;
+background:transparent;
 border:0;
-margin:0;
-outline:0;
-padding:0;
+outline:none;
 margin:-12px;
 padding:12px;
-cursor:pointer;
 box-sizing:content-box;
-display:inline-block;
 line-height:0
 }
 .flat-icon-button,.flat-icon-button .splash-wrapper{
@@ -971,7 +935,7 @@ position:relative
 cursor:pointer
 }
 #overflowable-dim-overlay{
-background:0 0
+background:transparent
 }
 .overflow-popup{
 box-shadow:0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px 0 rgba(0,0,0,.12);
@@ -998,7 +962,7 @@ padding-right:0
 display:none
 }
 .pill-button{
-background:0 0;
+background:transparent;
 border:1px solid;
 border-radius:12px;
 cursor:pointer;
@@ -1029,7 +993,6 @@ display:block;
 opacity:.6;
 position:absolute;
 -webkit-transform:scale(0);
--ms-transform:scale(0);
 transform:scale(0)
 }
 .splash.animate{
@@ -1037,14 +1000,14 @@ transform:scale(0)
 animation:ripple-effect .4s linear
 }
 @-webkit-keyframes ripple-effect{
-100%{
+to{
 opacity:0;
 -webkit-transform:scale(2.5);
 transform:scale(2.5)
 }
 }
 @keyframes ripple-effect{
-100%{
+to{
 opacity:0;
 -webkit-transform:scale(2.5);
 transform:scale(2.5)
@@ -1052,16 +1015,11 @@ transform:scale(2.5)
 }
 .search{
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex;
 line-height:24px;
 width:24px
 }
-.search.focused{
-width:100%
-}
-.search.focused .section{
+.search.focused,.search.focused .section{
 width:100%
 }
 .search form{
@@ -1072,14 +1030,10 @@ display:none
 }
 .search form{
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex;
 -webkit-box-flex:1;
--webkit-flex:1 0 0;
--ms-flex:1 0 0px;
 flex:1 0 0;
-border-bottom:solid 1px transparent;
+border-bottom:1px solid transparent;
 padding-bottom:8px
 }
 .search form>*{
@@ -1091,21 +1045,11 @@ display:block
 .search .search-input label{
 display:none
 }
-.centered-top-placeholder.cloned .search form{
-z-index:30
-}
-.search.focused form{
-border-color:$(blog.title.color);
-position:relative;
-width:auto
-}
 .collapsed-header .centered-top-container .search.focused form{
 border-bottom-color:transparent
 }
 .search-expand{
 -webkit-box-flex:0;
--webkit-flex:0 0 auto;
--ms-flex:0 0 auto;
 flex:0 0 auto
 }
 .search-expand-text{
@@ -1117,17 +1061,15 @@ vertical-align:middle
 }
 .search-input{
 -webkit-box-flex:1;
--webkit-flex:1 0 1px;
--ms-flex:1 0 1px;
 flex:1 0 1px
 }
 .search-input input{
-background:0 0;
+background:none;
 border:0;
 box-sizing:border-box;
 color:$(blog.title.color);
 display:inline-block;
-outline:0;
+outline:none;
 width:calc(100% - 48px)
 }
 .search-input input.no-cursor{
@@ -1142,19 +1084,13 @@ color:transparent;
 text-shadow:0 0 0 $(posts.title.color)
 }
 .collapsed-header .centered-top-container .search-input input.no-cursor:focus,.search-input input.no-cursor:focus{
-outline:0
+outline:none
 }
 .search-focused>*{
 visibility:hidden
 }
 .search-focused .search,.search-focused .search-icon{
 visibility:visible
-}
-.search.focused .search-action{
-display:block
-}
-.search.focused .search-action:disabled{
-opacity:.3
 }
 .widget.Sharing .sharing-button{
 display:none
@@ -1167,9 +1103,6 @@ display:none
 }
 .post-share-buttons{
 position:relative
-}
-.centered-bottom .share-buttons .svg-icon-24,.share-buttons .svg-icon-24{
-fill:$(sharing.icons.color)
 }
 .sharing-open.touch-icon-button:active .touch-icon,.sharing-open.touch-icon-button:focus .touch-icon{
 background-color:transparent
@@ -1191,10 +1124,10 @@ z-index:101
 display:none
 }
 .sharing-button{
-background:0 0;
+background:transparent;
 border:0;
 margin:0;
-outline:0;
+outline:none;
 padding:0;
 cursor:pointer
 }
@@ -1216,10 +1149,10 @@ position:relative;
 width:100%
 }
 .share-buttons li .sharing-platform-button:focus,.share-buttons li .sharing-platform-button:hover{
-background-color:rgba(128,128,128,.1);
-outline:0
+background-color:hsla(0,0%,50.2%,.1);
+outline:none
 }
-.share-buttons li svg[class*=" sharing-"],.share-buttons li svg[class^=sharing-]{
+.share-buttons li svg[class*=sharing-],.share-buttons li svg[class^=sharing-]{
 position:absolute;
 top:10px
 }
@@ -1231,9 +1164,7 @@ top:0
 display:block;
 font-size:16px;
 line-height:48px;
-white-space:nowrap
-}
-.share-buttons li .platform-sharing-text{
+white-space:nowrap;
 margin-$startSide:56px
 }
 .sidebar-container{
@@ -1260,7 +1191,7 @@ padding:16px
 cursor:pointer
 }
 .sidebar-container .widget{
-background:0 0;
+background:none;
 margin:0 16px;
 padding:16px 0
 }
@@ -1296,10 +1227,10 @@ display:inline-block
 float:$endSide;
 margin-$startSide:.25em
 }
-.BlogArchive .post-count::before,.Label .label-count::before{
+.BlogArchive .post-count:before,.Label .label-count:before{
 content:"("
 }
-.BlogArchive .post-count::after,.Label .label-count::after{
+.BlogArchive .post-count:after,.Label .label-count:after{
 content:")"
 }
 .widget.Translate .skiptranslate>div{
@@ -1307,32 +1238,22 @@ display:block!important
 }
 .widget.Profile .profile-link{
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex
 }
 .widget.Profile .team-member .default-avatar-wrapper,.widget.Profile .team-member .profile-img{
 -webkit-box-flex:0;
--webkit-flex:0 0 auto;
--ms-flex:0 0 auto;
 flex:0 0 auto;
 margin-$endSide:1em
 }
 .widget.Profile .individual .profile-link{
 -webkit-box-orient:vertical;
 -webkit-box-direction:normal;
--webkit-flex-direction:column;
--ms-flex-direction:column;
 flex-direction:column
 }
 .widget.Profile .team .profile-link .profile-name{
--webkit-align-self:center;
--ms-flex-item-align:center;
 align-self:center;
 display:block;
 -webkit-box-flex:1;
--webkit-flex:1 1 auto;
--ms-flex:1 1 auto;
 flex:1 1 auto
 }
 .dim-overlay{
@@ -1354,7 +1275,6 @@ right:auto
 -webkit-transition-timing-function:cubic-bezier(.4,0,.6,1);
 transition-timing-function:cubic-bezier(.4,0,.6,1);
 -webkit-transform:translateX($(sidebar.width * -1));
--ms-transform:translateX($(sidebar.width * -1));
 transform:translateX($(sidebar.width * -1))
 }
 }
@@ -1383,7 +1303,7 @@ z-index:101
 .dialog input[type=email],.dialog input[type=text]{
 background-color:transparent;
 border:0;
-border-bottom:solid 1px rgba($(body.text.color.red),$(body.text.color.green),$(body.text.color.blue),.12);
+border-bottom:1px solid rgba($(body.text.color.red),$(body.text.color.green),$(body.text.color.blue),.12);
 color:$(body.text.color);
 display:block;
 font-family:$(body.text.font.family);
@@ -1391,7 +1311,7 @@ font-size:16px;
 line-height:24px;
 margin:auto;
 padding-bottom:7px;
-outline:0;
+outline:none;
 text-align:center;
 width:100%
 }
@@ -1411,7 +1331,7 @@ color:$(body.text.color)
 color:$(body.text.color)
 }
 .dialog input[type=email]:focus,.dialog input[type=text]:focus{
-border-bottom:solid 2px $(body.link.color);
+border-bottom:2px solid $(body.link.color);
 padding-bottom:6px
 }
 .dialog input.no-cursor{
@@ -1419,10 +1339,7 @@ color:transparent;
 text-shadow:0 0 0 $(body.text.color)
 }
 .dialog input.no-cursor:focus{
-outline:0
-}
-.dialog input.no-cursor:focus{
-outline:0
+outline:none
 }
 .dialog input[type=submit]{
 font-family:$(body.text.font.family)
@@ -1444,8 +1361,7 @@ display:none
 .subscribe-popup .FollowByEmail .follow-by-email-submit{
 color:$(body.link.color);
 display:inline-block;
-margin:0 auto;
-margin-top:24px;
+margin:24px auto 0;
 width:auto;
 white-space:normal
 }
@@ -1458,19 +1374,18 @@ opacity:.3
 margin-bottom:16px
 }
 body.item-view .blog-name div.widget.Subscribe{
-margin:8px auto 16px auto;
+margin:8px auto 16px;
 width:100%
 }
 }
 .tabs{
 list-style:none
 }
-.tabs li{
+.tabs li,.tabs li a{
 display:inline-block
 }
 .tabs li a{
 cursor:pointer;
-display:inline-block;
 font-weight:700;
 text-transform:uppercase;
 padding:12px 8px
@@ -1574,7 +1489,7 @@ top:$(0 - body.background.blur);
 width:calc(100% + 2 * $(body.background.blur))
 }
 .bg-photo-overlay{
-background:rgba(0,0,0,.26);
+background:$(body.background.shadow);
 background-size:cover;
 height:$(body.background.height);
 position:absolute;
@@ -1589,8 +1504,15 @@ margin-top:0
 float:none;
 position:absolute
 }
+.no-sidebar-widget .hamburger-menu{
+display:none
+}
+.footer .widget .title{
+margin:0;
+line-height:24px
+}
 .search{
-border-bottom:solid 1px $(blog.title.color.transparent);
+border-bottom:1px solid $(blog.title.color.transparent);
 float:right;
 position:relative;
 -webkit-transition-property:width;
@@ -1606,26 +1528,16 @@ background-color:transparent
 }
 .search form{
 height:36px;
--webkit-transition-property:border-color;
-transition-property:border-color;
--webkit-transition-delay:.5s;
-transition-delay:.5s;
--webkit-transition-duration:.2s;
-transition-duration:.2s;
--webkit-transition-timing-function:cubic-bezier(.4,0,.2,1);
-transition-timing-function:cubic-bezier(.4,0,.2,1)
+-webkit-transition:border-color .2s cubic-bezier(.4,0,.2,1) .5s;
+transition:border-color .2s cubic-bezier(.4,0,.2,1) .5s
 }
 .search.focused{
 width:calc(100% - 48px)
 }
 .search.focused form{
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex;
 -webkit-box-flex:1;
--webkit-flex:1 0 1px;
--ms-flex:1 0 1px;
 flex:1 0 1px;
 border-color:$(blog.title.color);
 margin-$startSide:-24px;
@@ -1650,13 +1562,9 @@ z-index:30
 }
 .search_button{
 -webkit-box-flex:0;
--webkit-flex:0 0 24px;
--ms-flex:0 0 24px;
 flex:0 0 24px;
 -webkit-box-orient:vertical;
 -webkit-box-direction:normal;
--webkit-flex-direction:column;
--ms-flex-direction:column;
 flex-direction:column
 }
 .search_button svg{
@@ -1695,7 +1603,7 @@ color:$(search.placeholder.color);
 opacity:.3
 }
 .search-action{
-background:0 0;
+background:transparent;
 border:0;
 color:$(blog.title.color);
 cursor:pointer;
@@ -1722,13 +1630,9 @@ margin-bottom:16px
 .page_body .centered{
 box-sizing:border-box;
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex;
 -webkit-box-orient:vertical;
 -webkit-box-direction:normal;
--webkit-flex-direction:column;
--ms-flex-direction:column;
 flex-direction:column;
 margin:0 auto;
 max-width:$(content.width);
@@ -1737,15 +1641,14 @@ padding:24px 0
 }
 .page_body .centered>*{
 -webkit-box-flex:0;
--webkit-flex:0 0 auto;
--ms-flex:0 0 auto;
 flex:0 0 auto
 }
-.page_body .centered>#footer{
-margin-top:auto
+.page_body .centered>.footer{
+margin-top:auto;
+text-align:center
 }
 .blog-name{
-margin:24px 0 16px 0
+margin:32px 0 16px
 }
 .item-view .blog-name,.sticky .blog-name{
 box-sizing:border-box;
@@ -1763,7 +1666,10 @@ transition-property:opacity;
 transition-duration:.5s
 }
 .item-view .blog-name .subscribe-section-container,.sticky .blog-name .subscribe-section-container{
-margin:0 0 8px 0
+margin:0 0 8px
+}
+.blog-name .subscribe-empty-placeholder{
+margin-bottom:48px
 }
 .blog-name .PageList{
 margin-top:16px;
@@ -1792,18 +1698,12 @@ position:absolute
 }
 .item-view .blog-name{
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex;
--webkit-flex-wrap:wrap;
--ms-flex-wrap:wrap;
 flex-wrap:wrap;
-margin:0 48px 27px 48px
+margin:0 48px 27px
 }
 .item-view .subscribe-section-container{
 -webkit-box-flex:0;
--webkit-flex:0 0 auto;
--ms-flex:0 0 auto;
 flex:0 0 auto
 }
 .item-view #header,.item-view .Header{
@@ -1814,7 +1714,7 @@ margin-right:15px
 margin-bottom:0
 }
 .item-view .Header p{
-margin:10px 0 0 0;
+margin:10px 0 0;
 text-align:left
 }
 .item-view .post-share-buttons-bottom{
@@ -1837,30 +1737,20 @@ min-height:48px
 }
 .sticky .blog-name{
 display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
 display:flex;
 margin:0 48px
 }
 .sticky .blog-name #header{
 -webkit-box-flex:0;
--webkit-flex:0 1 auto;
--ms-flex:0 1 auto;
 flex:0 1 auto;
 -webkit-box-ordinal-group:2;
--webkit-order:1;
--ms-flex-order:1;
 order:1;
 overflow:hidden
 }
 .sticky .blog-name .subscribe-section-container{
 -webkit-box-flex:0;
--webkit-flex:0 0 auto;
--ms-flex:0 0 auto;
 flex:0 0 auto;
 -webkit-box-ordinal-group:3;
--webkit-order:2;
--ms-flex-order:2;
 order:2
 }
 .sticky .Header h1{
@@ -1872,16 +1762,10 @@ margin-bottom:-10px;
 padding-$endSide:10px;
 padding-bottom:10px
 }
-.sticky .Header p{
+.sticky .Header p,.sticky .PageList{
 display:none
 }
-.sticky .PageList{
-display:none
-}
-.search-focused>*{
-visibility:visible
-}
-.search-focused .hamburger-menu{
+.search-focused .hamburger-menu,.search-focused>*{
 visibility:visible
 }
 .item-view .search-focused .blog-name,.sticky .search-focused .blog-name{
@@ -1901,14 +1785,13 @@ display:inline-block;
 width:calc(100% - 176px)
 }
 .Header h1{
-color:$(blog.title.color);
 font:$(blog.title.font);
 line-height:normal;
-margin:0 0 13px 0;
+margin:0 0 13px;
 text-align:center;
 width:100%
 }
-.Header h1 a,.Header h1 a:hover,.Header h1 a:visited{
+.Header h1,.Header h1 a,.Header h1 a:hover,.Header h1 a:visited{
 color:$(blog.title.color)
 }
 .item-view .Header h1,.sticky .Header h1{
@@ -1917,15 +1800,12 @@ line-height:24px;
 margin:0;
 text-align:left
 }
-.sticky .Header h1{
-color:$(posts.text.color)
-}
-.sticky .Header h1 a,.sticky .Header h1 a:hover,.sticky .Header h1 a:visited{
+.sticky .Header h1,.sticky .Header h1 a,.sticky .Header h1 a:hover,.sticky .Header h1 a:visited{
 color:$(posts.text.color)
 }
 .Header p{
 color:$(blog.title.color);
-margin:0 0 13px 0;
+margin:0 0 13px;
 opacity:.8;
 text-align:center
 }
@@ -1942,7 +1822,8 @@ color:$(posts.text.color)
 background:$(posts.background.color);
 min-height:40px;
 padding:30px 40px;
-width:auto
+width:auto;
+box-shadow:0 1px 4px 0 $(posts.boxshadow.color)
 }
 .Blog .blog-posts .post-outer-container:last-child{
 margin-bottom:0
@@ -1990,7 +1871,7 @@ color:$(posts.navigation.link.hover.color)
 .post-title{
 font:$(posts.title.font);
 float:$(startSide);
-margin:0 0 8px 0;
+margin:0 0 8px;
 max-width:calc(100% - 48px)
 }
 .post-title a{
@@ -2003,7 +1884,7 @@ color:$(posts.title.color)
 color:$(posts.text.color);
 font:$(posts.text.font);
 line-height:1.6em;
-margin:1.5em 0 2em 0;
+margin:1.5em 0 2em;
 display:block
 }
 .post-body img{
@@ -2084,6 +1965,9 @@ text-decoration:inherit
 }
 .post-share-buttons{
 margin-left:0
+}
+.post-share-buttons.invisible{
+display:none
 }
 .clear-sharing{
 min-height:24px
@@ -2176,10 +2060,20 @@ padding:8px 20px
 .overflow-popup li.selected a{
 color:$(tabs.overflow.selected.color)
 }
-a.report_abuse{
-font-weight:400
+.ReportAbuse.widget{
+margin-bottom:0
 }
-.Label li,.Label span.label-size,.byline.post-labels a{
+.ReportAbuse a.report_abuse{
+display:inline-block;
+margin-bottom:8px;
+font:$(body.text.font);
+font-weight:400;
+line-height:24px
+}
+.ReportAbuse a.report_abuse,.ReportAbuse a.report_abuse:hover{
+color:#888
+}
+.byline.post-labels a,.Label li,.Label span.label-size{
 background-color:$(labels.background.color);
 border:1px solid $(labels.background.color);
 border-radius:15px;
@@ -2187,7 +2081,7 @@ display:inline-block;
 margin:4px 4px 4px 0;
 padding:3px 8px
 }
-.Label a,.byline.post-labels a{
+.byline.post-labels a,.Label a{
 color:$(labels.text.color)
 }
 .Label ul{
@@ -2302,13 +2196,14 @@ height:90px
 margin-top:36px
 }
 .Attribution{
+display:inline-block;
 color:$(attribution.text.color)
 }
 .Attribution a,.Attribution a:hover,.Attribution a:visited{
 color:$(attribution.link.color)
 }
 .Attribution svg{
-fill:$(attribution.icon.color)
+display:none
 }
 .sidebar-container{
 box-shadow:1px 1px 3px rgba(0,0,0,.1)
@@ -2328,6 +2223,9 @@ padding-top:16px
 }
 .sidebar-container .widget:first-child{
 padding-top:0
+}
+.no-sidebar-widget .sidebar-container,.preview .sidebar-container{
+display:none
 }
 .sidebar_top .widget.Profile{
 padding-bottom:16px
@@ -2398,18 +2296,18 @@ font-size:14px;
 line-height:24px;
 position:relative
 }
-body.sidebar-visible .page_body{
-overflow-y:scroll
-}
-body.sidebar-visible .bg-photo-container{
+body.sidebar-visible .bg-photo-container,body.sidebar-visible .page_body{
 overflow-y:scroll
 }
 @media screen and (min-width:$(sidebar.width + content.width + content.margin * 2)){
 .sidebar-container{
-margin-top:$(body.background.height);
-min-height:calc(100% - $(body.background.height));
+min-height:100%;
 overflow:visible;
 z-index:32
+}
+.sidebar-container.show-sidebar-top{
+margin-top:$(body.background.height);
+min-height:calc(100% - $(body.background.height))
 }
 .sidebar-container .sidebar_top_wrapper{
 background-color:$(sidebar.backgroundColorTopHD);
@@ -2417,16 +2315,7 @@ height:$(body.background.height);
 margin-top:$(body.background.height * -1)
 }
 .sidebar-container .sidebar_top{
-display:-webkit-box;
-display:-webkit-flex;
-display:-ms-flexbox;
-display:flex;
 height:$(body.background.height);
--webkit-box-orient:horizontal;
--webkit-box-direction:normal;
--webkit-flex-direction:row;
--ms-flex-direction:row;
-flex-direction:row;
 max-height:$(body.background.height)
 }
 .sidebar-container .sidebar_bottom{
@@ -2441,11 +2330,7 @@ display:none
 }
 .sidebar-container .sidebar_top>:only-child{
 -webkit-box-flex:0;
--webkit-flex:0 0 auto;
--ms-flex:0 0 auto;
 flex:0 0 auto;
--webkit-align-self:center;
--ms-flex-item-align:center;
 align-self:center;
 width:100%
 }
@@ -2511,14 +2396,14 @@ margin-top:0
 body.item-view .blog-name{
 margin:0 48px
 }
+.blog-name .subscribe-empty-placeholder{
+margin-bottom:0
+}
 .centered-bottom{
 padding:8px
 }
 body.item-view .centered-bottom{
 padding:0
-}
-.page_body .centered{
-padding:10px 0
 }
 body.item-view #header,body.item-view .widget.Header{
 margin-right:0
@@ -2533,14 +2418,11 @@ text-align:center
 padding:0
 }
 .widget.Header h1{
-font-size:$(blog.title.font.size * 24 / 45);
-line-height:$(blog.title.font.size * 24 / 45);
+font-size:$(blog.title.font.size * 24/45);
+line-height:$(blog.title.font.size * 24/45);
 margin-bottom:13px
 }
-body.item-view .widget.Header h1{
-text-align:center
-}
-body.item-view .widget.Header p{
+body.item-view .widget.Header h1,body.item-view .widget.Header p{
 text-align:center
 }
 .blog-name .widget.PageList{
@@ -2556,16 +2438,13 @@ margin-bottom:-8px
 margin-bottom:8px
 }
 body.item-view .subscribe-section-container{
-margin:5px 0 0 0;
+margin:5px 0 0;
 width:100%
 }
-#page_body.section div.widget.FeaturedPost,div.widget.PopularPosts{
+#page_body.section div.widget.FeaturedPost,.widget.Blog .blog-posts .post-outer-container,.widget.PopularPosts{
 padding:16px
 }
-div.widget.Blog .blog-posts .post-outer-container{
-padding:16px
-}
-div.widget.Blog .blog-posts .post-outer-container .post-outer{
+.widget.Blog .blog-posts .post-outer-container .post-outer{
 padding:0
 }
 .post:first-child{
@@ -2580,10 +2459,10 @@ width:20vw;
 max-height:128px;
 max-width:128px
 }
-div.widget.PopularPosts div.item-thumbnail{
+.widget.PopularPosts div.item-thumbnail{
 margin:0 3vw 3vw 0
 }
-div.widget.PopularPosts div.item-thumbnail img{
+.widget.PopularPosts div.item-thumbnail img{
 height:20vw;
 width:20vw;
 max-height:88px;
@@ -2608,7 +2487,7 @@ display:none
 display:block;
 width:auto
 }
-div.post-filter-message div{
+.post-filter-message div{
 padding:8px 16px
 }
 }
@@ -2618,6 +2497,9 @@ position:relative
 }
 body.item-view .blog-name{
 margin-left:48px
+}
+.no-sidebar-widget .page_body,.preview .page_body{
+margin-left:0
 }
 .page_body{
 margin-left:$(sidebar.width)
@@ -2838,6 +2720,7 @@ margin-left:40px
         <b:includable id='main' var='this'>
           <details class='collapsible extendable'>
             <b:attr cond='data:view.isLabelSearch' name='open' value='open'/>
+            <b:class name='version-1-0-1'/>
             <b:with value='true' var='renderAsDetails'>
             <b:with value='data:messages.labels' var='defaultTitle'>
               <b:include name='super.main'/>
@@ -2964,7 +2847,7 @@ margin-left:40px
     <b:class cond='data:view.isArchive' name='archive-view'/>
     <b:class cond='data:view.isLabelSearch' name='label-view'/>
     <b:class cond='data:view.isSearch and !data:view.isLabelSearch' name='search-view'/>
-    <b:class name='version-1-3-3'/>
+    <b:class cond='data:widgets none w =&gt; (w.sectionId in [&quot;sidebar_top&quot;, &quot;sidebar_bottom&quot;])' name='no-sidebar-widget'/>
 
     <b:include name='skipNavigation'/>
 
@@ -3001,7 +2884,7 @@ margin-left:40px
                       </div>
                     </button>
                     <b:section id='search_top' name='Search (Top)' showaddelement='false'>
-                      <b:widget id='BlogSearch1' locked='true' title='Search This Blog' type='BlogSearch' visible='true'>
+                      <b:widget id='BlogSearch1' locked='true' title='Search This Blog' type='BlogSearch' visible='false'>
                         <b:includable id='main'>
   <b:include name='widget-title'/>
   <b:include name='content'/>
@@ -3084,7 +2967,7 @@ margin-left:40px
                   <b:comment>Nav primarily intended for sections that consist of major navigation blocks.</b:comment>
                   <nav role='navigation'>
                     <b:section class='clearboth' id='page_list_top' name='Page List (Top)' showaddelement='false'>
-                      <b:widget cond='!data:view.isPost' id='PageList1' locked='true' title='' type='PageList' visible='false'>
+                      <b:widget cond='!data:view.isPost' id='PageList1' locked='true' title='Pages' type='PageList' visible='false'>
                         <b:widget-settings>
                           <b:widget-setting name='pageListJson'><![CDATA[{"home":{"href":"http://blogs.redwan.work/","position":0,"title":"Home"}}]]></b:widget-setting>
                           <b:widget-setting name='homeTitle'>Home</b:widget-setting>
@@ -3198,7 +3081,7 @@ margin-left:40px
                   </div>
                 </b:if>
                 <b:section class='main' id='page_body' name='Page Body' showaddelement='false'>
-                  <b:widget cond='data:view.isHomepage' id='FeaturedPost1' locked='true' title='Featured Post' type='FeaturedPost' visible='true'>
+                  <b:widget cond='data:view.isHomepage' id='FeaturedPost1' locked='true' title='' type='FeaturedPost' visible='true'>
                     <b:widget-settings>
                       <b:widget-setting name='showSnippet'>true</b:widget-setting>
                       <b:widget-setting name='showPostTitle'>true</b:widget-setting>
@@ -3286,19 +3169,18 @@ margin-left:40px
                       <b:widget-setting name='showDateHeader'>false</b:widget-setting>
                       <b:widget-setting name='style.textcolor'>#ffffff</b:widget-setting>
                       <b:widget-setting name='showShareButtons'>true</b:widget-setting>
-                      <b:widget-setting name='authorLabel'/>
                       <b:widget-setting name='showCommentLink'>true</b:widget-setting>
                       <b:widget-setting name='style.urlcolor'>#ffffff</b:widget-setting>
                       <b:widget-setting name='showAuthor'>false</b:widget-setting>
                       <b:widget-setting name='style.linkcolor'>#ffffff</b:widget-setting>
                       <b:widget-setting name='style.unittype'>TextAndImage</b:widget-setting>
                       <b:widget-setting name='style.bgcolor'>#ffffff</b:widget-setting>
-                      <b:widget-setting name='timestampLabel'>-</b:widget-setting>
+                      <b:widget-setting name='timestampLabel'/>
                       <b:widget-setting name='reactionsLabel'/>
                       <b:widget-setting name='showAuthorProfile'>false</b:widget-setting>
                       <b:widget-setting name='style.layout'>1x1</b:widget-setting>
                       <b:widget-setting name='showLabels'>true</b:widget-setting>
-                      <b:widget-setting name='showLocation'>false</b:widget-setting>
+                      <b:widget-setting name='showLocation'>true</b:widget-setting>
                       <b:widget-setting name='postLabelsLabel'/>
                       <b:widget-setting name='showTimestamp'>true</b:widget-setting>
                       <b:widget-setting name='postsPerAd'>1</b:widget-setting>
@@ -3766,7 +3648,7 @@ margin-left:40px
   <!-- LINT.ThenChange(//depot/google3/java/com/google/blogger/b2/layouts/widgets/v2-style.css) -->
 </b:includable>
                   </b:widget>
-                  <b:widget cond='data:view.isSingleItem and data:posts any (p =&gt; p.id != data:view.postId)' id='PopularPosts1' locked='true' title='Popular Posts' type='PopularPosts' visible='true'>
+                  <b:widget cond='data:view.isSingleItem and data:posts any (p =&gt; p.id != data:view.postId)' id='PopularPosts1' locked='true' title='' type='PopularPosts' visible='true'>
                     <b:widget-settings>
                       <b:widget-setting name='numItemsToShow'>3</b:widget-setting>
                       <b:widget-setting name='showThumbnails'>true</b:widget-setting>
@@ -3848,7 +3730,7 @@ margin-left:40px
               </main>
             </div>
             <b:section class='footer' id='footer' name='Footer' showaddelement='false' tag='footer'>
-              <b:widget id='Attribution1' locked='true' title='' type='Attribution' visible='false'>
+              <b:widget id='Attribution1' locked='true' title='' type='Attribution' visible='true'>
                 <b:widget-settings>
                   <b:widget-setting name='copyright'/>
                 </b:widget-settings>
@@ -3882,17 +3764,10 @@ margin-left:40px
   </div>
 </b:includable>
               </b:widget>
-              <b:widget id='HTML4' locked='false' title='' type='HTML' version='2' visible='true'>
+              <b:widget id='ReportAbuse1' locked='true' title='' type='ReportAbuse' visible='true'>
                 <b:includable id='main'>
-          <b:if cond='data:content'>
-            <div class='footer-widget'>
-              <b:if cond='data:title'>
-                <h3 class='footer-widget-title'><data:title/></h3>
-              </b:if>
-              <div class='widget-content'><data:content/></div>
-            </div>
-          </b:if>
-        </b:includable>
+  <b:include name='reportAbuse'/>
+</b:includable>
               </b:widget>
             </b:section>
           </div>
@@ -3900,14 +3775,14 @@ margin-left:40px
       </b:with>
     </div>
     <aside class='sidebar-container container sidebar-invisible' role='complementary'>
+      <b:class cond='data:widgets any w =&gt; w.sectionId == &quot;sidebar_top&quot;' name='show-sidebar-top'/>
       <div class='navigation'>
         <b:include data='{ button: true, iconClass: &quot;flat-icon-button ripple sidebar-back&quot; }' name='backArrowIcon'/>
       </div>
       <div class='sidebar_top_wrapper'>
         <b:class cond='data:widgets none w =&gt; w.sectionId == &quot;sidebar_top&quot;' name='no-items'/>
-
         <b:section class='sidebar_top' id='sidebar_top' name='Sidebar (Top)'>
-          <b:widget id='Profile1' locked='true' title='About Me' type='Profile' visible='true'>
+          <b:widget id='Profile1' locked='true' title='About Me' type='Profile' visible='false'>
             <b:widget-settings>
               <b:widget-setting name='showaboutme'>true</b:widget-setting>
               <b:widget-setting name='showlocation'>false</b:widget-setting>
@@ -4014,7 +3889,7 @@ margin-left:40px
         </b:section>
       </div>
       <b:section class='sidebar_bottom' id='sidebar_bottom' name='Sidebar (Bottom)' preferred='yes'>
-        <b:widget id='BlogArchive1' locked='false' title='Archive' type='BlogArchive' visible='true'>
+        <b:widget id='BlogArchive1' locked='false' title='' type='BlogArchive' visible='true'>
           <b:widget-settings>
             <b:widget-setting name='showStyle'>FLAT</b:widget-setting>
             <b:widget-setting name='yearPattern'>yyyy</b:widget-setting>
@@ -4080,31 +3955,7 @@ margin-left:40px
   </ul>
 </b:includable>
         </b:widget>
-        <b:widget id='BlogSearch2' locked='false' title='Search This Blog' type='BlogSearch' visible='true'>
-          <b:includable id='main'>
-  <b:include name='widget-title'/>
-  <b:include name='content'/>
-</b:includable>
-          <b:includable id='content'>
-  <div class='widget-content' role='search'>
-    <b:include name='searchForm'/>
-  </div>
-</b:includable>
-          <b:includable id='searchForm'>
-  <form expr:action='data:blog.searchUrl'>
-    <b:attr cond='not data:view.isPreview' name='target' value='_top'/>
-    <b:include name='urlParamsAsFormInput'/>
-    <div class='search-input'>
-      <input autocomplete='off' expr:aria-label='data:messages.searchThisBlog' expr:placeholder='data:messages.searchThisBlog' expr:value='data:view.isSearch ? data:view.search.query.escaped : &quot;&quot;' name='q'/>
-    </div>
-    <b:include name='searchSubmit'/>
-  </form>
-</b:includable>
-          <b:includable id='searchSubmit'>
-          <input class='search-action flat-button' expr:value='data:messages.search.escaped' type='submit'/>
-        </b:includable>
-        </b:widget>
-        <b:widget id='Label1' locked='false' title='Labels' type='Label' visible='true'>
+        <b:widget id='Label1' locked='false' title='Labels' type='Label' visible='false'>
           <b:widget-settings>
             <b:widget-setting name='sorting'>ALPHA</b:widget-setting>
             <b:widget-setting name='display'>LIST</b:widget-setting>
@@ -4115,6 +3966,7 @@ margin-left:40px
           <b:includable id='main' var='this'>
           <details class='collapsible extendable'>
             <b:attr cond='data:view.isLabelSearch' name='open' value='open'/>
+            <b:class name='version-1-0-1'/>
             <b:with value='true' var='renderAsDetails'>
             <b:with value='data:messages.labels' var='defaultTitle'>
               <b:include name='super.main'/>
@@ -4136,29 +3988,7 @@ margin-left:40px
           <b:include data='{                               buttonClass: &quot;pill-button&quot;,                               items: data:this.labels,                               itemSet: &quot;labels&quot;,                               itemsMarkup: &quot;super.list&quot;                             }' name='extendableItems'/>
         </b:includable>
         </b:widget>
-        <b:widget id='ReportAbuse1' locked='true' title='' type='ReportAbuse' visible='true'>
-          <b:includable id='main'>
-  <b:include name='reportAbuse'/>
-</b:includable>
-        </b:widget>
-        <b:widget id='HTML3' locked='false' title='' type='HTML' version='2' visible='true'>
-          <b:widget-settings>
-            <b:widget-setting name='content'><![CDATA[<p>Need a security audit, red team engagement, or a second pair of eyes on your stack?</p><p><a class="cta-button" href="https://redwan.work/" rel="noopener" target="_blank">Work with me</a></p>]]></b:widget-setting>
-          </b:widget-settings>
-          <b:includable id='main'>
-      <b:if cond='data:content'>
-        <section class='cta'>
-          <div class='container'>
-            <b:if cond='data:title'>
-              <h2 class='section-title'><data:title/></h2>
-            </b:if>
-            <div class='cta-content widget-content'><data:content/></div>
-          </div>
-        </section>
-      </b:if>
-    </b:includable>
-        </b:widget>
-        <b:widget id='LinkList1' locked='false' title='Navigation' type='LinkList' visible='true'>
+        <b:widget id='LinkList1' locked='false' title='Navigation' type='LinkList' visible='false'>
           <b:widget-settings>
             <b:widget-setting name='sorting'>NONE</b:widget-setting>
             <b:widget-setting name='text-0'>Home</b:widget-setting>
@@ -4178,34 +4008,45 @@ margin-left:40px
  </div>
 </b:includable>
         </b:widget>
-        <b:widget id='HTML2' locked='false' title='' type='HTML' version='2' visible='true'>
-          <b:includable id='main'>
-      <b:if cond='data:content'>
-        <section class='testimonials'>
-          <div class='container'>
-            <b:if cond='data:title'>
-              <h2 class='section-title'><data:title/></h2>
-            </b:if>
-            <div class='testimonials-content widget-content'><data:content/></div>
-          </div>
-        </section>
-      </b:if>
-    </b:includable>
-        </b:widget>
-        <b:widget id='HTML1' locked='false' title='' type='HTML' version='2' visible='true'>
+        <b:widget id='HTML1' locked='false' title='Intro' type='HTML' version='2' visible='false'>
           <b:widget-settings>
-            <b:widget-setting name='content'>Fast Cyber Defense Editorial &#8212; deep dives into penetration testing, vulnerability research, and practical security engineering.</b:widget-setting>
+            <b:widget-setting name='content'/>
           </b:widget-settings>
           <b:includable id='main'>
-          <b:if cond='data:title'>
-            <h2 class='hero-widget-title'><data:title/></h2>
-          </b:if>
-          <div class='hero-subtitle widget-content'><data:content/></div>
-        </b:includable>
+            <b:if cond='data:content'>
+              <div class='intro-content'>
+                <b:eval expr='data:content'/>
+              </div>
+            </b:if>
+          </b:includable>
+        </b:widget>
+        <b:widget id='HTML2' locked='false' title='Call to Action' type='HTML' version='2' visible='false'>
+          <b:widget-settings>
+            <b:widget-setting name='content'><![CDATA[<p>Need a security audit, red team engagement, or a second pair of eyes on your stack?</p><p><a class="cta-button" href="https://redwan.work/" rel="noopener" target="_blank">Work with me</a></p>]]></b:widget-setting>
+          </b:widget-settings>
+          <b:includable id='main'>
+            <b:if cond='data:content'>
+              <aside class='cta-box'>
+                <b:eval expr='data:content'/>
+              </aside>
+            </b:if>
+          </b:includable>
+        </b:widget>
+        <b:widget id='HTML3' locked='false' title='Footer' type='HTML' version='2' visible='false'>
+          <b:widget-settings>
+            <b:widget-setting name='content'/>
+          </b:widget-settings>
+          <b:includable id='main'>
+            <b:if cond='data:content'>
+              <div class='footer-content'>
+                <b:eval expr='data:content'/>
+              </div>
+            </b:if>
+          </b:includable>
         </b:widget>
       </b:section>
     </aside>
 
-    <b:template-script async='true' name='indie' version='1.0.0'/>
+    <b:template-script async='true' name='strm' version='1.0.0'/>
   </body>
 </html>
