@@ -62,7 +62,7 @@ export async function generateTheme(options: GenerateThemeOptions): Promise<Gene
       'xmlns:expr': 'http://www.google.com/2005/gml/expr'
     }
   });
-  const output = `<?xml version='1.0' encoding='UTF-8' ?>\n${xml.trim()}\n`;
+  const output = `<?xml version="1.0" encoding="UTF-8" ?>\n${xml.trim()}\n`;
   const bytes = Buffer.byteLength(output, 'utf8');
   if (bytes > 500_000) throw new Error(`Generated theme is ${bytes} bytes; budget is 500000.`);
   if (options.write !== false) {
