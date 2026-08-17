@@ -6,7 +6,6 @@ html&attributes(rootAttributes)
     title
       | <data:view.title.escaped/>
     b:include(data='blog' name='all-head-content')/
-    include partials/head-meta.pug
     b:skin(version=templateVersion).
       <![CDATA[
       !{css}
@@ -54,6 +53,7 @@ html&attributes(rootAttributes)
       include defaultmarkups/page-list.pug
       include defaultmarkups/profile.pug
       include defaultmarkups/contact-form.pug
+    include partials/head-meta.pug
   body
     b:class(cond='data:view.isHomepage and not data:newerPageUrl' name='is-home-lead')/
     b:class(cond='data:view.isPost' name='is-post')/
