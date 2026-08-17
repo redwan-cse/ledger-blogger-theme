@@ -18,7 +18,12 @@ html&attributes(rootAttributes)
         display: inherit;
       }
       body#layout .skip-link,
-      body#layout .mobile-nav-drawer {
+      body#layout .reading-progress,
+      body#layout .drawer-backdrop,
+      body#layout .mobile-drawer,
+      body#layout .mobile-nav-drawer,
+      body#layout .search-modal,
+      body#layout .toast-container {
         display: none;
       }
       body#layout .header-outer,
@@ -54,6 +59,9 @@ html&attributes(rootAttributes)
     b:class(cond='data:view.isPost' name='is-post')/
     b:class(cond='data:view.isPage' name='is-page')/
     a.skip-link(href='#content') Skip to content
+    b:if(cond='data:view.isPost')
+      div#reading-progress.reading-progress(aria-label='Reading progress' aria-valuemax='100' aria-valuemin='0' aria-valuenow='0' role='progressbar')
+        div.reading-progress-bar
     div.header-outer(role='banner')
       include widgets/header.pug
     div.nav-container
@@ -68,8 +76,34 @@ html&attributes(rootAttributes)
       include widgets/cta.pug
     footer.footer-container(role='contentinfo')
       include widgets/footer.pug
+    div.drawer-backdrop(aria-hidden='true')
+    nav#mobile-drawer.mobile-drawer(aria-hidden='true' aria-label='Mobile Navigation')
+      div.drawer-header
+        div.drawer-title
+          b:eval(expr='data:blog.title')/
+        button.drawer-close(aria-label='Close navigation' type='button')
+          svg(aria-hidden='true' height='20' viewBox='0 0 24 24' width='20')
+            path(d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')
+      ul.drawer-nav-list
+        li.drawer-nav-item
+          a.drawer-nav-link(expr:href='data:blog.homepageUrl')
+            b:eval(expr='data:messages.home ?: "Home"')/
+    dialog#search-modal.search-modal(aria-hidden='true' aria-labelledby='search-modal-title')
+      div.search-modal-container
+        div.search-modal-header
+          div#search-modal-title.search-modal-title Search
+          button.search-modal-close(aria-label='Close search' type='button')
+            svg(aria-hidden='true' height='20' viewBox='0 0 24 24' width='20')
+              path(d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')
+        form.search-form(expr:action='data:blog.searchUrl' method='get' role='search')
+          input(aria-label='Search query' autocomplete='off' name='q' placeholder='Search articles…' required='required' type='search')/
+          button(type='submit')
+            b:eval(expr='data:messages.search ?: "Search"')/
+    div#toast-container.toast-container(aria-live='polite')
     b:template-script(async='true' name='indie' version='1.0.0')
     if script
       script.
+        //<![CDATA[
         !{script}
+        //]]>
 

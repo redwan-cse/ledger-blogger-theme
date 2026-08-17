@@ -12,6 +12,7 @@ b:defaultmarkup(type='PopularPosts')
           b:eval(expr='data:messages.noPosts')/
   b:includable(id='snippetedPostContent' var='post')
     article.popular-post-entry
+      span.popular-post-rank(aria-hidden='true')
       b:include(data='post' name='snippetedPostThumbnail')/
       div.popular-post-body
         b:include(data='post' name='snippetedPostTitle')/

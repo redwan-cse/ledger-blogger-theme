@@ -32,6 +32,9 @@ b:defaultmarkup(type='BlogArchive')
   b:includable(id='interval' var='interval')
     a.blog-archive-interval-link(expr:href='data:interval.url')
       b:eval(expr='data:interval.name')/
+    b:if(cond='data:interval.post-count')
+      span.blog-archive-count
+        b:eval(expr='data:interval.post-count')/
     b:if(cond='data:interval.data')
       ul.blog-archive-sublist
         b:loop(values='data:interval.data' var='subInterval')

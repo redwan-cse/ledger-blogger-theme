@@ -1,10 +1,12 @@
 b:defaultmarkup(type='Profile')
   b:includable(id='main' var='this')
-    div.wrapper
+    div.profile-card.wrapper
       b:class(cond='not data:this.team' name='solo')/
       b:with(value='data:messages.blogAuthors' var='defaultTitle')
         b:include(cond='data:this.team' name='widget-title')/
       b:include(name='content')/
+  b:includable(id='authorProfileImage')
+    img.profile-img.author-avatar(expr:alt='data:messages.myPhoto' expr:src='data:authorPhoto.image' height='64' loading='lazy' width='64')/
   b:includable(id='defaultProfileImage')
     div.default-avatar-wrapper
       b:include(data='{ iconClass: "avatar-icon" }' name='defaultAvatarIcon')/

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Empty / Error States & Pagination — docs/PROJECT-PLAN.md §2.6, R-EMPTY
+// Empty / Error States, Pagination & Toast Feedback — docs/PROJECT-PLAN.md §2.6, R-EMPTY
 // ---------------------------------------------------------------------------
 
 @use 'tokens' as *;
@@ -103,6 +103,67 @@
 }
 
 // ---------------------------------------------------------------------------
+// Toast Notification Container & Feedback Pill
+// ---------------------------------------------------------------------------
+
+.toast-container {
+  position: fixed;
+  bottom: $space-5;
+  right: $space-5;
+  z-index: $z-toast;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  pointer-events: none;
+
+  @media (max-width: 639px) {
+    bottom: $space-4;
+    left: $space-4;
+    right: $space-4;
+    align-items: center;
+  }
+}
+
+.toast {
+  background: $ink;
+  color: $page;
+  padding: $space-2 $space-4;
+  border-radius: 4px;
+  font-family: $font-sans;
+  font-size: $font-size-meta;
+  font-weight: 500;
+  box-shadow: $shadow-lg;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  transform: translateY(16px);
+  opacity: 0;
+  transition: transform $motion-base $ease-spring, opacity $motion-base $ease-out-quart;
+
+  &.is-visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  &.is-hiding {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Active Button Compression
+// ---------------------------------------------------------------------------
+
+button:active,
+input[type='button']:active,
+input[type='submit']:active,
+.share-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+// ---------------------------------------------------------------------------
 // Pagination (.pagination, .newer-link, .older-link)
 // ---------------------------------------------------------------------------
 
@@ -143,4 +204,3 @@
     transform: translateX(4px);
   }
 }
-

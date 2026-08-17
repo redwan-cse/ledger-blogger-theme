@@ -80,6 +80,16 @@ button,
   align-items: center;
 }
 
+.share-btn,
+.topic-pill,
+.drawer-toggle,
+.drawer-close,
+.search-toggle,
+.search-modal-close,
+.post-nav-item {
+  min-height: 44px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -89,5 +99,17 @@ button,
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+
+  .mobile-drawer,
+  .mobile-nav-drawer,
+  .search-modal .search-modal-container,
+  .toast,
+  .topic-pill::after,
+  .label-link::after,
+  .reading-progress .reading-progress-bar {
+    transform: none !important;
+    transition: none !important;
+  }
 }
+
 

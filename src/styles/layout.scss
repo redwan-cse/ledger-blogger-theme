@@ -5,12 +5,38 @@
 @use 'tokens' as *;
 
 // ---------------------------------------------------------------------------
-// Masthead / Header
+// Masthead / Header (Sticky Glassmorphic)
 // ---------------------------------------------------------------------------
 
 .header-outer {
-  padding: $space-6 $space-4 $space-5;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: $space-3 $space-4;
+  background: $glass-bg;
+  backdrop-filter: $glass-blur;
+  -webkit-backdrop-filter: $glass-blur;
   border-bottom: 1px solid $rule;
+  box-shadow: $shadow-sm;
+  transition: background-color $motion-base $ease-out-quart, box-shadow $motion-base $ease-out-quart;
+
+  @supports not (backdrop-filter: blur(12px)) {
+    background: $page;
+  }
+}
+
+.header-widget {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.header-branding {
+  display: flex;
+  flex-direction: column;
 }
 
 .site-title {
@@ -31,7 +57,237 @@
   color: $ink-muted;
   font-size: $font-size-meta;
   letter-spacing: 0.01em;
-  margin: $space-2 0 0;
+  margin: $space-1 0 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.drawer-toggle,
+.search-toggle {
+  min-width: 44px;
+  min-height: 44px;
+  padding: $space-2;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: $ink;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+
+  &:hover {
+    background-color: $surface;
+    color: $accent;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mobile Slide-in Drawer & Backdrop Overlay
+// ---------------------------------------------------------------------------
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: oklch(23% 0.012 85 / 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: $z-drawer-backdrop;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity $motion-moderate $ease-out-quart;
+
+  &.is-open,
+  body.drawer-open & {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.mobile-drawer,
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 300px;
+  max-width: 85vw;
+  height: 100vh;
+  height: 100dvh;
+  background: $glass-bg-drawer;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid $rule;
+  box-shadow: $shadow-xl;
+  transform: translateX(-100%);
+  transition: transform $motion-moderate $ease-out-quart;
+  z-index: $z-drawer;
+  display: flex;
+  flex-direction: column;
+  padding: $space-5 $space-4;
+  overflow-y: auto;
+
+  @supports not (backdrop-filter: blur(16px)) {
+    background: $page;
+  }
+
+  &.is-open,
+  body.drawer-open & {
+    transform: translateX(0);
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $rule;
+    margin-bottom: $space-4;
+  }
+
+  .drawer-title {
+    font-family: $font-serif;
+    font-size: $font-size-h3;
+    margin: 0;
+  }
+
+  .drawer-close {
+    min-width: 44px;
+    min-height: 44px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    color: $ink-muted;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
+
+    &:hover {
+      color: $accent;
+      background: $surface;
+    }
+  }
+
+  .drawer-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  .drawer-nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: $space-2 $space-3;
+    border-radius: 4px;
+    color: $ink;
+    text-decoration: none;
+    font-size: $font-size-row;
+    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart;
+
+    &:hover {
+      background-color: $accent-wash;
+      color: $accent;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Search Modal Overlay Dialog
+// ---------------------------------------------------------------------------
+
+.search-modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  max-width: 560px;
+  width: calc(100% - 32px);
+  z-index: $z-modal;
+  overflow: visible;
+
+  &::backdrop {
+    background: oklch(23% 0.012 85 / 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity $motion-moderate $ease-out-quart;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+  }
+
+  .search-modal-container {
+    background: $page;
+    border: 1px solid $rule;
+    border-radius: 8px;
+    box-shadow: $shadow-xl;
+    padding: $space-5;
+    transform: scale(0.95) translateY(-10px);
+    opacity: 0;
+    transition: transform $motion-moderate $ease-spring, opacity $motion-moderate $ease-out-quart;
+  }
+
+  &[open] .search-modal-container,
+  &.is-open .search-modal-container {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  .search-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-4;
+  }
+
+  .search-modal-title {
+    font-family: $font-serif;
+    font-size: $font-size-h3;
+    margin: 0;
+  }
+
+  .search-modal-close {
+    min-width: 44px;
+    min-height: 44px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    color: $ink-muted;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
+
+    &:hover {
+      color: $accent;
+      background: $surface;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -106,19 +362,45 @@
     background: $surface;
     padding: $space-1 $space-3;
     border-radius: 999px;
+    border: 1px solid transparent;
     gap: $space-2;
-    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
+    min-height: 44px;
+    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
 
     &:hover {
       color: $accent;
       background-color: $accent-wash;
+      border-color: oklch(46% 0.148 25 / 0.2);
       transform: translateY(-1px);
-      box-shadow: 0 2px 6px oklch(46% 0.148 25 / 0.12);
+      box-shadow: $shadow-accent-sm;
     }
 
     &:active {
       transform: $pill-active-scale;
       box-shadow: 0 1px 2px oklch(46% 0.148 25 / 0.08);
+    }
+
+    .topic-count,
+    .label-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: oklch(23% 0.012 85 / 0.08);
+      color: $ink-muted;
+      transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart;
+    }
+
+    &:hover .topic-count,
+    &:hover .label-count {
+      background: oklch(46% 0.148 25 / 0.2);
+      color: $accent;
     }
 
     &::after {
@@ -184,14 +466,16 @@
   margin: 0 0 $space-4;
 }
 
-// Popular Posts
+// Popular Posts Numbered Ranking List
 .popular-posts-list {
   list-style: none;
+  counter-reset: popular-counter;
   margin: 0;
   padding: 0;
 }
 
 .popular-post-item {
+  counter-increment: popular-counter;
   border-bottom: 1px solid $rule;
   padding: $space-3 0;
 
@@ -206,11 +490,42 @@
   align-items: flex-start;
   padding: $space-2;
   border-radius: 4px;
-  transition: background-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+  position: relative;
+  transition: background-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
   &:hover {
     background-color: $surface;
-    transform: translateX(3px);
+    transform: $card-hover-lift;
+    box-shadow: $shadow-sm;
+  }
+}
+
+.popular-post-rank,
+.popular-post-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: $surface;
+  border: 1px solid $rule;
+  color: $ink-muted;
+  font-family: $font-sans;
+  font-size: $font-size-meta;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: $space-1;
+  transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
+
+  &::before {
+    content: counter(popular-counter);
+  }
+
+  .popular-post-entry:hover & {
+    background: $accent;
+    color: $page;
+    border-color: $accent;
   }
 }
 
@@ -227,7 +542,7 @@
   transition: transform $motion-base $ease-out-quart;
 
   .popular-post-entry:hover & {
-    transform: scale(1.04);
+    transform: $thumb-hover-scale;
   }
 }
 
@@ -252,7 +567,7 @@
   margin: 0;
 }
 
-// Featured Post
+// Featured Post Hero Card
 .featured-post-card {
   background: $surface;
   border: 1px solid $rule;
@@ -263,9 +578,24 @@
 
   &:hover {
     transform: $card-hover-lift;
-    box-shadow: $shadow-md;
+    box-shadow: $shadow-lg;
     border-color: oklch(80% 0.01 85);
   }
+}
+
+.featured-post-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: $font-sans;
+  font-size: $font-size-meta;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $accent;
+  background: $accent-wash;
+  padding: $space-1 $space-2;
+  border-radius: 2px;
+  margin-bottom: $space-2;
 }
 
 .featured-post-thumbnail-link {
@@ -282,7 +612,7 @@
   transition: transform $motion-moderate $ease-out-quart;
 
   .featured-post-card:hover & {
-    transform: scale(1.03);
+    transform: $thumb-hover-scale;
   }
 }
 
@@ -515,30 +845,6 @@
   }
 }
 
-// Responsive mobile drawer navigation
-@media (max-width: 639px) {
-  .mobile-nav-drawer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    height: 100vh;
-    background: oklch(98.4% 0.004 85 / 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-right: 1px solid $rule;
-    box-shadow: $shadow-lg;
-    transform: translateX(-100%);
-    transition: transform $motion-moderate $ease-out-quart;
-    z-index: 100;
-
-    &.is-open {
-      transform: translateX(0);
-    }
-  }
-}
-
-
 // Zero-Empty Containers Suppression (R-NAV-2 AC3)
 .nav-container:empty,
 .intro-container:empty,
@@ -563,7 +869,6 @@
   padding: 0 !important;
   border: 0 !important;
 }
-
 
 // ---------------------------------------------------------------------------
 // 12-Column Responsive Main Container

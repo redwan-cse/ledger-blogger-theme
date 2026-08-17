@@ -66,9 +66,30 @@ $motion-ease: $ease-out-quart;
 $shadow-sm: 0 1px 3px oklch(23% 0.012 85 / 0.05), 0 1px 2px oklch(23% 0.012 85 / 0.08);
 $shadow-md: 0 4px 12px oklch(23% 0.012 85 / 0.08), 0 2px 4px oklch(23% 0.012 85 / 0.05);
 $shadow-lg: 0 8px 24px oklch(23% 0.012 85 / 0.12), 0 4px 8px oklch(23% 0.012 85 / 0.06);
+$shadow-xl: 0 16px 36px oklch(23% 0.012 85 / 0.16), 0 8px 16px oklch(23% 0.012 85 / 0.08);
+
+// Accent-Tinted Shadows (for active/hover interactive focus)
+$shadow-accent-sm: 0 2px 6px oklch(46% 0.148 25 / 0.12);
+$shadow-accent-md: 0 4px 14px oklch(46% 0.148 25 / 0.18);
+
+// Glassmorphism & Translucency Tokens
+$glass-bg: oklch(98.4% 0.004 85 / 0.85);
+$glass-bg-drawer: oklch(98.4% 0.004 85 / 0.92);
+$glass-bg-modal: oklch(98.4% 0.004 85 / 0.96);
+$glass-blur: blur(12px);
+$glass-border: 1px solid oklch(89% 0.006 85 / 0.6);
 
 // Transform Constants
-$card-hover-lift: translateY(-2px);
+$card-hover-lift: translateY(-4px);
 $card-hover-scale: scale(1.005);
+$thumb-hover-scale: scale(1.04);
 $pill-active-scale: scale(0.96);
+
+// Z-Index Layering Ramp
+$z-progress: 1000;
+$z-drawer-backdrop: 890;
+$z-drawer: 900;
+$z-modal-backdrop: 940;
+$z-modal: 950;
+$z-toast: 1100;
 

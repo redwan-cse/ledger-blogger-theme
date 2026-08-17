@@ -10,9 +10,17 @@ b:section(class='header' id='header' maxwidgets='1' name='Header' showaddelement
       b:widget-setting(name='displayWidth') 0
     b:includable(id='main' var='this')
       div.header-widget
-        b:include(cond='data:imagePlacement in {"REPLACE", "BEFORE_DESCRIPTION"}' name='image')/
-        b:include(cond='data:imagePlacement not in {"REPLACE", "BEFORE_DESCRIPTION"}' name='title')/
-        b:include(cond='data:imagePlacement != "REPLACE"' name='description')/
+        div.header-branding
+          b:include(cond='data:imagePlacement in {"REPLACE", "BEFORE_DESCRIPTION"}' name='image')/
+          b:include(cond='data:imagePlacement not in {"REPLACE", "BEFORE_DESCRIPTION"}' name='title')/
+          b:include(cond='data:imagePlacement != "REPLACE"' name='description')/
+        div.header-actions
+          button.search-toggle(aria-controls='search-modal' aria-expanded='false' aria-label='Open search' type='button')
+            svg(aria-hidden='true' height='20' viewBox='0 0 24 24' width='20')
+              path(d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z')
+          button.drawer-toggle(aria-controls='mobile-drawer' aria-expanded='false' aria-label='Toggle navigation' type='button')
+            svg(aria-hidden='true' height='20' viewBox='0 0 24 24' width='20')
+              path(d='M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z')
       b:include(cond='data:imagePlacement == "BEHIND"' name='behindImageStyle')/
     b:includable(id='title')
       b:with(value='data:title ?: data:blog.title' var='headerTitle')

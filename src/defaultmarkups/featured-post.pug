@@ -9,6 +9,8 @@ b:defaultmarkup(type='FeaturedPost')
           b:eval(expr='data:messages.noPosts')/
   b:includable(id='snippetedPostContent' var='post')
     article.featured-post-card
+      span.featured-post-badge
+        b:eval(expr='data:messages.featuredPost ?: "Featured"')/
       b:include(data='post' name='snippetedPostThumbnail')/
       div.featured-post-body
         b:include(data='post' name='snippetedPostTitle')/

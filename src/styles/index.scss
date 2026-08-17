@@ -5,7 +5,7 @@
 @use 'tokens' as *;
 
 // ---------------------------------------------------------------------------
-// Standard Post Row (Hairline-separated list row)
+// Standard Post Row (Hairline-separated list row) & Post Card
 // ---------------------------------------------------------------------------
 
 .post,
@@ -16,6 +16,40 @@
 
   @media (min-width: 1024px) {
     grid-column: 1 / -1;
+  }
+}
+
+.post-card {
+  background: $surface;
+  border: 1px solid $rule;
+  border-radius: 4px;
+  padding: $space-5;
+  box-shadow: $shadow-sm;
+  transition: transform $motion-base $ease-out-quart, box-shadow $motion-base $ease-out-quart, border-color $motion-base $ease-out-quart;
+
+  &:hover {
+    transform: $card-hover-lift;
+    box-shadow: $shadow-md;
+    border-color: oklch(80% 0.01 85);
+  }
+}
+
+.post-thumbnail-link {
+  display: block;
+  overflow: hidden;
+  border-radius: 2px;
+  margin-bottom: $space-3;
+}
+
+.post-thumbnail {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform $motion-moderate $ease-out-quart;
+
+  .post-card:hover &,
+  .post-thumbnail-link:hover & {
+    transform: $thumb-hover-scale;
   }
 }
 
@@ -79,18 +113,42 @@
   background: $surface;
   padding: $space-1 $space-3;
   border-radius: 999px;
-  transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
+  border: 1px solid transparent;
+  gap: $space-2;
+  transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
 
   &:hover {
     color: $accent;
     background-color: $accent-wash;
+    border-color: oklch(46% 0.148 25 / 0.2);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px oklch(46% 0.148 25 / 0.12);
+    box-shadow: $shadow-accent-sm;
   }
 
   &:active {
     transform: $pill-active-scale;
     box-shadow: 0 1px 2px oklch(46% 0.148 25 / 0.08);
+  }
+
+  .label-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: oklch(23% 0.012 85 / 0.08);
+    color: $ink-muted;
+    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart;
+  }
+
+  &:hover .label-count {
+    background: oklch(46% 0.148 25 / 0.2);
+    color: $accent;
   }
 
   &::after {
