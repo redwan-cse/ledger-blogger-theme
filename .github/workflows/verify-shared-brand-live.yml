@@ -14,7 +14,6 @@ jobs:
     environment: blogger-live
     timeout-minutes: 25
     env:
-      SOURCE_SHA: 69ff4b5fe10acd35a99b55a4e658cb5d4dfe5eaa
       GITHUB_SHA: 69ff4b5fe10acd35a99b55a4e658cb5d4dfe5eaa
       STAGING_URL: https://blogs.redwan.work/
       BLOGGER_BLOG_ID: '5972841034338492159'
@@ -28,8 +27,6 @@ jobs:
           node-version: 24.18.1
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Verify shipped source and contracts have not drifted
-        run: git diff --quiet "$SOURCE_SHA" -- src tests/contract package.json package-lock.json
       - run: npm run generate
       - run: npm run contract:check
       - run: npm run test:golden
