@@ -82,9 +82,17 @@ jobs:
           if "@use 'threaded-comments';" not in s: p.write_text(s+"@use 'threaded-comments';\n")
 
           p=Path('tests/contract/m5-challenger-empirical.test.ts'); s=p.read_text()
-          s=s.replace('/Blog Header|Ledger Official Blog/', '/Md Redwan Ahmed/')
-          s=s.replace("expect(html).toContain('Fallback Blog Title');\n      expect(html).toContain('Fallback Tagline');", "expect(html).toContain('Md Redwan Ahmed');\n      expect(html).toContain('Cyber Security Professional');\n      expect(html).not.toContain('Fallback Blog Title');")
-          p.write_text(s)
+          s=s.replace('Blog Header|Ledger Official Blog', 'Md Redwan Ahmed')
+          old="""      expect(html).toContain('Fallback Blog Title');
+                expect(html).toContain('Fallback Tagline');"""
+          new="""      const brand = html.match(/<div class="header-brand-text">[\\s\\S]*?<\\/div>/)?.[0] ?? '';
+                expect(brand).toContain('Md Redwan Ahmed');
+                expect(brand).toContain('Cyber Security Professional');
+                expect(brand).not.toContain('Fallback Blog Title');
+                expect(brand).not.toContain('Fallback Tagline');
+                expect(html).toContain('Fallback Blog Title');"""
+          if s.count(old)!=1: raise SystemExit('fallback assertion shape changed')
+          p.write_text(s.replace(old,new))
 
           Path('tests/contract/live-ui-regressions.test.ts').write_text("""import { readFile } from 'node:fs/promises';
           import { describe, expect, it } from 'vitest';
