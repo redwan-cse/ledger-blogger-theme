@@ -1,215 +1,105 @@
-# Ledger — master plan, revision 3
+# Ledger — master plan, revision 4
 
-**Status as of 2026-08-18.** This document reconciles the AGY (Antigravity) premium-redesign
-work in `docs/AGY-PROMPT-PREMIUM-REDESIGN.md` and `docs/BLOG_REDESIGN_PROGRESS.md` against
-the project's own verification standard (`AGENTS.md`, `docs/POSTMORTEM.md`,
-`docs/PROJECT-PLAN.md`), the actual GitHub issue/commit history, and outside research on
-Blogger widget integration and editorial UI/UX. It supersedes the milestone table in
-`docs/PROJECT-PLAN.md` §10 and the open status of `docs/M2-DEBT.md`. It does not replace
-`PROJECT-PLAN.md` §1–§9 (scope, design direction inputs, requirements, testing strategy),
-which still hold.
+**Status as of 2026-08-18.** This revision replaces revision 3's claim that one harness run was the only remaining blocker. Real Blogger screenshots of uploaded builds now prove that the render path works, but M3b remains incomplete because the live UI still has structural wrapper and visual-quality defects. `docs/PROJECT-PLAN.md` §1–§9 still define the product requirements and verification standard; this document supersedes its milestone table in §10.
 
 ---
 
-## 1. What is actually true right now
+## 1. Current evidence
 
-### 1.1 The blank-render saga has two real root causes, not one
+### 1.1 What is confirmed
 
-Three separate documents in this repo currently disagree about why the site rendered blank,
-because they were written at different points in a nine-day investigation:
+- Blogger renders the Header, Blog posts, pagination, article body, comments, CTA, footer, labels, and sidebar from the uploaded generated theme.
+- The two historical blank-render causes remain fixed and contract-enforced: no `maxwidgets` on sections and a load-bearing `<b:defaultmarkups>` block with `Common` coverage.
+- Offline gates are green on the latest wrapper repair: generation, golden snapshot, unit tests, contract suite, contract check, and typecheck.
+- Pagination/share encoding defects seen in earlier screenshots no longer reproduce in the latest screenshots.
+- Commit `10f7504` flattened the first known Header wrapper chain, but live screenshots prove that the single-row masthead outcome is not yet achieved.
 
-| Document | Hypothesis | Outcome |
-|---|---|---|
-| `docs/decisions/0001-blogger-owns-widget-bindings.md` (2026-08-13) | Widget/section id mismatch with Blogger's stored bindings | **Falsified live**, upload six still blank |
-| Issue #7, comment 2026-08-12 | Missing `<b:defaultmarkups>` leading to a fatal unknown-runtime-binding platform error | Real finding, but its live outcome was never confirmed in the issue thread before ADR 0001 moved on to a different hypothesis |
-| `docs/BLANK_PAGE_FIX_POSTMORTEM.md` (new, 2026-08-16 to 2026-08-18 commits) | `maxwidgets` on `b:section` blocking widget instantiation on dashboard save, plus widget-id mismatches, plus a 3-level CSS Grid wrapper collapse, plus a global anchor-tag flex collision | **This is the fix that shipped.** Widgets now render per your own report. |
+### 1.2 What is not verified
 
-**Reconciliation:** these are not competing explanations of one bug, they are most likely
-multiple simultaneous, compounding defects. `maxwidgets` blocking instantiation and a missing
-`defaultmarkups` block are both plausible independent causes of a section rendering nothing,
-and both may have been present at different points as the theme was rewritten repeatedly
-between 2026-08-12 and 2026-08-16. The postmortem that shipped with the fix is the operative
-record going forward, but it does not explicitly reconcile with or retract the defaultmarkups
-finding from issue #7.
+- No exact-SHA stamp-gated ten-view harness pass exists. The 2026-08-18 diagnostic failed while refreshing the Blogger OAuth token, before deploy or render assertions. Tracked in [#17](https://github.com/redwan-cse/ledger-blogger-theme/issues/17).
+- M3b visual baselines are incomplete. Current screenshots expose unresolved desktop shell, masthead, article rhythm, comments, and dark-mode hierarchy defects.
+- Layout mode, JS-disabled, reduced-motion, and all ten view types are not accepted until the harness produces conclusive evidence.
+- M4 gadget readiness is still unverified against a real dashboard-added gadget.
 
-**Resolved 2026-08-18:** `src/theme.pug` was confirmed to ship `<b:defaultmarkups>` with a
-`Common` entry (plus 13 other widget-type entries). The defaultmarkups issue and the
-maxwidgets issue were both real, independent defects; both are now fixed and both are
-contract-enforced going forward (`no-maxwidgets` and `defensive-defaultmarkups` rules in
-`tools/contract-check.ts`).
+### 1.3 Governing rule
 
-### 1.2 'Production-ready and verified' is not yet true by this project's own standard
-
-`docs/BLOG_REDESIGN_PROGRESS.md` states Status: Production-Ready and Verified, and lists six
-offline checks (generate, contract:check, test:contract, test:golden, typecheck, test). It cites
-no live-render evidence: no stamp-gated harness run, no Playwright pass across the ten view
-types, no confirmation of Layout-mode rendering, no comment-rendering check.
-
-This is precisely the overclaim pattern `docs/POSTMORTEM.md` finding F1 and `AGENTS.md` rule 1
-exist to prevent: nothing is working because the XML looks right. Your own message, that the
-theme can load properly with widgets, is real and valuable first-hand evidence, and is taken at
-face value here. But it is owner spot-check evidence, not the project's own defined completion
-bar (a stamp-gated render-harness or harness:browser run across all ten views, per
-`docs/HARNESS.md`). Closing out M2 and updating the progress doc's status claim both require
-that run. **This remains the single outstanding blocker** — see §4.
-
-### 1.3 Recent work bypassed the project's own PR and CI gate
-
-`docs/PROJECT-PLAN.md` §9 mandates branch protection requiring generate, render, and lighthouse
-green plus review before merging to main. The commit history for 2026-08-16 through 2026-08-18
-(the layout-alignment fix, the shell-alignment feature, the rich-widgets feature, the final
-premium-redesign commit, and the interleaved build-stamp commits) is direct pushes to main, not
-merges from reviewed PRs. `ci.yml`'s jobs presumably ran on push, but there is no render-path
-live-verification job in `ci.yml` itself; `m2-staging.yml` is manually triggered only. Given the
-size and risk of this redesign (new grid system, new JS features, seven widget files touched),
-landing it without review or a live-render CI gate is a real process gap, independent of whether
-the code turns out to be correct. Still worth enforcing going forward (§5), even though this
-particular redesign has already landed.
-
-### 1.4 Open editorial and content debt — resolved
-
-**OD-5 (issue #2, label taxonomy): decided and closed 2026-08-18.** Shipping the 8 suggested
-labels as-is, title case: `Penetration Testing`, `Red Teaming`, `Digital Forensics`, `OSINT`,
-`Linux Hardening`, `Cloud Security`, `DevOps`, `AI Security`, applied to all 16 production posts.
-**Applying the labels to actual post content is a manual Blogger-dashboard step** (Posts → select
-post → Labels) — nothing in this repo's toolchain writes to post content, only theme XML. This
-is called out explicitly in the issue #2 closing comment and in `PROJECT-PLAN.md` §11. The Topics
-rail (`BLOG_DESIGN_SYSTEM.md` §4.3) will stay empty until this manual step happens, independent
-of any theme code.
-
-**M3c (card-grid vs lead-list layout, issue #11): decided and closed 2026-08-18.** Keeping the
-shipped 2-column elevated-card grid. The AGY redesign brief explicitly requested a featured/latest
-story card system, which is what shipped, so this is intentional direction rather than drift.
-`PROJECT-PLAN.md` §2.4 is annotated with a superseding note pointing here.
+Offline-green proves the artifact contract, not Blogger rendering. Owner screenshots are valid defect evidence, but completion still requires exact-SHA rendered evidence. BLOCKED or STALE is never a pass.
 
 ---
 
-## 2. Research folded into this plan
+## 2. Active issue map
 
-Full detail lives in the updated GOOGLE-BLOGGER-THEME-DEVELOPMENT skill (self-improved as part
-of this task, see §6). Summary of what changes the plan:
+| Issue | Workstream | Priority | Dependency |
+|---|---|---:|---|
+| [#17](https://github.com/redwan-cse/ledger-blogger-theme/issues/17) | Restore Blogger OAuth/live harness and complete ten-view verification | P0 | Owner may need to reauthorize the refresh token |
+| [#18](https://github.com/redwan-cse/ledger-blogger-theme/issues/18) | Complete the Blogger Header/LinkList wrapper chain and single-row masthead | P0 | Requires real rendered-DOM evidence |
+| [#15](https://github.com/redwan-cse/ledger-blogger-theme/issues/15) | Rebalance desktop canvas width, scale, grid, and editorial density | P1 | After #18 |
+| [#16](https://github.com/redwan-cse/ledger-blogger-theme/issues/16) | Polish article/comments spacing and dark-mode hierarchy | P1 | After #18 and coordinated with #15 |
+| [#14](https://github.com/redwan-cse/ledger-blogger-theme/issues/14) | Parent record for screenshot-discovered UI defects | P1 | Closes only after #15, #16, #18 and live evidence |
+| [#7](https://github.com/redwan-cse/ledger-blogger-theme/issues/7) | M2 render-path acceptance | P0 | Blocked by #17 |
+| [#11](https://github.com/redwan-cse/ledger-blogger-theme/issues/11) | M3 design system and live visual acceptance | P1 | Blocked by #15, #16, #17, #18 |
+| [#13](https://github.com/redwan-cse/ledger-blogger-theme/issues/13) | M4 real gadget/defaultmarkup validation | P2 | After #7 and M3b stabilization |
 
-**UI/UX craft.** Premium-feeling editorial sites (Vercel, Linear, and serious technical
-publications) converge on: capped line length around 66 characters over full-width text, a
-layered typography system (primary, secondary, mono, fallback, not just a font pairing), a
-restrained OKLCH neutral palette with one true accent under 10 percent surface coverage, dark
-mode as a deliberate palette shift rather than an inversion, editorial hierarchy (a
-differently-sized lead item plus a plain list) over a uniform card grid, and explicit avoidance
-of generic AI-website tropes (gradient-card walls, pill overload, glow behind every heading,
-fabricated stats). The current `BLOG_DESIGN_SYSTEM.md` already gets most of this right (OKLCH
-tokens, serif/sans/mono split, restrained accent). **See §1.4: the card-grid-vs-list question is
-now resolved (M3c) — the shipped card grid is the intended direction, not drift.**
-
-**Blogger gadget and widget compatibility.** Every dashboard-addable widget type needs a
-defaultmarkup fallback or Blogger injects unstyled default HTML into an otherwise polished page.
-Async-loading gadgets (Popular Posts, Blog Archive, Labels, ad slots) are a real CLS source, they
-inject content after initial paint. Third-party gadgets often have real placement constraints
-(for example needing to sit directly below the Blog Posts gadget). None of this blocks current
-work, but it should inform which sections get gadget-ready treatment (see M4 below) and adds a
-concrete test case worth exercising on staging: add one real dashboard gadget and confirm it
-renders correctly with the current defaultmarkups. Tracked as issue #13.
+The OD-5 taxonomy decision remains closed, but applying the eight labels to live posts is still a manual Blogger-dashboard task.
 
 ---
 
-## 3. Milestone table, revision 3
-
-Supersedes `PROJECT-PLAN.md` §10. Completed items are locked; do not re-litigate their design
-decisions without a new decision record.
+## 3. Milestone table, revision 4
 
 | M | Name | Status | Exit criteria |
 |---|---|---|---|
-| M0 | Repo, staging, harness | Done | Unchanged from PROJECT-PLAN.md |
-| M1 | Generation pipeline | Done | Unchanged |
-| M2 | Render path | Code fix shipped, live verification outstanding — **only remaining blocker** | Stamp-gated render-harness or harness:browser run passes all ten views, HTTP plus no-JS plus reduced-motion. Close #7 only after this run, not before. |
-| M3a | Design system, offline | Done, per BLOG_REDESIGN_PROGRESS.md Phases 1 to 4 and 7 | Tokens, type scale, layout, contract rules, already shipped and offline-verified |
-| M3b | Design system, live-verified | Blocked on M2's harness run | Capture visual baselines at 375, 768, and 1440 for all ten views against real Blogger HTML. Confirm the state matrix in PROJECT-PLAN.md §2.6 (empty search, empty label, 404, no-image post, deleted-comment tombstone, etc.) actually renders as designed, not just as coded. |
-| M3c | Design review against research | **Decided 2026-08-18** (issue #11) | Kept the shipped 2-column elevated-card grid; intentional direction, not drift. |
-| M4 | Config zones plus gadget-readiness, expanded | Blocked on M2's harness run; OD-5 content decided | All seven zones live and editable. defaultmarkup for six widget types confirmed present. Real dashboard gadget test tracked in issue #13. Labels applied to production posts per OD-5 (issue #2) — taxonomy decided, manual Blogger-dashboard application still needed. |
-| M5 | SEO plus a11y | Not started | Unchanged from PROJECT-PLAN.md, now actually reachable since rendering works |
-| M6 | Performance | Not started | Unchanged. Note: current theme is 166 KB against a 500 KB budget with heavy new JS (audio reader, TOC scrollspy, search modal, drawer nav), worth a Lighthouse pass specifically because of the JS surface area added in the redesign |
-| M7 | Cutover | Not started | Unchanged |
-| M8/M9 | Reading experience, monetisation (issues #9, #10) | Deferred | No change, still after M7 |
-
-**Sequencing note:** M3b (live design verification) and the outstanding M2 live-harness run are
-effectively the same piece of work, one staging pass proves both.
+| M0 | Repo, staging, harness | Infrastructure exists; credential health regressed | Restore the live credential path under #17 |
+| M1 | Generation pipeline | Done | Deterministic generation, contract, golden, size, and CI gates remain green |
+| M2 | Render path | **Rendering confirmed, formal acceptance blocked** | #17 restores exact-SHA deploy check; HTTP and browser harnesses pass all ten views, JS/no-JS/reduced-motion, and Layout mode where configured; then close #7 |
+| M3a | Design system, offline | Done | Tokens, SCSS architecture, contrast, and contract rules remain green |
+| M3b | Design system, live | **In progress with confirmed defects** | #18 header wrappers, #15 desktop canvas, and #16 article/comments polish pass real 375/768/1440 screenshots in both modes; full state matrix verified |
+| M3c | Design direction | Decided | Keep the approved lead/elevated-card editorial direction; do not re-litigate it while fixing scale and wrappers |
+| M4 | Config zones and gadget readiness | Blocked | All seven zones editable; one real dashboard gadget renders through defaultmarkup; CLS measured; empty zone removal verified; #13 closed |
+| M5 | SEO and accessibility | Not started | Original PROJECT-PLAN criteria plus live heading, landmark, focus, comments, and contrast checks |
+| M6 | Performance | Not started | Lighthouse and runtime budget against the live exact-SHA build, including current JS features |
+| M7 | Cutover | Not started | M2–M6 accepted with rollback evidence |
+| M8/M9 | Reading experience and monetisation | Deferred | Begin only after M7 |
 
 ---
 
-## 4. Immediate next steps
+## 4. Dependency-ordered execution plan
 
-One blocker remains before resuming forward M4 development:
-
-1. **Run the stamp-gated render-harness (or harness:browser) against the current build,**
-   against staging or production, with the exact SHA of the artifact actually uploaded to
-   Blogger. This is the one piece of evidence that turns 'the theme can load properly with
-   widgets' (owner observation) into a project-verifiable claim. Until this runs, M2 and M3b
-   stay open and the progress doc's Verified claim is unsupported by the project's own standard.
-
-Resolved items, kept for the record:
-
-2. ~~Confirm `<b:defaultmarkups>` with a Common entry is present.~~ **Confirmed 2026-08-18** —
-   present with 14 widget-type entries.
-3. Reconciling `docs/decisions/0001-blogger-owns-widget-bindings.md` and `docs/M2-DEBT.md` with
-   `docs/BLANK_PAGE_FIX_POSTMORTEM.md` as the actual resolution is still pending, but is a
-   documentation cleanup, not a blocker — do it once step 1's harness run confirms the fix live.
-4. ~~Decide on OD-5 (label taxonomy).~~ **Decided and closed 2026-08-18**, issue #2.
-5. ~~Decide on M3c (card-grid vs lead-list).~~ **Decided and closed 2026-08-18**, issue #11.
+1. **Restore verification (#17).** Repair or reauthorize the Blogger OAuth refresh token and confirm the `blogger-live` environment without exposing secrets.
+2. **Finish the masthead (#18).** Inspect Blogger-rendered DOM, identify every platform wrapper, and flatten/span only the load-bearing Header and LinkList chain. Preserve distinct Layout sections and responsive drawer behavior.
+3. **Fix desktop composition (#15).** Rebalance container width, grid allocation, gutters, card/sidebar proportions, typography scale, CTA, and footer at 1440/1024/768/375 while preserving the article's roughly 66ch measure.
+4. **Polish article and comments (#16).** Correct vertical rhythm, dark-mode contrast, share/author/post-navigation layout, comment shell, CTA transition, and mobile wrapping without depending on JavaScript for visibility.
+5. **Run M2/M3b acceptance.** Upload the generated artifact, gate on its exact full-SHA stamp, run all ten views plus JS/no-JS/reduced-motion/Layout mode, and capture light/dark baselines at 375/768/1440.
+6. **Close parent debt.** Update and close #7, #11, and #14 only when their rendered acceptance criteria are satisfied.
+7. **Resume M4 (#13).** Add a real dashboard gadget, verify defaultmarkup styling and CLS, then remove it and verify the zone collapses cleanly.
 
 ---
 
-## 5. CI changes — applied
+## 5. Acceptance rules for every UI slice
 
-All three code-level proposals from this section have been applied:
-
-- **`no-maxwidgets` contract rule** added to `tools/contract-check.ts` (commit `5bffe76`),
-  banning `maxwidgets` on any `b:section`, with matching test coverage in
-  `tests/contract/adversarial-stress.test.ts` and `tests/contract/contract-check.test.ts`.
-- **`defensive-defaultmarkups` coverage** was already enforced by an existing contract rule;
-  confirmed still passing rather than duplicated.
-- **`ci.yml`'s NFR-2 budget bumped from 25s to 45s** (commit `6fe42eab`) after the contract suite
-  grew to 439 tests / 22 files and legitimately runs 30-40s; `PROJECT-PLAN.md` NFR-2's stale <5s
-  target is annotated but not yet rewritten.
-
-Not applied, and deliberately left as a recommendation rather than a change:
-
-- **Auto-triggering `m2-staging.yml` on push to main.** On inspection this is the wrong fix:
-  that workflow requires a `theme_sha` input tied to a *manual* Blogger upload (no upload API
-  exists), so an automatic trigger would fail STALE on every run since nothing gets uploaded
-  automatically. Left as `workflow_dispatch`-only, which is correct as-is.
-- **Restoring PR-gated branch protection** (§1.3) is a GitHub repo-settings change, not
-  something achievable via file edits from here — worth doing directly in repo settings.
+- Name the issue and requirement IDs in the change description.
+- Generate successfully and remain within the 500 KB hard budget.
+- Contract check, contract suite, unit tests, typecheck, and golden snapshot pass.
+- Review the golden diff deliberately; never update it only to silence CI.
+- Any change touching the document shell, Blog/Header widgets, defaultmarkups, or wrapper layout requires exact-SHA live verification.
+- Capture real Blogger HTML/screenshots, never a hand-written fixture.
+- Test light and dark modes at 375, 768, and 1440 where the change is visual.
+- Keep content visible without JavaScript and respect reduced motion.
+- Do not globally flatten `.section`/`.widget` or globally force anchors into flex layout.
+- Do not close an issue on owner screenshots alone when its acceptance criteria require the harness.
 
 ---
 
-## 6. Skill self-improvement (already applied)
+## 6. Manual owner actions
 
-The GOOGLE-BLOGGER-THEME-DEVELOPMENT skill has been updated with the hard-won lessons from this
-journey, so future work (by any agent, not just this session) starts from the corrected
-understanding rather than re-discovering it:
+Only two current steps require dashboard access:
 
-- `<b:defaultmarkups>` is load-bearing, not just defensive, its absence can cause a fatal
-  platform parse error, not just a blank page.
-- maxwidgets on a b:section blocks Blogger's own widget-instantiation parser on dashboard edits,
-  now a documented banned construct.
-- Blogger wraps widgets in multiple platform containers; CSS Grid must span every intermediate
-  wrapper, not just the outermost one.
-- Global utility selectors (for example anchor-tag touch-target rules) can collide with
-  Blogger's own post markup in non-obvious ways.
-- The round-trip export and diff diagnostic technique (upload, then re-export and diff against
-  what you sent) for when reasoning about your own source code stops being useful.
-- When the minimal case fails, stop: a failing minimal reproduction is a diagnosis instruction,
-  not a data point to note and move past.
-- Do not mark a decision record Accepted until it is live-verified.
-- A distilled premium-editorial-UI/UX section and a gadget and widget compatibility section,
-  based on external research, for future design and integration work.
+1. If #17 confirms an invalid/expired refresh token, reauthorize Blogger OAuth and replace `BLOGGER_REFRESH_TOKEN` in the GitHub `blogger-live` environment. Never paste it into chat, issues, or logs.
+2. After each verified generated UI candidate, upload that exact `dist/theme.xml` to Blogger and report the full SHA embedded in its `theme-build` meta tag.
+
+Applying the eight OD-5 labels to the live posts remains a separate manual content task.
 
 ---
 
 ## 7. Status
 
-All editorial and CI-level items from this plan are resolved except one: the stamp-gated
-harness run against the current build (§4, item 1). That run requires the owner to dispatch
-`m2-staging.yml` with the exact SHA of the artifact currently uploaded to Blogger — no tool
-available to this agent can trigger a GitHub Actions workflow_dispatch or write to the Blogger
-API on the owner's behalf. Once that run passes, #7 and #11's M3b half can close, and M4's
-remaining code work (gadget-readiness zones, per issue #13) can begin in earnest.
+The project is **offline-green and live-rendering, but not production-ready or M3b-complete**. The critical path is #17 → #18 → #15/#16 → exact-SHA M2/M3b acceptance → #13. Any document claiming “Production-Ready and Verified” before those gates pass is stale and must not be used as release evidence.
