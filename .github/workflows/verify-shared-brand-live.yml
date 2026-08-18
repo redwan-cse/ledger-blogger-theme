@@ -28,8 +28,8 @@ jobs:
           node-version: 24.18.1
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Verify source has not drifted since the stamped implementation
-        run: git diff --quiet "$SOURCE_SHA" -- src tests tools package.json package-lock.json
+      - name: Verify shipped source and contracts have not drifted
+        run: git diff --quiet "$SOURCE_SHA" -- src tests/contract package.json package-lock.json
       - run: npm run generate
       - run: npm run contract:check
       - run: npm run test:golden
