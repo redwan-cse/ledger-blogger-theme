@@ -22,7 +22,7 @@ describe('Adversarial Widget & Rendering Engine Challenger Suite', () => {
     expect(header).toContain('locked="true"');
 
     // Verify main includable
-    expect(header).toMatch(/<b:includable id="main" var="this">[\s\S]*?<div class="header-widget">/);
+    expect(header).toMatch(/<b:includable id="main" var="this">[\s\S]*?<a class="header-brand"/);
     expect(header).toContain('cond="data:imagePlacement in {&quot;REPLACE&quot;, &quot;BEFORE_DESCRIPTION&quot;}"');
     expect(header).toContain('cond="data:imagePlacement not in {&quot;REPLACE&quot;, &quot;BEFORE_DESCRIPTION&quot;}"');
     expect(header).toContain('cond="data:imagePlacement != &quot;REPLACE&quot;"');

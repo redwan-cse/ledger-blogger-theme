@@ -879,7 +879,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
       const { count, h1s } = countH1(html);
       expect(count, `Single post view must have exactly 1 <h1>, found ${count}: ${JSON.stringify(h1s)}`).toBe(1);
       expect(h1s[0]).toContain('Security and Determinism in Blogger Themes');
-      expect(html).toMatch(/<p class="site-title"><a[^>]*>[\s\S]*?(?:Blog Header|Ledger Official Blog)/);
+      expect(html).toMatch(/<p class="site-title">[\s\S]*?(?:Blog Header|Ledger Official Blog)[\s\S]*?<\/p>/);
       expect(html).not.toMatch(/<h1 class="site-title">/);
     });
 
@@ -905,7 +905,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
       const { count, h1s } = countH1(html);
       expect(count, `Static page view must have exactly 1 <h1>, found ${count}: ${JSON.stringify(h1s)}`).toBe(1);
       expect(h1s[0]).toContain('About the Ledger Publication');
-      expect(html).toMatch(/<p class="site-title"><a[^>]*>[\s\S]*?(?:Blog Header|Ledger Official Blog)/);
+      expect(html).toMatch(/<p class="site-title">[\s\S]*?(?:Blog Header|Ledger Official Blog)[\s\S]*?<\/p>/);
       expect(html).not.toMatch(/<h1 class="site-title">/);
     });
 
