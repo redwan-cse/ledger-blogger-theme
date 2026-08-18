@@ -510,6 +510,270 @@ export function initShareCopy(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Module 5: Theme Toggle (Dark / Light)
+// ---------------------------------------------------------------------------
+
+export function initThemeToggle(): void {
+  const toggleButtons = document.querySelectorAll<HTMLElement>('.theme-toggle');
+  if (toggleButtons.length === 0) return;
+
+  const STORAGE_KEY = 'ledger_theme';
+  let savedTheme: string | null = null;
+  try {
+    savedTheme = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    // Storage unavailable
+  }
+  const initialTheme = savedTheme || 'dark';
+
+  document.documentElement.setAttribute('data-theme', initialTheme);
+
+  function toggleTheme(): void {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Storage unavailable
+    }
+    showToast(`Switched to ${next} theme`);
+  }
+
+  toggleButtons.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleTheme();
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Module 6: Code Block Copy & Terminal Header
+// ---------------------------------------------------------------------------
+
+export function initCodeBlockEnhancements(): void {
+  const preElements = document.querySelectorAll<HTMLPreElement>('.post-body pre');
+  preElements.forEach((pre) => {
+    if (pre.parentElement?.classList.contains('code-block-wrapper')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-block-wrapper';
+
+    const header = document.createElement('div');
+    header.className = 'code-block-header';
+
+    const code = pre.querySelector('code');
+    const classList = code ? Array.from(code.classList) : [];
+    const langClass = classList.find((c) => c.startsWith('language-') || c.startsWith('lang-'));
+    const lang = langClass ? langClass.replace(/^(language-|lang-)/, '') : 'code';
+
+    const langBadge = document.createElement('span');
+    langBadge.className = 'code-lang-badge';
+    langBadge.textContent = lang.toUpperCase();
+    header.appendChild(langBadge);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'code-copy-btn';
+    copyBtn.setAttribute('aria-label', 'Copy code to clipboard');
+    copyBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copy</span>`;
+
+    copyBtn.addEventListener('click', async () => {
+      const textToCopy = (code ? code.innerText : pre.innerText) || '';
+      const copied = await copyToClipboard(textToCopy);
+      if (copied) {
+        copyBtn.classList.add('copied');
+        const span = copyBtn.querySelector('span');
+        if (span) span.textContent = 'Copied!';
+        showToast('Code copied to clipboard!');
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          if (span) span.textContent = 'Copy';
+        }, 2000);
+      }
+    });
+
+    header.appendChild(copyBtn);
+
+    pre.parentNode?.insertBefore(wrapper, pre);
+    wrapper.appendChild(header);
+    wrapper.appendChild(pre);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Module 7: Auto Table of Contents (TOC) with Active Heading Tracking
+// ---------------------------------------------------------------------------
+
+export function initTableOfContents(): void {
+  const postBody = document.querySelector<HTMLElement>('.is-post .post-body');
+  if (!postBody) return;
+
+  const headings = Array.from(postBody.querySelectorAll<HTMLHeadingElement>('h2, h3'));
+  if (headings.length < 2) return;
+
+  const tocNav = document.createElement('nav');
+  tocNav.className = 'table-of-contents';
+  tocNav.setAttribute('aria-label', 'Table of Contents');
+
+  const tocTitle = document.createElement('div');
+  tocTitle.className = 'toc-title';
+  tocTitle.textContent = 'Table of Contents';
+  tocNav.appendChild(tocTitle);
+
+  const tocList = document.createElement('ul');
+  tocList.className = 'toc-list';
+
+  headings.forEach((heading, idx) => {
+    if (!heading.id) {
+      const slug = heading.textContent
+        ? heading.textContent.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-')
+        : `heading-${idx + 1}`;
+      heading.id = slug || `section-${idx + 1}`;
+    }
+
+    const li = document.createElement('li');
+    li.className = `toc-item toc-${heading.tagName.toLowerCase()}`;
+
+    const link = document.createElement('a');
+    link.href = `#${heading.id}`;
+    link.className = 'toc-link';
+    link.textContent = heading.textContent || `Section ${idx + 1}`;
+
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.getElementById(heading.id);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', `#${heading.id}`);
+      }
+    });
+
+    li.appendChild(link);
+    tocList.appendChild(li);
+  });
+
+  tocNav.appendChild(tocList);
+
+  const firstHeading = headings[0];
+  if (firstHeading && firstHeading.parentNode) {
+    firstHeading.parentNode.insertBefore(tocNav, firstHeading);
+  }
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            tocList.querySelectorAll('.toc-link').forEach((a) => {
+              if (a.getAttribute('href') === `#${id}`) {
+                a.classList.add('is-active');
+              } else {
+                a.classList.remove('is-active');
+              }
+            });
+          }
+        });
+      },
+      { rootMargin: '0px 0px -70% 0px', threshold: 0 }
+    );
+
+    headings.forEach((h) => observer.observe(h));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Module 8: Article Audio Reader ("Listen to Article" - Medium Style)
+// ---------------------------------------------------------------------------
+
+export function initArticleAudioReader(): void {
+  const listenBtn = document.querySelector<HTMLButtonElement>('[data-action="listen-article"]');
+  if (!listenBtn) return;
+
+  const postBody = document.querySelector<HTMLElement>('.post-body');
+  if (!postBody) return;
+
+  const playIcon = listenBtn.querySelector<HTMLElement>('.listen-icon-play');
+  const pauseIcon = listenBtn.querySelector<HTMLElement>('.listen-icon-pause');
+  const label = listenBtn.querySelector<HTMLElement>('.listen-label');
+  const statusEl = document.querySelector<HTMLElement>('.listen-status');
+
+  if (!('speechSynthesis' in window)) {
+    listenBtn.style.display = 'none';
+    return;
+  }
+
+  let isPlaying = false;
+  let isPaused = false;
+  let currentUtterance: SpeechSynthesisUtterance | null = null;
+
+  function setPlayingState(playing: boolean, paused: boolean): void {
+    isPlaying = playing;
+    isPaused = paused;
+    if (playIcon) playIcon.style.display = playing && !paused ? 'none' : 'inline-block';
+    if (pauseIcon) pauseIcon.style.display = playing && !paused ? 'inline-block' : 'none';
+    if (label) {
+      label.textContent = playing ? (paused ? 'Resume Audio' : 'Pause Audio') : 'Listen (Audio)';
+    }
+    if (statusEl) {
+      statusEl.textContent = playing ? (paused ? 'Audio paused' : 'Playing audio...') : '';
+    }
+  }
+
+  function getCleanArticleText(): string {
+    const clone = postBody!.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('pre, code, script, style, .table-of-contents').forEach((el) => el.remove());
+    const title = document.querySelector<HTMLElement>('.post-title')?.textContent || '';
+    return `${title}. ${clone.textContent || ''}`.replace(/\s+/g, ' ').trim();
+  }
+
+  listenBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!isPlaying) {
+      window.speechSynthesis.cancel();
+      const text = getCleanArticleText();
+      if (!text) return;
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      utterance.onend = () => {
+        setPlayingState(false, false);
+        currentUtterance = null;
+        showToast('Finished audio narration');
+      };
+
+      utterance.onerror = () => {
+        setPlayingState(false, false);
+        currentUtterance = null;
+      };
+
+      currentUtterance = utterance;
+      window.speechSynthesis.speak(utterance);
+      setPlayingState(true, false);
+      showToast('Playing audio narration');
+    } else if (isPaused) {
+      window.speechSynthesis.resume();
+      setPlayingState(true, false);
+      showToast('Resumed audio');
+    } else {
+      window.speechSynthesis.pause();
+      setPlayingState(true, true);
+      showToast('Paused audio');
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Global Initialization
 // ---------------------------------------------------------------------------
 
@@ -518,6 +782,10 @@ function init(): void {
   initMobileDrawer();
   initSearchModal();
   initShareCopy();
+  initThemeToggle();
+  initCodeBlockEnhancements();
+  initTableOfContents();
+  initArticleAudioReader();
 }
 
 if (typeof document !== 'undefined') {

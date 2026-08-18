@@ -101,14 +101,14 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
   describe('Rule 6: section-ids (R-V3-1 AC5)', () => {
     it('catches invalid or duplicate section ids', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      expect(rules(inject(xml, '<b:section class="sidebar" id="123_invalid" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toEqual(['section-ids']);
-      expect(rules(inject(xml, '<b:section class="sidebar" id="hyphen-name" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toEqual(['section-ids']);
-      expect(rules(inject(xml, '<b:section class="sidebar" id="header" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toContain('section-ids');
+      expect(rules(inject(xml, '<b:section class="sidebar" id="123_invalid" name="Sidebar" showaddelement="no"/>'))).toEqual(['section-ids']);
+      expect(rules(inject(xml, '<b:section class="sidebar" id="hyphen-name" name="Sidebar" showaddelement="no"/>'))).toEqual(['section-ids']);
+      expect(rules(inject(xml, '<b:section class="sidebar" id="header" name="Sidebar" showaddelement="no"/>'))).toContain('section-ids');
     });
 
     it('allows valid alphanumeric and underscore section ids', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      expect(rules(inject(xml, '<b:section class="sidebar" id="sidebar_secondary_1" maxwidgets="1" name="Sidebar" showaddelement="no"/>'))).toEqual([]);
+      expect(rules(inject(xml, '<b:section class="sidebar" id="sidebar_secondary_1" name="Sidebar" showaddelement="no"/>'))).toEqual([]);
     });
   });
 
@@ -321,7 +321,7 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
   describe('Rule 23: all-seven-config-zones (R-NAV-2 AC1)', () => {
     it('catches missing section or invalid showaddelement', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const badShowAdd = xml.replace('id="topics" maxwidgets="1" name="Topics" showaddelement="false"', 'id="topics" maxwidgets="1" name="Topics" showaddelement="yes"');
+      const badShowAdd = xml.replace('id="topics" name="Topics" showaddelement="false"', 'id="topics" name="Topics" showaddelement="yes"');
       expect(rules(badShowAdd)).toEqual(['all-seven-config-zones']);
 
       const missingSec = xml.replace(/<b:section\b[^>]*\bid="cta"[^>]*>[\s\S]*?<\/b:section>/, '');
@@ -348,10 +348,10 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
   });
 
   describe('Rule 26: readme-zone-parity (R-NAV-2 AC6)', () => {
-    it('catches maxwidgets mismatch against README table', async () => {
+    it('catches missing section against README table', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const badMax = xml.replace('id="intro" maxwidgets="1"', 'id="intro" maxwidgets="99"');
-      expect(rules(badMax)).toEqual(['readme-zone-parity']);
+      const badMax = xml.replace('id="intro"', 'id="intro_changed"');
+      expect(rules(badMax)).toContain('readme-zone-parity');
     });
   });
 
@@ -451,9 +451,9 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
   });
 
   describe('Rule 36: section-v3-attributes (R-NAV-2)', () => {
-    it('catches sections missing required attributes (class, name, maxwidgets, showaddelement)', async () => {
+    it('catches sections missing required attributes (class, name, showaddelement)', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const missingName = xml.replace('id="header" maxwidgets="1" name="Header"', 'id="header" maxwidgets="1"');
+      const missingName = xml.replace('id="header" name="Header"', 'id="header"');
       expect(rules(missingName)).toContain('section-v3-attributes');
 
       const missingClass = xml.replace('class="header" id="header"', 'id="header"');
@@ -526,7 +526,7 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
       'page_body outside main',
       'href="/search/label/tech"',
       'type="DisabledPosts" in defaultmarkup',
-      'id="topics" maxwidgets="99"',
+      'id="topics"',
       'rel="canonical" missing',
       'og:title metadata missing',
       'twitter:title metadata missing',

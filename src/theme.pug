@@ -72,6 +72,31 @@ html&attributes(rootAttributes)
       include widgets/label.pug
     main#content.main-content(role='main')
       include widgets/blog.pug
+      b:if(cond='data:view.isMultipleItems')
+        aside.desktop-sidebar(aria-label='Author and Navigation Sidebar')
+          div.sidebar-card.sidebar-profile-card
+            div.sidebar-profile-header
+              img.sidebar-avatar(src='https://redwan.work/profile.jpg' alt='Md Redwan Ahmed' width='64' height='64' loading='lazy')/
+              div.sidebar-profile-info
+                h3.sidebar-name Md Redwan Ahmed
+                span.sidebar-badge Verified Researcher
+            p.sidebar-bio Cybersecurity Researcher &amp; Engineer. Founder &amp; CEO of Fast Cyber Defense. Specializing in Penetration Testing, Red Teaming, and AI Security.
+            div.sidebar-actions
+              a.sidebar-btn.sidebar-btn-primary(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer')
+                span Book Consultation →
+              a.sidebar-btn.sidebar-btn-secondary(href='https://redwan.work/' target='_blank' rel='noopener noreferrer')
+                span Portfolio
+          div.sidebar-card.sidebar-cta-card
+            div.sidebar-cta-tag // DIRECT ADVISORY
+            h4.sidebar-cta-title Need a Security Audit?
+            p.sidebar-cta-desc Direct vulnerability assessments, red team engagements, and cloud infrastructure security reviews.
+            a.sidebar-cta-btn(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer')
+              span Schedule a Call ↗
+          div.sidebar-card.sidebar-status-card
+            div.sidebar-status-header
+              span.status-beacon
+              span.sidebar-status-label Live System Status
+            p.sidebar-status-text All research labs, offensive tooling, and adversary emulation systems operational.
     div.cta-container
       include widgets/cta.pug
     footer.footer-container(role='contentinfo')
@@ -88,6 +113,12 @@ html&attributes(rootAttributes)
         li.drawer-nav-item
           a.drawer-nav-link(expr:href='data:blog.homepageUrl')
             b:eval(expr='data:messages.home ?: "Home"')/
+        li.drawer-nav-item
+          a.drawer-nav-link(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Portfolio (redwan.work)
+        li.drawer-nav-item
+          a.drawer-nav-link(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer') Fast Cyber Defense
+        li.drawer-nav-item
+          a.drawer-nav-link(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Book Consultation (Cal.com)
     dialog#search-modal.search-modal(aria-hidden='true' aria-labelledby='search-modal-title')
       div.search-modal-container
         div.search-modal-header

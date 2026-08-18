@@ -2,7 +2,8 @@
 // Design Tokens — docs/PROJECT-PLAN.md §2.2 (colour), §2.3 (type), §2.4 (spacing)
 // ---------------------------------------------------------------------------
 
-// OKLCH Palette (7 canonical tokens)
+// OKLCH Palette (7 canonical tokens — hue families locked by contract tests)
+// Neutral family: hue 85 (warm paper). Accent family: hue 25 (oxidised red).
 $page: oklch(98.4% 0.004 85);
 $surface: oklch(96.2% 0.006 85);
 $ink: oklch(23% 0.012 85);
@@ -16,7 +17,7 @@ $font-serif: georgia, 'Iowan Old Style', 'Palatino Linotype', palatino, serif;
 $font-sans: -apple-system, system-ui, 'Segoe UI', roboto, sans-serif;
 $font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', consolas, monospace;
 
-// Typography Scale (1.333 ratio)
+// Typography Scale (1.333 ratio) — row value locked by contract test
 $font-size-h1: clamp(2.0rem, 1.4rem + 2.6vw, 3.15rem);
 $font-size-h2: 1.777rem;
 $font-size-h3: 1.333rem;
@@ -24,7 +25,7 @@ $font-size-body: 1.0625rem;
 $font-size-row: 1.15rem;
 $font-size-meta: 0.8125rem;
 
-$line-height-body: 1.7;
+$line-height-body: 1.75;
 
 $font-weight-h1: 700;
 $font-weight-h2: 650;
@@ -48,6 +49,7 @@ $space-9: 112px;
 $measure: 68ch;
 $breakpoint-mobile: 640px;
 $breakpoint-desktop: 1024px;
+$container-max: 1100px;
 
 // Extended Motion System Tokens (GPU-composited & WCAG 2.2 Compliant)
 $motion-fast: 120ms;
@@ -69,8 +71,8 @@ $shadow-lg: 0 8px 24px oklch(23% 0.012 85 / 0.12), 0 4px 8px oklch(23% 0.012 85 
 $shadow-xl: 0 16px 36px oklch(23% 0.012 85 / 0.16), 0 8px 16px oklch(23% 0.012 85 / 0.08);
 
 // Accent-Tinted Shadows (for active/hover interactive focus)
-$shadow-accent-sm: 0 2px 6px oklch(46% 0.148 25 / 0.12);
-$shadow-accent-md: 0 4px 14px oklch(46% 0.148 25 / 0.18);
+$shadow-accent-sm: 0 2px 6px oklch(46% 0.148 25 / 0.18);
+$shadow-accent-md: 0 4px 14px oklch(46% 0.148 25 / 0.26);
 
 // Glassmorphism & Translucency Tokens
 $glass-bg: oklch(98.4% 0.004 85 / 0.85);
@@ -92,4 +94,3 @@ $z-drawer: 900;
 $z-modal-backdrop: 940;
 $z-modal: 950;
 $z-toast: 1100;
-

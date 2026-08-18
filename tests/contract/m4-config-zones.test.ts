@@ -26,23 +26,22 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
       }
     });
 
-    it('enforces maxwidgets and showaddelement attributes per zone specification', async () => {
+    it('enforces showaddelement attributes per zone specification', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const expected: Record<string, { maxwidgets: string; showaddelement: string }> = {
-        header: { maxwidgets: '1', showaddelement: 'false' },
-        navlinks: { maxwidgets: '1', showaddelement: 'false' },
-        intro: { maxwidgets: '1', showaddelement: 'false' },
-        topics: { maxwidgets: '1', showaddelement: 'false' },
-        page_body: { maxwidgets: '1', showaddelement: 'false' },
-        cta: { maxwidgets: '1', showaddelement: 'false' },
-        footer: { maxwidgets: '3', showaddelement: 'yes' }
+      const expected: Record<string, { showaddelement: string }> = {
+        header: { showaddelement: 'false' },
+        navlinks: { showaddelement: 'false' },
+        intro: { showaddelement: 'false' },
+        topics: { showaddelement: 'false' },
+        page_body: { showaddelement: 'false' },
+        cta: { showaddelement: 'false' },
+        footer: { showaddelement: 'yes' }
       };
 
       for (const [id, exp] of Object.entries(expected)) {
         const pattern = new RegExp(`<b:section\\b[^>]*\\bid=["']${id}["'][^>]*>`, 'i');
         const match = xml.match(pattern);
         expect(match, `Section <b:section id="${id}"> must exist`).not.toBeNull();
-        expect(match![0]).toContain(`maxwidgets="${exp.maxwidgets}"`);
         expect(match![0]).toContain(`showaddelement="${exp.showaddelement}"`);
       }
     });
@@ -83,12 +82,10 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
       for (const row of rows) {
         const cells = row.split('|').map((c) => c.trim()).filter(Boolean);
         const zoneId = cells[1]?.replace(/[`]/g, '') ?? '';
-        const max = cells[3] ?? '';
         expect(zoneId.length).toBeGreaterThan(0);
 
         const secMatch = xml.match(new RegExp(`<b:section\\b[^>]*\\bid=["']${zoneId}["'][^>]*>`));
         expect(secMatch, `Section '${zoneId}' from README must exist in theme.xml`).not.toBeNull();
-        expect(secMatch![0]).toContain(`maxwidgets="${max}"`);
       }
     });
   });
@@ -275,9 +272,9 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
       expect(findings).toContain('no-hardcoded-search-label');
     });
 
-    it('catches section attribute discrepancy via readme-zone-parity rule', async () => {
+    it('catches section discrepancy via readme-zone-parity rule', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const mutated = xml.replace('id="footer" maxwidgets="3"', 'id="footer" maxwidgets="1"');
+      const mutated = xml.replace('id="footer"', 'id="footer_changed"');
       const findings = checkThemeContract(mutated).map((f) => f.ruleId);
       expect(findings).toContain('readme-zone-parity');
     });
@@ -295,7 +292,7 @@ describe('Milestone M4: Config Zones & Defensive Defaultmarkups', () => {
         '<a href="/search/label/Banned">Link</a>',
         '<b:defaultmarkup type="PopularPosts"/> missing',
         'missing section topics',
-        'footer maxwidgets="1" mismatch'
+        'footer mismatch'
       ];
 
       for (const payload of commentPayloads) {

@@ -80,12 +80,26 @@ button,
   align-items: center;
 }
 
+.blog-pager-newer-link,
+.blog-pager-older-link,
+.pill-button,
+.jump-link a,
+.nav-link,
+.drawer-nav-link,
+.hero-btn,
+.cta-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .share-btn,
 .topic-pill,
 .drawer-toggle,
 .drawer-close,
 .search-toggle,
 .search-modal-close,
+.theme-toggle,
 .post-nav-item {
   min-height: 44px;
 }

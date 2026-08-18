@@ -1,6 +1,30 @@
-b:section(class='intro' id='intro' maxwidgets='1' name='Intro' showaddelement='false')
+b:section(class='intro' id='intro' name='Intro' showaddelement='false')
   b:widget(id='HTML1' locked='false' title='Intro' type='HTML' version='2' visible='true')
     b:includable(id='main')
       b:if(cond='data:content')
         div.intro-content
           b:eval(expr='data:content')/
+      b:if(cond='not data:content and data:view.isHomepage and not data:newerPageUrl')
+        div.hero-banner
+          div.hero-content-col
+            div.hero-meta-row
+              div.status-pill
+                span.status-beacon
+                span.status-label OPERATIONAL // SECURITY RESEARCH JOURNAL
+              div.hero-badge-mono SEC-ID: REDWAN-CSE
+            div.hero-title Security engineering notes, research &amp; field observations.
+            p.hero-standfirst Specialized investigations into Penetration Testing, Red Teaming, Cloud Security, Linux Hardening, OSINT, and AI Security by Md Redwan Ahmed — Founder &amp; CEO of Fast Cyber Defense.
+            div.hero-actions
+              a.hero-btn.hero-btn-primary(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer')
+                svg(viewBox='0 0 24 24' width='16' height='16' aria-hidden='true')
+                  path(d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 4h-2v-2h2v2zm4 0h-2v-2h2v2z' fill='currentColor')
+                span Schedule Consultation
+              a.hero-btn.hero-btn-secondary(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer')
+                svg(viewBox='0 0 24 24' width='16' height='16' aria-hidden='true')
+                  path(d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z' fill='currentColor')
+                span Fast Cyber Defense
+              a.hero-btn.hero-btn-tertiary(href='https://redwan.work/' target='_blank' rel='noopener noreferrer')
+                span Portfolio (redwan.work) →
+          div.hero-photo-col
+            img.hero-portrait-img(alt='Md Redwan Ahmed — Founder & CEO of Fast Cyber Defense' height='260' width='260' loading='lazy' src='https://redwan.work/profile.jpg')/
+

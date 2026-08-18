@@ -93,7 +93,7 @@ b:includable(id='commentForm' var='post')
         b:eval(expr='data:this.messages.blogComment')/
     b:include(data='post' name='commentFormIframeSrc')/
     iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
-    b:eval(expr='data:post.cmtfpIframe')/
+    | <data:post.cmtfpIframe/>
     script(type='text/javascript').
       BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
 
@@ -124,7 +124,7 @@ b:includable(id='threadedCommentForm' var='post')
         b:eval(expr='data:this.messages.blogComment')/
     b:include(data='post' name='commentFormIframeSrc')/
     iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
-    b:eval(expr='data:post.cmtfpIframe')/
+    | <data:post.cmtfpIframe/>
     script(type='text/javascript').
       BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
 

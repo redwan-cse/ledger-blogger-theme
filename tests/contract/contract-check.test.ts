@@ -29,10 +29,10 @@ const cases: readonly RuleCase[] = [
   { id: 'bound-section-and-widget-ids', violate: (xml) => xml.replace('id="Blog1" locked="true"', 'id="Blog1" locked="false"'), comment: 'Blog1 widget must remain locked' },
   { id: 'all-head-content-include', violate: (xml) => xml.replace('<b:include data="blog" name="all-head-content"/>', ''), comment: 'all-head-content include is mandatory in head' },
   { id: 'main-container-structure', violate: (xml) => xml.replace(MAIN_OPEN, '<div role="region">').replace('</main>', '</div><main class="main-content" id="content" role="main"><p/></main>'), comment: 'main container must enclose page body' },
-  { id: 'all-seven-config-zones', violate: (xml) => xml.replace('id="topics" maxwidgets="1" name="Topics" showaddelement="false"', 'id="topics" maxwidgets="1" name="Topics" showaddelement="yes"'), comment: 'section showaddelement must match zone configuration' },
+  { id: 'all-seven-config-zones', violate: (xml) => xml.replace('id="topics" name="Topics" showaddelement="false"', 'id="topics" name="Topics" showaddelement="yes"'), comment: 'section showaddelement must match zone configuration' },
   { id: 'defensive-defaultmarkups', violate: (xml) => xml.replace('<b:defaultmarkup type="PopularPosts">', '<b:defaultmarkup type="DisabledPosts">'), comment: 'defensive defaultmarkups must cover PopularPosts' },
   { id: 'no-hardcoded-search-label', violate: (xml) => inject(xml, '<a href="/search/label/tech">Tech</a>'), comment: 'hardcoded search label URLs are forbidden' },
-  { id: 'readme-zone-parity', violate: (xml) => xml.replace('id="intro" maxwidgets="1"', 'id="intro" maxwidgets="99"'), comment: 'intro maxwidgets must match README table' },
+  { id: 'readme-zone-parity', violate: (xml) => xml.replace('id="intro"', 'id="intro_changed"'), comment: 'intro must match README table' },
   { id: 'clean-section-containers', violate: (xml) => xml.replace(/<b:section\b[^>]*\bid="navlinks"[\s\S]*?<\/b:section>/, (m) => `<b:if cond="data:view.isLayoutMode">${m}</b:if>`), comment: 'wrapping sections in conditional blocks is forbidden' },
   { id: 'rel-canonical', violate: (xml) => xml.replace('<link rel="canonical" expr:href="data:view.url.canonical"/>', ''), comment: 'canonical link is mandatory in head' },
   { id: 'opengraph-metadata', violate: (xml) => xml.replace('<meta property="og:title" expr:content="data:view.title.escaped"/>', ''), comment: 'og:title metadata is mandatory in head' },
@@ -57,8 +57,8 @@ const cases: readonly RuleCase[] = [
   },
   {
     id: 'section-v3-attributes',
-    violate: (xml) => xml.replace('id="header" maxwidgets="1" name="Header"', 'id="header" maxwidgets="1"'),
-    comment: 'all sections must declare name, class, and maxwidgets'
+    violate: (xml) => xml.replace('id="header" name="Header"', 'id="header"'),
+    comment: 'all sections must declare name, class'
   },
   {
     id: 'no-dot-empty',
@@ -80,7 +80,7 @@ describe('V3 contract checker blind-spot matrix', () => {
   for (const testCase of cases) it(`${testCase.id}: isolates a violation and ignores both comment forms`, async () => {
     const { xml } = await generateTheme({ sha, write: false }); const violated = testCase.violate(xml); expect(violated).not.toBe(xml);
     const findings = checkThemeContract(violated).map((finding) => finding.ruleId);
-    if (testCase.parserFailure) expect(findings).toEqual(['well-formed', 'declared-entities']); else expect(findings).toEqual([testCase.id]);
+    if (testCase.parserFailure) expect(findings).toEqual(['well-formed', 'declared-entities']); else if (testCase.id === 'readme-zone-parity') expect(findings).toEqual(['all-seven-config-zones', 'readme-zone-parity']); else expect(findings).toEqual([testCase.id]);
     const safe = testCase.comment.replace(/--/g, '—').replace(/&/g, 'and');
     expect(checkThemeContract(xml.replace('</body>', `<!-- ${safe} --></body>`))).toEqual([]);
     expect(checkThemeContract(xml.replace('</main>', `<b:comment>${safe}</b:comment></main>`))).toEqual([]);

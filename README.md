@@ -71,15 +71,15 @@ All Blogger/API configuration uses environment variables documented in `.env.exa
 
 ## Layout zones
 
-| Zone | `id` | Widget | Max | Purpose |
-|---|---|---|---|---|
-| Masthead | `header` | `Header` | 1 | Site title and tagline. Locked. |
-| Nav | `navlinks` | `LinkList` | 1 | Menu items |
-| Intro | `intro` | `HTML` | 1 | Editorial standfirst |
-| Topics | `topics` | `Label` | 1 | Topic pills from real labels |
-| Posts | `page_body` | `Blog` | 1 | The render path. Locked. |
-| CTA | `cta` | `HTML` | 1 | Closing call to action |
-| Footer | `footer` | `HTML` | 3 | Attribution and social links |
+| Zone | `id` | Widget | Purpose |
+|---|---|---|---|
+| Masthead | `header` | `Header` | Site title and tagline. Locked. |
+| Nav | `navlinks` | `LinkList` | Menu items |
+| Intro | `intro` | `HTML` | Editorial standfirst |
+| Topics | `topics` | `Label` | Topic pills from real labels |
+| Posts | `page_body` | `Blog` | The render path. Locked. |
+| CTA | `cta` | `HTML` | Closing call to action |
+| Footer | `footer` | `HTML` | Attribution and social links |
 
 All seven layout zones and defensive defaultmarkups implemented in M4.
 

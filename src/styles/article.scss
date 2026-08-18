@@ -13,7 +13,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px;
+  height: 4px;
   z-index: $z-progress;
   background: transparent;
   pointer-events: none;
@@ -21,9 +21,9 @@
   .reading-progress-bar {
     height: 100%;
     width: 0%;
-    background-color: $accent;
+    background: linear-gradient(90deg, $accent, oklch(56% 0.148 25));
     transition: width 50ms linear;
-    box-shadow: 0 0 8px oklch(46% 0.148 25 / 0.4);
+    box-shadow: 0 0 10px oklch(46% 0.148 25 / 0.35);
   }
 }
 
@@ -34,18 +34,30 @@
 .is-post .post,
 .is-page .post {
   border-bottom: none;
+  padding-top: $space-7;
 
   @media (min-width: 1024px) {
     grid-column: 3 / 11; // 8 of 12 columns (columns 3-10)
+    padding-top: $space-8;
   }
 
   .post-title {
-    font-family: $font-serif;
-    font-weight: $font-weight-h1;
+    font-family: $font-sans;
+    font-weight: 800;
     font-size: $font-size-h1;
     line-height: 1.15;
+    letter-spacing: -0.025em;
+    display: block;
     -webkit-line-clamp: unset;
     line-clamp: unset;
+    margin-bottom: $space-4;
+  }
+
+  // Meta row between title and body
+  .post-header {
+    padding-bottom: $space-4;
+    margin-bottom: $space-5;
+    border-bottom: 1px solid $rule;
   }
 }
 
@@ -60,23 +72,29 @@
   max-width: $measure;
 
   h1 {
+    font-family: $font-sans;
     font-size: $font-size-h1;
-    font-weight: $font-weight-h1;
+    font-weight: 800;
     line-height: 1.15;
+    letter-spacing: -0.02em;
     margin: $space-6 0 $space-4;
   }
 
   h2 {
+    font-family: $font-sans;
     font-size: $font-size-h2;
-    font-weight: $font-weight-h2;
+    font-weight: 750;
     line-height: 1.25;
+    letter-spacing: -0.015em;
     margin: $space-6 0 $space-3;
   }
 
   h3 {
+    font-family: $font-sans;
     font-size: $font-size-h3;
-    font-weight: $font-weight-h3;
+    font-weight: 700;
     line-height: 1.3;
+    letter-spacing: -0.01em;
     margin: $space-5 0 $space-2;
   }
 
@@ -87,12 +105,16 @@
   blockquote {
     background: $surface;
     border-left: 3px solid $accent;
-    font-style: italic;
+    font-style: normal;
     padding: $space-4 $space-5;
     margin: $space-5 0;
+    border-radius: 0 4px 4px 0;
   }
 
   table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
     width: 100%;
     border-collapse: collapse;
     margin: $space-5 0;
@@ -102,6 +124,7 @@
       border: 1px solid $rule;
       padding: $space-2 $space-3;
       text-align: left;
+      min-width: 120px;
     }
 
     th {
@@ -158,6 +181,139 @@
 }
 
 // ---------------------------------------------------------------------------
+// Table of Contents (TOC) Component
+// ---------------------------------------------------------------------------
+
+.table-of-contents {
+  background: $surface;
+  border: 1px solid $rule;
+  border-radius: 4px;
+  padding: $space-4 $space-5;
+  margin: $space-6 0;
+  box-shadow: $shadow-sm;
+
+  .toc-title {
+    font-family: $font-sans;
+    font-size: $font-size-meta;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $ink-muted;
+    margin-bottom: $space-3;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+
+    &::before {
+      content: '//';
+      color: $accent;
+      font-family: $font-mono;
+    }
+  }
+
+  .toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  .toc-item {
+    &.toc-h3 {
+      padding-left: $space-4;
+    }
+  }
+
+  .toc-link {
+    color: $ink;
+    text-decoration: none;
+    font-size: $font-size-meta;
+    line-height: 1.4;
+    display: inline-block;
+    transition: color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+
+    &:hover {
+      color: $accent;
+      transform: translateX(2px);
+    }
+
+    &.is-active {
+      color: $accent;
+      font-weight: 600;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Enhanced Code Blocks with Copy Controls & Terminal Header
+// ---------------------------------------------------------------------------
+
+.code-block-wrapper {
+  margin: $space-5 0;
+  border: 1px solid oklch(28% 0.020 260);
+  border-radius: 6px;
+  background: oklch(16% 0.018 260);
+  overflow: hidden;
+  box-shadow: $shadow-md;
+
+  pre {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: $space-4 $space-5;
+    color: oklch(88% 0.010 260);
+  }
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-2 $space-4;
+  background: oklch(12% 0.015 260);
+  border-bottom: 1px solid oklch(28% 0.020 260);
+
+  .code-lang-badge {
+    font-family: $font-mono;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: oklch(46% 0.148 25);
+  }
+
+  .code-copy-btn {
+    min-height: 26px;
+    padding: 2px $space-3;
+    font-family: $font-mono;
+    font-size: 0.7rem;
+    color: oklch(60% 0.010 260);
+    background: transparent;
+    border: 1px solid oklch(32% 0.020 260);
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
+
+    &:hover {
+      color: oklch(80% 0.18 260);
+      border-color: oklch(46% 0.148 25 / 0.35);
+      background: oklch(22% 0.035 260);
+    }
+
+    &.copied {
+      color: oklch(70% 0.15 155);
+      border-color: oklch(55% 0.15 155 / 0.5);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Post Share Bar Suite
 // ---------------------------------------------------------------------------
 
@@ -165,20 +321,20 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: $space-2;
-  margin: $space-6 0;
-  padding: $space-3 0;
+  gap: $space-3;
+  margin: $space-7 0 $space-5;
+  padding: $space-4 0;
   border-top: 1px solid $rule;
   border-bottom: 1px solid $rule;
 
   .share-label {
-    font-family: $font-sans;
-    font-size: $font-size-meta;
-    font-weight: 600;
+    font-family: $font-mono;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.07em;
     color: $ink-muted;
-    margin-right: $space-2;
+    margin-right: $space-1;
   }
 
   .share-btn {
@@ -186,38 +342,38 @@
     align-items: center;
     justify-content: center;
     gap: $space-2;
-    min-height: 44px;
-    padding: $space-2 $space-3;
+    min-height: 40px;
+    padding: $space-2 $space-4;
     font-family: $font-sans;
-    font-size: $font-size-meta;
-    font-weight: 500;
+    font-size: 0.8125rem;
+    font-weight: 600;
     color: $ink;
     background: $surface;
     border: 1px solid $rule;
-    border-radius: 4px;
+    border-radius: 6px;
     text-decoration: none;
     cursor: pointer;
     box-shadow: $shadow-sm;
-    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
+    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
 
     svg {
       width: 16px;
       height: 16px;
-      fill: currentColor;
       flex-shrink: 0;
+      fill: currentColor;
     }
 
     &:hover {
       color: $accent;
       background-color: $accent-wash;
-      border-color: oklch(46% 0.148 25 / 0.3);
+      border-color: oklch(46% 0.148 25 / 0.25);
       transform: translateY(-2px);
-      box-shadow: $shadow-md;
+      box-shadow: $shadow-accent-sm;
     }
 
     &:active {
       transform: translateY(1px) scale(0.96);
-      box-shadow: 0 1px 2px oklch(23% 0.012 85 / 0.15);
+      box-shadow: 0 1px 2px oklch(20% 0.010 240 / 0.15);
     }
   }
 
@@ -265,6 +421,22 @@
     object-fit: cover;
     border: 2px solid $rule;
     background: $page;
+    box-shadow: $shadow-sm;
+  }
+
+  .author-avatar-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: $accent-wash;
+    border-color: $accent;
+
+    .author-initials {
+      font-family: $font-mono;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: $accent;
+    }
   }
 
   .author-content,
@@ -287,9 +459,10 @@
   }
 
   .author-name {
-    font-family: $font-serif;
-    font-size: $font-size-h3;
-    font-weight: $font-weight-h3;
+    font-family: $font-sans;
+    font-size: 1.15rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
     line-height: 1.2;
     color: $ink;
     margin: 0;
@@ -306,11 +479,11 @@
 
   .author-bio,
   .author-description {
-    font-family: $font-serif;
-    font-size: $font-size-meta;
+    font-family: $font-sans;
+    font-size: 0.875rem;
     line-height: 1.6;
-    color: $ink;
-    margin: 0;
+    color: $ink-muted;
+    margin: $space-1 0 0;
   }
 }
 
@@ -414,6 +587,83 @@
   }
 }
 
+.post-listen-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-3;
+  margin-left: $space-4;
+  vertical-align: middle;
+
+  @media (max-width: 639px) {
+    display: flex;
+    margin-left: 0;
+    margin-top: $space-2;
+  }
+}
+
+.listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  padding: $space-1 $space-3;
+  min-height: 32px;
+  background: $surface;
+  color: $ink;
+  border: 1px solid $rule;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+
+  &:hover {
+    color: $accent;
+    border-color: oklch(68% 0.19 250 / 0.4);
+    background-color: $accent-wash;
+    transform: translateY(-1px);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.listen-status {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  color: $accent;
+}
+
+.author-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-top: $space-2;
+}
+
+.author-link-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: $accent;
+  text-decoration: none;
+  background: $surface;
+  border: 1px solid $rule;
+  border-radius: 4px;
+  padding: 4px 10px;
+  transition: color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
+
+  &:hover {
+    color: oklch(40% 0.148 25);
+    border-color: $accent;
+    background-color: $accent-wash;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Comments Section (#comments / .comments-section)
 // ---------------------------------------------------------------------------
@@ -429,18 +679,95 @@
   }
 }
 
+.comments {
+  border-top: 1px solid $rule;
+  margin-top: $space-8;
+  padding-top: $space-6;
+
+  @media (min-width: 1024px) {
+    grid-column: 3 / 11;
+  }
+}
+
 .comments-title {
   font-family: $font-sans;
-  font-size: $font-size-meta;
-  letter-spacing: 0.01em;
-  color: $ink-muted;
-  text-transform: uppercase;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: $ink;
   margin: 0 0 $space-5;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  &::before {
+    content: '//';
+    color: $accent;
+    font-family: $font-mono;
+  }
+}
+
+#comments-block {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  margin-bottom: $space-6;
 }
 
 .comment {
-  border-bottom: 1px solid $rule;
-  padding: $space-4 0;
+  background: $surface;
+  border: 1px solid $rule;
+  border-radius: 6px;
+  padding: $space-4 $space-5;
+  box-shadow: $shadow-sm;
+  transition: border-color $motion-fast $ease-out-quart;
+
+  &:hover {
+    border-color: oklch(68% 0.19 250 / 0.3);
+  }
+}
+
+.comment-author {
+  font-family: $font-sans;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: $ink;
+  margin-bottom: $space-2;
+
+  a {
+    color: $ink;
+    text-decoration: none;
+
+    &:hover {
+      color: $accent;
+    }
+  }
+}
+
+.comment-body {
+  font-family: $font-serif;
+  font-size: $font-size-body;
+  line-height: $line-height-body;
+  color: $ink;
+  margin-bottom: $space-3;
+}
+
+.comment-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  color: $ink-muted;
+
+  a {
+    color: $ink-muted;
+    text-decoration: none;
+
+    &:hover {
+      color: $accent;
+    }
+  }
 }
 
 .comment-tombstone {
@@ -450,12 +777,17 @@
 
 .comment-meta {
   color: $ink-muted;
-  font-size: $font-size-meta;
+  font-size: 0.75rem;
   margin-top: $space-2;
 }
 
 .comment-form {
-  margin-top: $space-5;
+  background: $surface;
+  border: 1px solid $rule;
+  border-radius: 8px;
+  padding: $space-5;
+  margin-top: $space-6;
+  box-shadow: $shadow-sm;
 
   a {
     display: inline-flex;
@@ -464,20 +796,54 @@
     padding: 0 $space-4;
     background: $accent;
     color: $page;
+    font-family: $font-sans;
+    font-weight: 600;
+    font-size: 0.875rem;
     text-decoration: none;
-    border-radius: 2px;
-    box-shadow: $shadow-sm;
+    border-radius: 6px;
+    box-shadow: $shadow-accent-sm;
     transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
     &:hover {
       background-color: oklch(40% 0.148 25);
-      box-shadow: $shadow-md;
+      box-shadow: $shadow-accent-md;
       transform: translateY(-1px);
     }
+  }
 
-    &:active {
-      transform: translateY(1px) scale(0.96);
-      box-shadow: 0 1px 2px oklch(23% 0.012 85 / 0.15);
+  a:empty,
+  a[name],
+  a#comment-editor-src {
+    display: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  h4#comment-post-message {
+    font-family: $font-sans;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $ink;
+    margin: 0 0 $space-4;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+
+    &::before {
+      content: '//';
+      color: $accent;
+      font-family: $font-mono;
     }
+  }
+
+  iframe#comment-editor {
+    border: 1px solid $rule;
+    border-radius: 6px;
+    background: $page;
+    min-height: 120px;
+    max-height: 300px;
+    width: 100% !important;
   }
 }

@@ -193,13 +193,12 @@ export const contractRules: readonly ContractRule[] = [
         const match = readme.match(/## Layout zones[\s\S]*?(?=\n##|$)/);
         if (!match) return false;
         const rows = match[0].split('\n').filter((l) => l.startsWith('|') && !l.includes('---') && !l.includes('Zone'));
-        const readmeZones: Array<{ id: string; max: string }> = [];
+        const readmeZones: Array<{ id: string }> = [];
         for (const row of rows) {
           const cells = row.split('|').map((c) => c.trim()).filter(Boolean);
-          if (cells.length >= 4) {
+          if (cells.length >= 3) {
             const rawId = cells[1]?.replace(/[`]/g, '') ?? '';
-            const max = cells[3] ?? '';
-            if (rawId && max) readmeZones.push({ id: rawId, max });
+            if (rawId) readmeZones.push({ id: rawId });
           }
         }
         if (readmeZones.length !== 7) return false;
@@ -207,7 +206,6 @@ export const contractRules: readonly ContractRule[] = [
         for (const rz of readmeZones) {
           const sec = sections.find((s) => attr(s, 'id') === rz.id);
           if (!sec) return false;
-          if (attr(sec, 'maxwidgets') !== rz.max) return false;
         }
         return true;
       } catch {
@@ -353,7 +351,7 @@ export const contractRules: readonly ContractRule[] = [
   {
     id: 'section-v3-attributes',
     requirementId: 'R-NAV-2',
-    message: "All <b:section> elements must declare required V3 attributes: id, class, name, maxwidgets, and valid showaddelement ('false', 'true', 'no', 'yes').",
+    message: "All <b:section> elements must declare required V3 attributes: id, class, name, and valid showaddelement ('false', 'true', 'no', 'yes').",
     check: (doc) => {
       const sections = named(doc, BLOGGER_NS, 'section');
       if (sections.length === 0) return false;
@@ -361,13 +359,11 @@ export const contractRules: readonly ContractRule[] = [
         const id = attr(sec, 'id');
         const className = attr(sec, 'class');
         const name = attr(sec, 'name');
-        const maxwidgets = attr(sec, 'maxwidgets');
         const showadd = attr(sec, 'showaddelement');
         return Boolean(
           id &&
           className &&
           name &&
-          maxwidgets &&
           showadd &&
           ['false', 'true', 'no', 'yes'].includes(showadd)
         );

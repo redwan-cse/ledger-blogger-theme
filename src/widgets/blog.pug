@@ -1,4 +1,4 @@
-b:section(class='main' id='page_body' maxwidgets='1' name='Page Body' showaddelement='false')
+b:section(class='main' id='page_body' name='Page Body' showaddelement='false')
   b:widget(id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true')
     b:widget-settings
       b:widget-setting(name='showDateHeader') false
@@ -54,7 +54,8 @@ b:section(class='main' id='page_body' maxwidgets='1' name='Page Body' showaddele
     b:includable(id='postFooterJumpLink' var='post')
       .jump-link
         a(expr:href='data:post.hasJumpLink ? data:post.url fragment "more" : data:post.url' expr:title='data:post.title')
-          b:eval(expr='data:blog.jumpLinkMessage')/
+          span.jump-link-text Read article
+          span.jump-link-arrow(aria-hidden='true') →
     //- G+ comments, no longer available. Retained for engine compatibility.
     b:includable(id='iframeComments' var='post')
     //- Defensive empty includables to prevent unwanted default Blogger V3 chrome
