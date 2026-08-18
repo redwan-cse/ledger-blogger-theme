@@ -46,7 +46,7 @@ test('all ten views render visible server content', async ({ page }) => {
     const main = page.locator('main');
     await expect(main, target.name).toBeVisible();
     expect((await main.innerText()).replace(/\s+/g, ' ').trim().length, target.name).toBeGreaterThanOrEqual(40);
-    await expect(page.locator('.post-lead, .post-row, .article-body, .empty-state').first(), target.name).toBeVisible();
+    await expect(page.locator('.post, .post-body, .empty-state').first(), target.name).toBeVisible();
   }
 });
 
@@ -54,16 +54,16 @@ test('static pages omit post-only chrome', async ({ page }) => {
   const target = targets.find((item) => item.name === 'static-page');
   expect(target?.url).toBeTruthy();
   await page.goto(target!.url!);
-  await expect(page.locator('.share-bar, .author-bio, .related, .reading-progress')).toHaveCount(0);
+  await expect(page.locator('.share-bar, .author-bio, .post-navigation, .reading-progress')).toHaveCount(0);
 });
 
-test('post pages contain the complete structural path', async ({ page }) => {
+test('post pages contain the shipped post-only structural path', async ({ page }) => {
   const target = targets.find((item) => item.name === 'post');
   expect(target?.url).toBeTruthy();
   await page.goto(target!.url!);
-  await expect(page.locator('.article-body')).toBeVisible();
+  await expect(page.locator('.post-body')).toBeVisible();
   await expect(page.locator('.share-bar')).toHaveCount(1);
   await expect(page.locator('.author-bio')).toHaveCount(1);
-  await expect(page.locator('.related')).toHaveCount(1);
+  await expect(page.locator('.post-navigation')).toHaveCount(1);
   await expect(page.locator('.reading-progress')).toHaveCount(1);
 });
