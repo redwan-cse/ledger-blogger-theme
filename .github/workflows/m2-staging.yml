@@ -15,7 +15,7 @@ jobs:
   render:
     runs-on: ubuntu-latest
     environment: blogger-live
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       STAGING_URL: https://blogs.redwan.work/
       BLOGGER_BLOG_ID: '5972841034338492159'
@@ -52,10 +52,14 @@ jobs:
         run: npm run harness
       - name: Verify JS, no-JS, and reduced-motion browser contexts
         run: npm run harness:browser
+      - name: Verify serious and critical accessibility violations
+        run: npm run test:a11y
+      - name: Verify home and post Lighthouse budgets
+        run: npm run test:lighthouse
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: m2-evidence-${{ github.sha }}
+          name: m2-m6-evidence-${{ inputs.theme_sha }}
           path: |
             dist/theme.xml
             playwright-report
