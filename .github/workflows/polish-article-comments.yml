@@ -1,0 +1,141 @@
+name: Polish article comments and dark mode
+
+on:
+  push:
+    paths:
+      - .github/workflows/polish-article-comments.yml
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Tighten article rhythm and dark-mode hierarchy
+        shell: python
+        run: |
+          from pathlib import Path
+
+          article = Path('src/styles/article.scss')
+          text = article.read_text(encoding='utf-8')
+          replacements = {
+          '  padding-top: $space-7;': '  padding-top: $space-6;',
+          '    padding-top: $space-8;': '    padding-top: $space-7;',
+          '  margin: $space-7 0 $space-5;': '  margin: $space-6 0 $space-5;',
+          '  margin: $space-7 0;': '  margin: $space-6 0;',
+          '  margin-top: $space-8;\n  padding-top: $space-6;': '  margin-top: $space-6;\n  padding-top: $space-5;',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Missing expected article rhythm pattern: {old!r}')
+              text = text.replace(old, new)
+
+          mobile = """
+          @media (max-width: 639px) {
+            .post-share-bar {
+              align-items: stretch;
+              gap: $space-2;
+
+              .share-label {
+                flex-basis: 100%;
+              }
+
+              .share-btn {
+                flex: 1 1 calc(50% - $space-2);
+                padding-inline: $space-3;
+              }
+            }
+
+            .post-author-bio,
+            .author-bio-card {
+              flex-direction: column;
+              margin-block: $space-5;
+            }
+
+            .author-links-row a {
+              flex: 1 1 100%;
+              justify-content: center;
+            }
+          }
+          """
+          if mobile.strip() not in text:
+              text += mobile
+          article.write_text(text, encoding='utf-8')
+
+          layout = Path('src/styles/layout.scss')
+          text = layout.read_text(encoding='utf-8')
+          anchor = """  .comment-body {
+              color: oklch(92% 0.01 260);
+            }
+          """
+          replacement = anchor + """
+          .comments-title,
+          .comment-form h4#comment-post-message,
+          .comment-author,
+          .comment-author a {
+            color: oklch(92% 0.01 260);
+          }
+
+          .comment-footer,
+          .comment-footer a,
+          .comment-meta,
+          .comment-tombstone,
+          .post-share-bar .share-label,
+          .author-label,
+          .post-nav-label,
+          .post-nav-direction {
+            color: oklch(72% 0.012 260);
+          }
+          """
+          if text.count(anchor) != 1:
+              raise SystemExit('Expected the dark comment-body block once')
+          layout.write_text(text.replace(anchor, replacement), encoding='utf-8')
+
+          test = Path('tests/contract/article-comments-polish.test.ts')
+          test.write_text("""import { describe, expect, it } from 'vitest';
+          import { generateTheme } from '../../tools/generate.js';
+
+          const SHA = '0123456789abcdef0123456789abcdef01234567';
+
+          describe('M3b article and comments polish (#16)', () => {
+            it('tightens article-to-comments rhythm without changing the reading measure', async () => {
+              const { xml } = await generateTheme({ sha: SHA, write: false });
+              expect(xml).toContain('.is-post .post,.is-page .post{border-bottom:none;padding-top:32px}');
+              expect(xml).toContain('#comments,.comments-section{border-top:1px solid');
+              expect(xml).toContain('margin-top:32px;padding-top:24px');
+              expect(xml).toContain('max-width:68ch');
+            });
+
+            it('raises dark-mode comment and metadata contrast and wraps mobile actions', async () => {
+              const { xml } = await generateTheme({ sha: SHA, write: false });
+              expect(xml).toContain('html[data-theme=dark] .comments-title');
+              expect(xml).toContain('html[data-theme=dark] .comment-footer');
+              expect(xml).toContain('@media(max-width: 639px){.post-share-bar{align-items:stretch');
+              expect(xml).toContain('.post-author-bio,.author-bio-card{flex-direction:column');
+            });
+          });
+          """, encoding='utf-8')
+      - run: npm run generate
+      - run: npm run golden:update
+      - run: npm test
+      - run: npm run test:contract
+      - run: npm run contract:check
+      - run: npm run typecheck
+      - name: Commit verified slice and remove one-off workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/polish-article-comments.yml
+          git add src/styles/article.scss src/styles/layout.scss tests/contract/article-comments-polish.test.ts dist/theme.xml tests/golden/theme.xml
+          git commit -m "fix(m3b): polish article comments and dark mode (#16)"
+          git push origin HEAD:main
