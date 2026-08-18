@@ -18,8 +18,10 @@ jobs:
           node-version: 24.18.1
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Apply palette migration
-        run: python tools/align-brand-palette.py
+      - name: Apply palette migration and contracts
+        run: |
+          python tools/align-brand-palette.py
+          python tools/align-brand-contracts.py
       - name: Validate provisional patch
         run: |
           npm run generate
@@ -32,7 +34,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src tests docs tools/align-brand-palette.py
+          git add src tests docs tools/align-brand-palette.py tools/align-brand-contracts.py
           git reset dist/theme.xml tests/golden/theme.xml
           git commit -m "feat(ui): align Ledger with shared Redwan palette"
           git rev-parse HEAD > /tmp/source-sha
@@ -47,7 +49,7 @@ jobs:
           npm run contract:check
       - name: Commit artifact and remove temporary files
         run: |
-          git rm .github/workflows/align-brand-palette.yml tools/align-brand-palette.py
+          git rm .github/workflows/align-brand-palette.yml tools/align-brand-palette.py tools/align-brand-contracts.py
           git add dist tests/golden
           git commit -m "build: stamp shared-brand palette artifact"
           git push origin HEAD:main
