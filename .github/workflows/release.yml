@@ -1,0 +1,29 @@
+name: Release theme artifact
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run generate
+      - run: npm run contract:check
+      - run: npm run test:golden
+      - name: Create checksum
+        run: sha256sum dist/theme.xml > dist/theme.xml.sha256
+      - name: Publish immutable GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/theme.xml dist/theme.xml.sha256 --verify-tag --generate-notes --title "Ledger ${GITHUB_REF_NAME}"
