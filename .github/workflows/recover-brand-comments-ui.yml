@@ -1,0 +1,113 @@
+name: Recover two-line brand and comments
+on:
+  push:
+    paths: [.github/workflows/recover-brand-comments-ui.yml]
+permissions:
+  contents: write
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: {token: "${{ secrets.GITHUB_TOKEN }}", fetch-depth: 0}
+      - uses: actions/setup-node@v7
+        with: {node-version: '24.18.1', cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Apply implementation and align stale contracts
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p=Path('src/widgets/header.pug'); s=p.read_text()
+          a=s.index("    b:includable(id='title')")
+          b=s.index("    b:includable(id='image')")
+          block="""    b:includable(id='title')
+                //- Stable two-line brand lockup matching Fast Cyber Defense.
+                b:if(cond='not data:view.isSingleItem')
+                  h1.site-title Md Redwan Ahmed
+                b:if(cond='data:view.isSingleItem')
+                  p.site-title Md Redwan Ahmed
+              b:includable(id='description')
+                p.site-tagline Cyber Security Professional
+          """
+          p.write_text(s[:a]+block+s[b:])
+
+          p=Path('src/widgets/blog-comments.pug'); s=p.read_text()
+          old="""    p.comment-footer
+                b:if(cond='data:post.allowNewComments')
+                  b:include(data='post' name='threadedCommentForm')/
+                b:if(cond='not data:post.allowNewComments')
+                  b:eval(expr='data:post.noNewCommentsText')/
+          """
+          new="""    //- commentHtml already owns threaded reply controls and editor.
+              b:if(cond='not data:post.allowNewComments')
+                p.comment-footer
+                  b:eval(expr='data:post.noNewCommentsText')/
+          """
+          if s.count(old)!=1: raise SystemExit('threaded footer shape changed')
+          p.write_text(s.replace(old,new))
+
+          css=Path('src/styles/threaded-comments.scss')
+          css.write_text("""@use 'tokens' as *;
+          #comments .comment-thread {
+            ol, ul { list-style:none; margin:0; padding:0; }
+            li { list-style:none; margin:0 0 $space-3; padding:0; }
+            .comment { position:relative; min-height:72px; padding-left:72px; }
+            .avatar-image-container { position:absolute; top:$space-4; left:$space-4; width:40px; height:40px; }
+            .avatar-image-container img { width:40px; height:40px; border-radius:50%; border:1px solid $rule; object-fit:cover; }
+            .comment-header, .comment-actions, .comment-footer { display:flex; align-items:center; flex-wrap:wrap; gap:$space-2; }
+            .comment-header { margin-bottom:$space-2; font-family:$font-sans; font-size:.8125rem; }
+            .user { font-weight:700; color:$ink; }
+            .datetime, .comment-timestamp { color:$ink-muted; font-family:$font-mono; font-size:.72rem; }
+            .comment-actions { margin-top:$space-3; }
+            .comment-actions a { min-height:36px; padding:$space-1 $space-2; border-radius:4px; color:$accent; text-decoration:none; font-family:$font-sans; font-size:.8125rem; font-weight:600; }
+            .comment-actions a:hover { background:$accent-wash; }
+            .comment-replies, .comment-replybox-single { margin-left:48px; padding-left:$space-4; border-left:1px solid $rule; }
+            .continue, .loadmore { margin:$space-4 0; font-family:$font-sans; font-weight:600; }
+            .continue a, .loadmore a { color:$accent; }
+          }
+          html[data-theme='dark'] #comments .comment-thread {
+            .user, .comment-header a { color:oklch(92% .01 260); }
+            .datetime, .comment-timestamp { color:oklch(72% .012 260); }
+            .comment-actions a, .continue a, .loadmore a { color:oklch(68% .19 250); }
+            .comment-replies, .comment-replybox-single { border-left-color:oklch(28% .018 260); }
+          }
+          @media(max-width:639px) {
+            #comments .comment-thread .comment { padding-left:$space-4; }
+            #comments .comment-thread .avatar-image-container { position:static; margin-bottom:$space-2; }
+            #comments .comment-thread .comment-replies, #comments .comment-thread .comment-replybox-single { margin-left:$space-3; }
+          }
+          """)
+          p=Path('src/styles/main.scss'); s=p.read_text();
+          if "@use 'threaded-comments';" not in s: p.write_text(s+"@use 'threaded-comments';\n")
+
+          p=Path('tests/contract/m5-challenger-empirical.test.ts'); s=p.read_text()
+          s=s.replace('/Blog Header|Ledger Official Blog/', '/Md Redwan Ahmed/')
+          s=s.replace("expect(html).toContain('Fallback Blog Title');\n      expect(html).toContain('Fallback Tagline');", "expect(html).toContain('Md Redwan Ahmed');\n      expect(html).toContain('Cyber Security Professional');\n      expect(html).not.toContain('Fallback Blog Title');")
+          p.write_text(s)
+
+          Path('tests/contract/live-ui-regressions.test.ts').write_text("""import { readFile } from 'node:fs/promises';
+          import { describe, expect, it } from 'vitest';
+          import { generateTheme } from '../../tools/generate.js';
+          const SHA='0123456789abcdef0123456789abcdef01234567';
+          describe('live UI regressions',()=>{
+            it('renders a stable two-line brand',async()=>{const {xml}=await generateTheme({sha:SHA,write:false}); expect(xml).toContain('<h1 class=\"site-title\">Md Redwan Ahmed</h1>'); expect(xml).toContain('<p class=\"site-tagline\">Cyber Security Professional</p>');});
+            it('does not invoke a duplicate threaded form',async()=>{const s=await readFile('src/widgets/blog-comments.pug','utf8'); const x=s.slice(s.indexOf("b:includable(id='threadedComments'"),s.indexOf("b:includable(id='threadedCommentForm'")); expect(x).not.toContain("name='threadedCommentForm'");});
+            it('styles native threaded comments',async()=>{const {xml}=await generateTheme({sha:SHA,write:false}); expect(xml).toContain('#comments .comment-thread ol'); expect(xml).toContain('.avatar-image-container{position:absolute');});
+          });
+          """)
+      - run: npm run generate
+      - run: npm run golden:update
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:contract
+      - run: npm run contract:check
+      - name: Commit and clean workflows
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/recover-brand-comments-ui.yml .github/workflows/fix-brand-comments-ui.yml
+          git add src tests dist
+          git commit -m "fix(ui): two-line brand and native comments polish"
+          git pull --rebase origin main
+          git push origin HEAD:main
