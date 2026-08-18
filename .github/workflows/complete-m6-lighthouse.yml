@@ -1,0 +1,94 @@
+name: Complete M6 Lighthouse budgets
+
+on:
+  push:
+    paths:
+      - .github/workflows/complete-m6-lighthouse.yml
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Add pinned Lighthouse
+        run: npm install --save-dev lighthouse@13.0.1 --ignore-scripts --no-audit --no-fund
+      - name: Add home-and-post performance budget runner
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+
+          package = Path('package.json')
+          data = json.loads(package.read_text(encoding='utf-8'))
+          data['scripts']['test:lighthouse'] = 'tsx tools/lighthouse-check.ts'
+          package.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
+
+          Path('tools/lighthouse-check.ts').write_text("""import { execFileSync } from 'node:child_process';
+          import { mkdtemp, readFile, rm } from 'node:fs/promises';
+          import os from 'node:os';
+          import path from 'node:path';
+          import { fileURLToPath } from 'node:url';
+          import { BloggerDiscoveryClient } from './harness/blogger-api.js';
+          import { HarnessHttpClient } from './harness/http.js';
+
+          const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+          const home = process.env.STAGING_URL?.trim();
+          const blogId = process.env.BLOGGER_BLOG_ID?.trim();
+          if (!home || !blogId) throw new Error('STAGING_URL and BLOGGER_BLOG_ID are required.');
+
+          const discovery = new BloggerDiscoveryClient(new HarnessHttpClient(), {
+            ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
+            ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {})
+          });
+          const posts = await discovery.listAllPosts(blogId);
+          const postUrl = posts.find((post) => post.url)?.url;
+          if (!postUrl) throw new Error('No post URL available for Lighthouse verification.');
+
+          const tmp = await mkdtemp(path.join(os.tmpdir(), 'ledger-lighthouse-'));
+          try {
+            for (const [name, url] of [['home', home], ['post', postUrl]] as const) {
+              const output = path.join(tmp, `${name}.json`);
+              execFileSync(process.execPath, [
+                path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url,
+                '--quiet', '--output=json', `--output-path=${output}`,
+                '--only-categories=performance,accessibility',
+                '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'
+              ], { stdio: 'inherit' });
+              const report = JSON.parse(await readFile(output, 'utf8'));
+              const performance = report.categories.performance.score;
+              const accessibility = report.categories.accessibility.score;
+              const cls = report.audits['cumulative-layout-shift'].numericValue;
+              const lcp = report.audits['largest-contentful-paint'].numericValue;
+              if (performance < 0.9) throw new Error(`${name}: performance ${performance} < 0.90`);
+              if (accessibility < 0.95) throw new Error(`${name}: accessibility ${accessibility} < 0.95`);
+              if (cls > 0.05) throw new Error(`${name}: CLS ${cls} > 0.05`);
+              if (lcp > 2500) throw new Error(`${name}: LCP ${lcp}ms > 2500ms`);
+              console.log(`PASS ${name}: performance=${performance}, accessibility=${accessibility}, CLS=${cls}, LCP=${lcp}ms`);
+            }
+          } finally {
+            await rm(tmp, { recursive: true, force: true });
+          }
+          """, encoding='utf-8')
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:contract
+      - run: npm run contract:check
+      - name: Commit verified M6 implementation and remove one-off workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/complete-m6-lighthouse.yml
+          git add package.json package-lock.json tools/lighthouse-check.ts
+          git commit -m "feat(m6): add exact-SHA Lighthouse budgets"
+          git push origin HEAD:main
