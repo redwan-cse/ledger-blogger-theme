@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+5178eaeff6f5dba028997b338fdfd183afda1bd3" name="theme-build"/>
+    <meta content="0.0.0+8acf1c27c63ae7a1792431e4fc8a1c14722056c6" name="theme-build"/>
     <title><data:view.title.escaped/></title>
     <b:include data="blog" name="all-head-content"/>
     <b:skin version="0.0.0">
