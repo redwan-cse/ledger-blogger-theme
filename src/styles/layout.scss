@@ -1627,7 +1627,7 @@ html[data-theme='dark'] .theme-icon-moon {
   .main.section,
   #page_body,
   .widget.Blog {
-    grid-column: 1 / 9; // 8 columns for post stream on multiple-items views
+    grid-column: 1 / 10; // 9 columns for a fuller editorial stream
   }
 
   .is-post .main.section,
@@ -1652,7 +1652,7 @@ html[data-theme='dark'] .theme-icon-moon {
   }
 
   .desktop-sidebar {
-    grid-column: 9 / 13; // 4 columns for desktop sidebar
+    grid-column: 10 / 13; // 3 columns keeps the sidebar useful without shrinking the stream
     display: flex;
     flex-direction: column;
     gap: $space-5;
