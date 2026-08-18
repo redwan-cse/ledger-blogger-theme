@@ -29,17 +29,13 @@ b:section(class='header' id='header' name='Header' showaddelement='false')
             path(d='M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z')
       b:include(cond='data:imagePlacement == "BEHIND"' name='behindImageStyle')/
     b:includable(id='title')
-      b:with(value='data:title ?: data:blog.title ?: "Md Redwan Ahmed"' var='headerTitle')
-        b:if(cond='not data:view.isSingleItem')
-          h1.site-title
-            b:eval(expr='data:headerTitle')/
-        b:if(cond='data:view.isSingleItem')
-          p.site-title
-            b:eval(expr='data:headerTitle')/
+      //- Stable two-line brand lockup matching Fast Cyber Defense.
+      b:if(cond='not data:view.isSingleItem')
+        h1.site-title Md Redwan Ahmed
+      b:if(cond='data:view.isSingleItem')
+        p.site-title Md Redwan Ahmed
     b:includable(id='description')
-      b:with(value='data:description ?: data:blog.description ?: "Cyber Security Professional"' var='headerDescription')
-        p.site-tagline
-          b:eval(expr='data:headerDescription')/
+      p.site-tagline Cyber Security Professional
     b:includable(id='image')
       b:include(name='super.image')/
       b:include(cond='data:this.imagePlacement == "REPLACE"' name='title')/

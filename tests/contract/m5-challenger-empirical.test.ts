@@ -750,7 +750,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
 
       const { count, h1s, h2s } = countH1(html);
       expect(count, `Home p1 must have exactly 1 <h1>, found ${count}: ${JSON.stringify(h1s)}`).toBe(1);
-      expect(h1s[0]).toMatch(/Blog Header|Ledger Official Blog/);
+      expect(h1s[0]).toMatch(/Md Redwan Ahmed/);
       expect(h2s.length).toBeGreaterThanOrEqual(2);
       expect(h2s.some((t) => t.includes('Security and Determinism'))).toBe(true);
     });
@@ -778,7 +778,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
 
       const { count, h1s, h2s } = countH1(html);
       expect(count).toBe(1);
-      expect(h1s[0]).toMatch(/Blog Header|Ledger Official Blog/);
+      expect(h1s[0]).toMatch(/Md Redwan Ahmed/);
       expect(h2s.length).toBe(1);
     });
 
@@ -804,7 +804,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
 
       const { count, h1s } = countH1(html);
       expect(count).toBe(1);
-      expect(h1s[0]).toMatch(/Blog Header|Ledger Official Blog/);
+      expect(h1s[0]).toMatch(/Md Redwan Ahmed/);
     });
 
     it('View 4: Query Search -> exactly 1 <h1> (Site title in header)', () => {
@@ -829,7 +829,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
 
       const { count, h1s } = countH1(html);
       expect(count).toBe(1);
-      expect(h1s[0]).toMatch(/Blog Header|Ledger Official Blog/);
+      expect(h1s[0]).toMatch(/Md Redwan Ahmed/);
     });
 
     it('View 5: Archive -> exactly 1 <h1> (Site title in header)', () => {
@@ -854,7 +854,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
 
       const { count, h1s } = countH1(html);
       expect(count).toBe(1);
-      expect(h1s[0]).toMatch(/Blog Header|Ledger Official Blog/);
+      expect(h1s[0]).toMatch(/Md Redwan Ahmed/);
     });
 
     it('View 6: Single Post -> exactly 1 <h1> (Article Title), Header site title is demoted to <p>', () => {
@@ -879,7 +879,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
       const { count, h1s } = countH1(html);
       expect(count, `Single post view must have exactly 1 <h1>, found ${count}: ${JSON.stringify(h1s)}`).toBe(1);
       expect(h1s[0]).toContain('Security and Determinism in Blogger Themes');
-      expect(html).toMatch(/<p class="site-title">[\s\S]*?(?:Blog Header|Ledger Official Blog)[\s\S]*?<\/p>/);
+      expect(html).toMatch(/<p class="site-title">[\s\S]*?(?:Md Redwan Ahmed)[\s\S]*?<\/p>/);
       expect(html).not.toMatch(/<h1 class="site-title">/);
     });
 
@@ -905,7 +905,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
       const { count, h1s } = countH1(html);
       expect(count, `Static page view must have exactly 1 <h1>, found ${count}: ${JSON.stringify(h1s)}`).toBe(1);
       expect(h1s[0]).toContain('About the Ledger Publication');
-      expect(html).toMatch(/<p class="site-title">[\s\S]*?(?:Blog Header|Ledger Official Blog)[\s\S]*?<\/p>/);
+      expect(html).toMatch(/<p class="site-title">[\s\S]*?(?:Md Redwan Ahmed)[\s\S]*?<\/p>/);
       expect(html).not.toMatch(/<h1 class="site-title">/);
     });
 
@@ -933,7 +933,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
         const html = simulator.simulate({ view, blog: baseBlog, posts: [] });
         const { count, h1s, h2s } = countH1(html);
         expect(count, `${name} must have exactly 1 <h1>`).toBe(1);
-        expect(h1s[0]).toMatch(/Blog Header|Ledger Official Blog/);
+        expect(h1s[0]).toMatch(/Md Redwan Ahmed/);
         expect(h2s.length, `${name} must emit empty state heading as <h2>`).toBeGreaterThanOrEqual(1);
       }
     });
@@ -959,7 +959,7 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
 
       const { count, h1s, h2s } = countH1(html);
       expect(count).toBe(1);
-      expect(h1s[0]).toMatch(/Blog Header|Ledger Official Blog/);
+      expect(h1s[0]).toMatch(/Md Redwan Ahmed/);
       expect(h2s[0]).toContain("That page doesn't exist.");
     });
   });
@@ -1033,8 +1033,12 @@ describe('Milestone M5 Empirical Challenger Suite: 10 Views & Edge Cases', () =>
         posts: [samplePost1]
       });
 
+      const brand = html.match(/<div class="header-brand-text">[\s\S]*?<\/div>/)?.[0] ?? '';
+      expect(brand).toContain('Md Redwan Ahmed');
+      expect(brand).toContain('Cyber Security Professional');
+      expect(brand).not.toContain('Fallback Blog Title');
+      expect(brand).not.toContain('Fallback Tagline');
       expect(html).toContain('Fallback Blog Title');
-      expect(html).toContain('Fallback Tagline');
     });
   });
 
