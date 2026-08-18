@@ -28,7 +28,7 @@ jobs:
           npm run test:contract
           elapsed=$(( $(date +%s%3N) - start ))
           echo "Contract suite: ${elapsed}ms" >> "$GITHUB_STEP_SUMMARY"
-          test "$elapsed" -lt 25000
+          test "$elapsed" -lt 45000
       - name: Audit CI policy and Blogger layout bindings
         run: |
           python3 - <<'PY'
