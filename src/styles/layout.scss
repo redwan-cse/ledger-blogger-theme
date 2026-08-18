@@ -1873,18 +1873,35 @@ html[data-theme='dark'] {
   .site-title a,
   .post-title a,
   .drawer-nav-link,
-  .toc-link,
+  .toc-link {
+    color: oklch(96% 0.005 260);
+  }
+
+  // Pagination links get their own dark rule: the base (light-mode) style
+  // gives them a $surface background + $rule border, and overriding only
+  // the text color here left them near-white text on a near-white
+  // background — effectively invisible. Background, border, and hover
+  // state all need the dark treatment together.
   .newer-link,
   .older-link,
   .blog-pager-newer-link,
   .blog-pager-older-link {
     color: oklch(96% 0.005 260);
+    background-color: oklch(20% 0.022 260);
+    border-color: oklch(28% 0.018 260);
+
+    &:hover {
+      background-color: oklch(24% 0.045 250);
+      border-color: oklch(68% 0.19 250 / 0.5);
+      color: oklch(68% 0.19 250);
+    }
   }
 
   .site-tagline,
   .post-date,
   .toc-title,
-  .footer-container {
+  .footer-container,
+  .comments-title {
     color: oklch(62% 0.010 260);
   }
 
@@ -2267,6 +2284,15 @@ html[data-theme='dark'] {
     border-color: oklch(28% 0.018 260);
   }
 
+  .author-avatar-fallback {
+    background-color: oklch(24% 0.045 250);
+    border-color: oklch(68% 0.19 250);
+
+    .author-initials {
+      color: oklch(68% 0.19 250);
+    }
+  }
+
   .author-name,
   .author-name a {
     color: oklch(96% 0.005 260);
@@ -2353,5 +2379,3 @@ html[data-theme='dark'] {
     }
   }
 }
-
-
