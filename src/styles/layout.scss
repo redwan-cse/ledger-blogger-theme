@@ -47,7 +47,8 @@
 // full-width item, so nav can never sit between them. Flatten only this
 // load-bearing wrapper chain. Other sections keep their normal boxes.
 .header-bar > .header.section,
-.header-bar > .header.section > .widget.Header {
+.header-bar > .header.section > .widget.Header,
+.header-bar .widget.Header > .widget-content {
   display: contents;
 }
 
@@ -1890,6 +1891,7 @@ html[data-theme='dark'] {
     border-bottom-color: oklch(28% 0.018 260);
   }
 
+  .site-title,
   .site-title a,
   .post-title a,
   .drawer-nav-link,
