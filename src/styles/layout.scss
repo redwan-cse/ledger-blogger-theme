@@ -41,6 +41,16 @@
   gap: $space-4;
 }
 
+// Blogger inserts .section and .widget wrappers between .header-bar and
+// the Header widget's authored children. Those wrappers are flex items;
+// leaving them at the global width:100% traps brand + actions in one
+// full-width item, so nav can never sit between them. Flatten only this
+// load-bearing wrapper chain. Other sections keep their normal boxes.
+.header-bar > .header.section,
+.header-bar > .header.section > .widget.Header {
+  display: contents;
+}
+
 .header-brand {
   order: 1;
   display: inline-flex;
