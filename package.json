@@ -25,13 +25,15 @@
     "deploy:check": "tsx tools/deploy-check.ts",
     "seed:staging": "tsx tools/seed-staging.ts",
     "m0:empty-theme": "tsx tools/create-empty-theme.ts",
-    "test:a11y": "playwright test tests/render/a11y.spec.ts --project=javascript"
+    "test:a11y": "playwright test tests/render/a11y.spec.ts --project=javascript",
+    "test:lighthouse": "tsx tools/lighthouse-check.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.54.0",
     "@types/node": "^24.0.0",
     "esbuild": "^0.25.0",
+    "lighthouse": "^13.0.1",
     "pug": "^3.0.3",
     "sass": "^1.89.0",
     "tsx": "^4.20.0",
