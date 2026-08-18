@@ -48,5 +48,5 @@ jobs:
           title='P0: production render canary failed'
           existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq 'length')
           if [ "$existing" = 0 ]; then
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --label P0 --label canary --body "The scheduled production canary failed. Inspect run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}. Treat BLOCKED or platform challenge evidence separately from a confirmed blank render."
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --label P0 --label bug --body "The scheduled production canary failed. Inspect run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}. Treat BLOCKED or platform challenge evidence separately from a confirmed blank render."
           fi
