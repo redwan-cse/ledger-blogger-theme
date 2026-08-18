@@ -90,7 +90,10 @@ b:includable(id='postAuthorBio' var='post')
           img.author-avatar(expr:src='data:post.author.authorPhoto.image' alt='' loading='lazy' width='64' height='64')/
       b:if(cond='not data:post.author.authorPhoto.image')
         .author-avatar-wrap
-          img.author-avatar(src='https://redwan.work/profile.jpg' alt='Md Redwan Ahmed' loading='lazy' width='64' height='64')/
+          //- Static text monogram, not another external photo fetch. See
+          //- article.scss .author-avatar-fallback / .author-initials.
+          div.author-avatar.author-avatar-fallback(role='img' aria-label='Md Redwan Ahmed')
+            span.author-initials RA
       .author-details
         span.author-label Written by
         h3.author-name
