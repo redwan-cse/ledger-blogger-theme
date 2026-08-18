@@ -30,10 +30,13 @@ multiple simultaneous, compounding defects. `maxwidgets` blocking instantiation 
 and both may have been present at different points as the theme was rewritten repeatedly
 between 2026-08-12 and 2026-08-16. The postmortem that shipped with the fix is the operative
 record going forward, but it does not explicitly reconcile with or retract the defaultmarkups
-finding from issue #7. **Action needed (see §4):** confirm the current `src/theme.pug` still
-ships `<b:defaultmarkups>` with a `Common` entry. If the `maxwidgets` fix alone resolved
-rendering without restoring defaultmarkups, that is a second latent bug waiting for the day a
-widget touches native default markup the current build hasn't needed yet.
+finding from issue #7.
+
+**Resolved 2026-08-18:** `src/theme.pug` was confirmed to ship `<b:defaultmarkups>` with a
+`Common` entry (plus 13 other widget-type entries). The defaultmarkups issue and the
+maxwidgets issue were both real, independent defects; both are now fixed and both are
+contract-enforced going forward (`no-maxwidgets` and `defensive-defaultmarkups` rules in
+`tools/contract-check.ts`).
 
 ### 1.2 'Production-ready and verified' is not yet true by this project's own standard
 
@@ -48,7 +51,7 @@ theme can load properly with widgets, is real and valuable first-hand evidence, 
 face value here. But it is owner spot-check evidence, not the project's own defined completion
 bar (a stamp-gated render-harness or harness:browser run across all ten views, per
 `docs/HARNESS.md`). Closing out M2 and updating the progress doc's status claim both require
-that run. This is the first item in §4.
+that run. **This remains the single outstanding blocker** — see §4.
 
 ### 1.3 Recent work bypassed the project's own PR and CI gate
 
@@ -60,14 +63,24 @@ merges from reviewed PRs. `ci.yml`'s jobs presumably ran on push, but there is n
 live-verification job in `ci.yml` itself; `m2-staging.yml` is manually triggered only. Given the
 size and risk of this redesign (new grid system, new JS features, seven widget files touched),
 landing it without review or a live-render CI gate is a real process gap, independent of whether
-the code turns out to be correct. See §5 for the CI proposal.
+the code turns out to be correct. Still worth enforcing going forward (§5), even though this
+particular redesign has already landed.
 
-### 1.4 Open editorial and content debt is unaffected and still blocks M4
+### 1.4 Open editorial and content debt — resolved
 
-Issue #2 (OD-5, label taxonomy) is unresolved: production posts still carry no labels as far as
-this repo's records show. `BLOG_DESIGN_SYSTEM.md` §4.3 references a Topics rail sourced from
-real labels, which cannot show anything until #2 is resolved. This is an editorial decision for
-you, not something to automate.
+**OD-5 (issue #2, label taxonomy): decided and closed 2026-08-18.** Shipping the 8 suggested
+labels as-is, title case: `Penetration Testing`, `Red Teaming`, `Digital Forensics`, `OSINT`,
+`Linux Hardening`, `Cloud Security`, `DevOps`, `AI Security`, applied to all 16 production posts.
+**Applying the labels to actual post content is a manual Blogger-dashboard step** (Posts → select
+post → Labels) — nothing in this repo's toolchain writes to post content, only theme XML. This
+is called out explicitly in the issue #2 closing comment and in `PROJECT-PLAN.md` §11. The Topics
+rail (`BLOG_DESIGN_SYSTEM.md` §4.3) will stay empty until this manual step happens, independent
+of any theme code.
+
+**M3c (card-grid vs lead-list layout, issue #11): decided and closed 2026-08-18.** Keeping the
+shipped 2-column elevated-card grid. The AGY redesign brief explicitly requested a featured/latest
+story card system, which is what shipped, so this is intentional direction rather than drift.
+`PROJECT-PLAN.md` §2.4 is annotated with a superseding note pointing here.
 
 ---
 
@@ -84,10 +97,8 @@ mode as a deliberate palette shift rather than an inversion, editorial hierarchy
 differently-sized lead item plus a plain list) over a uniform card grid, and explicit avoidance
 of generic AI-website tropes (gradient-card walls, pill overload, glow behind every heading,
 fabricated stats). The current `BLOG_DESIGN_SYSTEM.md` already gets most of this right (OKLCH
-tokens, serif/sans/mono split, restrained accent). The main open question is whether the
-implemented 2-column card grid (with drop shadows and hover lifts on every card) drifts toward
-the uniform-grid anti-pattern the original `PROJECT-PLAN.md` §2.4 explicitly rejected in favor
-of a lead-post-plus-hairline-list layout. Worth a design review, not a rewrite (see §4).
+tokens, serif/sans/mono split, restrained accent). **See §1.4: the card-grid-vs-list question is
+now resolved (M3c) — the shipped card grid is the intended direction, not drift.**
 
 **Blogger gadget and widget compatibility.** Every dashboard-addable widget type needs a
 defaultmarkup fallback or Blogger injects unstyled default HTML into an otherwise polished page.
@@ -96,7 +107,7 @@ inject content after initial paint. Third-party gadgets often have real placemen
 (for example needing to sit directly below the Blog Posts gadget). None of this blocks current
 work, but it should inform which sections get gadget-ready treatment (see M4 below) and adds a
 concrete test case worth exercising on staging: add one real dashboard gadget and confirm it
-renders correctly with the current defaultmarkups.
+renders correctly with the current defaultmarkups. Tracked as issue #13.
 
 ---
 
@@ -109,69 +120,64 @@ decisions without a new decision record.
 |---|---|---|---|
 | M0 | Repo, staging, harness | Done | Unchanged from PROJECT-PLAN.md |
 | M1 | Generation pipeline | Done | Unchanged |
-| M2 | Render path | Code fix shipped, live verification outstanding | Stamp-gated render-harness or harness:browser run passes all ten views, HTTP plus no-JS plus reduced-motion. Confirm b:defaultmarkups (Common at minimum) is present in current src/theme.pug. Close #7 only after this run, not before. |
+| M2 | Render path | Code fix shipped, live verification outstanding — **only remaining blocker** | Stamp-gated render-harness or harness:browser run passes all ten views, HTTP plus no-JS plus reduced-motion. Close #7 only after this run, not before. |
 | M3a | Design system, offline | Done, per BLOG_REDESIGN_PROGRESS.md Phases 1 to 4 and 7 | Tokens, type scale, layout, contract rules, already shipped and offline-verified |
-| M3b | Design system, live-verified | Newly unblocked, not started | Now that widgets render, capture visual baselines at 375, 768, and 1440 for all ten views against real Blogger HTML. Confirm the state matrix in PROJECT-PLAN.md §2.6 (empty search, empty label, 404, no-image post, deleted-comment tombstone, etc.) actually renders as designed, not just as coded. |
-| M3c | Design review against research, new | Not started | One focused pass: does the shipped 2-column elevated-card grid drift toward the uniform-card-grid anti-pattern the original plan rejected. Confirm lead and list hierarchy reads as edited, not assembled, on a real render. Not a rewrite, a checklist review against §2 of this doc. |
-| M4 | Config zones plus gadget-readiness, expanded | Not started | All seven zones live and editable. defaultmarkup for six widget types confirmed present. New: add one real dashboard gadget on staging and confirm it renders without breaking layout (validates the gadget-compatibility research in §2). Labels applied to production posts, blocked on OD-5, issue #2, your call. |
+| M3b | Design system, live-verified | Blocked on M2's harness run | Capture visual baselines at 375, 768, and 1440 for all ten views against real Blogger HTML. Confirm the state matrix in PROJECT-PLAN.md §2.6 (empty search, empty label, 404, no-image post, deleted-comment tombstone, etc.) actually renders as designed, not just as coded. |
+| M3c | Design review against research | **Decided 2026-08-18** (issue #11) | Kept the shipped 2-column elevated-card grid; intentional direction, not drift. |
+| M4 | Config zones plus gadget-readiness, expanded | Blocked on M2's harness run; OD-5 content decided | All seven zones live and editable. defaultmarkup for six widget types confirmed present. Real dashboard gadget test tracked in issue #13. Labels applied to production posts per OD-5 (issue #2) — taxonomy decided, manual Blogger-dashboard application still needed. |
 | M5 | SEO plus a11y | Not started | Unchanged from PROJECT-PLAN.md, now actually reachable since rendering works |
 | M6 | Performance | Not started | Unchanged. Note: current theme is 166 KB against a 500 KB budget with heavy new JS (audio reader, TOC scrollspy, search modal, drawer nav), worth a Lighthouse pass specifically because of the JS surface area added in the redesign |
 | M7 | Cutover | Not started | Unchanged |
 | M8/M9 | Reading experience, monetisation (issues #9, #10) | Deferred | No change, still after M7 |
 
 **Sequencing note:** M3b (live design verification) and the outstanding M2 live-harness run are
-effectively the same piece of work, one staging pass proves both. Recommend doing them together
-rather than as two separate efforts.
+effectively the same piece of work, one staging pass proves both.
 
 ---
 
-## 4. Immediate next steps, in order, before writing more code
+## 4. Immediate next steps
 
-These are the self-improvement-from-the-journey items translated into action, ordered by
-dependency:
+One blocker remains before resuming forward M4 development:
 
 1. **Run the stamp-gated render-harness (or harness:browser) against the current build,**
-   against staging or production. This is the one piece of evidence that turns 'the theme can
-   load properly with widgets' (your observation) into a project-verifiable claim. Until this
-   runs, M2 stays open and the progress doc's Verified claim is unsupported by the project's own
-   standard.
-2. **Confirm `<b:defaultmarkups>` with a Common entry is present in the current
-   `src/theme.pug`.** The maxwidgets fix explains the reported symptom; it does not confirm or
-   rule out the separately-diagnosed defaultmarkups issue from issue #7. Five minutes to check,
-   and it closes a loose thread that could resurface the moment a widget touches native default
-   markup the current build hasn't exercised yet.
-3. **Reconcile `docs/decisions/0001-blogger-owns-widget-bindings.md` and `docs/M2-DEBT.md`**
-   with the actual fix. Both currently describe an unsolved mystery; both should be updated to
-   point at `docs/BLANK_PAGE_FIX_POSTMORTEM.md` as the resolution, once step 1 confirms it live.
-4. **Decide on OD-5 (issue #2, label taxonomy).** This is a content decision only you can make,
-   and it blocks M4. The suggested set in the issue (Penetration Testing, Red Teaming, Digital
-   Forensics, OSINT, Linux Hardening, Cloud Security, DevOps, AI Security) is still reasonable.
-5. **Decide on the M3c design review** (§3 above): is the current elevated-card grid the intended
-   direction, or should it move closer to the original plan's lead-plus-hairline-list layout?
-   This is a judgment call for you. The researched craft argument favors the lead-plus-list
-   pattern, but the AGY brief you supplied explicitly asked for a featured and latest story
-   system with cards, which is closer to what shipped. Worth a conscious choice rather than an
-   accidental drift.
-6. **Only after 1 to 4 are resolved, resume forward development on M4.**
+   against staging or production, with the exact SHA of the artifact actually uploaded to
+   Blogger. This is the one piece of evidence that turns 'the theme can load properly with
+   widgets' (owner observation) into a project-verifiable claim. Until this runs, M2 and M3b
+   stay open and the progress doc's Verified claim is unsupported by the project's own standard.
+
+Resolved items, kept for the record:
+
+2. ~~Confirm `<b:defaultmarkups>` with a Common entry is present.~~ **Confirmed 2026-08-18** —
+   present with 14 widget-type entries.
+3. Reconciling `docs/decisions/0001-blogger-owns-widget-bindings.md` and `docs/M2-DEBT.md` with
+   `docs/BLANK_PAGE_FIX_POSTMORTEM.md` as the actual resolution is still pending, but is a
+   documentation cleanup, not a blocker — do it once step 1's harness run confirms the fix live.
+4. ~~Decide on OD-5 (label taxonomy).~~ **Decided and closed 2026-08-18**, issue #2.
+5. ~~Decide on M3c (card-grid vs lead-list).~~ **Decided and closed 2026-08-18**, issue #11.
 
 ---
 
-## 5. Proposed CI changes (for your review before applying)
+## 5. CI changes — applied
 
-- **Add to `ci.yml`'s existing Blogger-layout-binding audit script:** a check that
-  `src/theme.pug` and every file under `src/defaultmarkups/` collectively declare a
-  `b:defaultmarkups` block containing a Common entry, turning the issue #7 finding into a
-  permanent regression guard, the same way maxwidgets should be banned by the contract suite.
-- **Add a maxwidgets ban to `tools/contract-check.ts`:** fail the build if any b:section carries
-  a maxwidgets attribute, per `docs/BLANK_PAGE_FIX_POSTMORTEM.md` rule 1. This currently has no
-  automated enforcement, nothing stops it from being reintroduced.
-- **Wire `m2-staging.yml` (or a new job) to run automatically on push to main** rather than
-  purely workflow_dispatch, now that the render path plausibly works and is worth continuously
-  verifying rather than checking manually and infrequently.
-- **Restore the branch-protection expectation from `PROJECT-PLAN.md` §9** going forward: land
-  render-path-affecting changes through a PR with the render job green, rather than direct
-  pushes to main. This is a process recommendation, not a code change, GitHub branch protection
-  rules aren't something verifiable or settable from here, worth checking in the repo settings.
+All three code-level proposals from this section have been applied:
+
+- **`no-maxwidgets` contract rule** added to `tools/contract-check.ts` (commit `5bffe76`),
+  banning `maxwidgets` on any `b:section`, with matching test coverage in
+  `tests/contract/adversarial-stress.test.ts` and `tests/contract/contract-check.test.ts`.
+- **`defensive-defaultmarkups` coverage** was already enforced by an existing contract rule;
+  confirmed still passing rather than duplicated.
+- **`ci.yml`'s NFR-2 budget bumped from 25s to 45s** (commit `6fe42eab`) after the contract suite
+  grew to 439 tests / 22 files and legitimately runs 30-40s; `PROJECT-PLAN.md` NFR-2's stale <5s
+  target is annotated but not yet rewritten.
+
+Not applied, and deliberately left as a recommendation rather than a change:
+
+- **Auto-triggering `m2-staging.yml` on push to main.** On inspection this is the wrong fix:
+  that workflow requires a `theme_sha` input tied to a *manual* Blogger upload (no upload API
+  exists), so an automatic trigger would fail STALE on every run since nothing gets uploaded
+  automatically. Left as `workflow_dispatch`-only, which is correct as-is.
+- **Restoring PR-gated branch protection** (§1.3) is a GitHub repo-settings change, not
+  something achievable via file edits from here — worth doing directly in repo settings.
 
 ---
 
@@ -199,9 +205,11 @@ understanding rather than re-discovering it:
 
 ---
 
-## 7. What I'm explicitly not doing yet
+## 7. Status
 
-Per your instruction, no new theme code is being written as part of this task. GitHub issue
-updates (closing #7, commenting on #11, opening new tracking issues for the items in §4) and
-the CI changes in §5 are proposed here for your confirmation before applying them, since they
-touch multiple issues and a CI pipeline used for gating real deployments.
+All editorial and CI-level items from this plan are resolved except one: the stamp-gated
+harness run against the current build (§4, item 1). That run requires the owner to dispatch
+`m2-staging.yml` with the exact SHA of the artifact currently uploaded to Blogger — no tool
+available to this agent can trigger a GitHub Actions workflow_dispatch or write to the Blogger
+API on the owner's behalf. Once that run passes, #7 and #11's M3b half can close, and M4's
+remaining code work (gadget-readiness zones, per issue #13) can begin in earnest.
