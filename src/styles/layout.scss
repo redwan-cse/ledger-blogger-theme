@@ -25,7 +25,14 @@
   }
 }
 
-.header-widget {
+// Single flex row holding the brand mark, the nav links, and the header
+// actions (search/theme/drawer toggles). All three are laid out via
+// explicit `order` below so the visual order (brand, nav, actions) does not
+// depend on their DOM order — .nav-container belongs to a separate
+// b:section (the LinkList widget) and is nested inside here purely for
+// visual placement; Blogger's Layout editor still treats Header and
+// LinkList as two independent, independently editable zones.
+.header-bar {
   max-width: $container-max;
   margin: 0 auto;
   display: flex;
@@ -34,42 +41,62 @@
   gap: $space-4;
 }
 
-.header-branding {
+.header-brand {
+  order: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  text-decoration: none;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid $rule;
+  flex-shrink: 0;
+}
+
+.header-brand-text {
   display: flex;
   flex-direction: column;
+  line-height: 1.15;
 }
 
 .site-title {
   font-family: $font-sans;
   font-weight: 750;
-  font-size: 1.35rem;
-  letter-spacing: -0.02em;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
   margin: 0;
   line-height: 1.2;
-
-  a {
-    color: $ink;
-    text-decoration: none;
-    transition: color $motion-fast $ease-out-quart;
-
-    &:hover {
-      color: $accent;
-    }
-  }
+  color: $ink;
+  transition: color $motion-fast $ease-out-quart;
 }
 
 .site-tagline {
   font-family: $font-mono;
   color: $ink-muted;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  margin: $space-1 0 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.03em;
+  margin: 2px 0 0;
+  transition: color $motion-fast $ease-out-quart;
+}
+
+.header-brand:hover .site-title,
+.header-brand:hover .site-tagline {
+  color: $accent;
 }
 
 .header-actions {
+  order: 3;
   display: flex;
   align-items: center;
   gap: $space-2;
+  flex-shrink: 0;
 }
 
 .drawer-toggle,
@@ -105,43 +132,12 @@
   }
 }
 
-.header-profile-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-2;
-  padding: 4px 12px 4px 4px;
-  background: $surface;
-  border: 1px solid $rule;
-  border-radius: 9999px;
-  text-decoration: none;
-  color: $ink;
-  font-family: $font-sans;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  box-shadow: $shadow-sm;
-  transition: border-color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
-
+// The inline search icon has nowhere to go once the single-line nav no
+// longer fits (same breakpoint as .nav-container below); search moves into
+// the mobile drawer's own search form instead (see theme.pug).
+.search-toggle {
   @media (max-width: 1023px) {
     display: none;
-  }
-
-  &:hover {
-    border-color: $accent;
-    background-color: $accent-wash;
-    transform: translateY(-1px);
-    color: $accent;
-  }
-
-  .header-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid $rule;
-  }
-
-  .header-profile-text {
-    letter-spacing: -0.01em;
   }
 }
 
@@ -302,6 +298,13 @@ html[data-theme='dark'] .theme-icon-moon {
     }
   }
 
+  // Search form shown in the drawer once the inline header search icon is
+  // hidden below 1024px (see .search-toggle above) — the side panel is
+  // where search lives when it no longer fits the single-line nav.
+  .drawer-search-form {
+    margin: 0 0 $space-4;
+  }
+
   .drawer-nav-list {
     list-style: none;
     margin: 0;
@@ -416,7 +419,6 @@ html[data-theme='dark'] .theme-icon-moon {
   width: 100%;
 }
 
-.nav-container,
 .intro-container,
 .topics-container,
 .cta-container,
@@ -426,10 +428,17 @@ html[data-theme='dark'] .theme-icon-moon {
   padding: 0 $space-5;
 }
 
+// Now a flex child inside .header-bar (see Masthead section above) rather
+// than its own bordered full-width row below the header, so it no longer
+// owns its own max-width/border/padding — .header-bar's max-width/margin
+// already centers the whole navbar on the page.
 .nav-container {
-  border-bottom: 1px solid $rule;
-  padding-top: $space-2;
-  padding-bottom: $space-2;
+  order: 2;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
 
   .nav-list {
     display: flex;
@@ -648,6 +657,7 @@ html[data-theme='dark'] .theme-icon-moon {
   .topics-cloud {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: $space-2;
     list-style: none;
     margin: 0;
@@ -2157,6 +2167,11 @@ html[data-theme='dark'] {
       background-color: oklch(24% 0.045 250);
       color: oklch(68% 0.19 250);
     }
+  }
+
+  .header-brand:hover .site-title,
+  .header-brand:hover .site-tagline {
+    color: oklch(68% 0.19 250);
   }
 
   .hero-portrait-img {
