@@ -34,11 +34,11 @@
 .is-post .post,
 .is-page .post {
   border-bottom: none;
-  padding-top: $space-7;
+  padding-top: $space-6;
 
   @media (min-width: 1024px) {
     grid-column: 3 / 11; // 8 of 12 columns (columns 3-10)
-    padding-top: $space-8;
+    padding-top: $space-7;
   }
 
   .post-title {
@@ -170,7 +170,7 @@
   hr {
     border: none;
     border-top: 1px solid $rule;
-    margin: $space-7 0;
+    margin: $space-6 0;
   }
 
   img {
@@ -322,7 +322,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: $space-3;
-  margin: $space-7 0 $space-5;
+  margin: $space-6 0 $space-5;
   padding: $space-4 0;
   border-top: 1px solid $rule;
   border-bottom: 1px solid $rule;
@@ -400,7 +400,7 @@
   border: 1px solid $rule;
   border-radius: 4px;
   padding: $space-5;
-  margin: $space-7 0;
+  margin: $space-6 0;
   box-shadow: $shadow-sm;
   transition: transform $motion-base $ease-out-quart, box-shadow $motion-base $ease-out-quart, border-color $motion-base $ease-out-quart;
 
@@ -496,8 +496,8 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: $space-4;
-  margin-top: $space-8;
-  padding-top: $space-6;
+  margin-top: $space-6;
+  padding-top: $space-5;
   border-top: 1px solid $rule;
 
   @media (min-width: 640px) {
@@ -671,8 +671,8 @@
 #comments,
 .comments-section {
   border-top: 1px solid $rule;
-  margin-top: $space-8;
-  padding-top: $space-6;
+  margin-top: $space-6;
+  padding-top: $space-5;
 
   @media (min-width: 1024px) {
     grid-column: 3 / 11;
@@ -681,8 +681,8 @@
 
 .comments {
   border-top: 1px solid $rule;
-  margin-top: $space-8;
-  padding-top: $space-6;
+  margin-top: $space-6;
+  padding-top: $space-5;
 
   @media (min-width: 1024px) {
     grid-column: 3 / 11;
@@ -845,5 +845,32 @@
     min-height: 120px;
     max-height: 300px;
     width: 100% !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .post-share-bar {
+    align-items: stretch;
+    gap: $space-2;
+
+    .share-label {
+      flex-basis: 100%;
+    }
+
+    .share-btn {
+      flex: 1 1 calc(50% - $space-2);
+      padding-inline: $space-3;
+    }
+  }
+
+  .post-author-bio,
+  .author-bio-card {
+    flex-direction: column;
+    margin-block: $space-5;
+  }
+
+  .author-links-row a {
+    flex: 1 1 100%;
+    justify-content: center;
   }
 }

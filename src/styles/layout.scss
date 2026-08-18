@@ -2363,6 +2363,24 @@ html[data-theme='dark'] {
     color: oklch(92% 0.01 260);
   }
 
+.comments-title,
+.comment-form h4#comment-post-message,
+.comment-author,
+.comment-author a {
+  color: oklch(92% 0.01 260);
+}
+
+.comment-footer,
+.comment-footer a,
+.comment-meta,
+.comment-tombstone,
+.post-share-bar .share-label,
+.author-label,
+.post-nav-label,
+.post-nav-direction {
+  color: oklch(72% 0.012 260);
+}
+
   .comment-author,
   .comment-author a {
     color: oklch(96% 0.005 260);
