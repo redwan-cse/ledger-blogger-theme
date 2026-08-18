@@ -13,7 +13,10 @@
 **Companion documents.** The platform contract lives in
 [`V3-REFERENCE.md`](V3-REFERENCE.md) and is not repeated here. The failure
 analysis driving these requirements lives in [`POSTMORTEM.md`](POSTMORTEM.md).
-References below to F1–F5 point at that document.
+References below to F1–F5 point at that document. **[`MASTER-PLAN-v2.md`](MASTER-PLAN-v2.md)
+supersedes the milestone table in §10 and records decisions made after this
+document's revision 2, including OD-5 and the M3c layout decision noted inline
+below.**
 
 > **Revision 2** folds in a reviewed third-party Layouts V3 checklist. The
 > `Header` widget was a real gap and is now a required zone. `b:loop` index
@@ -94,6 +97,11 @@ One hue family (85) for neutrals so nothing clashes; accent at hue 25, nearly
 opposite. Chroma stays low near the lightness extremes so nothing looks
 radioactive. Ink on page ≈ 14:1 (AAA); accent on page ≈ 6.4:1 (AA).
 
+> **Note (2026-08-18):** the shipped AGY redesign uses a dark-mode-flagship
+> OKLCH palette (`docs/BLOG_DESIGN_SYSTEM.md` §2) rather than this warm
+> off-white strategy. That is a deliberate later decision, not an oversight;
+> see `MASTER-PLAN-v2.md` for context. Kept here as the original reasoning.
+
 ### 2.3 Typography
 
 Two families, one request.
@@ -117,6 +125,18 @@ Meta / label   0.8125rem                                 500   +0.01em
 The 68ch measure is the highest-leverage typographic decision on a reading site.
 
 ### 2.4 Layout
+
+> **Superseded 2026-08-18 (M3c decision, tracked in `MASTER-PLAN-v2.md` §3 and
+> issue #11).** The lead-plus-hairline-list layout described below was this
+> plan's original direction. The shipped AGY premium redesign
+> (`docs/BLOG_REDESIGN_PROGRESS.md` Phase 7) instead built a 2-column desktop
+> grid with elevated post cards, hover lifts, and a sticky sidebar, per an
+> explicit later design brief (`docs/AGY-PROMPT-PREMIUM-REDESIGN.md` §10,
+> "Featured / Latest Story System") that asked for exactly this. **Decision:
+> keep the shipped card-grid direction.** It reflects the owner's more recent
+> and more specific instructions, not an accidental drift from this section.
+> The reasoning below is kept for historical record, not as the operative
+> design.
 
 12 columns at desktop, but the index is **not** a uniform card grid. Uniform
 grids flatten editorial judgement and are the clearest tell of generated design.
@@ -540,6 +560,12 @@ highest-fidelity source for real V3 usage available, because Google ships it.
 
 > NFR-6 and NFR-7 exist because the predecessor's CI ran
 > `npx stylelint … || true`. A permanently tolerated failure is a disabled test.
+>
+> **Note (2026-08-18):** NFR-2's <5s target is stale. The contract suite has
+> grown to 439 tests across 22 files (M2 through M5 empirical/adversarial
+> suites) and now legitimately takes 30-40s. `ci.yml`'s enforced budget was
+> bumped to 45s as an immediate fix; NFR-2 itself should be revised in a
+> future pass rather than left contradicting the enforced CI value.
 
 ---
 
@@ -555,6 +581,7 @@ highest-fidelity source for real V3 usage available, because Google ships it.
 | BR-6 | Uploads come from a tagged release artifact, never a local build. |
 | BR-7 | Any change to `src/widgets/blog.pug` requires a staging render pass before merge. |
 | BR-8 | Borrowed guidance (tutorials, AI prompts, marketplace themes) is a hypothesis until verified on staging. See §11. |
+| BR-9 | No `b:section` may carry a `maxwidgets` attribute. It blocks Blogger's own widget-instantiation parser on dashboard Edit HTML saves for custom section ids. See `docs/BLANK_PAGE_FIX_POSTMORTEM.md`, enforced by `tools/contract-check.ts`'s `no-maxwidgets` rule. |
 
 ---
 
@@ -665,6 +692,10 @@ branch, linear history.
 
 ## 10. Milestones
 
+**Superseded by `MASTER-PLAN-v2.md` §3.** The table below is the original
+revision-2 plan, kept for historical record. M2 through M9 status, exit
+criteria, and sequencing are governed by `MASTER-PLAN-v2.md` going forward.
+
 | M | Name | Exit criteria | Est. |
 |---|---|---|---|
 | **M0** | Repo + staging + harness | Repo scaffolded. Staging blog created and seeded from `fixtures/`. A Google native V3 theme exported into `docs/reference/`. Harness covers ten views, four-state results, build-stamp gate. **Runs red against an empty theme for the right reasons.** | 1 d |
@@ -744,9 +775,9 @@ for every future borrowed source.
 |---|---|---|---|
 | **OD-1** | Automate theme upload? | **Manual, stamp-gated.** Blogger API v3 has no theme endpoint. Reverse-engineering the upload endpoint breaks without warning and puts Google credentials in CI; browser automation is an account risk for a once-per-release step. | Recommended |
 | **OD-2** | Serif article body? | **Yes, serif throughout the article.** Strongest differentiator in this category, suits long-form. | Recommended |
-| **OD-3** | Dark mode? | **After this release.** Doubles the state matrix; the predecessor's toggle caused FOUC complexity. | Recommended |
+| **OD-3** | Dark mode? | **After this release.** Doubles the state matrix; the predecessor's toggle caused FOUC complexity. | **Superseded** — dark mode shipped as the flagship theme in the AGY redesign (`docs/BLOG_DESIGN_SYSTEM.md` §1); see `MASTER-PLAN-v2.md`. |
 | **OD-4** | Carry over the predecessor's audit and issues? | **Migrated.** See `POSTMORTEM.md`. | Done |
-| **OD-5** | Label taxonomy for the 16 posts? | Suggested from the service lines: `Penetration Testing`, `Red Teaming`, `Digital Forensics`, `OSINT`, `Linux Hardening`, `Cloud Security`, `DevOps`, `AI Security`. | **Open — blocks M4** |
+| **OD-5** | Label taxonomy for the 16 posts? | Ship the 8 suggested labels as-is, title case: `Penetration Testing`, `Red Teaming`, `Digital Forensics`, `OSINT`, `Linux Hardening`, `Cloud Security`, `DevOps`, `AI Security`. Applied to all 16 production posts. | **Decided 2026-08-18** (issue #2). **Applying labels to live post content is a manual Blogger dashboard step** (Posts → select post → Labels), not something the repo or CI can perform — no post-content write path exists in this toolchain. Still blocks M4 until done manually. |
 | **OD-6** | Reading time: compute or drop? | **Compute** from a word count over `data:post.body`. BR-3 makes a hardcoded value a build failure. | Recommended |
 | **OD-7** | Keep `b:defaultwidgetversion='2'`? | **Keep, verify comments on staging in M2.** Per-widget `version='2'` is contract-enforced either way. | Recommended |
 
