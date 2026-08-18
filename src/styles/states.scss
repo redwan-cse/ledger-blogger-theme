@@ -210,9 +210,11 @@ input[type='submit']:active,
   min-height: 44px;
   transition: color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
-  &::before {
-    content: '←';
-    font-size: 0.9em;
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
     transition: transform $motion-fast $ease-out-quart;
   }
 
@@ -223,7 +225,7 @@ input[type='submit']:active,
     box-shadow: $shadow-accent-sm;
     transform: translateX(-2px);
 
-    &::before {
+    svg {
       transform: translateX(-2px);
     }
   }
@@ -248,9 +250,11 @@ input[type='submit']:active,
   min-height: 44px;
   transition: color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
-  &::after {
-    content: '→';
-    font-size: 0.9em;
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
     transition: transform $motion-fast $ease-out-quart;
   }
 
@@ -261,7 +265,7 @@ input[type='submit']:active,
     box-shadow: $shadow-accent-sm;
     transform: translateX(2px);
 
-    &::after {
+    svg {
       transform: translateX(2px);
     }
   }
