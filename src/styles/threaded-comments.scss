@@ -10,7 +10,7 @@
   .user { font-weight:700; color:$ink; }
   .datetime, .comment-timestamp { color:$ink-muted; font-family:$font-mono; font-size:.72rem; }
   .comment-actions { margin-top:$space-3; }
-  .comment-actions a { min-height:36px; padding:$space-1 $space-2; border-radius:4px; color:$accent; text-decoration:none; font-family:$font-sans; font-size:.8125rem; font-weight:600; }
+  .comment-actions a { min-height:36px; padding:$space-1 $space-2; border-radius: 8px; color:$accent; text-decoration:none; font-family:$font-sans; font-size:.8125rem; font-weight:600; }
   .comment-actions a:hover { background:$accent-wash; }
   .comment-replies, .comment-replybox-single { margin-left:48px; padding-left:$space-4; border-left:1px solid $rule; }
   .continue, .loadmore { margin:$space-4 0; font-family:$font-sans; font-weight:600; }

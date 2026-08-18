@@ -2,19 +2,27 @@
 // Design Tokens — docs/PROJECT-PLAN.md §2.2 (colour), §2.3 (type), §2.4 (spacing)
 // ---------------------------------------------------------------------------
 
-// OKLCH Palette (7 canonical tokens — hue families locked by contract tests)
-// Neutral family: hue 85 (warm paper). Accent family: hue 25 (oxidised red).
-$page: oklch(98.4% 0.004 85);
-$surface: oklch(96.2% 0.006 85);
-$ink: oklch(23% 0.012 85);
-$ink-muted: oklch(48% 0.010 85);
-$rule: oklch(89% 0.006 85);
-$accent: oklch(46% 0.148 25);
-$accent-wash: oklch(94% 0.028 25);
+// Shared Redwan brand palette, derived from redwan.work and Fast Cyber Defense.
+// Light mode follows redwan.work; dark mode uses the shared blue/slate family.
+$page: oklch(100% 0 0);                  // #FFFFFF
+$surface: oklch(98.415% 0.0034 247.858); // #F8FAFC
+$ink: oklch(14.479% 0 0);                // #0A0A0A
+$ink-muted: oklch(54.863% 0 0);          // #717171
+$rule: oklch(92.876% 0.0126 255.508);    // #E2E8F0
+$accent: oklch(54.615% 0.2152 262.881);  // #2563EB
+$accent-wash: oklch(97.048% 0.0142 254.604); // #EFF6FF
+
+$dark-page: oklch(13.627% 0.0364 259.201);       // #020817
+$dark-surface: oklch(22.749% 0.0288 266.273);    // #161C2A
+$dark-ink: oklch(98.415% 0.0034 247.858);        // #F8FAFC
+$dark-muted: oklch(65.613% 0.0019 247.851);      // #909192
+$dark-rule: oklch(27.950% 0.0368 260.031);       // #1E293B
+$dark-accent: oklch(62.308% 0.1880 259.815);     // #3B82F6
+$dark-highlight: oklch(69.234% 0.1502 259.735);  // #629BF8
 
 // Typography font stacks (Zero external dependencies)
 $font-serif: georgia, 'Iowan Old Style', 'Palatino Linotype', palatino, serif;
-$font-sans: -apple-system, system-ui, 'Segoe UI', roboto, sans-serif;
+$font-sans: 'Inter', -apple-system, system-ui, 'Segoe UI', roboto, sans-serif;
 $font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', consolas, monospace;
 
 // Typography Scale (1.333 ratio) — row value locked by contract test
@@ -65,24 +73,24 @@ $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 $motion-ease: $ease-out-quart;
 
 // Elevation Shadows (OKLCH-tinted, warm paper depth)
-$shadow-sm: 0 1px 3px oklch(23% 0.012 85 / 0.05), 0 1px 2px oklch(23% 0.012 85 / 0.08);
-$shadow-md: 0 4px 12px oklch(23% 0.012 85 / 0.08), 0 2px 4px oklch(23% 0.012 85 / 0.05);
-$shadow-lg: 0 8px 24px oklch(23% 0.012 85 / 0.12), 0 4px 8px oklch(23% 0.012 85 / 0.06);
-$shadow-xl: 0 16px 36px oklch(23% 0.012 85 / 0.16), 0 8px 16px oklch(23% 0.012 85 / 0.08);
+$shadow-sm: none;
+$shadow-md: none;
+$shadow-lg: none;
+$shadow-xl: 0 16px 36px oklch(14.479% 0 0 / 0.16), 0 8px 16px oklch(14.479% 0 0 / 0.08);
 
 // Accent-Tinted Shadows (for active/hover interactive focus)
-$shadow-accent-sm: 0 2px 6px oklch(46% 0.148 25 / 0.18);
-$shadow-accent-md: 0 4px 14px oklch(46% 0.148 25 / 0.26);
+$shadow-accent-sm: none;
+$shadow-accent-md: none;
 
 // Glassmorphism & Translucency Tokens
-$glass-bg: oklch(98.4% 0.004 85 / 0.85);
-$glass-bg-drawer: oklch(98.4% 0.004 85 / 0.92);
-$glass-bg-modal: oklch(98.4% 0.004 85 / 0.96);
+$glass-bg: oklch(100% 0 0 / 0.88);
+$glass-bg-drawer: oklch(100% 0 0 / 0.94);
+$glass-bg-modal: oklch(100% 0 0 / 0.97);
 $glass-blur: blur(12px);
-$glass-border: 1px solid oklch(89% 0.006 85 / 0.6);
+$glass-border: 1px solid oklch(92.876% 0.0126 255.508 / 0.8);
 
 // Transform Constants
-$card-hover-lift: translateY(-4px);
+$card-hover-lift: translateY(-1px);
 $card-hover-scale: scale(1.005);
 $thumb-hover-scale: scale(1.04);
 $pill-active-scale: scale(0.96);

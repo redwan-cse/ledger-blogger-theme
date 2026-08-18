@@ -99,7 +99,7 @@ function auditCssRules(css: string): {
     hasHiddenPostBody: /(?:\.post-body|\.post)\s*\{[^}]*display:\s*none/i.test(css),
     hasReadingMeasure: /\.post-body\s*\{[^}]*max-width:\s*68ch/.test(css) && /post-excerpt[^{]*\{[^}]*max-width:\s*68ch/.test(css),
     hasAccessibleTouchTargets: /(?:a|button|\.label-link|\.newer-link|\.older-link)[^{]*\{[^}]*min-height:\s*44px/.test(css),
-    hasFocusRing: /:focus-visible\s*\{[^}]*outline:\s*2px\s+solid\s+oklch\((?:46%|\.46|0\.46)\s+0?\.148\s+25\);[^}]*outline-offset:\s*2px/.test(css),
+    hasFocusRing: /:focus-visible\s*\{[^}]*outline:\s*2px\s+solid\s+oklch\((?:54\.615%|\.54615|0\.54615)\s+0?\.2152\s+262\.881\);[^}]*outline-offset:\s*2px/.test(css),
     hasReducedMotion: /@media\s*\(\s*prefers-reduced-motion:\s*reduce\s*\)\s*\{[^}]*transition-duration:\s*0?\.001ms/.test(css)
   };
 }
@@ -296,7 +296,7 @@ describe('M3.2 Adversarial Stress Testing: OKLCH Math & Contract Violations', ()
         // Body ink on page >= 7.0 (AAA)
         const inkPageContrast = calculateContrast(ink, page);
         expect(inkPageContrast).toBeGreaterThanOrEqual(7.0);
-        expect(inkPageContrast).toBeCloseTo(16.13, 1);
+        expect(inkPageContrast).toBeCloseTo(19.80, 1);
 
         // Body ink on surface >= 7.0 (AAA)
         const inkSurfaceContrast = calculateContrast(ink, surface);
@@ -305,12 +305,12 @@ describe('M3.2 Adversarial Stress Testing: OKLCH Math & Contract Violations', ()
         // Accent on page >= 4.5 (AA)
         const accentPageContrast = calculateContrast(accent, page);
         expect(accentPageContrast).toBeGreaterThanOrEqual(4.5);
-        expect(accentPageContrast).toBeCloseTo(7.35, 1);
+        expect(accentPageContrast).toBeCloseTo(5.17, 1);
 
         // Ink-muted on page >= 4.5 (AA)
         const inkMutedPageContrast = calculateContrast(inkMuted, page);
         expect(inkMutedPageContrast).toBeGreaterThanOrEqual(4.5);
-        expect(inkMutedPageContrast).toBeCloseTo(6.24, 1);
+        expect(inkMutedPageContrast).toBeCloseTo(4.88, 1);
 
         // Accent wash on page is subtle background tint
         const accentWashContrast = calculateContrast(accentWash, page);

@@ -80,6 +80,8 @@ carefully.
 
 ### 2.2 Colour
 
+> **Superseded 2026-08-19:** Ledger now uses the shared Redwan blue/slate brand family derived from redwan.work and Fast Cyber Defense. Light mode uses `#FFFFFF`, `#F8FAFC`, `#0A0A0A`, `#717171`, `#E2E8F0`, `#2563EB`, and `#EFF6FF`; dark mode uses `#020817`, `#161C2A`, `#F8FAFC`, `#909192`, `#1E293B`, `#3B82F6`, and `#629BF8`. The original warm-paper/oxidised-red rationale below is historical.
+
 **Strategy: Restrained.** Tinted neutrals carry the page; one accent under 10% of
 surface area.
 

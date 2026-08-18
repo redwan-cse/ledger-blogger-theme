@@ -12,7 +12,7 @@
   grid-column: 1 / -1;
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: $space-7 $space-6;
   text-align: left;
   max-width: $measure;
@@ -56,7 +56,7 @@
     font-size: 1rem;
     padding: $space-2 $space-3;
     border: 1px solid $rule;
-    border-radius: 6px;
+    border-radius: 8px;
     background: $page;
     color: $ink;
     min-height: 44px;
@@ -68,7 +68,7 @@
     &:focus {
       width: 360px;
       border-color: $accent;
-      box-shadow: 0 0 0 3px oklch(46% 0.148 25 / 0.12);
+      box-shadow: 0 0 0 3px oklch(54.615% 0.2152 262.881 / 0.12);
       outline: none;
     }
   }
@@ -82,14 +82,14 @@
     background: $accent;
     color: $page;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     min-height: 44px;
     box-shadow: $shadow-accent-sm;
     transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
     &:hover {
-      background-color: oklch(40% 0.148 25);
+      background-color: oklch(48% 0.205 263);
       box-shadow: $shadow-accent-md;
       transform: translateY(-1px);
     }
@@ -127,7 +127,7 @@
   background: $ink;
   color: $page;
   padding: $space-2 $space-4;
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: $font-sans;
   font-size: $font-size-meta;
   font-weight: 500;
@@ -206,7 +206,7 @@ input[type='submit']:active,
   padding: $space-2 $space-4;
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 6px;
+  border-radius: 8px;
   min-height: 44px;
   transition: color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
@@ -220,7 +220,7 @@ input[type='submit']:active,
 
   &:hover {
     color: $accent;
-    border-color: oklch(46% 0.148 25 / 0.3);
+    border-color: oklch(54.615% 0.2152 262.881 / 0.3);
     background-color: $accent-wash;
     box-shadow: $shadow-accent-sm;
     transform: translateX(-2px);
@@ -246,7 +246,7 @@ input[type='submit']:active,
   padding: $space-2 $space-4;
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 6px;
+  border-radius: 8px;
   min-height: 44px;
   transition: color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
@@ -260,7 +260,7 @@ input[type='submit']:active,
 
   &:hover {
     color: $accent;
-    border-color: oklch(46% 0.148 25 / 0.3);
+    border-color: oklch(54.615% 0.2152 262.881 / 0.3);
     background-color: $accent-wash;
     box-shadow: $shadow-accent-sm;
     transform: translateX(2px);

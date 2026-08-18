@@ -5,9 +5,9 @@ import type { Oklch } from '../../tools/color-contrast.js';
 // Mirrors src/styles/tokens.scss exactly. If the tokens ever change, this
 // file must change with them; a mismatch here means the test is no longer
 // verifying what actually ships. docs/PROJECT-PLAN.md §2.2.
-const PAGE: Oklch = [0.984, 0.004, 85];
-const INK: Oklch = [0.23, 0.012, 85];
-const ACCENT: Oklch = [0.46, 0.148, 25];
+const PAGE: Oklch = [1, 0, 0];
+const INK: Oklch = [0.14479, 0, 0];
+const ACCENT: Oklch = [0.54615, 0.2152, 262.881];
 
 describe('color-contrast — sanity against known values', () => {
   it('pure black on pure white is 21:1', () => {

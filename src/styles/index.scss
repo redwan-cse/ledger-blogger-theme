@@ -21,7 +21,7 @@
   &:hover {
     transform: translateY(-3px);
     box-shadow: $shadow-md;
-    border-color: oklch(46% 0.148 25 / 0.35);
+    border-color: oklch(54.615% 0.2152 262.881 / 0.35);
   }
 
   @media (min-width: 1024px) {
@@ -40,14 +40,14 @@
   &:hover {
     transform: $card-hover-lift;
     box-shadow: $shadow-md;
-    border-color: oklch(46% 0.148 25 / 0.25);
+    border-color: oklch(54.615% 0.2152 262.881 / 0.25);
   }
 }
 
 .post-thumbnail-link {
   display: block;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 12px;
   margin: $space-3 0;
   aspect-ratio: 16 / 9;
 }
@@ -181,7 +181,7 @@
     }
 
     &:hover {
-      color: oklch(40% 0.148 25);
+      color: oklch(48% 0.205 263);
 
       .jump-link-arrow {
         transform: translateX(3px);
@@ -206,14 +206,14 @@
   letter-spacing: 0.04em;
   color: $accent;
   background: $accent-wash;
-  border: 1px solid oklch(46% 0.148 25 / 0.25);
-  border-radius: 4px;
+  border: 1px solid oklch(54.615% 0.2152 262.881 / 0.25);
+  border-radius: 8px;
   padding: 2px $space-3;
   text-decoration: none;
   transition: background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
 
   &:hover {
-    background-color: oklch(46% 0.148 25 / 0.15);
+    background-color: oklch(54.615% 0.2152 262.881 / 0.15);
     border-color: $accent;
     transform: translateY(-1px);
   }

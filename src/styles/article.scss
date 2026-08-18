@@ -21,9 +21,9 @@
   .reading-progress-bar {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, $accent, oklch(56% 0.148 25));
+    background: linear-gradient(90deg, $accent, oklch(62.308% 0.1880 259.815));
     transition: width 50ms linear;
-    box-shadow: 0 0 10px oklch(46% 0.148 25 / 0.35);
+    box-shadow: 0 0 10px oklch(54.615% 0.2152 262.881 / 0.35);
   }
 }
 
@@ -138,7 +138,7 @@
     overflow-x: auto;
     background: $surface;
     padding: $space-4;
-    border-radius: 2px;
+    border-radius: 6px;
     white-space: pre;
     margin: $space-5 0;
   }
@@ -147,7 +147,7 @@
     font-family: $font-mono;
     background: $surface;
     padding: 0.15em 0.35em;
-    border-radius: 2px;
+    border-radius: 6px;
     font-size: 0.9em;
   }
 
@@ -187,7 +187,7 @@
 .table-of-contents {
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: $space-4 $space-5;
   margin: $space-6 0;
   box-shadow: $shadow-sm;
@@ -253,7 +253,7 @@
 .code-block-wrapper {
   margin: $space-5 0;
   border: 1px solid oklch(28% 0.020 260);
-  border-radius: 6px;
+  border-radius: 8px;
   background: oklch(16% 0.018 260);
   overflow: hidden;
   box-shadow: $shadow-md;
@@ -282,7 +282,7 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: oklch(46% 0.148 25);
+    color: oklch(54.615% 0.2152 262.881);
   }
 
   .code-copy-btn {
@@ -293,7 +293,7 @@
     color: oklch(60% 0.010 260);
     background: transparent;
     border: 1px solid oklch(32% 0.020 260);
-    border-radius: 3px;
+    border-radius: 6px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -302,7 +302,7 @@
 
     &:hover {
       color: oklch(80% 0.18 260);
-      border-color: oklch(46% 0.148 25 / 0.35);
+      border-color: oklch(54.615% 0.2152 262.881 / 0.35);
       background: oklch(22% 0.035 260);
     }
 
@@ -350,7 +350,7 @@
     color: $ink;
     background: $surface;
     border: 1px solid $rule;
-    border-radius: 6px;
+    border-radius: 8px;
     text-decoration: none;
     cursor: pointer;
     box-shadow: $shadow-sm;
@@ -366,7 +366,7 @@
     &:hover {
       color: $accent;
       background-color: $accent-wash;
-      border-color: oklch(46% 0.148 25 / 0.25);
+      border-color: oklch(54.615% 0.2152 262.881 / 0.25);
       transform: translateY(-2px);
       box-shadow: $shadow-accent-sm;
     }
@@ -398,7 +398,7 @@
   align-items: flex-start;
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: $space-5;
   margin: $space-6 0;
   box-shadow: $shadow-sm;
@@ -407,7 +407,7 @@
   &:hover {
     transform: $card-hover-lift;
     box-shadow: $shadow-md;
-    border-color: oklch(80% 0.01 85);
+    border-color: oklch(85% 0.018 255.508);
   }
 
   .author-avatar-wrap {
@@ -511,7 +511,7 @@
     padding: $space-4;
     background: $surface;
     border: 1px solid $rule;
-    border-radius: 4px;
+    border-radius: 8px;
     text-decoration: none;
     color: inherit;
     box-shadow: $shadow-sm;
@@ -520,7 +520,7 @@
     &:hover {
       transform: $card-hover-lift;
       box-shadow: $shadow-md;
-      border-color: oklch(80% 0.01 85);
+      border-color: oklch(85% 0.018 255.508);
     }
   }
 
@@ -536,7 +536,7 @@
     height: 64px;
     flex-shrink: 0;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: 6px;
   }
 
   .post-nav-thumb {
@@ -613,14 +613,14 @@
   background: $surface;
   color: $ink;
   border: 1px solid $rule;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   box-shadow: $shadow-sm;
   transition: background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
 
   &:hover {
     color: $accent;
-    border-color: oklch(68% 0.19 250 / 0.4);
+    border-color: oklch(62.308% 0.1880 259.815 / 0.4);
     background-color: $accent-wash;
     transform: translateY(-1px);
   }
@@ -653,12 +653,12 @@
   text-decoration: none;
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 4px 10px;
   transition: color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
   &:hover {
-    color: oklch(40% 0.148 25);
+    color: oklch(48% 0.205 263);
     border-color: $accent;
     background-color: $accent-wash;
   }
@@ -717,13 +717,13 @@
 .comment {
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: $space-4 $space-5;
   box-shadow: $shadow-sm;
   transition: border-color $motion-fast $ease-out-quart;
 
   &:hover {
-    border-color: oklch(68% 0.19 250 / 0.3);
+    border-color: oklch(62.308% 0.1880 259.815 / 0.3);
   }
 }
 
@@ -784,7 +784,7 @@
 .comment-form {
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: $space-5;
   margin-top: $space-6;
   box-shadow: $shadow-sm;
@@ -800,12 +800,12 @@
     font-weight: 600;
     font-size: 0.875rem;
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 8px;
     box-shadow: $shadow-accent-sm;
     transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
     &:hover {
-      background-color: oklch(40% 0.148 25);
+      background-color: oklch(48% 0.205 263);
       box-shadow: $shadow-accent-md;
       transform: translateY(-1px);
     }
@@ -840,7 +840,7 @@
 
   iframe#comment-editor {
     border: 1px solid $rule;
-    border-radius: 6px;
+    border-radius: 8px;
     background: $page;
     min-height: 120px;
     max-height: 300px;

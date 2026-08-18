@@ -216,7 +216,7 @@ describe('Adversarial Stress Testing: M3.2 SCSS Architecture & OKLCH Design Syst
   });
 
   describe('Target 2: OKLCH Design Tokens & Color System Robustness', () => {
-    it('strictly maintains 85-degree neutral hue family across all 5 neutral tokens', async () => {
+    it('maintains the approved shared-site neutral families across all 5 neutral tokens', async () => {
       const tokensScss = await readFile(path.join(ROOT, 'src/styles/tokens.scss'), 'utf8');
 
       const neutralTokens = ['page', 'surface', 'ink', 'ink-muted', 'rule'];
@@ -224,12 +224,12 @@ describe('Adversarial Stress Testing: M3.2 SCSS Architecture & OKLCH Design Syst
         const match = tokensScss.match(new RegExp(`\\$${token}:\\s*(oklch\\([^)]+\\));`));
         expect(match).not.toBeNull();
         const parsed = parseOklch(match?.[1] ?? '');
-        // Hue must be 85 (neutral hue family)
-        expect(parsed.h).toBe(85);
+        // Achromatic tokens legitimately report hue 0; cool slate tokens stay in the 247-256 family.
+        expect(parsed.c === 0 ? parsed.h === 0 : parsed.h >= 247 && parsed.h <= 256).toBe(true);
       }
     });
 
-    it('strictly maintains 25-degree warm accent hue for accent and accent-wash', async () => {
+    it('strictly maintains the shared blue accent family for accent and accent-wash', async () => {
       const tokensScss = await readFile(path.join(ROOT, 'src/styles/tokens.scss'), 'utf8');
 
       const accentTokens = ['accent', 'accent-wash'];
@@ -237,8 +237,9 @@ describe('Adversarial Stress Testing: M3.2 SCSS Architecture & OKLCH Design Syst
         const match = tokensScss.match(new RegExp(`\\$${token}:\\s*(oklch\\([^)]+\\));`));
         expect(match).not.toBeNull();
         const parsed = parseOklch(match?.[1] ?? '');
-        // Hue must be 25 (warm oxidised red)
-        expect(parsed.h).toBe(25);
+        // Shared redwan.work / Fast Cyber Defense blue family.
+        expect(parsed.h).toBeGreaterThanOrEqual(254);
+        expect(parsed.h).toBeLessThanOrEqual(263);
       }
     });
 

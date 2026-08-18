@@ -239,7 +239,7 @@ describe('Milestone M3.2: Modular SCSS Architecture & OKLCH Design System', () =
 
     it('enforces 2px solid focus ring with 2px offset on :focus-visible', async () => {
       const { xml } = await generateTheme({ sha, write: false });
-      expect(xml).toMatch(/:focus-visible\s*\{[^}]*outline:\s*2px\s+solid\s+oklch\((?:46%|\.46|0\.46)\s+0?\.148\s+25\);[^}]*outline-offset:\s*2px/);
+      expect(xml).toMatch(/:focus-visible\s*\{[^}]*outline:\s*2px\s+solid\s+oklch\((?:54\.615%|\.54615|0\.54615)\s+(?:0?\.2152)\s+262\.881\);[^}]*outline-offset:\s*2px/);
     });
 
     it('enforces prefers-reduced-motion rule disabling transitions/animations', async () => {

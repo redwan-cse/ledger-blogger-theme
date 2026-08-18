@@ -118,7 +118,7 @@
   padding: $space-2;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 8px;
   color: $ink;
   cursor: pointer;
   display: inline-flex;
@@ -181,7 +181,7 @@
     padding: $space-1 $space-2;
     background: $surface;
     border: 1px solid $rule;
-    border-radius: 6px;
+    border-radius: 8px;
     box-shadow: $shadow-sm;
   }
 
@@ -197,14 +197,14 @@
     color: $ink;
     text-decoration: none;
     padding: $space-1 $space-3;
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1px solid transparent;
     transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
 
     &:hover {
       color: $accent;
       background-color: $accent-wash;
-      border-color: oklch(46% 0.148 25 / 0.2);
+      border-color: oklch(54.615% 0.2152 262.881 / 0.2);
     }
   }
 }
@@ -229,7 +229,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: oklch(23% 0.012 85 / 0.4);
+  background: oklch(14.479% 0 0 / 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: $z-drawer-backdrop;
@@ -296,7 +296,7 @@ html[data-theme='dark'] .theme-icon-moon {
     background: transparent;
     border: 1px solid transparent;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 8px;
     color: $ink-muted;
     display: inline-flex;
     align-items: center;
@@ -330,7 +330,7 @@ html[data-theme='dark'] .theme-icon-moon {
     align-items: center;
     min-height: 44px;
     padding: $space-2 $space-3;
-    border-radius: 4px;
+    border-radius: 8px;
     color: $ink;
     text-decoration: none;
     font-size: $font-size-row;
@@ -360,7 +360,7 @@ html[data-theme='dark'] .theme-icon-moon {
   overflow: visible;
 
   &::backdrop {
-    background: oklch(23% 0.012 85 / 0.5);
+    background: oklch(14.479% 0 0 / 0.5);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     opacity: 0;
@@ -374,7 +374,7 @@ html[data-theme='dark'] .theme-icon-moon {
   .search-modal-container {
     background: $page;
     border: 1px solid $rule;
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: $shadow-xl;
     padding: $space-5;
     transform: scale(0.95) translateY(-10px);
@@ -407,7 +407,7 @@ html[data-theme='dark'] .theme-icon-moon {
     background: transparent;
     border: 1px solid transparent;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 8px;
     color: $ink-muted;
     display: inline-flex;
     align-items: center;
@@ -598,7 +598,7 @@ html[data-theme='dark'] .theme-icon-moon {
     gap: $space-2;
     min-height: 44px;
     padding: $space-2 $space-4;
-    border-radius: 4px;
+    border-radius: 8px;
     font-family: $font-sans;
     font-size: $font-size-meta;
     font-weight: 600;
@@ -613,7 +613,7 @@ html[data-theme='dark'] .theme-icon-moon {
       box-shadow: $shadow-sm;
 
       &:hover {
-        background: oklch(40% 0.148 25);
+        background: oklch(48% 0.205 263);
         transform: translateY(-2px);
         box-shadow: $shadow-accent-sm;
       }
@@ -688,7 +688,7 @@ html[data-theme='dark'] .theme-icon-moon {
     text-decoration: none;
     background: transparent;
     padding: $space-1 $space-3;
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1px solid transparent;
     gap: $space-2;
     min-height: 36px;
@@ -697,13 +697,13 @@ html[data-theme='dark'] .theme-icon-moon {
     &:hover {
       color: $accent;
       background-color: $accent-wash;
-      border-color: oklch(46% 0.148 25 / 0.2);
+      border-color: oklch(54.615% 0.2152 262.881 / 0.2);
     }
 
     &.is-active {
       color: $accent;
       background-color: $accent-wash;
-      border-color: oklch(46% 0.148 25 / 0.25);
+      border-color: oklch(54.615% 0.2152 262.881 / 0.25);
       font-weight: 700;
     }
 
@@ -732,7 +732,7 @@ html[data-theme='dark'] .theme-icon-moon {
     &:hover .label-count,
     &.is-active .topic-count,
     &.is-active .label-count {
-      background: oklch(46% 0.148 25 / 0.12);
+      background: oklch(54.615% 0.2152 262.881 / 0.12);
       color: $accent;
     }
   }
@@ -816,7 +816,7 @@ html[data-theme='dark'] .theme-icon-moon {
     font-family: $font-sans;
     font-size: 0.875rem;
     font-weight: 700;
-    border-radius: 6px;
+    border-radius: 8px;
     text-decoration: none;
     white-space: nowrap;
     flex-shrink: 0;
@@ -824,7 +824,7 @@ html[data-theme='dark'] .theme-icon-moon {
     transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
     &:hover {
-      background-color: oklch(40% 0.148 25);
+      background-color: oklch(48% 0.205 263);
       box-shadow: $shadow-md;
       transform: translateY(-1px);
     }
@@ -854,7 +854,7 @@ html[data-theme='dark'] .theme-icon-moon {
   }
 
   &:hover {
-    border-color: oklch(46% 0.148 25 / 0.3);
+    border-color: oklch(54.615% 0.2152 262.881 / 0.3);
     box-shadow: $shadow-lg;
   }
 }
@@ -910,7 +910,7 @@ html[data-theme='dark'] .theme-icon-moon {
   font-family: $font-sans;
   font-size: 0.875rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 8px;
   text-decoration: none;
   box-shadow: $shadow-sm;
   transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
@@ -935,7 +935,7 @@ html[data-theme='dark'] .theme-icon-moon {
   font-family: $font-sans;
   font-size: 0.875rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 8px;
   text-decoration: none;
   box-shadow: $shadow-sm;
   transition: transform $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart;
@@ -977,7 +977,7 @@ html[data-theme='dark'] .theme-icon-moon {
   max-width: 100%;
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: $space-6;
   display: flex;
   flex-direction: column;
@@ -1034,7 +1034,7 @@ html[data-theme='dark'] .theme-icon-moon {
     justify-content: center;
     min-height: 44px;
     padding: $space-2 $space-4;
-    border-radius: 4px;
+    border-radius: 8px;
     font-family: $font-sans;
     font-size: $font-size-meta;
     font-weight: 600;
@@ -1048,7 +1048,7 @@ html[data-theme='dark'] .theme-icon-moon {
       border: 1px solid $accent;
 
       &:hover {
-        background: oklch(40% 0.148 25);
+        background: oklch(48% 0.205 263);
         transform: translateY(-2px);
         box-shadow: $shadow-accent-sm;
       }
@@ -1057,10 +1057,10 @@ html[data-theme='dark'] .theme-icon-moon {
     &.cta-btn-secondary {
       background: $page;
       color: $accent;
-      border: 1px solid oklch(46% 0.148 25 / 0.25);
+      border: 1px solid oklch(54.615% 0.2152 262.881 / 0.25);
 
       &:hover {
-        color: oklch(40% 0.148 25);
+        color: oklch(48% 0.205 263);
         border-color: $accent;
         background: $accent-wash;
         transform: translateY(-2px);
@@ -1203,7 +1203,7 @@ html[data-theme='dark'] .theme-icon-moon {
   gap: $space-3;
   align-items: flex-start;
   padding: $space-2;
-  border-radius: 4px;
+  border-radius: 8px;
   position: relative;
   transition: background-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
@@ -1246,12 +1246,12 @@ html[data-theme='dark'] .theme-icon-moon {
 .popular-post-thumbnail-link {
   display: block;
   overflow: hidden;
-  border-radius: 2px;
+  border-radius: 6px;
   flex-shrink: 0;
 }
 
 .popular-post-thumbnail {
-  border-radius: 2px;
+  border-radius: 6px;
   object-fit: cover;
   transition: transform $motion-base $ease-out-quart;
 
@@ -1285,7 +1285,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .featured-post-card {
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: $space-5;
   box-shadow: $shadow-sm;
   transition: transform $motion-base $ease-out-quart, box-shadow $motion-base $ease-out-quart, border-color $motion-base $ease-out-quart;
@@ -1293,7 +1293,7 @@ html[data-theme='dark'] .theme-icon-moon {
   &:hover {
     transform: $card-hover-lift;
     box-shadow: $shadow-lg;
-    border-color: oklch(80% 0.01 85);
+    border-color: oklch(85% 0.018 255.508);
   }
 }
 
@@ -1308,14 +1308,14 @@ html[data-theme='dark'] .theme-icon-moon {
   color: $accent;
   background: $accent-wash;
   padding: $space-1 $space-2;
-  border-radius: 2px;
+  border-radius: 6px;
   margin-bottom: $space-2;
 }
 
 .featured-post-thumbnail-link {
   display: block;
   overflow: hidden;
-  border-radius: 2px;
+  border-radius: 6px;
   margin-bottom: $space-3;
 }
 
@@ -1375,7 +1375,7 @@ html[data-theme='dark'] .theme-icon-moon {
     font-size: 1rem;
     padding: $space-2 $space-3;
     border: 1px solid $rule;
-    border-radius: 2px;
+    border-radius: 6px;
     background: $page;
     color: $ink;
     min-height: 44px;
@@ -1399,21 +1399,21 @@ html[data-theme='dark'] .theme-icon-moon {
     background: $accent;
     color: $page;
     border: none;
-    border-radius: 2px;
+    border-radius: 6px;
     cursor: pointer;
     min-height: 44px;
     box-shadow: $shadow-sm;
     transition: transform $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
 
     &:hover {
-      background-color: oklch(40% 0.148 25);
+      background-color: oklch(48% 0.205 263);
       box-shadow: $shadow-md;
       transform: translateY(-1px);
     }
 
     &:active {
       transform: translateY(1px) scale(0.96);
-      box-shadow: 0 1px 2px oklch(23% 0.012 85 / 0.15);
+      box-shadow: 0 1px 2px oklch(14.479% 0 0 / 0.15);
     }
   }
 }
@@ -1430,7 +1430,7 @@ html[data-theme='dark'] .theme-icon-moon {
     align-items: center;
     justify-content: space-between;
     padding: $space-2 $space-3;
-    border-radius: 4px;
+    border-radius: 8px;
     background: $surface;
     transition: background-color $motion-fast $ease-out-quart;
 
@@ -1520,7 +1520,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .profile-card {
   background: $surface;
   border: 1px solid $rule;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: $space-5;
   box-shadow: $shadow-sm;
   transition: box-shadow $motion-base $ease-out-quart, transform $motion-base $ease-out-quart;
@@ -1555,7 +1555,7 @@ html[data-theme='dark'] .theme-icon-moon {
 
   &:active {
     transform: $pill-active-scale;
-    box-shadow: 0 1px 2px oklch(46% 0.148 25 / 0.08);
+    box-shadow: 0 1px 2px oklch(54.615% 0.2152 262.881 / 0.08);
   }
 }
 
@@ -1689,7 +1689,7 @@ html[data-theme='dark'] .theme-icon-moon {
 
   &:hover {
     box-shadow: $shadow-md;
-    border-color: oklch(46% 0.148 25 / 0.3);
+    border-color: oklch(54.615% 0.2152 262.881 / 0.3);
   }
 }
 
@@ -1737,7 +1737,7 @@ html[data-theme='dark'] .theme-icon-moon {
     background: oklch(94% 0.03 155);
     border: 1px solid oklch(42% 0.15 155 / 0.3);
     padding: 1px 6px;
-    border-radius: 4px;
+    border-radius: 8px;
     width: fit-content;
   }
 
@@ -1759,7 +1759,7 @@ html[data-theme='dark'] .theme-icon-moon {
       justify-content: center;
       min-height: 38px;
       padding: $space-1 $space-3;
-      border-radius: 6px;
+      border-radius: 8px;
       font-family: $font-sans;
       font-size: 0.8125rem;
       font-weight: 600;
@@ -1772,7 +1772,7 @@ html[data-theme='dark'] .theme-icon-moon {
         box-shadow: $shadow-accent-sm;
 
         &:hover {
-          background: oklch(40% 0.148 25);
+          background: oklch(48% 0.205 263);
           transform: translateY(-1px);
           box-shadow: $shadow-accent-md;
         }
@@ -1831,8 +1831,8 @@ html[data-theme='dark'] .theme-icon-moon {
     padding: $space-1 $space-3;
     background: $page;
     color: $accent;
-    border: 1px solid oklch(46% 0.148 25 / 0.35);
-    border-radius: 6px;
+    border: 1px solid oklch(54.615% 0.2152 262.881 / 0.35);
+    border-radius: 8px;
     font-family: $font-sans;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -1878,17 +1878,17 @@ html[data-theme='dark'] .theme-icon-moon {
 
 html[data-theme='dark'] {
   color-scheme: dark;
-  background-color: oklch(14% 0.015 260);
-  color: oklch(96% 0.005 260);
+  background-color: oklch(13.627% 0.0364 259.201);
+  color: oklch(98.415% 0.0034 247.858);
 
   body {
-    background-color: oklch(14% 0.015 260);
-    color: oklch(96% 0.005 260);
+    background-color: oklch(13.627% 0.0364 259.201);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   .header-outer {
-    background: oklch(14% 0.015 260 / 0.85);
-    border-bottom-color: oklch(28% 0.018 260);
+    background: oklch(13.627% 0.0364 259.201 / 0.85);
+    border-bottom-color: oklch(27.950% 0.0368 260.031);
   }
 
   .site-title,
@@ -1896,7 +1896,7 @@ html[data-theme='dark'] {
   .post-title a,
   .drawer-nav-link,
   .toc-link {
-    color: oklch(96% 0.005 260);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   // Pagination links get their own dark rule: the base (light-mode) style
@@ -1908,14 +1908,14 @@ html[data-theme='dark'] {
   .older-link,
   .blog-pager-newer-link,
   .blog-pager-older-link {
-    color: oklch(96% 0.005 260);
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
+    color: oklch(98.415% 0.0034 247.858);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.5);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
@@ -1924,7 +1924,7 @@ html[data-theme='dark'] {
   .toc-title,
   .footer-container,
   .comments-title {
-    color: oklch(62% 0.010 260);
+    color: oklch(65.613% 0.0019 247.851);
   }
 
   .post-card,
@@ -1934,58 +1934,58 @@ html[data-theme='dark'] {
   .search-modal-container,
   .mobile-drawer,
   .table-of-contents {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
-    box-shadow: 0 4px 16px oklch(0% 0 0 / 0.35);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    box-shadow: none;
   }
 
   .sidebar-card {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
-    box-shadow: 0 4px 16px oklch(0% 0 0 / 0.35);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    box-shadow: none;
 
     &:hover {
-      border-color: oklch(68% 0.19 250 / 0.4);
-      box-shadow: 0 8px 24px oklch(0% 0 0 / 0.45);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+      box-shadow: none;
     }
   }
 
   .sidebar-name,
   .sidebar-cta-title,
   .sidebar-status-label {
-    color: oklch(96% 0.005 260);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   .sidebar-bio,
   .sidebar-cta-desc,
   .sidebar-status-text {
-    color: oklch(76% 0.012 260);
+    color: oklch(72% 0.015 255);
   }
 
   .sidebar-avatar {
-    border-color: oklch(28% 0.018 260);
+    border-color: oklch(27.950% 0.0368 260.031);
   }
 
   .sidebar-btn-secondary,
   .sidebar-cta-btn {
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(96% 0.005 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.5);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .sidebar-btn-primary {
-    background-color: oklch(68% 0.19 250);
+    background-color: oklch(62.308% 0.1880 259.815);
     color: oklch(14% 0.018 260);
 
     &:hover {
-      background-color: oklch(78% 0.14 250);
-      box-shadow: 0 4px 16px oklch(68% 0.19 250 / 0.4);
+      background-color: oklch(69.234% 0.1502 259.735);
+      box-shadow: 0 4px 16px oklch(62.308% 0.1880 259.815 / 0.4);
       color: oklch(14% 0.018 260);
     }
   }
@@ -1994,32 +1994,32 @@ html[data-theme='dark'] {
   .cta-container .cta-box:hover,
   .author-bio-card:hover,
   .post-nav-item:hover {
-    border-color: oklch(68% 0.19 250 / 0.4);
-    box-shadow: 0 8px 24px oklch(0% 0 0 / 0.45);
+    border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+    box-shadow: none;
   }
 
   .post,
   .post-row {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
     box-shadow: 0 2px 8px oklch(0% 0 0 / 0.25);
 
     &:hover {
-      border-color: oklch(68% 0.19 250 / 0.4);
-      box-shadow: 0 6px 20px oklch(0% 0 0 / 0.35);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+      box-shadow: none;
     }
   }
 
   body.is-home-lead .post:first-of-type {
-    background-color: oklch(19% 0.02 260);
-    border-color: oklch(28% 0.018 260);
-    border-top-color: oklch(68% 0.19 250);
-    box-shadow: 0 4px 16px oklch(0% 0 0 / 0.35);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    border-top-color: oklch(62.308% 0.1880 259.815);
+    box-shadow: none;
 
     &:hover {
-      border-color: oklch(68% 0.19 250 / 0.5);
-      border-top-color: oklch(68% 0.19 250);
-      box-shadow: 0 8px 28px oklch(0% 0 0 / 0.45);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      border-top-color: oklch(62.308% 0.1880 259.815);
+      box-shadow: none;
     }
   }
 
@@ -2028,77 +2028,77 @@ html[data-theme='dark'] {
   .pagination,
   .blog-pager,
   hr {
-    border-color: oklch(28% 0.018 260);
+    border-color: oklch(27.950% 0.0368 260.031);
   }
 
   .site-nav .nav-list {
     background-color: oklch(16% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    border-color: oklch(27.950% 0.0368 260.031);
   }
 
   // Topics bar dark override
   .topics-container {
     background: oklch(17% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    border-color: oklch(27.950% 0.0368 260.031);
   }
 
   .site-nav .nav-link {
     color: oklch(86% 0.008 260);
 
     &:hover {
-      color: oklch(68% 0.19 250);
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.4);
+      color: oklch(62.308% 0.1880 259.815);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.4);
     }
   }
 
   .topic-pill,
   .label-link {
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(76% 0.012 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(72% 0.015 255);
 
     &.is-active {
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815);
+      color: oklch(62.308% 0.1880 259.815);
       font-weight: 600;
     }
 
     &:hover {
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.5);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .share-btn {
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(96% 0.005 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.5);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .code-block-header {
     background: oklch(15% 0.018 260);
-    border-bottom-color: oklch(28% 0.018 260);
+    border-bottom-color: oklch(27.950% 0.0368 260.031);
   }
 
   // code-block-wrapper is always dark — no override needed
   // just neutralize the dark mode re-tinting of non-code pre blocks
   .post-body > pre {
-    background: oklch(14% 0.015 260);
-    color: oklch(92% 0.01 260);
+    background: oklch(13.627% 0.0364 259.201);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   code {
     background: oklch(22% 0.025 260);
-    color: oklch(78% 0.14 250);
+    color: oklch(69.234% 0.1502 259.735);
   }
 
   pre code {
@@ -2109,7 +2109,7 @@ html[data-theme='dark'] {
   .hero-title,
   .cta-title,
   .footer-heading {
-    color: oklch(96% 0.005 260);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   .hero-standfirst,
@@ -2120,254 +2120,254 @@ html[data-theme='dark'] {
   .footer-links-list a,
   .footer-bottom,
   .footer-back-to-top {
-    color: oklch(68% 0.012 260);
+    color: oklch(65.613% 0.0019 247.851);
   }
 
   .footer-links-list a:hover,
   .footer-back-to-top:hover,
   .hero-btn-tertiary:hover {
-    color: oklch(68% 0.19 250);
+    color: oklch(62.308% 0.1880 259.815);
   }
 
   .hero-btn-secondary {
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(96% 0.005 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.5);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .cta-cyber-card {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
   }
 
   .cta-btn-secondary {
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(96% 0.005 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      background-color: oklch(24% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.5);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .drawer-toggle,
   .search-toggle,
   .theme-toggle {
-    color: oklch(92% 0.01 260);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      background-color: oklch(24% 0.045 250);
-      color: oklch(68% 0.19 250);
+      background-color: oklch(27.950% 0.0368 260.031);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .header-profile-badge {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(92% 0.01 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      border-color: oklch(68% 0.19 250);
-      background-color: oklch(24% 0.045 250);
-      color: oklch(68% 0.19 250);
+      border-color: oklch(62.308% 0.1880 259.815);
+      background-color: oklch(27.950% 0.0368 260.031);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .header-brand:hover .site-title,
   .header-brand:hover .site-tagline {
-    color: oklch(68% 0.19 250);
+    color: oklch(62.308% 0.1880 259.815);
   }
 
   .hero-portrait-img {
-    border-color: oklch(28% 0.018 260);
+    border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      border-color: oklch(68% 0.19 250);
+      border-color: oklch(62.308% 0.1880 259.815);
       box-shadow: 0 8px 32px oklch(0% 0 0 / 0.5);
     }
   }
 
   .cta-cyber-card {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      border-color: oklch(68% 0.19 250 / 0.5);
-      box-shadow: 0 8px 28px oklch(0% 0 0 / 0.45);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      box-shadow: none;
     }
   }
 
   .cta-tag {
-    color: oklch(68% 0.19 250);
+    color: oklch(62.308% 0.1880 259.815);
   }
 
   .cta-title {
-    color: oklch(96% 0.005 260);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   .cta-desc {
-    color: oklch(76% 0.012 260);
+    color: oklch(72% 0.015 255);
   }
 
   .cta-btn-primary {
-    background-color: oklch(68% 0.19 250);
+    background-color: oklch(62.308% 0.1880 259.815);
     color: oklch(14% 0.018 260) !important;
 
     &:hover {
-      background-color: oklch(78% 0.14 250);
-      box-shadow: 0 4px 16px oklch(68% 0.19 250 / 0.4);
+      background-color: oklch(69.234% 0.1502 259.735);
+      box-shadow: 0 4px 16px oklch(62.308% 0.1880 259.815 / 0.4);
       color: oklch(14% 0.018 260) !important;
     }
   }
 
   .cta-btn-secondary {
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(96% 0.005 260) !important;
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858) !important;
 
     &:hover {
-      border-color: oklch(68% 0.19 250);
-      color: oklch(68% 0.19 250) !important;
+      border-color: oklch(62.308% 0.1880 259.815);
+      color: oklch(62.308% 0.1880 259.815) !important;
     }
   }
 
   .cta-cyber-img {
-    border-color: oklch(28% 0.018 260);
+    border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      border-color: oklch(68% 0.19 250);
+      border-color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .cta-container .cta-box {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
-    border-top-color: oklch(68% 0.19 250);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    border-top-color: oklch(62.308% 0.1880 259.815);
 
     .cta-desc,
     p {
-      color: oklch(68% 0.012 260);
+      color: oklch(65.613% 0.0019 247.851);
     }
 
     .cta-title {
-      color: oklch(96% 0.005 260);
+      color: oklch(98.415% 0.0034 247.858);
     }
 
     .cta-btn,
     a,
     .cta-button {
-      background-color: oklch(60% 0.148 25);
+      background-color: oklch(62.308% 0.1880 259.815);
       color: oklch(100% 0 0) !important;
 
       &:hover {
-        background-color: oklch(66% 0.148 25);
-        box-shadow: 0 4px 16px oklch(46% 0.148 25 / 0.3);
+        background-color: oklch(69.234% 0.1502 259.735);
+        box-shadow: 0 4px 16px oklch(54.615% 0.2152 262.881 / 0.3);
       }
     }
 
     .cta-btn-secondary {
       background-color: transparent;
-      border-color: oklch(46% 0.148 25 / 0.35);
-      color: oklch(68% 0.19 250) !important;
+      border-color: oklch(54.615% 0.2152 262.881 / 0.35);
+      color: oklch(62.308% 0.1880 259.815) !important;
 
       &:hover {
         background-color: oklch(22% 0.035 260);
-        border-color: oklch(60% 0.148 25);
+        border-color: oklch(62.308% 0.1880 259.815);
       }
     }
   }
 
   .jump-link a {
-    color: oklch(68% 0.19 250);
+    color: oklch(62.308% 0.1880 259.815);
 
     &:hover {
-      color: oklch(78% 0.14 250);
+      color: oklch(69.234% 0.1502 259.735);
     }
   }
 
   .author-link-pill {
     background-color: oklch(22% 0.025 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(68% 0.19 250);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(62.308% 0.1880 259.815);
 
     &:hover {
       background-color: oklch(26% 0.045 250);
-      border-color: oklch(68% 0.19 250 / 0.6);
-      color: oklch(78% 0.14 250);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.6);
+      color: oklch(69.234% 0.1502 259.735);
     }
   }
 
   .post-author-bio,
   .author-bio-card {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
   }
 
   .author-avatar-fallback {
-    background-color: oklch(24% 0.045 250);
-    border-color: oklch(68% 0.19 250);
+    background-color: oklch(27.950% 0.0368 260.031);
+    border-color: oklch(62.308% 0.1880 259.815);
 
     .author-initials {
-      color: oklch(68% 0.19 250);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .author-name,
   .author-name a {
-    color: oklch(96% 0.005 260);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      color: oklch(68% 0.19 250);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .author-description {
-    color: oklch(76% 0.012 260);
+    color: oklch(72% 0.015 255);
   }
 
   .cta-box a,
   .cta-desc a,
   .footer a,
   .footer-copyright a {
-    color: oklch(68% 0.19 250);
+    color: oklch(62.308% 0.1880 259.815);
   }
 
   .comment-form,
   .comment {
-    background-color: oklch(18% 0.018 260) !important;
-    border-color: oklch(28% 0.018 260) !important;
+    background-color: oklch(22.749% 0.0288 266.273) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
   }
 
   .comment-form {
     h4#comment-post-message {
-      color: oklch(96% 0.005 260);
+      color: oklch(98.415% 0.0034 247.858);
     }
 
     iframe#comment-editor,
     iframe.blogger-iframe-colorize {
-      border-color: oklch(28% 0.018 260);
+      border-color: oklch(27.950% 0.0368 260.031);
       color-scheme: dark;
       background: transparent !important;
     }
   }
 
   .comment-body {
-    color: oklch(92% 0.01 260);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
 .comments-title,
 .comment-form h4#comment-post-message,
 .comment-author,
 .comment-author a {
-  color: oklch(92% 0.01 260);
+  color: oklch(98.415% 0.0034 247.858);
 }
 
 .comment-footer,
@@ -2378,49 +2378,49 @@ html[data-theme='dark'] {
 .author-label,
 .post-nav-label,
 .post-nav-direction {
-  color: oklch(72% 0.012 260);
+  color: oklch(69.234% 0.015 255);
 }
 
   .comment-author,
   .comment-author a {
-    color: oklch(96% 0.005 260);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   .post-nav-item {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      border-color: oklch(68% 0.19 250 / 0.5);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
     }
   }
 
   .post-nav-title {
-    color: oklch(96% 0.005 260);
+    color: oklch(98.415% 0.0034 247.858);
   }
 
   .listen-btn {
-    background-color: oklch(20% 0.022 260);
-    border-color: oklch(28% 0.018 260);
-    color: oklch(96% 0.005 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      border-color: oklch(68% 0.19 250 / 0.5);
-      color: oklch(68% 0.19 250);
+      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 
   .table-of-contents {
-    background-color: oklch(18% 0.018 260);
-    border-color: oklch(28% 0.018 260);
+    background-color: oklch(22.749% 0.0288 266.273);
+    border-color: oklch(27.950% 0.0368 260.031);
   }
 
   .toc-link {
-    color: oklch(76% 0.012 260);
+    color: oklch(72% 0.015 255);
 
     &.is-active,
     &:hover {
-      color: oklch(68% 0.19 250);
+      color: oklch(62.308% 0.1880 259.815);
     }
   }
 }
