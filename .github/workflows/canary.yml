@@ -1,0 +1,52 @@
+name: Production render canary
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: production-canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BLOG_URL: https://blogs.redwan.work/
+    steps:
+      - name: Verify production serves visible publication content
+        shell: python
+        run: |
+          import os
+          import re
+          import urllib.request
+
+          request = urllib.request.Request(os.environ['BLOG_URL'], headers={'User-Agent': 'LedgerProductionCanary/1.0'})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              html = response.read().decode('utf-8', errors='replace')
+              if response.status >= 400:
+                  raise SystemExit(f'HTTP {response.status}')
+          if not re.search(r'<meta[^>]+name=["\']theme-build["\']', html, re.I):
+              raise SystemExit('theme-build stamp missing')
+          if not re.search(r'class=["\'][^"\']*(?:post|empty-state)[^"\']*["\']', html, re.I):
+              raise SystemExit('no rendered post or loud empty state found')
+          visible = re.sub(r'<[^>]+>', ' ', html)
+          if len(re.sub(r'\s+', ' ', visible).strip()) < 100:
+              raise SystemExit('rendered page has too little visible text')
+          print('PASS: production serves a stamped, non-blank publication page')
+      - name: Open one deduplicated P0 canary issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title='P0: production render canary failed'
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq 'length')
+          if [ "$existing" = 0 ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --label P0 --label canary --body "The scheduled production canary failed. Inspect run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}. Treat BLOCKED or platform challenge evidence separately from a confirmed blank render."
+          fi
