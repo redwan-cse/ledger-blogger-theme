@@ -74,6 +74,12 @@ export const contractRules: readonly ContractRule[] = [
   { id: 'no-v2-html', requirementId: 'R-V3-1 AC3', message: "<html> must not carry b:version or a v2 class token.", check: (doc) => attr(doc.root, 'b:version') === null && !(attr(doc.root, 'class') ?? '').split(/\s+/).includes('v2') },
   { id: 'single-cdata-skin', requirementId: 'R-V3-1 AC4', message: 'Theme must contain exactly one b:skin whose non-whitespace content is one CDATA node.', check: (doc) => { const skins = named(doc, BLOGGER_NS, 'skin'); if (skins.length !== 1) return false; const content = skins[0]?.children.filter((child) => child.kind !== 'text' || child.value.trim()) ?? []; return content.length === 1 && content[0]?.kind === 'cdata'; } },
   { id: 'section-ids', requirementId: 'R-V3-1 AC5', message: 'Section IDs must be unique and letter-first, using only letters, numbers, and underscores (Google native V3 themes use underscores).', check: (doc) => { const ids = named(doc, BLOGGER_NS, 'section').map((element) => attr(element, 'id')); return ids.length > 0 && ids.every((id) => id !== null && /^[A-Za-z][A-Za-z0-9_]*$/.test(id)) && new Set(ids).size === ids.length; } },
+  {
+    id: 'no-maxwidgets',
+    requirementId: 'BR-9',
+    message: "b:section must not carry a maxwidgets attribute. On dashboard Edit HTML saves, Blogger's internal widget-instantiation parser does not reliably auto-populate a default widget bean for a custom section id when maxwidgets is present, leaving the section silently empty (no-items) even though the XML and widget markup are valid. None of Google's own native V3 themes (Contempo, Soho, Essential, Notable, Emporio) use maxwidgets on any b:section. See docs/BLANK_PAGE_FIX_POSTMORTEM.md.",
+    check: (doc) => named(doc, BLOGGER_NS, 'section').every((section) => attr(section, 'maxwidgets') === null)
+  },
   { id: 'header-widget', requirementId: 'R-V3-1 AC6', message: 'Theme must declare a Header widget.', check: (doc) => named(doc, BLOGGER_NS, 'widget').some((element) => attr(element, 'type') === 'Header') },
   { id: 'no-v2-accessors', requirementId: 'R-V3-1 AC7', message: 'Banned V2-era accessors and URL-based view dispatch are not allowed.', check: (doc) => semanticValues(doc).every((value) => !/data:blog\.(?:pageType|searchLabel|searchQuery)|data:post\.dateHeader|data:blog\.url\s*==\s*data:blog\.homepageUrl/i.test(value)) },
   { id: 'no-macro-tags', requirementId: 'R-V3-1 AC8', message: 'macro:* tags are not allowed.', check: (doc) => active(doc).every((element) => element.prefix !== 'macro') },
