@@ -1,4 +1,5 @@
 name: Align Ledger brand palette
+# retry after updating contrast and focus oracles
 on:
   push:
     paths:
