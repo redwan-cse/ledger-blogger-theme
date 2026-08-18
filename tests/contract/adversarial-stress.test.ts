@@ -22,12 +22,12 @@ const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
 const rules = (xml: string): string[] => checkThemeContract(xml).map((f) => f.ruleId);
 
-describe('Adversarial Stress Test: All 37 Contract Rules', () => {
-  it('verifies exact registration of all 37 rules', () => {
-    expect(CONTRACT_RULES.length).toBe(37);
-    expect(contractRules.length).toBe(37);
+describe('Adversarial Stress Test: All 38 Contract Rules', () => {
+  it('verifies exact registration of all 38 rules', () => {
+    expect(CONTRACT_RULES.length).toBe(38);
+    expect(contractRules.length).toBe(38);
     const ids = contractRules.map((r) => r.id);
-    expect(new Set(ids).size).toBe(37);
+    expect(new Set(ids).size).toBe(38);
   });
 
   it('validates baseline generated theme has zero findings', async () => {
@@ -496,6 +496,22 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
     });
   });
 
+  describe('Rule 38: no-maxwidgets (BR-9)', () => {
+    it('catches maxwidgets attribute on any b:section', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const badHeader = xml.replace('id="header" name="Header"', 'id="header" maxwidgets="1" name="Header"');
+      expect(rules(badHeader)).toEqual(['no-maxwidgets']);
+
+      const badExtra = inject(xml, '<b:section class="sidebar" id="sidebar_extra" maxwidgets="3" name="Sidebar" showaddelement="no"/>');
+      expect(rules(badExtra)).toContain('no-maxwidgets');
+    });
+
+    it('permits sections without maxwidgets', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(rules(inject(xml, '<b:section class="sidebar" id="sidebar_extra" name="Sidebar" showaddelement="no"/>'))).toEqual([]);
+    });
+  });
+
   describe('Comment Immunity for all violation patterns', () => {
     const commentPayloads = [
       'b:layoutsVersion="2"',
@@ -539,7 +555,8 @@ describe('Adversarial Stress Test: All 37 Contract Rules', () => {
       'missing section attributes',
       'data:posts.empty',
       'not data:posts.empty',
-      'data:labels.empty'
+      'data:labels.empty',
+      'maxwidgets="1" on b:section'
     ];
 
     it('ignores violation patterns inside standard XML comments <!-- ... -->', async () => {
