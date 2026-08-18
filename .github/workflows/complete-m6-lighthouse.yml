@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: '24.18.1'
@@ -45,7 +46,6 @@ jobs:
           const home = process.env.STAGING_URL?.trim();
           const blogId = process.env.BLOGGER_BLOG_ID?.trim();
           if (!home || !blogId) throw new Error('STAGING_URL and BLOGGER_BLOG_ID are required.');
-
           const discovery = new BloggerDiscoveryClient(new HarnessHttpClient(), {
             ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
             ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {})
@@ -53,17 +53,11 @@ jobs:
           const posts = await discovery.listAllPosts(blogId);
           const postUrl = posts.find((post) => post.url)?.url;
           if (!postUrl) throw new Error('No post URL available for Lighthouse verification.');
-
           const tmp = await mkdtemp(path.join(os.tmpdir(), 'ledger-lighthouse-'));
           try {
             for (const [name, url] of [['home', home], ['post', postUrl]] as const) {
               const output = path.join(tmp, `${name}.json`);
-              execFileSync(process.execPath, [
-                path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url,
-                '--quiet', '--output=json', `--output-path=${output}`,
-                '--only-categories=performance,accessibility',
-                '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'
-              ], { stdio: 'inherit' });
+              execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
               const report = JSON.parse(await readFile(output, 'utf8'));
               const performance = report.categories.performance.score;
               const accessibility = report.categories.accessibility.score;
@@ -75,9 +69,7 @@ jobs:
               if (lcp > 2500) throw new Error(`${name}: LCP ${lcp}ms > 2500ms`);
               console.log(`PASS ${name}: performance=${performance}, accessibility=${accessibility}, CLS=${cls}, LCP=${lcp}ms`);
             }
-          } finally {
-            await rm(tmp, { recursive: true, force: true });
-          }
+          } finally { await rm(tmp, { recursive: true, force: true }); }
           """, encoding='utf-8')
       - run: npm run typecheck
       - run: npm test
@@ -91,4 +83,5 @@ jobs:
           git rm .github/workflows/complete-m6-lighthouse.yml
           git add package.json package-lock.json tools/lighthouse-check.ts
           git commit -m "feat(m6): add exact-SHA Lighthouse budgets"
+          git pull --rebase origin main
           git push origin HEAD:main
