@@ -1,0 +1,53 @@
+name: Build theme artifact
+on:
+  workflow_dispatch:
+    inputs:
+      theme_sha:
+        description: Full 40-character commit SHA to build the immutable theme artifact from
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Validate theme SHA format
+        run: |
+          if ! printf '%s' "${{ inputs.theme_sha }}" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::theme_sha must be a full lowercase 40-character commit SHA, got '${{ inputs.theme_sha }}'"
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.theme_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.18.1'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate theme with explicit THEME_SHA
+        env:
+          THEME_SHA: ${{ inputs.theme_sha }}
+        run: npm run generate
+      - name: Assert emitted build stamp matches 0.0.0+<theme_sha>
+        run: |
+          EXPECTED="0.0.0+${{ inputs.theme_sha }}"
+          ACTUAL=$(grep -o 'theme-build" content="[^"]*"' dist/theme.xml | cut -d'"' -f3 || grep -o "content='[^']*' name='theme-build'" dist/theme.xml | cut -d"'" -f2 || true)
+          if [ -z "$ACTUAL" ]; then
+            ACTUAL=$(grep 'theme-build' dist/theme.xml | grep -o '0\.0\.0+[0-9a-f]\{40\}' || true)
+          fi
+          echo "Expected stamp: $EXPECTED"
+          echo "Actual stamp:   $ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::Generated theme stamp '$ACTUAL' does not match expected '$EXPECTED'"
+            exit 1
+          fi
+      - run: npm run contract:check
+      - uses: actions/upload-artifact@v7
+        with:
+          name: theme-artifact-${{ inputs.theme_sha }}
+          path: dist/theme.xml
+          if-no-files-found: error
+          retention-days: 90

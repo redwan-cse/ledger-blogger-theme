@@ -24,7 +24,10 @@ b:section(class='main' id='page_body' name='Page Body' showaddelement='false')
       b:widget-setting(name='showInlineAds') false
       b:widget-setting(name='showReactions') false
     b:includable(id='main')
-      b:include(name='super.main')/
+      b:if(cond='data:posts')
+        b:include(name='super.main')/
+      b:if(cond='not data:posts')
+        b:include(name='status-message')/
     b:includable(id='postCommentsAndAd' var='post')
       b:include(data='post' name='post')/
       b:if(cond='data:view.isSingleItem')

@@ -739,7 +739,12 @@
             <b:widget-setting name="showReactions">false</b:widget-setting>
           </b:widget-settings>
           <b:includable id="main">
-            <b:include name="super.main"/>
+            <b:if cond="data:posts">
+              <b:include name="super.main"/>
+            </b:if>
+            <b:if cond="not data:posts">
+              <b:include name="status-message"/>
+            </b:if>
           </b:includable>
           <b:includable id="postCommentsAndAd" var="post">
             <b:include data="post" name="post"/>

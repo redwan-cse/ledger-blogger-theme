@@ -6,10 +6,9 @@ node_modules/
 .zed/
 skills-lock.json
 
-# Build output — dist/theme.xml IS committed (golden-file diffing depends on it)
+# Build output — generated during build/test, published as run artifacts
 dist/*
 !dist/.gitkeep
-!dist/theme.xml
 
 # Debugging scratch space — never commit experiments
 scratch/*

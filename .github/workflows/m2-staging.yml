@@ -15,7 +15,7 @@ jobs:
   render:
     runs-on: ubuntu-latest
     environment: blogger-live
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       STAGING_URL: https://blogs.redwan.work/
       BLOGGER_BLOG_ID: '5972841034338492159'
@@ -35,13 +35,29 @@ jobs:
           node-version: '24.18.1'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run generate
+      - name: Generate theme for target SHA
+        env:
+          THEME_SHA: ${{ inputs.theme_sha }}
+        run: npm run generate
+      - name: Assert generated theme build stamp equals expected theme_sha
+        run: |
+          EXPECTED="0.0.0+${{ inputs.theme_sha }}"
+          ACTUAL=$(grep -o 'theme-build" content="[^"]*"' dist/theme.xml | cut -d'"' -f3 || grep -o "content='[^']*' name='theme-build'" dist/theme.xml | cut -d"'" -f2 || true)
+          if [ -z "$ACTUAL" ]; then
+            ACTUAL=$(grep 'theme-build' dist/theme.xml | grep -o '0\.0\.0+[0-9a-f]\{40\}' || true)
+          fi
+          echo "Expected local build stamp: $EXPECTED"
+          echo "Actual local build stamp:   $ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::Generated theme stamp '$ACTUAL' does not match expected '$EXPECTED'"
+            exit 1
+          fi
       - run: npm run contract:check
       - run: npm run test:golden
       - name: Report the deployed build stamp before credential-gated assertions
         run: npm run deploy:check
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Refresh short-lived Blogger access token
         env:
           GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
