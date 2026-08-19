@@ -20,9 +20,9 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v4
-      - name: Fetch recent main history and checkout target commit SHA
+      - name: Fetch full history and checkout target commit SHA
         run: |
-          git fetch origin main --depth=100
+          git fetch --unshallow origin || git fetch origin
           git checkout "${{ inputs.theme_sha }}"
       - uses: actions/setup-node@v4
         with:
