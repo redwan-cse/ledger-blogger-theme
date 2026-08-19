@@ -257,6 +257,12 @@ class BloggerV3Simulator {
       if (!innerVal) return true;
       return false;
     }
+    if (trimmed.endsWith('.any')) {
+      const innerVal = this.evaluateExpr(trimmed.slice(0, -'.any'.length), context);
+      if (Array.isArray(innerVal)) return innerVal.length > 0;
+      if (innerVal && typeof innerVal === 'object' && 'any' in innerVal) return Boolean(innerVal.any);
+      return Boolean(innerVal);
+    }
     if (trimmed.endsWith('.iso8601')) {
       const innerVal = this.evaluateExpr(trimmed.slice(0, -'.iso8601'.length), context);
       return innerVal?.iso8601 ?? String(innerVal ?? '');

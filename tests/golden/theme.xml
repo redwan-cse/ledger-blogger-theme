@@ -739,12 +739,18 @@
             <b:widget-setting name="showReactions">false</b:widget-setting>
           </b:widget-settings>
           <b:includable id="main">
-            <b:if cond="data:posts">
-              <b:include name="super.main"/>
-            </b:if>
-            <b:if cond="not data:posts">
+            <b:if cond="data:view.isError">
               <b:include name="status-message"/>
             </b:if>
+            <b:if cond="not data:view.isError and data:posts.any">
+              <b:include name="super.main"/>
+            </b:if>
+            <b:if cond="not data:view.isError and not data:posts.any">
+              <b:include name="status-message"/>
+            </b:if>
+          </b:includable>
+          <b:includable id="noContentPlaceholder">
+            <b:include name="status-message"/>
           </b:includable>
           <b:includable id="postCommentsAndAd" var="post">
             <b:include data="post" name="post"/>
