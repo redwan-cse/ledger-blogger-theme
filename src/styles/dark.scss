@@ -84,15 +84,20 @@ html[data-theme='dark'] {
   .post-excerpt,
   .post-summary,
   .post-snippet,
+  .post .post-excerpt,
   article .post-excerpt,
+  body.is-home-lead .post:first-of-type .post-excerpt,
+  body.is-home-lead article .post-excerpt,
+  body .post-excerpt,
   .empty-state-desc,
   .empty-state-text,
   .toc-title,
   .footer-container,
   .footer-bio,
   .comments-title {
-    color: oklch(80% 0.015 255);
+    color: oklch(80% 0.015 255) !important;
   }
+
 
   .post-card,
   .cta-container .cta-box,
