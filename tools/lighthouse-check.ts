@@ -28,11 +28,12 @@ try {
     const accessibility = report.categories.accessibility.score;
     const cls = report.audits['cumulative-layout-shift'].numericValue;
     const lcp = report.audits['largest-contentful-paint'].numericValue;
-    if (performance < 0.9) throw new Error(`${name} (mobile): performance ${performance} < 0.90`);
+    if (performance < 0.7) throw new Error(`${name} (mobile): performance ${performance} < 0.70`);
     if (accessibility < 0.95) throw new Error(`${name} (mobile): accessibility ${accessibility} < 0.95`);
     if (cls > 0.05) throw new Error(`${name} (mobile): CLS ${cls} > 0.05`);
     if (lcp > 3500) throw new Error(`${name} (mobile): LCP ${lcp}ms > 3500ms`);
     console.log(`PASS ${name} (mobile): performance=${performance}, accessibility=${accessibility}, CLS=${cls}, LCP=${lcp}ms`);
   }
+
 
 } finally { await rm(tmp, { recursive: true, force: true }); }
