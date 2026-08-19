@@ -33,10 +33,33 @@ html[data-theme='dark'] {
   .search-modal-title,
   .empty-state-title,
   .toc-link,
+  .hero-title,
+  .cta-title,
+  .footer-heading,
   .hero-btn-tertiary,
   .hero-btn-tertiary span,
   .hero-btn-tertiary > span {
     color: oklch(98.415% 0.0034 247.858);
+  }
+
+  .status-pill {
+    background: oklch(32% 0.13 140 / 0.25);
+    border-color: oklch(85% 0.16 142 / 0.4);
+    color: oklch(85% 0.16 142);
+  }
+
+  .status-label {
+    color: oklch(85% 0.16 142);
+  }
+
+  .status-beacon {
+    background-color: oklch(85% 0.16 142);
+    box-shadow: 0 0 8px oklch(85% 0.16 142);
+  }
+
+  .footer-status,
+  .footer-status span {
+    color: oklch(85% 0.16 142);
   }
 
   .newer-link,
@@ -49,8 +72,8 @@ html[data-theme='dark'] {
 
     &:hover {
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -68,7 +91,7 @@ html[data-theme='dark'] {
   .footer-container,
   .footer-bio,
   .comments-title {
-    color: oklch(78% 0.015 255);
+    color: oklch(80% 0.015 255);
   }
 
   .post-card,
@@ -89,13 +112,13 @@ html[data-theme='dark'] {
     box-shadow: none;
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+      border-color: oklch(75% 0.15 259.735 / 0.4);
       box-shadow: none;
     }
   }
 
   .sidebar-cta-tag {
-    color: oklch(69.234% 0.1502 259.735);
+    color: oklch(75% 0.15 259.735);
   }
 
   .sidebar-name,
@@ -107,7 +130,7 @@ html[data-theme='dark'] {
   .sidebar-bio,
   .sidebar-cta-desc,
   .sidebar-status-text {
-    color: oklch(78% 0.015 255);
+    color: oklch(80% 0.015 255);
   }
 
   .sidebar-avatar {
@@ -122,19 +145,26 @@ html[data-theme='dark'] {
 
     &:hover {
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
-  .sidebar-btn-primary {
-    background-color: oklch(62.308% 0.1880 259.815);
-    color: oklch(14% 0.018 260);
+  .hero-btn.hero-btn-primary,
+  .sidebar-btn-primary,
+  .cta-btn-primary,
+  .cta-button,
+  .cta-btn,
+  .cta-container .cta-box .cta-btn,
+  .cta-container .cta-box .cta-button,
+  .cta-container .cta-box a.cta-button {
+    background-color: oklch(50% 0.22 260) !important;
+    color: #ffffff !important;
 
     &:hover {
-      background-color: oklch(69.234% 0.1502 259.735);
-      box-shadow: 0 4px 16px oklch(62.308% 0.1880 259.815 / 0.4);
-      color: oklch(14% 0.018 260);
+      background-color: oklch(45% 0.22 260) !important;
+      box-shadow: 0 4px 16px oklch(50% 0.22 260 / 0.4);
+      color: #ffffff !important;
     }
   }
 
@@ -142,7 +172,7 @@ html[data-theme='dark'] {
   .cta-container .cta-box:hover,
   .author-bio-card:hover,
   .post-nav-item:hover {
-    border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+    border-color: oklch(75% 0.15 259.735 / 0.4);
     box-shadow: none;
   }
 
@@ -153,7 +183,7 @@ html[data-theme='dark'] {
     box-shadow: 0 2px 8px oklch(0% 0 0 / 0.25);
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+      border-color: oklch(75% 0.15 259.735 / 0.4);
       box-shadow: none;
     }
   }
@@ -161,12 +191,12 @@ html[data-theme='dark'] {
   body.is-home-lead .post:first-of-type {
     background-color: oklch(22.749% 0.0288 266.273);
     border-color: oklch(27.950% 0.0368 260.031);
-    border-top-color: oklch(62.308% 0.1880 259.815);
+    border-top-color: oklch(75% 0.15 259.735);
     box-shadow: none;
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      border-top-color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      border-top-color: oklch(75% 0.15 259.735);
       box-shadow: none;
     }
   }
@@ -193,9 +223,9 @@ html[data-theme='dark'] {
     color: oklch(86% 0.008 260);
 
     &:hover {
-      color: oklch(62.308% 0.1880 259.815);
+      color: oklch(75% 0.15 259.735);
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+      border-color: oklch(75% 0.15 259.735 / 0.4);
     }
   }
 
@@ -203,19 +233,19 @@ html[data-theme='dark'] {
   .label-link {
     background-color: oklch(22.749% 0.0288 266.273);
     border-color: oklch(27.950% 0.0368 260.031);
-    color: oklch(78% 0.015 255);
+    color: oklch(80% 0.015 255);
 
     &.is-active {
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735);
+      color: oklch(75% 0.15 259.735);
       font-weight: 600;
     }
 
     &:hover {
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -226,8 +256,8 @@ html[data-theme='dark'] {
 
     &:hover {
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -243,18 +273,12 @@ html[data-theme='dark'] {
 
   code {
     background: oklch(22% 0.025 260);
-    color: oklch(69.234% 0.1502 259.735);
+    color: oklch(75% 0.15 259.735);
   }
 
   pre code {
     background: transparent;
     color: inherit;
-  }
-
-  .hero-title,
-  .cta-title,
-  .footer-heading {
-    color: oklch(98.415% 0.0034 247.858);
   }
 
   .hero-standfirst,
@@ -265,13 +289,13 @@ html[data-theme='dark'] {
   .footer-links-list a,
   .footer-bottom,
   .footer-back-to-top {
-    color: oklch(78% 0.015 255);
+    color: oklch(80% 0.015 255);
   }
 
   .footer-links-list a:hover,
   .footer-back-to-top:hover,
   .hero-btn-tertiary:hover {
-    color: oklch(62.308% 0.1880 259.815);
+    color: oklch(75% 0.15 259.735);
   }
 
   .hero-btn-secondary {
@@ -281,8 +305,8 @@ html[data-theme='dark'] {
 
     &:hover {
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -298,8 +322,8 @@ html[data-theme='dark'] {
 
     &:hover {
       background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -310,7 +334,7 @@ html[data-theme='dark'] {
 
     &:hover {
       background-color: oklch(27.950% 0.0368 260.031);
-      color: oklch(62.308% 0.1880 259.815);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -320,133 +344,81 @@ html[data-theme='dark'] {
     color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735);
       background-color: oklch(27.950% 0.0368 260.031);
-      color: oklch(62.308% 0.1880 259.815);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
   .header-brand:hover .site-title,
   .header-brand:hover .site-tagline {
-    color: oklch(62.308% 0.1880 259.815);
+    color: oklch(75% 0.15 259.735);
   }
 
   .hero-portrait-img {
     border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735);
       box-shadow: 0 8px 32px oklch(0% 0 0 / 0.5);
     }
   }
 
-  .cta-cyber-card {
-    background-color: oklch(22.749% 0.0288 266.273);
-    border-color: oklch(27.950% 0.0368 260.031);
-
-    &:hover {
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      box-shadow: none;
-    }
-  }
-
   .cta-tag {
-    color: oklch(62.308% 0.1880 259.815);
-  }
-
-  .cta-title {
-    color: oklch(98.415% 0.0034 247.858);
-  }
-
-  .cta-desc {
-    color: oklch(78% 0.015 255);
-  }
-
-  .cta-btn-primary {
-    background-color: oklch(62.308% 0.1880 259.815);
-    color: oklch(14% 0.018 260) !important;
-
-    &:hover {
-      background-color: oklch(69.234% 0.1502 259.735);
-      box-shadow: 0 4px 16px oklch(62.308% 0.1880 259.815 / 0.4);
-      color: oklch(14% 0.018 260) !important;
-    }
-  }
-
-  .cta-btn-secondary {
-    background-color: oklch(22.749% 0.0288 266.273);
-    border-color: oklch(27.950% 0.0368 260.031);
-    color: oklch(98.415% 0.0034 247.858) !important;
-
-    &:hover {
-      border-color: oklch(62.308% 0.1880 259.815);
-      color: oklch(62.308% 0.1880 259.815) !important;
-    }
+    color: oklch(75% 0.15 259.735);
   }
 
   .cta-cyber-img {
     border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735);
     }
   }
 
   .cta-container .cta-box {
     background-color: oklch(22.749% 0.0288 266.273);
     border-color: oklch(27.950% 0.0368 260.031);
-    border-top-color: oklch(62.308% 0.1880 259.815);
+    border-top-color: oklch(75% 0.15 259.735);
 
     .cta-desc,
     p {
-      color: oklch(78% 0.015 255);
+      color: oklch(80% 0.015 255);
     }
 
     .cta-title {
       color: oklch(98.415% 0.0034 247.858);
     }
 
-    .cta-btn,
-    a,
-    .cta-button {
-      background-color: oklch(62.308% 0.1880 259.815);
-      color: oklch(100% 0 0) !important;
-
-      &:hover {
-        background-color: oklch(69.234% 0.1502 259.735);
-        box-shadow: 0 4px 16px oklch(54.615% 0.2152 262.881 / 0.3);
-      }
-    }
-
     .cta-btn-secondary {
       background-color: transparent;
-      border-color: oklch(54.615% 0.2152 262.881 / 0.35);
-      color: oklch(62.308% 0.1880 259.815) !important;
+      border-color: oklch(50% 0.22 260 / 0.4);
+      color: oklch(75% 0.15 259.735) !important;
 
       &:hover {
         background-color: oklch(22% 0.035 260);
-        border-color: oklch(62.308% 0.1880 259.815);
+        border-color: oklch(75% 0.15 259.735);
       }
     }
   }
 
   .jump-link a {
-    color: oklch(62.308% 0.1880 259.815);
+    color: oklch(75% 0.15 259.735);
 
     &:hover {
-      color: oklch(69.234% 0.1502 259.735);
+      color: oklch(80% 0.15 259.735);
     }
   }
 
   .author-link-pill {
     background-color: oklch(22% 0.025 260);
     border-color: oklch(27.950% 0.0368 260.031);
-    color: oklch(62.308% 0.1880 259.815);
+    color: oklch(75% 0.15 259.735);
 
     &:hover {
       background-color: oklch(26% 0.045 250);
-      border-color: oklch(62.308% 0.1880 259.815 / 0.6);
-      color: oklch(69.234% 0.1502 259.735);
+      border-color: oklch(75% 0.15 259.735 / 0.6);
+      color: oklch(80% 0.15 259.735);
     }
   }
 
@@ -458,10 +430,10 @@ html[data-theme='dark'] {
 
   .author-avatar-fallback {
     background-color: oklch(27.950% 0.0368 260.031);
-    border-color: oklch(62.308% 0.1880 259.815);
+    border-color: oklch(75% 0.15 259.735);
 
     .author-initials {
-      color: oklch(62.308% 0.1880 259.815);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -470,19 +442,19 @@ html[data-theme='dark'] {
     color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      color: oklch(62.308% 0.1880 259.815);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
   .author-description {
-    color: oklch(78% 0.015 255);
+    color: oklch(80% 0.015 255);
   }
 
   .cta-box a,
   .cta-desc a,
   .footer a,
   .footer-copyright a {
-    color: oklch(62.308% 0.1880 259.815);
+    color: oklch(75% 0.15 259.735);
   }
 
   .comment-form,
@@ -523,7 +495,7 @@ html[data-theme='dark'] {
   .author-label,
   .post-nav-label,
   .post-nav-direction {
-    color: oklch(78% 0.015 255);
+    color: oklch(80% 0.015 255);
   }
 
   .post-nav-item {
@@ -531,7 +503,7 @@ html[data-theme='dark'] {
     border-color: oklch(27.950% 0.0368 260.031);
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
     }
   }
 
@@ -545,8 +517,8 @@ html[data-theme='dark'] {
     color: oklch(98.415% 0.0034 247.858);
 
     &:hover {
-      border-color: oklch(62.308% 0.1880 259.815 / 0.5);
-      color: oklch(62.308% 0.1880 259.815);
+      border-color: oklch(75% 0.15 259.735 / 0.5);
+      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -556,11 +528,11 @@ html[data-theme='dark'] {
   }
 
   .toc-link {
-    color: oklch(78% 0.015 255);
+    color: oklch(80% 0.015 255);
 
     &.is-active,
     &:hover {
-      color: oklch(62.308% 0.1880 259.815);
+      color: oklch(75% 0.15 259.735);
     }
   }
 }

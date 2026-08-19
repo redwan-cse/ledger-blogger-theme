@@ -544,24 +544,29 @@ html[data-theme='dark'] .theme-icon-moon {
     align-items: center;
     gap: $space-2;
     padding: $space-1 $space-3;
-    background: oklch(46% 0.148 140 / 0.1);
-    border: 1px solid oklch(46% 0.148 140 / 0.3);
+    background: oklch(32% 0.13 140 / 0.08);
+    border: 1px solid oklch(32% 0.13 140 / 0.25);
     border-radius: 999px;
     font-family: $font-mono;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.05em;
-    color: oklch(46% 0.148 140);
+    color: oklch(32% 0.13 140);
+  }
+
+  .status-label {
+    color: oklch(32% 0.13 140);
   }
 
   .status-beacon {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: oklch(46% 0.148 140);
-    box-shadow: 0 0 8px oklch(46% 0.148 140);
+    background-color: oklch(32% 0.13 140);
+    box-shadow: 0 0 8px oklch(32% 0.13 140);
     animation: beaconPulse 2s infinite ease-in-out;
   }
+
 
   .hero-badge-mono {
     font-family: $font-mono;
@@ -1119,8 +1124,13 @@ html[data-theme='dark'] .theme-icon-moon {
     gap: $space-2;
     font-family: $font-mono;
     font-size: 0.75rem;
-    color: oklch(46% 0.148 140);
+    color: oklch(32% 0.13 140);
+
+    span {
+      color: oklch(32% 0.13 140);
+    }
   }
+
 
   .footer-links-list {
     list-style: none;
