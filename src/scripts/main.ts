@@ -131,6 +131,11 @@ export function initMobileDrawer(): MobileDrawerController | null {
 
     drawer!.setAttribute('aria-hidden', open ? 'false' : 'true');
     backdrop!.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) {
+      drawer!.removeAttribute('inert');
+    } else {
+      drawer!.setAttribute('inert', 'true');
+    }
 
     toggleButtons.forEach((btn) => {
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');

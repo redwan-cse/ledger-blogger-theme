@@ -102,7 +102,7 @@ html&attributes(rootAttributes)
     footer.footer-container(role='contentinfo')
       include widgets/footer.pug
     div.drawer-backdrop(aria-hidden='true')
-    nav#mobile-drawer.mobile-drawer(aria-hidden='true' aria-label='Mobile Navigation')
+    nav#mobile-drawer.mobile-drawer(aria-hidden='true' aria-label='Mobile Navigation' inert='true')
       div.drawer-header
         div.drawer-title
           b:eval(expr='data:blog.title')/

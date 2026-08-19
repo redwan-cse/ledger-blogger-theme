@@ -258,8 +258,9 @@ html[data-theme='dark'] .theme-icon-moon {
   -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid $rule;
   box-shadow: $shadow-xl;
+  visibility: hidden;
   transform: translateX(-100%);
-  transition: transform $motion-moderate $ease-out-quart;
+  transition: transform $motion-moderate $ease-out-quart, visibility $motion-moderate $ease-out-quart;
   z-index: $z-drawer;
   display: flex;
   flex-direction: column;
@@ -272,6 +273,7 @@ html[data-theme='dark'] .theme-icon-moon {
 
   &.is-open,
   body.drawer-open & {
+    visibility: visible;
     transform: translateX(0);
   }
 
@@ -348,6 +350,9 @@ html[data-theme='dark'] .theme-icon-moon {
 // ---------------------------------------------------------------------------
 
 .search-modal {
+  &:not([open]) {
+    display: none;
+  }
   position: fixed;
   inset: 0;
   margin: auto;
