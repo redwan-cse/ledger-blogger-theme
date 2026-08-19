@@ -35,7 +35,8 @@ test.beforeAll(async ({ request }) => {
   expect(targets.some((target) => target.url)).toBe(true);
 });
 
-test('R-A11Y-1: all ten real Blogger views have no serious or critical axe violations', async ({ page }) => {
+test('R-A11Y-1: all ten real Blogger views have no serious or critical axe violations', async ({ page, javaScriptEnabled }) => {
+  test.skip(!javaScriptEnabled, 'Axe accessibility audits require JavaScript to evaluate rules in the browser context.');
   for (const target of targets) {
     if (!target.url) {
       console.log(`[SKIP] ${target.name} was not measured: ${target.missingReason}`);
@@ -47,3 +48,4 @@ test('R-A11Y-1: all ten real Blogger views have no serious or critical axe viola
     expect(blocking, `${target.name}: ${JSON.stringify(blocking, null, 2)}`).toEqual([]);
   }
 });
+
