@@ -30,10 +30,10 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v4
-      - name: Fetch branch history and checkout target commit SHA
-        run: |
-          git fetch origin main
-          git checkout "${{ inputs.theme_sha }}"
+        with:
+          fetch-depth: 0
+      - name: Checkout target commit SHA
+        run: git checkout "${{ inputs.theme_sha }}"
       - uses: actions/setup-node@v4
         with:
           node-version: '24.18.1'
