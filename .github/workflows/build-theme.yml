@@ -23,7 +23,10 @@ jobs:
         with:
           fetch-depth: 0
       - name: Checkout target commit SHA
-        run: git checkout "${{ inputs.theme_sha }}"
+        run: |
+          git config --add remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+          git fetch origin
+          git checkout "${{ inputs.theme_sha }}"
       - uses: actions/setup-node@v4
         with:
           node-version: '24.18.1'
