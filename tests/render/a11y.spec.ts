@@ -11,6 +11,10 @@ function required(name: 'STAGING_URL' | 'EXPECTED_THEME_BUILD' | 'BLOGGER_BLOG_I
   return value;
 }
 
+function olderUrl(html: string): string | undefined {
+  return html.match(/<a\b[^>]*(?:id=(['"])Blog1_blog-pager-older-link\1|class=(['"])[^'"]*(?:blog-pager-older-link|older-link)[^'"]*\2)[^>]*href=(['"])(.*?)\3/i)?.[4];
+}
+
 let targets: ViewTarget[] = [];
 
 test.beforeAll(async ({ request }) => {
@@ -29,11 +33,15 @@ test.beforeAll(async ({ request }) => {
     discovery.listPages(required('BLOGGER_BLOG_ID'))
   ]);
   const layoutModeUrl = process.env.LAYOUT_MODE_URL?.trim();
-  const options: { layoutModeUrl?: string } = {};
+  const options: { olderUrl?: string; layoutModeUrl?: string } = {};
   if (layoutModeUrl) options.layoutModeUrl = layoutModeUrl;
+  const older = olderUrl(homeHtml);
+  if (older) options.olderUrl = older;
   targets = createViewTargets(stagingUrl, posts, pages, options);
-  expect(targets.some((target) => target.url)).toBe(true);
+  const requiredTargets = targets.filter((target) => target.name !== 'layout-mode');
+  expect(requiredTargets.every((target) => target.url), 'all 9 discoverable views must have discovered URLs').toBe(true);
 });
+
 
 test('R-A11Y-1: all ten real Blogger views have no serious or critical axe violations', async ({ page, javaScriptEnabled }) => {
   test.skip(!javaScriptEnabled, 'Axe accessibility audits require JavaScript to evaluate rules in the browser context.');

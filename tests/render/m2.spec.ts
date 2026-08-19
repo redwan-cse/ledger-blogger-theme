@@ -10,7 +10,7 @@ function required(name: 'STAGING_URL' | 'EXPECTED_THEME_BUILD' | 'BLOGGER_BLOG_I
   return value;
 }
 function olderUrl(html: string): string | undefined {
-  return html.match(/<a\b[^>]*(?:id=(['"])Blog1_blog-pager-older-link\1|class=(['"])[^'"]*blog-pager-older-link[^'"]*\2)[^>]*href=(['"])(.*?)\3/i)?.[4];
+  return html.match(/<a\b[^>]*(?:id=(['"])Blog1_blog-pager-older-link\1|class=(['"])[^'"]*(?:blog-pager-older-link|older-link)[^'"]*\2)[^>]*href=(['"])(.*?)\3/i)?.[4];
 }
 let targets: ViewTarget[] = [];
 
@@ -36,8 +36,10 @@ test.beforeAll(async ({ request }) => {
   const older = olderUrl(homeHtml);
   if (older) options.olderUrl = older;
   targets = createViewTargets(stagingUrl, posts, pages, options);
-  expect(targets.some((target) => target.url), 'at least one view target must be present').toBe(true);
+  const requiredTargets = targets.filter((target) => target.name !== 'layout-mode');
+  expect(requiredTargets.every((target) => target.url), 'all 9 discoverable views must have discovered URLs').toBe(true);
 });
+
 
 test('all ten views render visible server content', async ({ page }) => {
   for (const target of targets) {

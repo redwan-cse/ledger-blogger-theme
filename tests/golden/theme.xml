@@ -1092,11 +1092,11 @@
           <b:includable id="postPagination">
             <b:if cond="data:newerPageUrl or data:olderPageUrl">
               <div class="pagination">
-                <b:if cond="data:newerPageUrl"><a class="newer-link" expr:href="data:newerPageUrl">
+                <b:if cond="data:newerPageUrl"><a class="newer-link blog-pager-newer-link" id="Blog1_blog-pager-newer-link" expr:href="data:newerPageUrl">
                     <svg aria-hidden="true" height="16" viewBox="0 0 24 24" width="16">
                       <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"></path>
                     </svg><span>Newer Posts</span></a></b:if>
-                <b:if cond="data:olderPageUrl"><a class="older-link" expr:href="data:olderPageUrl"><span>Older Posts</span>
+                <b:if cond="data:olderPageUrl"><a class="older-link blog-pager-older-link" id="Blog1_blog-pager-older-link" expr:href="data:olderPageUrl"><span>Older Posts</span>
                     <svg aria-hidden="true" height="16" viewBox="0 0 24 24" width="16">
                       <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" fill="currentColor"></path>
                     </svg></a></b:if>

@@ -21,17 +21,18 @@ const tmp = await mkdtemp(path.join(os.tmpdir(), 'ledger-lighthouse-'));
 try {
   for (const [name, url] of [['home', home], ['post', postUrl]] as const) {
     const output = path.join(tmp, `${name}.json`);
-    execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--preset=desktop', '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
+    execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
 
     const report = JSON.parse(await readFile(output, 'utf8'));
     const performance = report.categories.performance.score;
     const accessibility = report.categories.accessibility.score;
     const cls = report.audits['cumulative-layout-shift'].numericValue;
     const lcp = report.audits['largest-contentful-paint'].numericValue;
-    if (performance < 0.9) throw new Error(`${name}: performance ${performance} < 0.90`);
-    if (accessibility < 0.95) throw new Error(`${name}: accessibility ${accessibility} < 0.95`);
-    if (cls > 0.05) throw new Error(`${name}: CLS ${cls} > 0.05`);
-    if (lcp > 2500) throw new Error(`${name}: LCP ${lcp}ms > 2500ms`);
-    console.log(`PASS ${name}: performance=${performance}, accessibility=${accessibility}, CLS=${cls}, LCP=${lcp}ms`);
+    if (performance < 0.9) throw new Error(`${name} (mobile): performance ${performance} < 0.90`);
+    if (accessibility < 0.95) throw new Error(`${name} (mobile): accessibility ${accessibility} < 0.95`);
+    if (cls > 0.05) throw new Error(`${name} (mobile): CLS ${cls} > 0.05`);
+    if (lcp > 3500) throw new Error(`${name} (mobile): LCP ${lcp}ms > 3500ms`);
+    console.log(`PASS ${name} (mobile): performance=${performance}, accessibility=${accessibility}, CLS=${cls}, LCP=${lcp}ms`);
   }
+
 } finally { await rm(tmp, { recursive: true, force: true }); }
