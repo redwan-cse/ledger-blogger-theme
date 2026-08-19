@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       theme_sha:
-        description: Full 40-character SHA of the theme.xml artifact uploaded to Blogger
-        required: true
-        type: string
+        description: Full 40-character SHA of the theme.xml artifact uploaded to Blogger (optional; defaults to HEAD)
+        required: false
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -16,19 +16,20 @@ jobs:
     runs-on: ubuntu-latest
     environment: blogger-live
     timeout-minutes: 30
-    env:
-      STAGING_URL: https://blogs.redwan.work/
-      BLOGGER_BLOG_ID: '5972841034338492159'
-      LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
-      HARNESS_PACE_MS: '4000'
-      EXPECTED_THEME_BUILD: 0.0.0+${{ inputs.theme_sha }}
     steps:
-      - name: Reject a malformed theme SHA before touching the blog
+      - name: Resolve target theme SHA
+        id: resolve
         run: |
-          if ! printf '%s' "${{ inputs.theme_sha }}" | grep -Eq '^[0-9a-f]{40}$'; then
-            echo "::error::theme_sha must be a full lowercase 40-character commit SHA, got '${{ inputs.theme_sha }}'"
+          TARGET_SHA="${{ inputs.theme_sha }}"
+          if [ -z "$TARGET_SHA" ]; then
+            TARGET_SHA="${{ github.sha }}"
+          fi
+          if ! printf '%s' "$TARGET_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::theme_sha must be a full lowercase 40-character commit SHA, got '$TARGET_SHA'"
             exit 1
           fi
+          echo "theme_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
+          echo "expected_build=0.0.0+$TARGET_SHA" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -37,11 +38,11 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Generate theme for target SHA
         env:
-          THEME_SHA: ${{ inputs.theme_sha }}
+          THEME_SHA: ${{ steps.resolve.outputs.theme_sha }}
         run: npm run generate
       - name: Assert generated theme build stamp equals expected theme_sha
         env:
-          EXPECTED_SHA: ${{ inputs.theme_sha }}
+          EXPECTED_SHA: ${{ steps.resolve.outputs.theme_sha }}
         run: |
           node -e '
             const fs = require("fs");
@@ -59,6 +60,9 @@ jobs:
       - run: npm run contract:check
       - run: npm run test:golden
       - name: Report the deployed build stamp before credential-gated assertions
+        env:
+          STAGING_URL: https://blogs.redwan.work/
+          EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run deploy:check
       - name: Install Chromium
         run: npx playwright install chromium
@@ -69,17 +73,41 @@ jobs:
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
         run: npx tsx tools/google-access-token.ts
       - name: Verify rendered HTML across ten views
+        env:
+          STAGING_URL: https://blogs.redwan.work/
+          BLOGGER_BLOG_ID: '5972841034338492159'
+          LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
+          HARNESS_PACE_MS: '4000'
+          EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run harness
       - name: Verify JS, no-JS, and reduced-motion browser contexts
+        env:
+          STAGING_URL: https://blogs.redwan.work/
+          BLOGGER_BLOG_ID: '5972841034338492159'
+          LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
+          HARNESS_PACE_MS: '4000'
+          EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run harness:browser
       - name: Verify serious and critical accessibility violations
+        env:
+          STAGING_URL: https://blogs.redwan.work/
+          BLOGGER_BLOG_ID: '5972841034338492159'
+          LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
+          HARNESS_PACE_MS: '4000'
+          EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run test:a11y
       - name: Verify home and post Lighthouse budgets
+        env:
+          STAGING_URL: https://blogs.redwan.work/
+          BLOGGER_BLOG_ID: '5972841034338492159'
+          LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
+          HARNESS_PACE_MS: '4000'
+          EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run test:lighthouse
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: m2-m6-evidence-${{ inputs.theme_sha }}
+          name: m2-m6-evidence-${{ steps.resolve.outputs.theme_sha }}
           path: |
             dist/theme.xml
             playwright-report

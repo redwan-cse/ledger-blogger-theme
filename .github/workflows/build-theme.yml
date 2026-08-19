@@ -1,11 +1,13 @@
 name: Build theme artifact
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       theme_sha:
-        description: Full 40-character commit SHA to build the immutable theme artifact from
-        required: true
-        type: string
+        description: Full 40-character commit SHA to build the immutable theme artifact from (optional; defaults to HEAD)
+        required: false
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -13,12 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Validate theme SHA format
+      - name: Resolve target theme SHA
+        id: resolve
         run: |
-          if ! printf '%s' "${{ inputs.theme_sha }}" | grep -Eq '^[0-9a-f]{40}$'; then
-            echo "::error::theme_sha must be a full lowercase 40-character commit SHA, got '${{ inputs.theme_sha }}'"
+          TARGET_SHA="${{ inputs.theme_sha }}"
+          if [ -z "$TARGET_SHA" ]; then
+            TARGET_SHA="${{ github.sha }}"
+          fi
+          if ! printf '%s' "$TARGET_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::theme_sha must be a full lowercase 40-character commit SHA, got '$TARGET_SHA'"
             exit 1
           fi
+          echo "theme_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -27,11 +35,11 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Generate theme with explicit THEME_SHA
         env:
-          THEME_SHA: ${{ inputs.theme_sha }}
+          THEME_SHA: ${{ steps.resolve.outputs.theme_sha }}
         run: npm run generate
       - name: Assert emitted build stamp matches 0.0.0+<theme_sha>
         env:
-          EXPECTED_SHA: ${{ inputs.theme_sha }}
+          EXPECTED_SHA: ${{ steps.resolve.outputs.theme_sha }}
         run: |
           node -e '
             const fs = require("fs");
@@ -49,7 +57,7 @@ jobs:
       - run: npm run contract:check
       - uses: actions/upload-artifact@v4
         with:
-          name: theme-artifact-${{ inputs.theme_sha }}
+          name: theme-artifact-${{ steps.resolve.outputs.theme_sha }}
           path: dist/theme.xml
           if-no-files-found: error
           retention-days: 90
