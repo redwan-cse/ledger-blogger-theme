@@ -779,6 +779,37 @@ export function initArticleAudioReader(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Module 9: Accessible Iframe Titles (Comment Form & Embeds)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ensures embedded iframes (e.g. Blogger comment form) always carry an accessible title attribute.
+ */
+export function initIframeAccessibility(): void {
+  function fixIframes(): void {
+    document.querySelectorAll<HTMLIFrameElement>('iframe').forEach((iframe) => {
+      if (!iframe.getAttribute('title')) {
+        const id = iframe.id || iframe.name || 'comment-form';
+        iframe.setAttribute('title', id.includes('comment') ? 'Comment Form' : 'Embedded Content');
+      }
+      if (!iframe.getAttribute('aria-label')) {
+        const id = iframe.id || iframe.name || 'comment-form';
+        iframe.setAttribute('aria-label', id.includes('comment') ? 'Comment Form' : 'Embedded Content');
+      }
+    });
+  }
+
+  fixIframes();
+
+  if (typeof MutationObserver !== 'undefined' && document.body) {
+    const observer = new MutationObserver(() => {
+      fixIframes();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Global Initialization
 // ---------------------------------------------------------------------------
 
@@ -791,6 +822,7 @@ function init(): void {
   initCodeBlockEnhancements();
   initTableOfContents();
   initArticleAudioReader();
+  initIframeAccessibility();
 }
 
 if (typeof document !== 'undefined') {
@@ -800,3 +832,4 @@ if (typeof document !== 'undefined') {
     init();
   }
 }
+

@@ -92,7 +92,7 @@ b:includable(id='commentForm' var='post')
       p
         b:eval(expr='data:this.messages.blogComment')/
     b:include(data='post' name='commentFormIframeSrc')/
-    iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
+    iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' expr:title='data:messages.postAComment ?: "Comment Form"' aria-label='Comment Form' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
     | <data:post.cmtfpIframe/>
     script(type='text/javascript').
       BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
@@ -122,10 +122,11 @@ b:includable(id='threadedCommentForm' var='post')
       p
         b:eval(expr='data:this.messages.blogComment')/
     b:include(data='post' name='commentFormIframeSrc')/
-    iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
+    iframe.blogger-iframe-colorize.blogger-comment-from-post(expr:height='data:cmtIframeInitialHeight ?: "90px"' expr:title='data:messages.postAComment ?: "Comment Form"' aria-label='Comment Form' frameborder='0' id='comment-editor' name='comment-editor' src='' width='100%')
     | <data:post.cmtfpIframe/>
     script(type='text/javascript').
       BLOG_CMT_createIframe('<data:post.appRpcRelayPath/>');
+
 
 b:includable(id='threadedCommentJs' var='post')
   script(async='async' expr:src='data:post.commentSrc' type='text/javascript')/
