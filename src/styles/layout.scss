@@ -1898,9 +1898,18 @@ html[data-theme='dark'] {
 
   .site-title,
   .site-title a,
+  .post-title,
   .post-title a,
+  .post-author-mini-name,
+  .post-author-name,
+  .author-name,
+  .author-bio-name,
   .drawer-nav-link,
-  .toc-link {
+  .drawer-title,
+  .search-modal-title,
+  .empty-state-title,
+  .toc-link,
+  .hero-btn-tertiary {
     color: oklch(98.415% 0.0034 247.858);
   }
 
@@ -1926,10 +1935,18 @@ html[data-theme='dark'] {
 
   .site-tagline,
   .post-date,
+  .post-meta-row,
+  .post-meta-sep,
+  .post-excerpt,
+  .post-summary,
+  .post-snippet,
+  .empty-state-desc,
+  .empty-state-text,
   .toc-title,
   .footer-container,
+  .footer-bio,
   .comments-title {
-    color: oklch(65.613% 0.0019 247.851);
+    color: oklch(78% 0.015 255);
   }
 
   .post-card,
