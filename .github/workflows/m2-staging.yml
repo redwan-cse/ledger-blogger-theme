@@ -30,8 +30,8 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.theme_sha }}
+      - name: Checkout target commit SHA
+        run: git reset --hard "${{ inputs.theme_sha }}"
       - uses: actions/setup-node@v4
         with:
           node-version: '24.18.1'
