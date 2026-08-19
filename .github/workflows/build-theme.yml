@@ -21,7 +21,9 @@ jobs:
           fi
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.theme_sha }}
+          fetch-depth: 0
+      - name: Checkout target commit SHA
+        run: git checkout "${{ inputs.theme_sha }}"
       - uses: actions/setup-node@v7
         with:
           node-version: '24.18.1'
