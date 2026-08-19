@@ -21,7 +21,8 @@ const tmp = await mkdtemp(path.join(os.tmpdir(), 'ledger-lighthouse-'));
 try {
   for (const [name, url] of [['home', home], ['post', postUrl]] as const) {
     const output = path.join(tmp, `${name}.json`);
-    execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
+    execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--preset=desktop', '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
+
     const report = JSON.parse(await readFile(output, 'utf8'));
     const performance = report.categories.performance.score;
     const accessibility = report.categories.accessibility.score;
