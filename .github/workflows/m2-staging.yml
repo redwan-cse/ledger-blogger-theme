@@ -40,18 +40,22 @@ jobs:
           THEME_SHA: ${{ inputs.theme_sha }}
         run: npm run generate
       - name: Assert generated theme build stamp equals expected theme_sha
+        env:
+          EXPECTED_SHA: ${{ inputs.theme_sha }}
         run: |
-          EXPECTED="0.0.0+${{ inputs.theme_sha }}"
-          ACTUAL=$(grep -o 'theme-build" content="[^"]*"' dist/theme.xml | cut -d'"' -f3 || grep -o "content='[^']*' name='theme-build'" dist/theme.xml | cut -d"'" -f2 || true)
-          if [ -z "$ACTUAL" ]; then
-            ACTUAL=$(grep 'theme-build' dist/theme.xml | grep -o '0\.0\.0+[0-9a-f]\{40\}' || true)
-          fi
-          echo "Expected local build stamp: $EXPECTED"
-          echo "Actual local build stamp:   $ACTUAL"
-          if [ "$ACTUAL" != "$EXPECTED" ]; then
-            echo "::error::Generated theme stamp '$ACTUAL' does not match expected '$EXPECTED'"
-            exit 1
-          fi
+          node -e '
+            const fs = require("fs");
+            const xml = fs.readFileSync("dist/theme.xml", "utf8");
+            const expected = "0.0.0+" + process.env.EXPECTED_SHA;
+            const match = xml.match(/content=["\x27]([^"\x27]+)["\x27]\s+name=["\x27]theme-build["\x27]/) || xml.match(/name=["\x27]theme-build["\x27]\s+content=["\x27]([^"\x27]+)["\x27]/);
+            const actual = match ? match[1] : "";
+            console.log("Expected local build stamp: " + expected);
+            console.log("Actual local build stamp:   " + actual);
+            if (actual !== expected) {
+              console.error("::error::Generated theme stamp mismatch: expected " + expected + ", got " + actual);
+              process.exit(1);
+            }
+          '
       - run: npm run contract:check
       - run: npm run test:golden
       - name: Report the deployed build stamp before credential-gated assertions
