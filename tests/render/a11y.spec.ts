@@ -17,13 +17,18 @@ function olderUrl(html: string): string | undefined {
 
 let targets: ViewTarget[] = [];
 
-test.beforeAll(async ({ request }) => {
+test.beforeAll(async () => {
   const stagingUrl = required('STAGING_URL');
-  const response = await request.get(stagingUrl);
-  expect(response.status()).toBeLessThan(400);
-  const homeHtml = await response.text();
-  expect(extractThemeBuild(homeHtml)).toBe(required('EXPECTED_THEME_BUILD'));
   const client = new HarnessHttpClient();
+  let homeRes = await client.get(stagingUrl);
+  if (homeRes.status === 429) {
+    await new Promise((r) => setTimeout(r, 8000));
+    homeRes = await client.get(stagingUrl);
+  }
+  expect(homeRes.status).toBeLessThan(400);
+  const homeHtml = homeRes.body;
+  expect(extractThemeBuild(homeHtml)).toBe(required('EXPECTED_THEME_BUILD'));
+
   const discovery = new BloggerDiscoveryClient(client, {
     ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
     ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {})
