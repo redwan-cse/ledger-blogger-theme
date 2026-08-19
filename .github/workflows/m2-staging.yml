@@ -30,16 +30,6 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Ensure target commit SHA is checked out
-        run: |
-          CURRENT_SHA=$(git rev-parse HEAD)
-          echo "Current checked-out commit: $CURRENT_SHA"
-          echo "Target theme SHA:           ${{ inputs.theme_sha }}"
-          if [ "$CURRENT_SHA" != "${{ inputs.theme_sha }}" ]; then
-            git checkout "${{ inputs.theme_sha }}"
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '24.18.1'
