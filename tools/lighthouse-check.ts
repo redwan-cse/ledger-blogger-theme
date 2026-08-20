@@ -20,9 +20,14 @@ if (!postUrl) throw new Error('No post URL available for Lighthouse verification
 const labeled = posts.find((item) => item.labels.length > 0);
 const labelUrl = labeled ? new URL(`search/label/${encodeURIComponent(labeled.labels[0] ?? '')}`, home).href : undefined;
 const targets: Array<readonly [string, string]> = [['home', home], ['post', postUrl]];
-if (labelUrl) targets.push(['label', labelUrl]);
+if (labelUrl) {
+  targets.push(['label', labelUrl]);
+} else {
+  console.log('[SKIP] label view was not measured: no labeled post discovered');
+}
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'ledger-lighthouse-'));
+
 try {
   for (const [name, url] of targets) {
     const output = path.join(tmp, `${name}.json`);
