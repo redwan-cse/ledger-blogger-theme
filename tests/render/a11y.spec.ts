@@ -45,6 +45,8 @@ test.beforeAll(async () => {
 });
 
 
+const paceMs = Number.parseInt(process.env.HARNESS_PACE_MS ?? '4000', 10);
+
 test('R-A11Y-1: all ten real Blogger views have no serious or critical axe violations', async ({ page, javaScriptEnabled }) => {
   test.skip(!javaScriptEnabled, 'Axe accessibility audits require JavaScript to evaluate rules in the browser context.');
   for (const target of targets) {
@@ -52,12 +54,16 @@ test('R-A11Y-1: all ten real Blogger views have no serious or critical axe viola
       console.log(`[SKIP] ${target.name} was not measured: ${target.missingReason}`);
       continue;
     }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    await page.goto(target.url);
+    await new Promise((resolve) => setTimeout(resolve, paceMs));
+    const response = await page.goto(target.url);
+    expect(response, `${target.name} returned no response`).not.toBeNull();
+    if (target.name === 'error') {
+      expect(response!.status()).toBe(404);
+    } else {
+      expect(response!.status(), `${target.name} HTTP status`).toBeLessThan(400);
+    }
     const result = await new AxeBuilder({ page }).analyze();
     const blocking = result.violations.filter((violation) => violation.impact === 'serious' || violation.impact === 'critical');
     expect(blocking, `${target.name}: ${JSON.stringify(blocking, null, 2)}`).toEqual([]);
   }
-
 });
-

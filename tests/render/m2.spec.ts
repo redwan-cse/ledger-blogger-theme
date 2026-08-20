@@ -43,14 +43,17 @@ test.beforeAll(async () => {
 });
 
 
+const paceMs = Number.parseInt(process.env.HARNESS_PACE_MS ?? '4000', 10);
+
 test('all ten views render visible server content', async ({ page }) => {
   for (const target of targets) {
     if (!target.url) {
       console.log(`[SKIP] ${target.name} was not measured: ${target.missingReason}`);
       continue;
     }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, paceMs));
     const response = await page.goto(target.url);
+
     expect(response, `${target.name} returned no navigation response`).not.toBeNull();
     if (target.name === 'error') expect(response!.status()).toBe(404);
     else expect(response!.status(), target.name).toBeLessThan(400);
