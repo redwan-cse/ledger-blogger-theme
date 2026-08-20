@@ -11,10 +11,8 @@ b:includable(id='post' var='post')
     //- Featured image on list views
     b:if(cond='data:post.featuredImage and not data:view.isSingleItem')
       a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
-        b:if(cond='data:post.isFirstPost')
-          img.post-thumbnail(expr:src='data:post.featuredImage' fetchpriority='high' loading='eager' alt='' width='1200' height='630')/
-        b:if(cond='not data:post.isFirstPost')
-          img.post-thumbnail(expr:src='data:post.featuredImage' loading='lazy' decoding='async' alt='' width='1200' height='630')/
+        img.post-thumbnail(expr:src='data:post.featuredImage' loading='lazy' alt='' width='1200' height='630')/
+
 
     b:if(cond='data:view.isSingleItem')
       b:include(name='postBody' data='post')/
