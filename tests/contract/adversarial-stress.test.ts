@@ -401,7 +401,7 @@ describe('Adversarial Stress Test: All 39 Contract Rules', () => {
       const noTitle = xml.replace('<meta name="twitter:title" expr:content="data:view.title.escaped"/>', '');
       expect(rules(noTitle)).toEqual(['twitter-metadata']);
 
-      const noCard = xml.replace('<meta name="twitter:card" content="summary_large_image"/>', '').replace('<meta name="twitter:card" content="summary"/>', '');
+      const noCard = xml.replaceAll('<meta name="twitter:card" content="summary_large_image"/>', '').replaceAll('<meta name="twitter:card" content="summary"/>', '');
       expect(rules(noCard)).toEqual(['twitter-metadata']);
     });
   });

@@ -505,10 +505,8 @@
     <b:if cond="data:view.featuredImage">
       <meta property="og:image" expr:content="data:view.featuredImage"/>
     </b:if>
-    <b:if cond="not data:view.featuredImage">
-      <b:with value="data:blog.postImageThumbnailUrl ?: &quot;https://redwan.work/profile.jpg&quot;" var="fallbackImg">
-        <meta property="og:image" expr:content="data:fallbackImg"/>
-      </b:with>
+    <b:if cond="not data:view.featuredImage and data:blog.postImageThumbnailUrl">
+      <meta property="og:image" expr:content="data:blog.postImageThumbnailUrl"/>
     </b:if>
     <meta name="twitter:site" content="@redwancse"/>
     <meta name="twitter:creator" content="@redwancse"/>
@@ -516,11 +514,12 @@
       <meta name="twitter:card" content="summary_large_image"/>
       <meta name="twitter:image" expr:content="data:view.featuredImage"/>
     </b:if>
-    <b:if cond="not data:view.featuredImage">
+    <b:if cond="not data:view.featuredImage and data:blog.postImageThumbnailUrl">
+      <meta name="twitter:card" content="summary_large_image"/>
+      <meta name="twitter:image" expr:content="data:blog.postImageThumbnailUrl"/>
+    </b:if>
+    <b:if cond="not data:view.featuredImage and not data:blog.postImageThumbnailUrl">
       <meta name="twitter:card" content="summary"/>
-      <b:with value="data:blog.postImageThumbnailUrl ?: &quot;https://redwan.work/profile.jpg&quot;" var="fallbackImg">
-        <meta name="twitter:image" expr:content="data:fallbackImg"/>
-      </b:with>
     </b:if>
     <meta name="twitter:title" expr:content="data:view.title.escaped"/>
     <b:if cond="data:view.description">
@@ -587,11 +586,7 @@
             },
             "publisher": {
               "@type": "Organization",
-              "name": "<data:blog.title.jsonEscaped/>",
-              "logo": {
-                "@type": "ImageObject",
-                "url": "https://redwan.work/profile.jpg"
-              }
+              "name": "<data:blog.title.jsonEscaped/>"
             }
           }
         </script>

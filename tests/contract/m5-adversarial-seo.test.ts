@@ -170,13 +170,24 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   output = output.replace(/<b:if cond="data:view\.description">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>/g, `<meta property="og:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
 
   // 7. Resolve OpenGraph Image
-  const fallbackFavicon = `${ctx.blog.canonicalHomepageUrl.replace(/\/+$/, '')}/favicon.ico`;
-  const ogImg = ctx.view.featuredImage || ctx.blog.postImageThumbnailUrl || fallbackFavicon;
-  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta [^>]*property="og:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">[\s\S]*?<meta [^>]*property="og:image"[^>]*\/>[\s\S]*?<\/b:if>/g, `<meta property="og:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
+  let resolvedOgImg = '';
+  if (ctx.view.featuredImage) {
+    resolvedOgImg = `<meta property="og:image" content="${bloggerHtmlEscape(ctx.view.featuredImage)}"/>`;
+  } else if (ctx.blog.postImageThumbnailUrl) {
+    resolvedOgImg = `<meta property="og:image" content="${bloggerHtmlEscape(ctx.blog.postImageThumbnailUrl)}"/>`;
+  }
+  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta [^>]*property="og:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage and data:blog\.postImageThumbnailUrl">\s*<meta [^>]*property="og:image"[^>]*\/>\s*<\/b:if>/g, resolvedOgImg);
 
   // 8. Resolve Twitter Card & Image
-  const twitterCardType = ctx.view.featuredImage ? 'summary_large_image' : 'summary';
-  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta [^>]*name="twitter:card"[^>]*\/>\s*<meta [^>]*name="twitter:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">\s*<meta [^>]*name="twitter:card"[^>]*\/>[\s\S]*?<meta [^>]*name="twitter:image"[^>]*\/>[\s\S]*?<\/b:if>/g, `<meta name="twitter:card" content="${twitterCardType}"/>\n<meta name="twitter:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
+  let resolvedTwitter = '';
+  if (ctx.view.featuredImage) {
+    resolvedTwitter = `<meta name="twitter:card" content="summary_large_image"/>\n<meta name="twitter:image" content="${bloggerHtmlEscape(ctx.view.featuredImage)}"/>`;
+  } else if (ctx.blog.postImageThumbnailUrl) {
+    resolvedTwitter = `<meta name="twitter:card" content="summary_large_image"/>\n<meta name="twitter:image" content="${bloggerHtmlEscape(ctx.blog.postImageThumbnailUrl)}"/>`;
+  } else {
+    resolvedTwitter = `<meta name="twitter:card" content="summary"/>`;
+  }
+  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta [^>]*name="twitter:card"[^>]*\/>\s*<meta [^>]*name="twitter:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage and data:blog\.postImageThumbnailUrl">\s*<meta [^>]*name="twitter:card"[^>]*\/>\s*<meta [^>]*name="twitter:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage and not data:blog\.postImageThumbnailUrl">\s*<meta [^>]*name="twitter:card"[^>]*\/>\s*<\/b:if>/g, resolvedTwitter);
 
   // 9. Resolve Twitter Title & Description
   output = output.replace(/<meta\b[^>]*name="twitter:title"[^>]*\/?>/g, `<meta name="twitter:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
@@ -246,11 +257,7 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
 
     blogPostingObj.publisher = {
       '@type': 'Organization',
-      name: ctx.blog.title,
-      logo: {
-        '@type': 'ImageObject',
-        url: fallbackFavicon
-      }
+      name: ctx.blog.title
     };
 
     const blogPostingJson = JSON.stringify(blogPostingObj, null, 2);
@@ -783,7 +790,7 @@ describe('Empirical Challenge: Milestone M5 SEO, JSON-LD, & Social Metadata Robu
   });
 
   describe('Suite 4: OpenGraph and Twitter Fallback Chains Verification', () => {
-    it('verifies OpenGraph image fallback: featuredImage -> postThumbnail -> favicon', () => {
+    it('verifies OpenGraph image fallback: featuredImage -> postThumbnail -> omitted', () => {
       // 1. featuredImage present
       const res1 = renderHeadMetadata(themeXml, {
         blog: { title: 'B', canonicalHomepageUrl: 'https://b.blogspot.com', postImageThumbnailUrl: 'https://b.blogspot.com/thumb.jpg' },
@@ -798,14 +805,14 @@ describe('Empirical Challenge: Milestone M5 SEO, JSON-LD, & Social Metadata Robu
         view: { title: 'V', url: { canonical: 'https://b.blogspot.com/p1.html' } }
       });
       expect(res2.metaTags['og:image']).toBe('https://b.blogspot.com/thumb.jpg');
-      expect(res2.metaTags['twitter:card']).toBe('summary');
+      expect(res2.metaTags['twitter:card']).toBe('summary_large_image');
 
-      // 3. both absent, falls back to favicon
+      // 3. both absent, og:image is cleanly omitted and twitter:card defaults to summary
       const res3 = renderHeadMetadata(themeXml, {
         blog: { title: 'B', canonicalHomepageUrl: 'https://b.blogspot.com' },
         view: { title: 'V', url: { canonical: 'https://b.blogspot.com/p1.html' } }
       });
-      expect(res3.metaTags['og:image']).toBe('https://b.blogspot.com/favicon.ico');
+      expect(res3.metaTags['og:image']).toBeUndefined();
       expect(res3.metaTags['twitter:card']).toBe('summary');
     });
 
