@@ -506,7 +506,7 @@
       <meta property="og:image" expr:content="data:view.featuredImage"/>
     </b:if>
     <b:if cond="not data:view.featuredImage">
-      <b:with value="data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path &quot;favicon.ico&quot;)" var="fallbackImg">
+      <b:with value="data:blog.postImageThumbnailUrl ?: &quot;https://redwan.work/profile.jpg&quot;" var="fallbackImg">
         <meta property="og:image" expr:content="data:fallbackImg"/>
       </b:with>
     </b:if>
@@ -518,7 +518,7 @@
     </b:if>
     <b:if cond="not data:view.featuredImage">
       <meta name="twitter:card" content="summary"/>
-      <b:with value="data:blog.postImageThumbnailUrl ?: (data:blog.canonicalHomepageUrl path &quot;favicon.ico&quot;)" var="fallbackImg">
+      <b:with value="data:blog.postImageThumbnailUrl ?: &quot;https://redwan.work/profile.jpg&quot;" var="fallbackImg">
         <meta name="twitter:image" expr:content="data:fallbackImg"/>
       </b:with>
     </b:if>

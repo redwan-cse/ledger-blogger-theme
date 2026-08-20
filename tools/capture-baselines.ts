@@ -4,12 +4,13 @@ import path from 'node:path';
 import { BloggerDiscoveryClient } from './harness/blogger-api.js';
 import { extractThemeBuild } from './harness/build-stamp.js';
 import { HarnessHttpClient } from './harness/http.js';
-import { createViewTargets, type ViewTarget } from './harness/views.js';
+import { createViewTargets } from './harness/views.js';
 
 const STAGING_URL = process.env.STAGING_URL?.trim() || 'https://blogs.redwan.work/';
 const BLOG_ID = process.env.BLOGGER_BLOG_ID?.trim() || '5972841034338492159';
 const EXPECTED_BUILD = process.env.EXPECTED_THEME_BUILD?.trim();
 const OUTPUT_DIR = path.resolve('artifacts/baselines');
+const PACE_MS = Number.parseInt(process.env.HARNESS_PACE_MS ?? '4000', 10);
 
 const VIEWPORT_BOUNDARIES = [
   { width: 375, height: 667, name: '375_mobile_small' },
@@ -26,6 +27,7 @@ const VIEWPORT_BOUNDARIES = [
 async function main() {
   await mkdir(OUTPUT_DIR, { recursive: true });
   console.log(`[M3b Baselines] Initializing baseline capture for: ${STAGING_URL}`);
+  console.log(`[M3b Baselines] Rate-limit pacing: ${PACE_MS}ms between page loads`);
 
   // 1. Build Stamp Provenance Check
   const client = new HarnessHttpClient();
@@ -45,6 +47,7 @@ async function main() {
   let pages: readonly any[] = [];
 
   if (process.env.BLOGGER_API_KEY || process.env.BLOGGER_ACCESS_TOKEN) {
+    console.log(`[M3b Baselines] Target discovery source: BLOGGER_API (Authenticated discovery)`);
     const discovery = new BloggerDiscoveryClient(client, {
       ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
       ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {})
@@ -54,20 +57,28 @@ async function main() {
       discovery.listPages(BLOG_ID).catch(() => [])
     ]);
   } else {
-    // Scrape from rendered homepage HTML
-    const postMatches = [...homeRes.body.matchAll(/<a\b[^>]*href=["']([^"']*\/\d{4}\/\d{2}\/[^"']*\.html)["']/g)];
+    console.log(`[M3b Baselines] Target discovery source: HTML_SCRAPED (No Blogger API credentials in environment)`);
+    // Scrape from rendered homepage HTML without invented values
+    const postMatches = [...homeRes.body.matchAll(/<a\b[^>]*href=["']([^"']*\/(\d{4})\/(\d{2})\/[^"']*\.html)["']/g)];
     if (postMatches.length > 0) {
-      posts = postMatches.map((m, i) => ({
-        id: `scraped-post-${i}`,
-        title: 'Post Article',
-        published: '2026-08-01T00:00:00Z',
-        url: m[1],
-        labels: []
-      }));
+      posts = postMatches.map((m, i) => {
+        const year = m[2] ?? '2026';
+        const month = m[3] ?? '08';
+        return {
+          id: `scraped-post-${i}`,
+          title: `Discovered Post ${i + 1}`,
+          published: `${year}-${month}-01T00:00:00Z`,
+          url: m[1],
+          labels: []
+        };
+      });
     }
     const labelMatch = homeRes.body.match(/<a\b[^>]*href=["']([^"']*\/search\/label\/[^"']*)["']/);
     if (labelMatch && posts.length > 0) {
-      posts[0].labels = [decodeURIComponent(labelMatch[1]?.split('/search/label/')[1]?.split('?')[0] ?? '')];
+      const labelText = decodeURIComponent(labelMatch[1]?.split('/search/label/')[1]?.split('?')[0] ?? '');
+      if (labelText) {
+        posts = [{ ...posts[0], labels: [labelText] }, ...posts.slice(1)];
+      }
     }
   }
 
@@ -89,7 +100,7 @@ async function main() {
   const errorTarget = targets.find((t) => t.name === 'error');
   if (errorTarget?.url) viewsToCapture.push({ id: 'error', name: '404 Error State', url: errorTarget.url });
 
-  console.log(`[M3b Baselines] Discovered ${viewsToCapture.length} views to baseline:`);
+  console.log(`[M3b Baselines] Configured ${viewsToCapture.length} views across ${VIEWPORT_BOUNDARIES.length} viewports (Total: ${viewsToCapture.length * VIEWPORT_BOUNDARIES.length * 2} snapshots):`);
   for (const v of viewsToCapture) {
     console.log(`  - [${v.id}] ${v.name}: ${v.url}`);
   }
@@ -98,12 +109,17 @@ async function main() {
   let totalCaptured = 0;
 
   async function capturePage(url: string, vp: typeof VIEWPORT_BOUNDARIES[number], mode: 'light' | 'dark', outPath: string): Promise<void> {
+    await new Promise((r) => setTimeout(r, PACE_MS)); // Strict rate-limit pacing
+
     const context = await browser.newContext({
       viewport: { width: vp.width, height: vp.height },
       colorScheme: mode
     });
+
+    // Seed exact theme storage keys in browser context before DOM initialization
     await context.addInitScript((themeMode) => {
       try {
+        localStorage.setItem('ledger_theme', themeMode);
         localStorage.setItem('theme', themeMode);
       } catch {}
       document.documentElement.setAttribute('data-theme', themeMode);
@@ -111,27 +127,19 @@ async function main() {
 
     const page = await context.newPage();
 
-    let retries = 3;
-    while (retries > 0) {
-      try {
-        await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
-        break;
-      } catch (err: any) {
-        retries--;
-        if (retries === 0) throw err;
-        console.log(`    [Retry] Connection hiccup on ${vp.name} (${mode}), waiting 2s...`);
-        await new Promise((r) => setTimeout(r, 2000));
-      }
+    const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+    if (!response) {
+      throw new Error(`[M3b Baselines] BLOCKED: Navigation returned null response for ${url} at ${vp.name}`);
     }
 
-    await page.evaluate((themeMode) => {
-      document.documentElement.setAttribute('data-theme', themeMode);
-    }, mode);
-    await new Promise((r) => setTimeout(r, 400));
+    // Explicitly verify and assert active theme mode before capturing
+    const actualTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    if (actualTheme !== mode) {
+      throw new Error(`[M3b Baselines] THEME ASSERTION FAILED: Expected data-theme='${mode}', but DOM has '${actualTheme}'. Capture aborted to prevent mislabeled evidence.`);
+    }
 
     await page.screenshot({ path: outPath, fullPage: true });
     await context.close();
-    await new Promise((r) => setTimeout(r, 800)); // Pacing hygiene
   }
 
   try {
