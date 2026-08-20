@@ -892,11 +892,11 @@
             <b:if cond="data:olderPageUrl or data:newerPageUrl">
               <nav class="post-nav post-navigation" aria-label="Post navigation">
                 <b:if cond="data:olderPageUrl"><a class="post-nav-item post-nav-prev" expr:href="data:olderPageUrl" rel="prev">
-                    <div class="post-nav-text"><span class="post-nav-direction">← Previous Article</span><span class="post-nav-title">
-                        <b:eval expr="data:olderPageTitle ?: &quot;Previous Article&quot;"/></span></div></a></b:if>
+                    <div class="post-nav-text"><span class="post-nav-direction">← Older</span><span class="post-nav-title">
+                        <b:eval expr="data:messages.olderPosts ?: &quot;Older Post&quot;"/></span></div></a></b:if>
                 <b:if cond="data:newerPageUrl"><a class="post-nav-item post-nav-next" expr:href="data:newerPageUrl" rel="next">
-                    <div class="post-nav-text"><span class="post-nav-direction">Next Article →</span><span class="post-nav-title">
-                        <b:eval expr="data:newerPageTitle ?: &quot;Next Article&quot;"/></span></div></a></b:if>
+                    <div class="post-nav-text"><span class="post-nav-direction">Newer →</span><span class="post-nav-title">
+                        <b:eval expr="data:messages.newerPosts ?: &quot;Newer Post&quot;"/></span></div></a></b:if>
               </nav>
             </b:if>
           </b:includable>
@@ -1160,15 +1160,6 @@
             </div>
             <p class="sidebar-bio">Cybersecurity Researcher &amp; Engineer. Founder &amp; CEO of Fast Cyber Defense. Specializing in Penetration Testing, Red Teaming, and AI Security.</p>
             <div class="sidebar-actions"><a class="sidebar-btn sidebar-btn-primary" href="https://cal.com/redwancse" target="_blank" rel="noopener noreferrer"><span>Book Consultation →</span></a><a class="sidebar-btn sidebar-btn-secondary" href="https://redwan.work/" target="_blank" rel="noopener noreferrer"><span>Portfolio</span></a></div>
-          </div>
-          <div class="sidebar-card sidebar-cta-card">
-            <div class="sidebar-cta-tag">// DIRECT ADVISORY</div>
-            <h4 class="sidebar-cta-title">Need a Security Audit?</h4>
-            <p class="sidebar-cta-desc">Direct vulnerability assessments, red team engagements, and cloud infrastructure security reviews.</p><a class="sidebar-cta-btn" href="https://cal.com/redwancse" target="_blank" rel="noopener noreferrer"><span>Schedule a Call ↗</span></a>
-          </div>
-          <div class="sidebar-card sidebar-status-card">
-            <div class="sidebar-status-header"><span class="status-beacon"></span><span class="sidebar-status-label">Live System Status</span></div>
-            <p class="sidebar-status-text">All research labs, offensive tooling, and adversary emulation systems operational.</p>
           </div>
         </aside>
       </b:if>

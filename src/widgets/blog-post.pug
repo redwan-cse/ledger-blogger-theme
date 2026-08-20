@@ -124,15 +124,15 @@ b:includable(id='postNav' var='post')
       b:if(cond='data:olderPageUrl')
         a.post-nav-item.post-nav-prev(expr:href='data:olderPageUrl' rel='prev')
           .post-nav-text
-            span.post-nav-direction ← Previous Article
+            span.post-nav-direction ← Older
             span.post-nav-title
-              b:eval(expr='data:olderPageTitle ?: "Previous Article"')/
+              b:eval(expr='data:messages.olderPosts ?: "Older Post"')/
       b:if(cond='data:newerPageUrl')
         a.post-nav-item.post-nav-next(expr:href='data:newerPageUrl' rel='next')
           .post-nav-text
-            span.post-nav-direction Next Article →
+            span.post-nav-direction Newer →
             span.post-nav-title
-              b:eval(expr='data:newerPageTitle ?: "Next Article"')/
+              b:eval(expr='data:messages.newerPosts ?: "Newer Post"')/
 
 b:includable(id='postFooter' var='post')
   b:if(cond='data:post.labels')
