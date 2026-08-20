@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+GOLDEN_SHA_40_CHARS________________" name="theme-build"/>
+    <meta content="0.0.0+08083bf4464c2ef655b7ea6ef322c9e4938e74e2" name="theme-build"/>
     <title><data:view.title.escaped/></title>
     <b:include data="blog" name="all-head-content"/>
     <b:skin version="0.0.0">
@@ -453,9 +453,8 @@
     </b:defaultmarkups>
     <link rel="canonical" expr:href="data:view.url.canonical"/>
     <link rel="preconnect" href="https://redwan.work" crossorigin="anonymous"/>
-    <link rel="dns-prefetch" href="https://redwan.work"/>
     <b:if cond="data:view.isHomepage and not data:newerPageUrl">
-      <link rel="preload" as="image" href="https://redwan.work/profile.jpg" fetchpriority="high"/>
+      <link rel="preload" as="image" href="https://redwan.work/profile.jpg" media="(min-width: 768px)" fetchpriority="high"/>
     </b:if>
     <b:if cond="data:view.isPost and data:view.featuredImage">
       <link rel="preload" as="image" expr:href="data:view.featuredImage" fetchpriority="high"/>
@@ -772,7 +771,9 @@
               <b:include name="postMeta" data="post"/>
               <b:include name="postTitle" data="post"/>
               <b:include name="postHeader" data="post"/>
-              <b:if cond="data:post.featuredImage and not data:view.isSingleItem"><a class="post-thumbnail-link" expr:href="data:post.url" tabindex="-1" aria-hidden="true"><img class="post-thumbnail" expr:src="data:post.featuredImage" loading="lazy" alt="" width="1200" height="630"/></a></b:if>
+              <b:if cond="data:post.featuredImage and not data:view.isSingleItem"><a class="post-thumbnail-link" expr:href="data:post.url" tabindex="-1" aria-hidden="true">
+                  <b:if cond="data:post.id == data:posts.first.id"><img class="post-thumbnail" expr:src="data:post.featuredImage" fetchpriority="high" loading="eager" alt="" width="1200" height="630"/></b:if>
+                  <b:if cond="data:post.id != data:posts.first.id"><img class="post-thumbnail" expr:src="data:post.featuredImage" loading="lazy" decoding="async" alt="" width="1200" height="630"/></b:if></a></b:if>
               <b:if cond="data:view.isSingleItem">
                 <b:include name="postBody" data="post"/>
                 <b:if cond="data:view.isPost">

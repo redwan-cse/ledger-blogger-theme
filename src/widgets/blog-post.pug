@@ -8,10 +8,14 @@ b:includable(id='post' var='post')
     //- Title first, then date metadata — correct reading order
     b:include(name='postTitle' data='post')/
     b:include(name='postHeader' data='post')/
-    //- Featured image on list views
+    //- Featured image on list views (eager on first post above fold, lazy for remaining)
     b:if(cond='data:post.featuredImage and not data:view.isSingleItem')
       a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
-        img.post-thumbnail(expr:src='data:post.featuredImage' loading='lazy' alt='' width='1200' height='630')/
+        b:if(cond='data:post.id == data:posts.first.id')
+          img.post-thumbnail(expr:src='data:post.featuredImage' fetchpriority='high' loading='eager' alt='' width='1200' height='630')/
+        b:if(cond='data:post.id != data:posts.first.id')
+          img.post-thumbnail(expr:src='data:post.featuredImage' loading='lazy' decoding='async' alt='' width='1200' height='630')/
+
 
 
     b:if(cond='data:view.isSingleItem')

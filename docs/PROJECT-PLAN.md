@@ -484,10 +484,11 @@ highest-fidelity source for real V3 usage available, because Google ships it.
 
 **R-PERF-1 · Fast on a mid-range phone**
 
-- AC1 `[R]` Lighthouse mobile performance ≥ 80 on shared CI virtual runners (≥ 90 on dedicated/local execution)
+- AC1 `[R]` Lighthouse mobile performance ≥ 90 on home and post (Moto G Power, 4G)
 - AC2 `[R]` CLS ≤ 0.05
-- AC3 `[R]` LCP ≤ 3.5s on mobile (calibrated for simulated 4G throttling with Blogger platform 302 ?m=1 redirect and server TTFB; client render delay ≤ 150ms)
+- AC3 `[R]` LCP ≤ 2.5s
 - AC4 `[C]` `dist/theme.xml` ≤ 500 KB
+
 
 
 - AC5 `[C]` Inline JS ≤ 8 KB minified
