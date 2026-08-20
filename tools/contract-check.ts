@@ -89,7 +89,28 @@ export const contractRules: readonly ContractRule[] = [
   { id: 'data-tags-are-paths', requirementId: 'R-V3-2 AC3', message: 'data:* tags must be self-closing property paths.', check: (doc) => active(doc).filter((element) => element.prefix === 'data').every((element) => element.selfClosing && element.children.length === 0 && element.attributes.size === 0 && /^data:[A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*$/.test(element.name)) },
   { id: 'url-path-operator', requirementId: 'R-V3-2 AC4', message: 'Computed URL expressions must use path, never string +.', check: (doc) => active(doc).every((element) => { const direct = ['expr:href', 'expr:src', 'expr:action'].map((name) => attr(element, name)).filter((value): value is string => value !== null); const injectedName = element.namespaceUri === BLOGGER_NS && element.localName === 'attr' ? attr(element, 'name') : null; const injected = injectedName && ['href', 'src', 'action'].includes(injectedName) ? [attr(element, 'expr:value') ?? attr(element, 'value') ?? ''] : []; return [...direct, ...injected].every((value) => !/\+/.test(value)); }) },
   { id: 'json-escaped', requirementId: 'R-V3-2 AC5', message: 'Every JSON-LD interpolation must end in .jsonEscaped.', check: (doc) => active(doc).filter(jsonLdScript).every((script) => descendants(script).filter((element) => element.prefix === 'data' || (element.namespaceUri === BLOGGER_NS && element.localName === 'eval')).every((element) => element.prefix === 'data' ? element.name.endsWith('.jsonEscaped') : /\.jsonEscaped\s*$/.test(attr(element, 'expr') ?? ''))) },
-  { id: 'no-fabricated-metadata', requirementId: 'R-BUILD-1 AC7', message: 'Fabricated reading time, author identity, or Gravatar fallback is not allowed.', check: (doc, xml) => { if (/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar/i.test(xml)) return false; return active(doc).filter((element) => /(?:^|\s)(?:author-name|post-author)(?:\s|$)/.test(attr(element, 'class') ?? '')).every((element) => !/[A-Za-z0-9]/.test(literalText(element))); } },
+  {
+    id: 'no-fabricated-metadata',
+    requirementId: 'R-BUILD-1 AC7',
+    message: 'Fabricated reading time, author identity, unearned trust badges, or Gravatar fallback is not allowed.',
+    check: (doc, xml) => {
+      if (/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar|Verified Researcher|Verified Author|Certified Expert/i.test(xml)) return false;
+      return active(doc)
+        .filter((element) => /(?:^|\s)(?:author-name|post-author|sidebar-name|sidebar-badge|sidebar-bio|author-heading)(?:\s|$)/.test(attr(element, 'class') ?? ''))
+        .every((element) => !/[A-Za-z0-9]/.test(literalText(element)));
+    }
+  },
+  {
+    id: 'robots-directives',
+    requirementId: 'R-SEO-3',
+    message: "<head> must declare meta robots directives with noindex, follow on search, archive, and paginated views while keeping canonical views indexable.",
+    check: (doc) => {
+      const heads = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'head');
+      if (heads.length !== 1) return false;
+      const metas = descendants(heads[0]!).filter((e) => e.localName === 'meta' && attr(e, 'name') === 'robots');
+      return metas.length >= 2;
+    }
+  },
   { id: 'build-stamp', requirementId: 'R-BUILD-2 AC1', message: 'A unique direct-child head meta stamp must equal b:templateVersion plus a full SHA.', check: (doc) => { const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head'); if (heads.length !== 1) return false; const stamps = heads[0]!.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'meta' && attr(child, 'name') === 'theme-build'); const version = attr(doc.root, 'b:templateVersion'); return stamps.length === 1 && version !== null && new RegExp(`^${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\+[0-9a-f]{40}$`, 'i').test(attr(stamps[0]!, 'content') ?? ''); } },
   { id: 'size-budget', requirementId: 'R-PERF-1 AC4', message: 'Generated theme must not exceed 500000 bytes.', check: (_doc, xml) => Buffer.byteLength(xml, 'utf8') <= 500_000 },
   { id: 'css-disabled', requirementId: 'R-PERF-1 AC7', message: "<html> must carry b:css='false'.", check: (doc) => attr(doc.root, 'b:css') === 'false' },
@@ -161,7 +182,7 @@ export const contractRules: readonly ContractRule[] = [
   {
     id: 'defensive-defaultmarkups',
     requirementId: 'R-NAV-2 AC5',
-    message: 'Theme must declare <b:defaultmarkups> in <head> covering Common, PopularPosts, FeaturedPost, ContactForm, BlogArchive, and Label.',
+    message: 'Theme must declare <b:defaultmarkups> in <head> covering Common, PopularPosts, FeaturedPost, ContactForm, BlogArchive, Label, and Attribution.',
     check: (doc) => {
       const heads = doc.root.children.filter((child): child is XmlElement => child.kind === 'element' && child.localName === 'head');
       if (heads.length !== 1) return false;
@@ -169,7 +190,7 @@ export const contractRules: readonly ContractRule[] = [
       if (defMarkups.length !== 1) return false;
       const markups = descendants(defMarkups[0]!).filter((e) => e.namespaceUri === BLOGGER_NS && e.localName === 'defaultmarkup');
       const types = new Set(markups.map((m) => attr(m, 'type')));
-      const required = ['Common', 'PopularPosts', 'FeaturedPost', 'ContactForm', 'BlogArchive', 'Label'];
+      const required = ['Common', 'PopularPosts', 'FeaturedPost', 'ContactForm', 'BlogArchive', 'Label', 'Attribution'];
       return required.every((req) => types.has(req));
     }
   },

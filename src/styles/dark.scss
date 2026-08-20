@@ -103,12 +103,19 @@ html[data-theme='dark'] {
   .cta-container .cta-box,
   .author-bio-card,
   .post-nav-item,
-  .search-modal-container,
-  .mobile-drawer,
   .table-of-contents {
     background-color: oklch(22.749% 0.0288 266.273);
     border-color: oklch(27.950% 0.0368 260.031);
     box-shadow: none;
+  }
+
+  .mobile-drawer,
+  .search-modal-container {
+    background-color: oklch(16% 0.025 260 / 0.96) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 16px 36px oklch(0% 0 0 / 0.5);
   }
 
   .sidebar-card {

@@ -11,10 +11,16 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
     expect(findings).toEqual([]);
   });
 
-  describe('SEO Metadata in <head> (R-SEO-2)', () => {
+  describe('SEO Metadata in <head> (R-SEO-2, R-SEO-3)', () => {
     it('declares canonical link bound to data:view.url.canonical (R-SEO-2 AC4)', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       expect(xml).toMatch(/<head>[\s\S]*<link rel="canonical" expr:href="data:view\.url\.canonical"\/>[\s\S]*<\/head>/);
+    });
+
+    it('declares robots directives for search, archive, and paginated views (R-SEO-3)', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toMatch(/<b:if cond="data:view\.isSearch or data:view\.isArchive or \(data:view\.isMultipleItems and data:newerPageUrl\)">[\s\S]*?<meta [^>]*name="robots"[^>]*content="noindex, follow"[^>]*\/>/);
+      expect(xml).toMatch(/<meta [^>]*name="robots"[^>]*content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"[^>]*\/>/);
     });
 
     it('declares full suite of OpenGraph tags with dynamic fallback (R-SEO-2 AC1, AC2, AC3)', async () => {
@@ -28,11 +34,13 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
       expect(xml).toMatch(/property="og:image"/);
     });
 
-    it('declares Twitter card meta tags (R-SEO-2 AC1)', async () => {
+    it('declares Twitter card meta tags and creator attributes (R-SEO-2 AC1)', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      expect(xml).toMatch(/<meta name="twitter:card" content="summary_large_image"\/>/);
-      expect(xml).toMatch(/<meta name="twitter:card" content="summary"\/>/);
-      expect(xml).toMatch(/<meta name="twitter:title" expr:content="data:view\.title\.escaped"\/>/);
+      expect(xml).toMatch(/<meta [^>]*name="twitter:site"[^>]*content="@redwancse"[^>]*\/>/);
+      expect(xml).toMatch(/<meta [^>]*name="twitter:creator"[^>]*content="@redwancse"[^>]*\/>/);
+      expect(xml).toMatch(/<meta [^>]*name="twitter:card"[^>]*content="summary_large_image"[^>]*\/>/);
+      expect(xml).toMatch(/<meta [^>]*name="twitter:card"[^>]*content="summary"[^>]*\/>/);
+      expect(xml).toMatch(/<meta [^>]*name="twitter:title"[^>]*expr:content="data:view\.title\.escaped"[^>]*\/>/);
       expect(xml).toMatch(/name="twitter:description"/);
       expect(xml).toMatch(/name="twitter:image"/);
     });

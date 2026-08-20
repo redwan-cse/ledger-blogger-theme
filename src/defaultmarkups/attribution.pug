@@ -1,0 +1,9 @@
+b:defaultmarkup(type='Attribution')
+  b:includable(id='main')
+    div.widget-content
+      b:if(cond='data:copyright')
+        p.attribution-copyright
+          b:eval(expr='data:copyright')/
+      b:if(cond='data:attribution')
+        p.attribution-text
+          b:eval(expr='data:attribution')/

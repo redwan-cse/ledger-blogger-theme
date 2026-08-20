@@ -53,6 +53,7 @@ html&attributes(rootAttributes)
       include defaultmarkups/page-list.pug
       include defaultmarkups/profile.pug
       include defaultmarkups/contact-form.pug
+      include defaultmarkups/attribution.pug
     include partials/head-meta.pug
   body
     b:class(cond='data:view.isHomepage and not data:newerPageUrl' name='is-home-lead')/
@@ -78,9 +79,10 @@ html&attributes(rootAttributes)
           div.sidebar-card.sidebar-profile-card
             div.sidebar-profile-header
               div.sidebar-profile-info
-                h3.sidebar-name Md Redwan Ahmed
-                span.sidebar-badge Verified Researcher
-            p.sidebar-bio Cybersecurity Researcher &amp; Engineer. Founder &amp; CEO of Fast Cyber Defense. Specializing in Penetration Testing, Red Teaming, and AI Security.
+                h3.sidebar-name
+                  b:eval(expr='data:widgets.Blog.first.posts.first.author.name ?: data:blog.title')/
+            p.sidebar-bio
+              b:eval(expr='data:widgets.Blog.first.posts.first.author.aboutMe ?: (data:blog.description ?: "Cybersecurity research, vulnerability analysis, and penetration testing publications.")')/
             div.sidebar-actions
               a.sidebar-btn.sidebar-btn-primary(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer')
                 span Book Consultation →

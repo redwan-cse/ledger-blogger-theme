@@ -22,12 +22,12 @@ const MAIN_OPEN = '<main class="main-content" id="content" role="main">';
 const inject = (xml: string, value: string): string => xml.replace('</main>', `${value}</main>`);
 const rules = (xml: string): string[] => checkThemeContract(xml).map((f) => f.ruleId);
 
-describe('Adversarial Stress Test: All 38 Contract Rules', () => {
-  it('verifies exact registration of all 38 rules', () => {
-    expect(CONTRACT_RULES.length).toBe(38);
-    expect(contractRules.length).toBe(38);
+describe('Adversarial Stress Test: All 39 Contract Rules', () => {
+  it('verifies exact registration of all 39 rules', () => {
+    expect(CONTRACT_RULES.length).toBe(39);
+    expect(contractRules.length).toBe(39);
     const ids = contractRules.map((r) => r.id);
-    expect(new Set(ids).size).toBe(38);
+    expect(new Set(ids).size).toBe(39);
   });
 
   it('validates baseline generated theme has zero findings', async () => {
@@ -232,18 +232,28 @@ describe('Adversarial Stress Test: All 38 Contract Rules', () => {
   });
 
   describe('Rule 16: no-fabricated-metadata (R-BUILD-1 AC7)', () => {
-    it('catches hardcoded reading times, gravatar urls, and hardcoded author names', async () => {
+    it('catches hardcoded reading times, gravatar urls, hardcoded author names, and unearned badges', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       expect(rules(inject(xml, '<p>5 min read</p>'))).toEqual(['no-fabricated-metadata']);
       expect(rules(inject(xml, '<p>12 minutes read</p>'))).toEqual(['no-fabricated-metadata']);
       expect(rules(inject(xml, '<img src="https://gravatar.com/avatar/123456"/>'))).toEqual(['no-fabricated-metadata']);
       expect(rules(inject(xml, '<span class="author-name">John Doe</span>'))).toEqual(['no-fabricated-metadata']);
       expect(rules(inject(xml, '<div class="post-author">Jane Doe</div>'))).toEqual(['no-fabricated-metadata']);
+      expect(rules(inject(xml, '<h3 class="sidebar-name">Md Redwan</h3>'))).toEqual(['no-fabricated-metadata']);
+      expect(rules(inject(xml, '<span class="sidebar-badge">Verified Researcher</span>'))).toEqual(['no-fabricated-metadata']);
     });
 
     it('permits dynamic author markup without literal text', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       expect(rules(inject(xml, '<span class="author-name"><data:post.author.name/></span>'))).toEqual([]);
+    });
+  });
+
+  describe('Rule: robots-directives (R-SEO-3)', () => {
+    it('catches missing meta robots directives in head', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      const noRobots = xml.replace(/<meta\s+content="noindex,\s*follow"\s+name="robots"\/>|<meta\s+name="robots"\s+content="noindex,\s*follow"\/>/, '');
+      expect(rules(noRobots)).toEqual(['robots-directives']);
     });
   });
 

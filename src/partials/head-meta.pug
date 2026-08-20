@@ -1,14 +1,18 @@
 //- Canonical URL
 link(rel='canonical' expr:href='data:view.url.canonical')/
 
+//- Robots Directives
+b:if(cond='data:view.isSearch or data:view.isArchive or (data:view.isMultipleItems and data:newerPageUrl)')
+  meta(name='robots' content='noindex, follow')/
+b:if(cond='not (data:view.isSearch or data:view.isArchive or (data:view.isMultipleItems and data:newerPageUrl))')
+  meta(name='robots' content='index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1')/
+
 //- Resource hints for critical above-the-fold assets
 link(rel='preconnect' href='https://redwan.work' crossorigin='anonymous')/
 b:if(cond='data:view.isHomepage and not data:newerPageUrl')
   link(rel='preload' as='image' href='https://redwan.work/profile.jpg' media='(min-width: 768px)' fetchpriority='high')/
 b:if(cond='data:view.isPost and data:view.featuredImage')
   link(rel='preload' as='image' expr:href='data:view.featuredImage' fetchpriority='high')/
-
-
 
 //- Meta description
 b:if(cond='data:view.description')
@@ -37,6 +41,8 @@ b:if(cond='not data:view.featuredImage')
     meta(property='og:image' expr:content='data:fallbackImg')/
 
 //- Twitter Card Metadata
+meta(name='twitter:site' content='@redwancse')/
+meta(name='twitter:creator' content='@redwancse')/
 b:if(cond='data:view.featuredImage')
   meta(name='twitter:card' content='summary_large_image')/
   meta(name='twitter:image' expr:content='data:view.featuredImage')/
@@ -70,9 +76,13 @@ b:if(cond='data:view.isHomepage or data:view.isSearch')
       }
     }
 
-//- Schema.org BlogPosting JSON-LD
+//- Article OpenGraph & Schema.org BlogPosting JSON-LD on Single Post Views
 b:if(cond='data:view.isPost')
   b:with(value='data:widgets.Blog.first.posts.first' var='post')
+    meta(property='article:published_time' expr:content='data:post.date.iso8601')/
+    b:if(cond='data:post.lastUpdated')
+      meta(property='article:modified_time' expr:content='data:post.lastUpdated.iso8601')/
+    meta(property='article:author' expr:content='data:post.author.name')/
     script(type='application/ld+json').
       {
         "@context": "https://schema.org",
@@ -105,7 +115,7 @@ b:if(cond='data:view.isPost')
           "name": "<data:blog.title.jsonEscaped/>",
           "logo": {
             "@type": "ImageObject",
-            "url": "<b:eval expr='(data:blog.canonicalHomepageUrl path "favicon.ico").jsonEscaped'/>"
+            "url": "https://redwan.work/profile.jpg"
           }
         }
       }

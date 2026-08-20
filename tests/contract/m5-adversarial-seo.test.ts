@@ -162,25 +162,25 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   output = output.replace(/<b:if cond="data:view\.isPost">\s*<meta property="og:type" content="article"\/>\s*<\/b:if>\s*<b:if cond="not data:view\.isPost">\s*<meta property="og:type" content="website"\/>\s*<\/b:if>/g, `<meta property="og:type" content="${ogType}"/>`);
 
   // 5. Resolve OpenGraph Title & URL
-  output = output.replace(/<meta property="og:title" expr:content="data:view\.title\.escaped"\/>/g, `<meta property="og:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
-  output = output.replace(/<meta property="og:url" expr:content="data:view\.url\.canonical"\/>/g, `<meta property="og:url" content="${bloggerHtmlEscape(canonicalUrl)}"/>`);
+  output = output.replace(/<meta\b[^>]*property="og:title"[^>]*\/?>/g, `<meta property="og:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
+  output = output.replace(/<meta\b[^>]*property="og:url"[^>]*\/?>/g, `<meta property="og:url" content="${bloggerHtmlEscape(canonicalUrl)}"/>`);
 
   // 6. Resolve OpenGraph Description
   const ogDesc = viewDesc || blogDesc || ctx.view.title;
-  output = output.replace(/<b:if cond="data:view\.description">\s*<meta property="og:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta property="og:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta property="og:description"[^>]+>\s*<\/b:if>/g, `<meta property="og:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.description">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>/g, `<meta property="og:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
 
   // 7. Resolve OpenGraph Image
   const fallbackFavicon = `${ctx.blog.canonicalHomepageUrl.replace(/\/+$/, '')}/favicon.ico`;
   const ogImg = ctx.view.featuredImage || ctx.blog.postImageThumbnailUrl || fallbackFavicon;
-  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta property="og:image"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">\s*<b:with[^>]+>\s*<meta property="og:image"[^>]+>\s*<\/b:with>\s*<\/b:if>/g, `<meta property="og:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta [^>]*property="og:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">[\s\S]*?<meta [^>]*property="og:image"[^>]*\/>[\s\S]*?<\/b:if>/g, `<meta property="og:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
 
-  // 8. Resolve Twitter Card
+  // 8. Resolve Twitter Card & Image
   const twitterCardType = ctx.view.featuredImage ? 'summary_large_image' : 'summary';
-  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta name="twitter:card"[^>]+>\s*<meta name="twitter:image"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">\s*<meta name="twitter:card"[^>]+>\s*<b:with[^>]+>\s*<meta name="twitter:image"[^>]+>\s*<\/b:with>\s*<\/b:if>/g, `<meta name="twitter:card" content="${twitterCardType}"/>\n<meta name="twitter:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta [^>]*name="twitter:card"[^>]*\/>\s*<meta [^>]*name="twitter:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage">\s*<meta [^>]*name="twitter:card"[^>]*\/>[\s\S]*?<meta [^>]*name="twitter:image"[^>]*\/>[\s\S]*?<\/b:if>/g, `<meta name="twitter:card" content="${twitterCardType}"/>\n<meta name="twitter:image" content="${bloggerHtmlEscape(ogImg)}"/>`);
 
   // 9. Resolve Twitter Title & Description
-  output = output.replace(/<meta name="twitter:title" expr:content="data:view\.title\.escaped"\/>/g, `<meta name="twitter:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
-  output = output.replace(/<b:if cond="data:view\.description">\s*<meta name="twitter:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta name="twitter:description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta name="twitter:description"[^>]+>\s*<\/b:if>/g, `<meta name="twitter:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
+  output = output.replace(/<meta\b[^>]*name="twitter:title"[^>]*\/?>/g, `<meta name="twitter:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
+  output = output.replace(/<b:if cond="data:view\.description">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>/g, `<meta name="twitter:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
 
   // 10. Resolve WebSite JSON-LD
   const shouldRenderWebSite = Boolean(ctx.view.isHomepage || ctx.view.isSearch);
@@ -254,9 +254,9 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
     };
 
     const blogPostingJson = JSON.stringify(blogPostingObj, null, 2);
-    output = output.replace(/<b:if cond="data:view\.isPost">[\s\S]*?<script type="application\/ld\+json">([\s\S]*?)<\/script>[\s\S]*?<\/b:if>/g, `<script type="application/ld+json">\n${blogPostingJson}\n</script>`);
+    output = output.replace(/<b:if cond="data:view\.isPost">[\s\S]*?<script type="application\/ld\+json">([\s\S]*?)<\/script>\s*<\/b:with>\s*<\/b:if>/g, `<script type="application/ld+json">\n${blogPostingJson}\n</script>`);
   } else {
-    output = output.replace(/<b:if cond="data:view\.isPost">[\s\S]*?<\/b:if>/g, '');
+    output = output.replace(/<b:if cond="data:view\.isPost">[\s\S]*?<script type="application\/ld\+json">([\s\S]*?)<\/script>\s*<\/b:with>\s*<\/b:if>/g, '');
   }
 
   // Extract all script tags and parse JSON
