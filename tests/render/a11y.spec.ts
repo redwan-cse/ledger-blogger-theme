@@ -20,14 +20,11 @@ let targets: ViewTarget[] = [];
 test.beforeAll(async () => {
   const stagingUrl = required('STAGING_URL');
   const client = new HarnessHttpClient();
-  let homeRes = await client.get(stagingUrl);
-  if (homeRes.status === 429) {
-    await new Promise((r) => setTimeout(r, 8000));
-    homeRes = await client.get(stagingUrl);
-  }
+  const homeRes = await client.get(stagingUrl);
   expect(homeRes.status).toBeLessThan(400);
   const homeHtml = homeRes.body;
   expect(extractThemeBuild(homeHtml)).toBe(required('EXPECTED_THEME_BUILD'));
+
 
   const discovery = new BloggerDiscoveryClient(client, {
     ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),

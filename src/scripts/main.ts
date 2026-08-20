@@ -3,13 +3,11 @@
  * Milestone 3: Interactive Client Script Enhancements
  */
 
-// Progressive enhancement marker & HTML accessibility baseline
+// Progressive enhancement marker
 if (typeof document !== 'undefined') {
   document.documentElement.classList.add('js');
-  if (typeof document.documentElement.getAttribute === 'function' && !document.documentElement.getAttribute('lang')) {
-    document.documentElement.setAttribute('lang', 'en');
-  }
 }
+
 
 
 

@@ -55,8 +55,10 @@ export async function generateTheme(options: GenerateThemeOptions): Promise<Gene
       'b:templateUrl': 'indie.xml',
       'b:templateVersion': TEMPLATE_VERSION,
       'expr:dir': 'data:blog.languageDirection',
-      'expr:lang': 'data:blog.locale',
+      'expr:lang': "data:blog.locale ?: 'en'",
       'data-theme': 'dark',
+
+
       'xmlns': 'http://www.w3.org/1999/xhtml',
       'xmlns:b': 'http://www.google.com/2005/gml/b',
       'xmlns:data': 'http://www.google.com/2005/gml/data',

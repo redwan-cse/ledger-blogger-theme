@@ -28,20 +28,12 @@ async function main(): Promise<HarnessSummary> {
     const targets = createViewTargets(stagingUrl.href, posts, pages, targetOptions);
     const assertions: HarnessAssertion[] = [];
     for (const target of targets) {
-
       if (!target.url) { assertions.push(assessView(target, 0, '')); continue; }
-      let response = target.name === 'home-p1' ? home : await client.get(target.url);
-      if (response.blocked && response.status === 429) {
-        await new Promise((r) => setTimeout(r, 6000));
-        response = await client.get(target.url);
-      }
-      if (response.blocked && response.status === 429) {
-        await new Promise((r) => setTimeout(r, 8000));
-        response = await client.get(target.url);
-      }
+      const response = target.name === 'home-p1' ? home : await client.get(target.url);
       if (response.blocked) assertions.push({ requirementId: target.requirementId, status: 'BLOCKED', message: `${target.name} could not be measured.`, evidence: response.blockedReason ?? `HTTP ${response.status}` });
       else assertions.push(assessView(target, response.status, response.body));
     }
+
 
     return summarizeHarnessRun(assertions, { expected: expectedBuild, deployed });
   } catch (error) { return fatalHarnessSummary(error instanceof Error ? error.message : String(error)); }
