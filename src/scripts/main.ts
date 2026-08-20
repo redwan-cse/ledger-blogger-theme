@@ -811,32 +811,28 @@ export function initIframeAccessibility(): void {
 // ---------------------------------------------------------------------------
 
 function init(): void {
-  // Critical interactive shell modules
-  initMobileDrawer();
-  initSearchModal();
+  // Theme toggle runs synchronously to prevent dark/light flash
   initThemeToggle();
-  initShareCopy();
 
-  // Post-specific enhancements (only run when inside a single post view)
-  const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post'));
-  if (isPost) {
-    initReadingProgress();
-    const defer = typeof window.requestIdleCallback === 'function'
-      ? window.requestIdleCallback
-      : (cb: () => void) => setTimeout(cb, 100);
+  // Defer all interactive modules and post enhancements to idle / next frame
+  const defer = typeof window.requestIdleCallback === 'function'
+    ? window.requestIdleCallback
+    : (cb: () => void) => setTimeout(cb, 50);
 
-    defer(() => {
+  defer(() => {
+    initMobileDrawer();
+    initSearchModal();
+    initShareCopy();
+    initIframeAccessibility();
+
+    const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post'));
+    if (isPost) {
+      initReadingProgress();
       initCodeBlockEnhancements();
       initTableOfContents();
       initArticleAudioReader();
-      initIframeAccessibility();
-    });
-  } else {
-    // Non-post views: lightweight deferred iframe a11y check
-    setTimeout(() => {
-      initIframeAccessibility();
-    }, 200);
-  }
+    }
+  });
 }
 
 if (typeof document !== 'undefined') {
