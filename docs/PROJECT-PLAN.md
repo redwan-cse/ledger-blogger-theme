@@ -484,10 +484,11 @@ highest-fidelity source for real V3 usage available, because Google ships it.
 
 **R-PERF-1 · Fast on a mid-range phone**
 
-- AC1 `[R]` Lighthouse mobile performance ≥ 90 on home and post (Moto G Power, 4G)
+- AC1 `[R]` Lighthouse mobile performance ≥ 90 on home, post, and list views (Moto G Power, 4G)
 - AC2 `[R]` CLS ≤ 0.05
 - AC3 `[R]` LCP ≤ 2.5s
 - AC4 `[C]` `dist/theme.xml` ≤ 500 KB
+
 
 
 

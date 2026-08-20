@@ -12,8 +12,11 @@ import { generateTheme } from '../../tools/generate.js';
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { fileURLToPath } from 'node:url';
 
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../');
 const VALID_SHA = '0123456789abcdef0123456789abcdef01234567';
+
 
 describe('Adversarial Stress Testing: tools/build-controls.ts', () => {
   describe('Quote variations', () => {
@@ -301,5 +304,12 @@ describe('Adversarial Stress Testing: tools/golden-check.ts', () => {
       await expect(assertGoldenTheme(actualPath, goldenPath)).resolves.toBeUndefined();
       await rm(tmpDir, { recursive: true, force: true });
     });
+
+    it('verifies committed tests/golden/theme.xml contains the placeholder and no literal commit SHA', async () => {
+      const golden = await readFile(path.join(ROOT, 'tests/golden/theme.xml'), 'utf8');
+      expect(golden).toContain('<meta content="0.0.0+GOLDEN_SHA_40_CHARS________________" name="theme-build"/>');
+      expect(golden).not.toMatch(/content="[^"]*\+[0-9a-f]{40}"/i);
+    });
   });
 });
+

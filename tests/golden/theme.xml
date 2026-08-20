@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+08083bf4464c2ef655b7ea6ef322c9e4938e74e2" name="theme-build"/>
+    <meta content="0.0.0+GOLDEN_SHA_40_CHARS________________" name="theme-build"/>
     <title><data:view.title.escaped/></title>
     <b:include data="blog" name="all-head-content"/>
     <b:skin version="0.0.0">
@@ -693,7 +693,7 @@
                         <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" fill="currentColor"></path>
                       </svg><span>Fast Cyber Defense</span></a><a class="hero-btn hero-btn-tertiary" href="https://redwan.work/" target="_blank" rel="noopener noreferrer"><span>Portfolio (redwan.work) →</span></a></div>
                 </div>
-                <div class="hero-photo-col"><img class="hero-portrait-img" alt="Md Redwan Ahmed — Founder &amp; CEO of Fast Cyber Defense" height="260" width="260" fetchpriority="high" src="https://redwan.work/profile.jpg"/></div>
+                <div class="hero-photo-col"><img class="hero-portrait-img" alt="Md Redwan Ahmed — Founder &amp; CEO of Fast Cyber Defense" height="260" width="260" src="https://redwan.work/profile.jpg"/></div>
               </div>
             </b:if>
           </b:includable>
