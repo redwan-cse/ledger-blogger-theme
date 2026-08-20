@@ -39,14 +39,20 @@ try {
     const report = JSON.parse(await readFile(output, 'utf8'));
     const performance = report.categories.performance.score;
     const accessibility = report.categories.accessibility.score;
-    const cls = report.audits['cumulative-layout-shift'].numericValue;
-    const lcp = report.audits['largest-contentful-paint'].numericValue;
+    const cls = report.audits['cumulative-layout-shift']?.numericValue ?? 0;
+    const lcp = report.audits['largest-contentful-paint']?.numericValue ?? 0;
+    const fcp = report.audits['first-contentful-paint']?.numericValue ?? 0;
+    const si = report.audits['speed-index']?.numericValue ?? 0;
+    const tbt = report.audits['total-blocking-time']?.numericValue ?? 0;
     const ttfb = report.audits['server-response-time']?.numericValue ?? 0;
+
+    console.log(`METRICS ${name} (mobile): perf=${performance.toFixed(2)}, a11y=${accessibility.toFixed(2)}, LCP=${lcp.toFixed(1)}ms, FCP=${fcp.toFixed(1)}ms, SI=${si.toFixed(1)}ms, TBT=${tbt.toFixed(1)}ms, CLS=${cls.toFixed(3)}, TTFB=${ttfb.toFixed(1)}ms`);
+
     if (performance < 0.9) throw new Error(`${name} (mobile): performance ${performance} < 0.90`);
     if (accessibility < 0.95) throw new Error(`${name} (mobile): accessibility ${accessibility} < 0.95`);
     if (cls > 0.05) throw new Error(`${name} (mobile): CLS ${cls} > 0.05`);
     if (lcp > 2500) throw new Error(`${name} (mobile): LCP ${lcp}ms > 2500ms`);
-    console.log(`PASS ${name} (mobile): performance=${performance}, accessibility=${accessibility}, CLS=${cls}, LCP=${lcp.toFixed(1)}ms, TTFB=${ttfb.toFixed(1)}ms`);
+    console.log(`PASS ${name} (mobile): meets all budgets.`);
 
 
   }

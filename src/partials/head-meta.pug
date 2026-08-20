@@ -9,8 +9,6 @@ b:if(cond='not (data:view.isSearch or data:view.isArchive or (data:view.isMultip
 
 //- Resource hints for critical above-the-fold assets
 link(rel='preconnect' href='https://redwan.work' crossorigin='anonymous')/
-b:if(cond='data:view.isHomepage and not data:newerPageUrl')
-  link(rel='preload' as='image' href='https://redwan.work/profile.jpg' media='(min-width: 768px)' fetchpriority='high')/
 b:if(cond='data:view.isPost and data:view.featuredImage')
   link(rel='preload' as='image' expr:href='data:view.featuredImage' fetchpriority='high')/
 
