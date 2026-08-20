@@ -17,6 +17,7 @@ scratch/*
 # Test artifacts
 playwright-report/
 test-results/
+artifacts/
 harness-report.json
 harness.log
 playwright.log
