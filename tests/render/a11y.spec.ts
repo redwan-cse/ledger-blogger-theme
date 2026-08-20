@@ -52,10 +52,12 @@ test('R-A11Y-1: all ten real Blogger views have no serious or critical axe viola
       console.log(`[SKIP] ${target.name} was not measured: ${target.missingReason}`);
       continue;
     }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     await page.goto(target.url);
     const result = await new AxeBuilder({ page }).analyze();
     const blocking = result.violations.filter((violation) => violation.impact === 'serious' || violation.impact === 'critical');
     expect(blocking, `${target.name}: ${JSON.stringify(blocking, null, 2)}`).toEqual([]);
   }
+
 });
 

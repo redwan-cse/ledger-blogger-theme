@@ -49,6 +49,7 @@ test('all ten views render visible server content', async ({ page }) => {
       console.log(`[SKIP] ${target.name} was not measured: ${target.missingReason}`);
       continue;
     }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const response = await page.goto(target.url);
     expect(response, `${target.name} returned no navigation response`).not.toBeNull();
     if (target.name === 'error') expect(response!.status()).toBe(404);
@@ -59,6 +60,7 @@ test('all ten views render visible server content', async ({ page }) => {
     await expect(page.locator('.post, .post-body, .empty-state').first(), target.name).toBeVisible();
   }
 });
+
 
 test('static pages omit post-only chrome', async ({ page }) => {
   const target = targets.find((item) => item.name === 'static-page');
