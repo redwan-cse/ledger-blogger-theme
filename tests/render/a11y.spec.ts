@@ -34,13 +34,13 @@ test.beforeAll(async () => {
     discovery.listAllPosts(required('BLOGGER_BLOG_ID')),
     discovery.listPages(required('BLOGGER_BLOG_ID'))
   ]);
-  const layoutModeUrl = process.env.LAYOUT_MODE_URL?.trim();
   const options: { olderUrl?: string; layoutModeUrl?: string } = {};
-  if (layoutModeUrl) options.layoutModeUrl = layoutModeUrl;
+
   const older = olderUrl(homeHtml);
   if (older) options.olderUrl = older;
   targets = createViewTargets(stagingUrl, posts, pages, options);
   const requiredTargets = targets.filter((target) => target.name !== 'layout-mode');
+
   expect(requiredTargets.every((target) => target.url), 'all 9 discoverable views must have discovered URLs').toBe(true);
 });
 

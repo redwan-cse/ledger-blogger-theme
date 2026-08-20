@@ -24,8 +24,9 @@ export function createViewTargets(baseUrl: string, posts: readonly DiscoveredPos
     target('static-page', pages[0]?.url ?? null, 'R-RENDER-4 AC1', 'No static page was discovered.'),
     target('empty-result', new URL('search?q=ledger-m0-guaranteed-empty-7f4c91', base).href, 'R-EMPTY-1 AC3'),
     target('error', new URL('__ledger-m0-missing-page__', base).href, 'R-EMPTY-1 AC4'),
-    target('layout-mode', options.layoutModeUrl ?? null, 'R-V3-1 AC10', 'LAYOUT_MODE_URL is not configured.')
+    target('layout-mode', options.layoutModeUrl ?? null, 'R-V3-1 AC10', 'Layout mode is Google account login-gated; manual verification required.')
   ];
+
 }
 
 function mainText(html: string): string {
