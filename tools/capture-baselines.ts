@@ -41,15 +41,35 @@ async function main() {
   }
 
   // 2. Discover Target Views
-  const discovery = new BloggerDiscoveryClient(client, {
-    ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
-    ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {})
-  });
+  let posts: readonly any[] = [];
+  let pages: readonly any[] = [];
 
-  const [posts, pages] = await Promise.all([
-    discovery.listAllPosts(BLOG_ID).catch(() => []),
-    discovery.listPages(BLOG_ID).catch(() => [])
-  ]);
+  if (process.env.BLOGGER_API_KEY || process.env.BLOGGER_ACCESS_TOKEN) {
+    const discovery = new BloggerDiscoveryClient(client, {
+      ...(process.env.BLOGGER_API_KEY ? { apiKey: process.env.BLOGGER_API_KEY } : {}),
+      ...(process.env.BLOGGER_ACCESS_TOKEN ? { accessToken: process.env.BLOGGER_ACCESS_TOKEN } : {})
+    });
+    [posts, pages] = await Promise.all([
+      discovery.listAllPosts(BLOG_ID).catch(() => []),
+      discovery.listPages(BLOG_ID).catch(() => [])
+    ]);
+  } else {
+    // Scrape from rendered homepage HTML
+    const postMatches = [...homeRes.body.matchAll(/<a\b[^>]*href=["']([^"']*\/\d{4}\/\d{2}\/[^"']*\.html)["']/g)];
+    if (postMatches.length > 0) {
+      posts = postMatches.map((m, i) => ({
+        id: `scraped-post-${i}`,
+        title: 'Post Article',
+        published: '2026-08-01T00:00:00Z',
+        url: m[1],
+        labels: []
+      }));
+    }
+    const labelMatch = homeRes.body.match(/<a\b[^>]*href=["']([^"']*\/search\/label\/[^"']*)["']/);
+    if (labelMatch && posts.length > 0) {
+      posts[0].labels = [decodeURIComponent(labelMatch[1]?.split('/search/label/')[1]?.split('?')[0] ?? '')];
+    }
+  }
 
   const targets = createViewTargets(STAGING_URL, posts, pages);
   const viewsToCapture: Array<{ id: string; name: string; url: string }> = [];
@@ -77,6 +97,43 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   let totalCaptured = 0;
 
+  async function capturePage(url: string, vp: typeof VIEWPORT_BOUNDARIES[number], mode: 'light' | 'dark', outPath: string): Promise<void> {
+    const context = await browser.newContext({
+      viewport: { width: vp.width, height: vp.height },
+      colorScheme: mode
+    });
+    await context.addInitScript((themeMode) => {
+      try {
+        localStorage.setItem('theme', themeMode);
+      } catch {}
+      document.documentElement.setAttribute('data-theme', themeMode);
+    }, mode);
+
+    const page = await context.newPage();
+
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+        break;
+      } catch (err: any) {
+        retries--;
+        if (retries === 0) throw err;
+        console.log(`    [Retry] Connection hiccup on ${vp.name} (${mode}), waiting 2s...`);
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
+
+    await page.evaluate((themeMode) => {
+      document.documentElement.setAttribute('data-theme', themeMode);
+    }, mode);
+    await new Promise((r) => setTimeout(r, 400));
+
+    await page.screenshot({ path: outPath, fullPage: true });
+    await context.close();
+    await new Promise((r) => setTimeout(r, 800)); // Pacing hygiene
+  }
+
   try {
     for (const view of viewsToCapture) {
       console.log(`\n========================================`);
@@ -84,52 +141,16 @@ async function main() {
       console.log(`========================================`);
 
       for (const vp of VIEWPORT_BOUNDARIES) {
-        // A. True Light Mode (Seeding localStorage & setting data-theme attribute)
-        const lightContext = await browser.newContext({
-          viewport: { width: vp.width, height: vp.height },
-          colorScheme: 'light'
-        });
-        await lightContext.addInitScript(() => {
-          try {
-            localStorage.setItem('theme', 'light');
-          } catch {}
-          document.documentElement.setAttribute('data-theme', 'light');
-        });
-        const lightPage = await lightContext.newPage();
-        await lightPage.goto(view.url, { waitUntil: 'networkidle' });
-        await lightPage.evaluate(() => {
-          document.documentElement.setAttribute('data-theme', 'light');
-        });
-        await new Promise((r) => setTimeout(r, 600));
-
+        // A. True Light Mode
         const lightPath = path.join(OUTPUT_DIR, `${view.id}_${vp.name}_light.png`);
-        await lightPage.screenshot({ path: lightPath, fullPage: true });
+        await capturePage(view.url, vp, 'light', lightPath);
         console.log(`  ✓ [${vp.name}] Light: ${lightPath}`);
-        await lightContext.close();
         totalCaptured++;
 
-        // B. True Dark Mode (Seeding localStorage & setting data-theme attribute)
-        const darkContext = await browser.newContext({
-          viewport: { width: vp.width, height: vp.height },
-          colorScheme: 'dark'
-        });
-        await darkContext.addInitScript(() => {
-          try {
-            localStorage.setItem('theme', 'dark');
-          } catch {}
-          document.documentElement.setAttribute('data-theme', 'dark');
-        });
-        const darkPage = await darkContext.newPage();
-        await darkPage.goto(view.url, { waitUntil: 'networkidle' });
-        await darkPage.evaluate(() => {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        });
-        await new Promise((r) => setTimeout(r, 600));
-
+        // B. True Dark Mode
         const darkPath = path.join(OUTPUT_DIR, `${view.id}_${vp.name}_dark.png`);
-        await darkPage.screenshot({ path: darkPath, fullPage: true });
+        await capturePage(view.url, vp, 'dark', darkPath);
         console.log(`  ✓ [${vp.name}] Dark:  ${darkPath}`);
-        await darkContext.close();
         totalCaptured++;
       }
     }

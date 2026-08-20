@@ -804,13 +804,6 @@ export function initIframeAccessibility(): void {
   }
 
   fixIframes();
-
-  if (typeof MutationObserver !== 'undefined' && document.body) {
-    const observer = new MutationObserver(() => {
-      fixIframes();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -818,15 +811,32 @@ export function initIframeAccessibility(): void {
 // ---------------------------------------------------------------------------
 
 function init(): void {
-  initReadingProgress();
+  // Critical interactive shell modules
   initMobileDrawer();
   initSearchModal();
-  initShareCopy();
   initThemeToggle();
-  initCodeBlockEnhancements();
-  initTableOfContents();
-  initArticleAudioReader();
-  initIframeAccessibility();
+  initShareCopy();
+
+  // Post-specific enhancements (only run when inside a single post view)
+  const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post'));
+  if (isPost) {
+    initReadingProgress();
+    const defer = typeof window.requestIdleCallback === 'function'
+      ? window.requestIdleCallback
+      : (cb: () => void) => setTimeout(cb, 100);
+
+    defer(() => {
+      initCodeBlockEnhancements();
+      initTableOfContents();
+      initArticleAudioReader();
+      initIframeAccessibility();
+    });
+  } else {
+    // Non-post views: lightweight deferred iframe a11y check
+    setTimeout(() => {
+      initIframeAccessibility();
+    }, 200);
+  }
 }
 
 if (typeof document !== 'undefined') {
