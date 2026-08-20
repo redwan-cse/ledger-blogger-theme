@@ -31,7 +31,10 @@ jobs:
           echo "theme_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
           echo "expected_build=0.0.0+$TARGET_SHA" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.resolve.outputs.theme_sha }}
       - uses: actions/setup-node@v4
+
         with:
           node-version: '24.18.1'
           cache: npm
