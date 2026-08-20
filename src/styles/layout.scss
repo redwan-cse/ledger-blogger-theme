@@ -510,10 +510,10 @@ html[data-theme='dark'] .theme-icon-moon {
     align-items: center;
 
     @media (max-width: 767px) {
-      order: -1;
-      margin-bottom: $space-2;
+      margin-top: $space-4;
     }
   }
+
 
   .hero-portrait-img {
     width: 240px;
