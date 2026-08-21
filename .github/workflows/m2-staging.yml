@@ -80,7 +80,7 @@ jobs:
           STAGING_URL: https://blogs.redwan.work/
           BLOGGER_BLOG_ID: '5972841034338492159'
           LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
-          HARNESS_PACE_MS: '4000'
+          HARNESS_PACE_MS: '6000'
           EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run test:lighthouse
       - name: Verify rendered HTML across ten views
@@ -88,7 +88,7 @@ jobs:
           STAGING_URL: https://blogs.redwan.work/
           BLOGGER_BLOG_ID: '5972841034338492159'
           LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
-          HARNESS_PACE_MS: '4000'
+          HARNESS_PACE_MS: '6000'
           EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run harness
       - name: Verify JS, no-JS, and reduced-motion browser contexts
@@ -96,7 +96,7 @@ jobs:
           STAGING_URL: https://blogs.redwan.work/
           BLOGGER_BLOG_ID: '5972841034338492159'
           LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
-          HARNESS_PACE_MS: '4000'
+          HARNESS_PACE_MS: '6000'
           EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run harness:browser
       - name: Verify serious and critical accessibility violations
@@ -104,7 +104,7 @@ jobs:
           STAGING_URL: https://blogs.redwan.work/
           BLOGGER_BLOG_ID: '5972841034338492159'
           LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
-          HARNESS_PACE_MS: '4000'
+          HARNESS_PACE_MS: '6000'
           EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
         run: npm run test:a11y
       - uses: actions/upload-artifact@v4

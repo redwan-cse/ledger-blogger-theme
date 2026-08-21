@@ -134,8 +134,9 @@ export class HarnessHttpClient {
         const retryAfterMs = parseRetryAfter(response.headers.get('retry-after'), this.#now());
         if (retryAfterMs !== null) this.#nextRequestAtByHost.set(host, Math.max(this.#nextRequestAtByHost.get(host) ?? 0, this.#now() + retryAfterMs));
         const blockedReason = detectBlockedResponse(response.status, body);
-        if (response.status === 429 && attempts < 4) {
-          const backoff = retryAfterMs ?? (6_000 * attempts);
+        if (response.status === 429 && attempts < 6) {
+          const backoff = Math.max(retryAfterMs ?? 0, 15_000 * attempts);
+          console.warn(`[HTTP 429] Host ${host} throttled attempt ${attempts}, backing off ${backoff / 1000}s...`);
           this.#nextRequestAtByHost.set(host, this.#now() + backoff);
           await this.#sleep(backoff);
           continue;
