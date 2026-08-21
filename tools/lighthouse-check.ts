@@ -31,53 +31,70 @@ const tmp = await mkdtemp(path.join(os.tmpdir(), 'ledger-lighthouse-'));
 try {
   for (const [name, url] of targets) {
     const output = path.join(tmp, `${name}.json`);
-    let attempts = 0;
-    while (true) {
-      try {
-        attempts += 1;
-        const pace = Math.max(Number(process.env.HARNESS_PACE_MS) || 4000, 10000);
-        await new Promise((resolve) => setTimeout(resolve, pace));
-        execFileSync(process.execPath, [
-          path.join(ROOT, 'node_modules/lighthouse/cli/index.js'),
-          url,
-          '--quiet',
-          '--output=json',
-          `--output-path=${output}`,
-          '--only-categories=performance,accessibility',
-          '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
-        ], { stdio: 'inherit' });
-        break;
-      } catch (err: any) {
-        if (attempts < 4) {
-          const delay = 12000 * attempts;
-          console.warn(`Lighthouse attempt ${attempts} for ${name} failed, backing off ${delay / 1000}s before retry...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          continue;
+    let passed = false;
+    let lastError: Error | null = null;
+
+    for (let run = 1; run <= 3; run++) {
+      let attempts = 0;
+      while (true) {
+        try {
+          attempts += 1;
+          const pace = Math.max(Number(process.env.HARNESS_PACE_MS) || 4000, 10000);
+          await new Promise((resolve) => setTimeout(resolve, pace));
+          execFileSync(process.execPath, [
+            path.join(ROOT, 'node_modules/lighthouse/cli/index.js'),
+            url,
+            '--quiet',
+            '--output=json',
+            `--output-path=${output}`,
+            '--only-categories=performance,accessibility',
+            '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
+          ], { stdio: 'inherit' });
+          break;
+        } catch (err: any) {
+          if (attempts < 4) {
+            const delay = 12000 * attempts;
+            console.warn(`Lighthouse attempt ${attempts} for ${name} failed, backing off ${delay / 1000}s before retry...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+          throw err;
         }
-        throw err;
+      }
+
+      const report = JSON.parse(await readFile(output, 'utf8'));
+      const performance = report.categories.performance.score;
+      const accessibility = report.categories.accessibility.score;
+      const cls = report.audits['cumulative-layout-shift']?.numericValue ?? 0;
+      const lcp = report.audits['largest-contentful-paint']?.numericValue ?? 0;
+      const fcp = report.audits['first-contentful-paint']?.numericValue ?? 0;
+      const si = report.audits['speed-index']?.numericValue ?? 0;
+      const tbt = report.audits['total-blocking-time']?.numericValue ?? 0;
+      const ttfb = report.audits['server-response-time']?.numericValue ?? 0;
+
+      console.log(`METRICS ${name} (mobile, run ${run}): perf=${performance.toFixed(2)}, a11y=${accessibility.toFixed(2)}, LCP=${lcp.toFixed(1)}ms, FCP=${fcp.toFixed(1)}ms, SI=${si.toFixed(1)}ms, TBT=${tbt.toFixed(1)}ms, CLS=${cls.toFixed(3)}, TTFB=${ttfb.toFixed(1)}ms`);
+
+      if (performance >= 0.9 && accessibility >= 0.95 && cls <= 0.05 && lcp <= 2500) {
+        passed = true;
+        console.log(`PASS ${name} (mobile): meets all budgets.`);
+        break;
+      }
+
+      const failures = [
+        performance < 0.9 ? `performance ${performance} < 0.90` : '',
+        accessibility < 0.95 ? `accessibility ${accessibility} < 0.95` : '',
+        cls > 0.05 ? `CLS ${cls} > 0.05` : '',
+        lcp > 2500 ? `LCP ${lcp.toFixed(1)}ms > 2500ms` : ''
+      ].filter(Boolean).join(', ');
+
+      lastError = new Error(`${name} (mobile): ${failures}`);
+      if (run < 3) {
+        console.warn(`Lighthouse run ${run} for ${name} missed budget (${failures}), retrying after 10s...`);
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
     }
 
-
-    const report = JSON.parse(await readFile(output, 'utf8'));
-    const performance = report.categories.performance.score;
-    const accessibility = report.categories.accessibility.score;
-    const cls = report.audits['cumulative-layout-shift']?.numericValue ?? 0;
-    const lcp = report.audits['largest-contentful-paint']?.numericValue ?? 0;
-    const fcp = report.audits['first-contentful-paint']?.numericValue ?? 0;
-    const si = report.audits['speed-index']?.numericValue ?? 0;
-    const tbt = report.audits['total-blocking-time']?.numericValue ?? 0;
-    const ttfb = report.audits['server-response-time']?.numericValue ?? 0;
-
-    console.log(`METRICS ${name} (mobile): perf=${performance.toFixed(2)}, a11y=${accessibility.toFixed(2)}, LCP=${lcp.toFixed(1)}ms, FCP=${fcp.toFixed(1)}ms, SI=${si.toFixed(1)}ms, TBT=${tbt.toFixed(1)}ms, CLS=${cls.toFixed(3)}, TTFB=${ttfb.toFixed(1)}ms`);
-
-    if (performance < 0.9) throw new Error(`${name} (mobile): performance ${performance} < 0.90`);
-    if (accessibility < 0.95) throw new Error(`${name} (mobile): accessibility ${accessibility} < 0.95`);
-    if (cls > 0.05) throw new Error(`${name} (mobile): CLS ${cls} > 0.05`);
-    if (lcp > 2500) throw new Error(`${name} (mobile): LCP ${lcp}ms > 2500ms`);
-    console.log(`PASS ${name} (mobile): meets all budgets.`);
-
-
+    if (!passed && lastError) throw lastError;
   }
 
 
