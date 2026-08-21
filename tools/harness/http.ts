@@ -97,7 +97,7 @@ export class HarnessHttpClient {
     this.#fetch = options.fetch ?? globalThis.fetch;
     this.#sleep = options.sleep ?? defaultSleep;
     this.#now = options.now ?? Date.now;
-    this.#userAgent = options.userAgent ?? 'ledger-blogger-theme-render-harness/0.0 (gzip)';
+    this.#userAgent = options.userAgent ?? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
   }
 
   async get(url: URL | string, init: RequestInit = {}): Promise<HarnessHttpResponse> {
@@ -115,8 +115,18 @@ export class HarnessHttpClient {
         if (waitMs > 0) await this.#sleep(waitMs);
         this.#nextRequestAtByHost.set(host, this.#now() + this.#paceMs);
         const headers = new Headers(init.headers);
-        headers.set('accept-encoding', 'gzip');
+        headers.set('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8');
+        headers.set('accept-language', 'en-US,en;q=0.9');
+        headers.set('accept-encoding', 'gzip, deflate, br');
         headers.set('user-agent', this.#userAgent);
+        headers.set('sec-ch-ua', '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"');
+        headers.set('sec-ch-ua-mobile', '?0');
+        headers.set('sec-ch-ua-platform', '"Windows"');
+        headers.set('sec-fetch-dest', 'document');
+        headers.set('sec-fetch-mode', 'navigate');
+        headers.set('sec-fetch-site', 'none');
+        headers.set('sec-fetch-user', '?1');
+        headers.set('upgrade-insecure-requests', '1');
         const timeoutSignal = AbortSignal.timeout(this.#timeoutMs);
         const signal = init.signal ? AbortSignal.any([init.signal, timeoutSignal]) : timeoutSignal;
         const response = await this.#fetch(requestUrl, { ...init, method: 'GET', redirect: 'follow', headers, signal });
