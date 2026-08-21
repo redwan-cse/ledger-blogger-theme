@@ -56,6 +56,7 @@ function expressions(document: XmlDocument): string[] { const values: string[] =
 function semanticValues(document: XmlDocument): string[] { return [...expressions(document), ...active(document).filter((element) => element.prefix === 'data').map((element) => element.name)]; }
 function descendants(element: XmlElement): XmlElement[] { const result: XmlElement[] = []; for (const child of element.children) if (child.kind === 'element') { result.push(child, ...descendants(child)); } return result; }
 function literalText(element: XmlElement): string { return element.children.filter((child): child is XmlText => child.kind === 'text').map((child) => child.value).join('').trim(); }
+function allLiteralText(element: XmlElement): string { let text = ''; for (const child of element.children) { if (child.kind === 'text') text += child.value; else if (child.kind === 'element') text += allLiteralText(child); } return text.trim(); }
 function jsonLdScript(element: XmlElement): boolean {
   if (element.localName !== 'script') return false;
   if ((attr(element, 'type') ?? '').toLowerCase() === 'application/ld+json') return true;
@@ -66,7 +67,6 @@ function jsonLdScript(element: XmlElement): boolean {
   }
   return false;
 }
-
 export const contractRules: readonly ContractRule[] = [
   { id: 'well-formed', requirementId: 'R-V3-1 AC9', message: 'Generated output must be namespace-aware, well-formed XML.', check: () => true },
   { id: 'layouts-v3', requirementId: 'R-V3-1 AC1', message: "<html> must carry b:layoutsVersion='3'.", check: (doc) => attr(doc.root, 'b:layoutsVersion') === '3' },
@@ -92,12 +92,12 @@ export const contractRules: readonly ContractRule[] = [
   {
     id: 'no-fabricated-metadata',
     requirementId: 'R-BUILD-1 AC7',
-    message: 'Fabricated reading time, author identity, unearned trust badges, or Gravatar fallback is not allowed.',
+    message: 'Fabricated reading time, author identity, unearned trust badges, ungrounded operational status claims, or Gravatar fallback is not allowed.',
     check: (doc, xml) => {
-      if (/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar|Verified Researcher|Verified Author|Certified Expert/i.test(xml)) return false;
+      if (/\b\d+\s+min(?:ute)?s?\s+read\b|gravatar\.com\/avatar|Verified Researcher|Verified Author|Certified Expert|Systems Operational|Defense Systems|Operational Status|All Systems Operational/i.test(xml)) return false;
       return active(doc)
-        .filter((element) => /(?:^|\s)(?:author-name|post-author|sidebar-name|sidebar-badge|sidebar-bio|author-heading)(?:\s|$)/.test(attr(element, 'class') ?? ''))
-        .every((element) => !/[A-Za-z0-9]/.test(literalText(element)));
+        .filter((element) => /(?:^|\s)(?:author-name|post-author|sidebar-name|sidebar-badge|sidebar-bio|author-heading|footer-status)(?:\s|$)/.test(attr(element, 'class') ?? ''))
+        .every((element) => !/[A-Za-z0-9]/.test(allLiteralText(element)));
     }
   },
   {

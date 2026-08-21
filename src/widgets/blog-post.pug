@@ -112,11 +112,8 @@ b:includable(id='postAuthorBio' var='post')
           p.author-description
             b:eval(expr='data:post.author.aboutMe')/
         b:if(cond='not data:post.author.aboutMe')
-          p.author-description Md Redwan Ahmed is a Cybersecurity Researcher &amp; Engineer, Founder &amp; CEO of Fast Cyber Defense, specializing in Penetration Testing, Red Teaming, Cloud Security, Linux Hardening, and AI Security.
-          div.author-links-row
-            a.author-link-pill(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Portfolio (redwan.work)
-            a.author-link-pill(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer') Fast Cyber Defense
-            a.author-link-pill(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Book Consultation
+          p.author-description
+            b:eval(expr='data:blog.description ?: "Cybersecurity research, vulnerability analysis, and penetration testing publications."')/
 
 b:includable(id='postNav' var='post')
   b:if(cond='data:olderPageUrl or data:newerPageUrl')

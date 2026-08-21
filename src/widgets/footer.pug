@@ -1,12 +1,4 @@
 b:section(class='footer' id='footer' name='Footer' showaddelement='yes')
-  b:widget(id='Attribution1' locked='true' title='' type='Attribution' version='2' visible='true')
-    b:widget-settings
-      b:widget-setting(name='copyright')
-    b:includable(id='main' var='this')
-      .widget-content
-        .blogger
-          a(expr:href='data:bloggerUrl' rel='nofollow')
-            b:message(name='messages.poweredByBlogger')/
   b:widget(id='HTML3' locked='false' title='Footer' type='HTML' version='2' visible='true')
     b:includable(id='main')
       b:if(cond='data:content')
@@ -14,41 +6,48 @@ b:section(class='footer' id='footer' name='Footer' showaddelement='yes')
           b:eval(expr='data:content')/
       b:if(cond='not data:content')
         div.footer-grid
-          div.footer-col.footer-identity
-            h4.footer-heading Md Redwan Ahmed
-            p.footer-bio Cybersecurity Researcher &amp; Engineer. Founder &amp; CEO of Fast Cyber Defense. Specializing in Penetration Testing, Red Teaming, Cloud Security, Linux Hardening, and AI Security.
-            div.footer-status
-              span.status-beacon
-              span All Research &amp; Defense Systems Operational
-          div.footer-col.footer-links-col
-            h4.footer-heading Core Specializations
+          //- Column 1: Brand / Description
+          div.footer-col.footer-col-brand
+            h4.footer-heading
+              b:eval(expr='data:blog.title')/
+            p.footer-desc
+              b:eval(expr='data:blog.description ?: "Security Research & Engineering Journal"')/
+          //- Column 2: Navigation
+          div.footer-col.footer-col-nav
+            h4.footer-heading Navigation
             ul.footer-links-list
               li
-                span Penetration Testing &amp; Vulnerability Assessment
+                a(href='/p/about.html') About
               li
-                span Red Team &amp; Adversary Emulation
+                a(href='/p/contact.html') Contact
               li
-                span Cloud Security Architecture (AWS / GCP)
+                a(expr:href='data:blog.homepageUrl path "search"') All Posts
               li
-                span Linux &amp; Infrastructure Hardening
-              li
-                span AI &amp; LLM Security Engineering
-              li
-                span OSINT &amp; Digital Forensics
-          div.footer-col.footer-links-col
-            h4.footer-heading Verification &amp; Advisory
+                a(expr:href='data:blog.homepageUrl path "feeds/posts/default"') RSS Feed
+          //- Column 3: Engagement
+          div.footer-col.footer-col-connect
+            h4.footer-heading Engagement
             ul.footer-links-list
               li
-                a(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Personal Portfolio (redwan.work)
+                a(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Portfolio (redwan.work)
               li
                 a(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer') Fast Cyber Defense
               li
-                a(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Book Advisory Call (Cal.com)
-              li
-                a(href='https://www.fiverr.com/redwancse' target='_blank' rel='noopener noreferrer') Fiverr (@redwancse)
-              li
-                a(href='https://www.upwork.com/freelancers/~0157fb6c813df9a4fb' target='_blank' rel='noopener noreferrer') Upwork (@redwancse)
+                a(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Book Consultation
         div.footer-bottom
-          p.footer-copyright © 2026 Md Redwan Ahmed. Security Research Journal.
-          a.footer-back-to-top(href='#content' aria-label='Back to top') Back to top ↑
+          div.footer-bottom-left
+            p.footer-copyright
+              | © 2026 
+              b:eval(expr='data:blog.title')/
+              |  · Security Research Journal
+          div.footer-bottom-right
+            a.footer-back-to-top(href='#content' aria-label='Back to top') Back to top ↑
 
+  b:widget(id='Attribution1' locked='true' title='' type='Attribution' version='2' visible='true')
+    b:widget-settings
+      b:widget-setting(name='copyright')
+    b:includable(id='main' var='this')
+      div.footer-attribution
+        span.blogger
+          a(expr:href='data:bloggerUrl' rel='nofollow')
+            b:message(name='messages.poweredByBlogger')/

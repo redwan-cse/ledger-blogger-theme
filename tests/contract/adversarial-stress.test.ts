@@ -241,6 +241,8 @@ describe('Adversarial Stress Test: All 39 Contract Rules', () => {
       expect(rules(inject(xml, '<div class="post-author">Jane Doe</div>'))).toEqual(['no-fabricated-metadata']);
       expect(rules(inject(xml, '<h3 class="sidebar-name">Md Redwan</h3>'))).toEqual(['no-fabricated-metadata']);
       expect(rules(inject(xml, '<span class="sidebar-badge">Verified Researcher</span>'))).toEqual(['no-fabricated-metadata']);
+      expect(rules(inject(xml, '<p>All Research &amp; Defense Systems Operational</p>'))).toEqual(['no-fabricated-metadata']);
+      expect(rules(inject(xml, '<div class="footer-status"><span>Active</span></div>'))).toEqual(['no-fabricated-metadata']);
     });
 
     it('permits dynamic author markup without literal text', async () => {

@@ -109,11 +109,11 @@ html&attributes(rootAttributes)
           a.drawer-nav-link(expr:href='data:blog.homepageUrl')
             b:eval(expr='data:messages.home ?: "Home"')/
         li.drawer-nav-item
-          a.drawer-nav-link(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Portfolio
+          a.drawer-nav-link(href='/p/about.html') About
         li.drawer-nav-item
-          a.drawer-nav-link(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer') Fast Cyber Defense
+          a.drawer-nav-link(href='/p/contact.html') Contact
         li.drawer-nav-item
-          a.drawer-nav-link(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Advisory &amp; Consulting
+          a.drawer-nav-link(expr:href='data:blog.homepageUrl path "search"') All Posts
     dialog#search-modal.search-modal(aria-hidden='true' aria-labelledby='search-modal-title')
       div.search-modal-container
         div.search-modal-header

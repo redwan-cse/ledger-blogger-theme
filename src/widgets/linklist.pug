@@ -12,10 +12,9 @@ b:section(class='navlinks' id='navlinks' name='Navigation' showaddelement='false
             li.nav-item
               a.nav-link(expr:href='data:blog.homepageUrl')
                 b:eval(expr='data:messages.home ?: "Home"')/
-          li.nav-item
-            a.nav-link(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Portfolio
-          li.nav-item
-            a.nav-link(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer') Fast Cyber Defense
-          li.nav-item
-            a.nav-link(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Advisory &amp; Consulting
-
+            li.nav-item
+              a.nav-link(href='/p/about.html') About
+            li.nav-item
+              a.nav-link(href='/p/contact.html') Contact
+            li.nav-item
+              a.nav-link(expr:href='data:blog.homepageUrl path "search"') All Posts
