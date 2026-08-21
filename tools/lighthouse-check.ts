@@ -31,9 +31,23 @@ const tmp = await mkdtemp(path.join(os.tmpdir(), 'ledger-lighthouse-'));
 try {
   for (const [name, url] of targets) {
     const output = path.join(tmp, `${name}.json`);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
+    let attempts = 0;
+    while (true) {
+      try {
+        attempts += 1;
+        const pace = Math.max(Number(process.env.HARNESS_PACE_MS) || 4000, 5000);
+        await new Promise((resolve) => setTimeout(resolve, pace));
+        execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
+        break;
+      } catch (err: any) {
+        if (attempts < 3) {
+          console.warn(`Lighthouse attempt ${attempts} for ${name} failed, backing off 8s before retry...`);
+          await new Promise((resolve) => setTimeout(resolve, 8000));
+          continue;
+        }
+        throw err;
+      }
+    }
 
 
     const report = JSON.parse(await readFile(output, 'utf8'));
