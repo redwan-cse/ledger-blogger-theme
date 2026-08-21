@@ -295,13 +295,20 @@ html[data-theme='dark'] {
 
   .hero-standfirst,
   .cta-desc,
+  .footer-desc,
   .footer-bio,
+  .footer-copyright,
+  .footer-attribution,
+  .widget.Attribution,
+  .attribution-text,
+  .blogger,
+  .blogger a,
   .hero-badge-mono,
   .footer-links-list li,
   .footer-links-list a,
   .footer-bottom,
   .footer-back-to-top {
-    color: oklch(80% 0.015 255);
+    color: oklch(80% 0.015 255) !important;
   }
 
   .footer-links-list a:hover,

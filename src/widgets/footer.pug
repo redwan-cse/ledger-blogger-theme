@@ -8,13 +8,13 @@ b:section(class='footer' id='footer' name='Footer' showaddelement='yes')
         div.footer-grid
           //- Column 1: Brand / Description
           div.footer-col.footer-col-brand
-            h4.footer-heading
+            h3.footer-heading
               b:eval(expr='data:blog.title')/
             p.footer-desc
               b:eval(expr='data:blog.description ?: "Security Research & Engineering Journal"')/
           //- Column 2: Navigation
           div.footer-col.footer-col-nav
-            h4.footer-heading Navigation
+            h3.footer-heading Navigation
             ul.footer-links-list
               li
                 a(href='/p/about.html') About
@@ -26,7 +26,7 @@ b:section(class='footer' id='footer' name='Footer' showaddelement='yes')
                 a(expr:href='data:blog.homepageUrl path "feeds/posts/default"') RSS Feed
           //- Column 3: Engagement
           div.footer-col.footer-col-connect
-            h4.footer-heading Engagement
+            h3.footer-heading Engagement
             ul.footer-links-list
               li
                 a(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Portfolio (redwan.work)

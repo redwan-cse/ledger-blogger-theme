@@ -9,7 +9,7 @@ b:section(class='header' id='header' name='Header' showaddelement='false')
       b:widget-setting(name='imagePlacement') BEHIND
       b:widget-setting(name='displayWidth') 0
     b:includable(id='main' var='this')
-      a.header-brand(expr:href='data:blog.homepageUrl' aria-label='Md Redwan Ahmed — Home')
+      a.header-brand(expr:href='data:blog.homepageUrl')
         img.header-avatar(alt='Md Redwan Ahmed' height='40' loading='lazy' src='https://redwan.work/profile.jpg' width='40')/
         div.header-brand-text
           b:include(cond='data:imagePlacement in {"REPLACE", "BEFORE_DESCRIPTION"}' name='image')/
