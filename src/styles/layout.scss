@@ -1217,12 +1217,12 @@ html[data-theme='dark'] .theme-icon-moon {
     text-align: center;
 
     a {
-      color: $ink-muted !important;
+      color: $ink-muted;
       text-decoration: none;
       transition: color $motion-fast $ease-out-quart;
 
       &:hover {
-        color: $accent !important;
+        color: $accent;
         text-decoration: underline;
       }
     }

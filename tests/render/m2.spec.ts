@@ -45,14 +45,28 @@ test.beforeAll(async () => {
 
 const paceMs = Number.parseInt(process.env.HARNESS_PACE_MS ?? '4000', 10);
 
+async function gotoWithRetry(page: any, url: string, pace: number = paceMs) {
+  let attempts = 0;
+  while (true) {
+    attempts += 1;
+    await new Promise((resolve) => setTimeout(resolve, pace));
+    const response = await page.goto(url);
+    if (response && response.status() === 429 && attempts < 3) {
+      console.warn(`[RETRY] 429 rate limit encountered on ${url}, backing off 8s...`);
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+      continue;
+    }
+    return response;
+  }
+}
+
 test('all ten views render visible server content', async ({ page }) => {
   for (const target of targets) {
     if (!target.url) {
       console.log(`[SKIP] ${target.name} was not measured: ${target.missingReason}`);
       continue;
     }
-    await new Promise((resolve) => setTimeout(resolve, paceMs));
-    const response = await page.goto(target.url);
+    const response = await gotoWithRetry(page, target.url);
 
     expect(response, `${target.name} returned no navigation response`).not.toBeNull();
     if (target.name === 'error') expect(response!.status()).toBe(404);
@@ -71,7 +85,7 @@ test('static pages omit post-only chrome', async ({ page }) => {
     console.log('[SKIP] static page target was not discovered.');
     return;
   }
-  await page.goto(target.url);
+  await gotoWithRetry(page, target.url);
   await expect(page.locator('.share-bar, .author-bio, .post-navigation, .reading-progress')).toHaveCount(0);
 });
 
@@ -81,7 +95,7 @@ test('post pages contain the shipped post-only structural path', async ({ page }
     console.log('[SKIP] post page target was not discovered.');
     return;
   }
-  await page.goto(target.url);
+  await gotoWithRetry(page, target.url);
   await expect(page.locator('.post-body')).toBeVisible();
   await expect(page.locator('.share-bar')).toHaveCount(1);
   await expect(page.locator('.author-bio')).toHaveCount(1);

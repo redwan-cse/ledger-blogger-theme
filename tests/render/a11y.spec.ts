@@ -47,6 +47,21 @@ test.beforeAll(async () => {
 
 const paceMs = Number.parseInt(process.env.HARNESS_PACE_MS ?? '4000', 10);
 
+async function gotoWithRetry(page: any, url: string, pace: number = paceMs) {
+  let attempts = 0;
+  while (true) {
+    attempts += 1;
+    await new Promise((resolve) => setTimeout(resolve, pace));
+    const response = await page.goto(url);
+    if (response && response.status() === 429 && attempts < 3) {
+      console.warn(`[RETRY] 429 rate limit encountered on ${url}, backing off 8s...`);
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+      continue;
+    }
+    return response;
+  }
+}
+
 test('R-A11Y-1: all ten real Blogger views have no serious or critical axe violations', async ({ page, javaScriptEnabled }) => {
   test.skip(!javaScriptEnabled, 'Axe accessibility audits require JavaScript to evaluate rules in the browser context.');
   for (const target of targets) {
@@ -54,8 +69,7 @@ test('R-A11Y-1: all ten real Blogger views have no serious or critical axe viola
       console.log(`[SKIP] ${target.name} was not measured: ${target.missingReason}`);
       continue;
     }
-    await new Promise((resolve) => setTimeout(resolve, paceMs));
-    const response = await page.goto(target.url);
+    const response = await gotoWithRetry(page, target.url);
     expect(response, `${target.name} returned no response`).not.toBeNull();
     if (target.name === 'error') {
       expect(response!.status()).toBe(404);
