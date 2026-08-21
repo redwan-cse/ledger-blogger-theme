@@ -35,14 +35,23 @@ try {
     while (true) {
       try {
         attempts += 1;
-        const pace = Math.max(Number(process.env.HARNESS_PACE_MS) || 4000, 5000);
+        const pace = Math.max(Number(process.env.HARNESS_PACE_MS) || 4000, 10000);
         await new Promise((resolve) => setTimeout(resolve, pace));
-        execFileSync(process.execPath, [path.join(ROOT, 'node_modules/lighthouse/cli/index.js'), url, '--quiet', '--output=json', `--output-path=${output}`, '--only-categories=performance,accessibility', '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage'], { stdio: 'inherit' });
+        execFileSync(process.execPath, [
+          path.join(ROOT, 'node_modules/lighthouse/cli/index.js'),
+          url,
+          '--quiet',
+          '--output=json',
+          `--output-path=${output}`,
+          '--only-categories=performance,accessibility',
+          '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
+        ], { stdio: 'inherit' });
         break;
       } catch (err: any) {
-        if (attempts < 3) {
-          console.warn(`Lighthouse attempt ${attempts} for ${name} failed, backing off 8s before retry...`);
-          await new Promise((resolve) => setTimeout(resolve, 8000));
+        if (attempts < 4) {
+          const delay = 12000 * attempts;
+          console.warn(`Lighthouse attempt ${attempts} for ${name} failed, backing off ${delay / 1000}s before retry...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
         throw err;
