@@ -108,41 +108,30 @@ export class HarnessHttpClient {
     const requestUrl = new URL(String(url));
     const host = requestUrl.host;
     try {
-      let attempts = 0;
-      while (true) {
-        attempts += 1;
-        const waitMs = Math.max(0, (this.#nextRequestAtByHost.get(host) ?? 0) - this.#now());
-        if (waitMs > 0) await this.#sleep(waitMs);
-        this.#nextRequestAtByHost.set(host, this.#now() + this.#paceMs);
-        const headers = new Headers(init.headers);
-        headers.set('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8');
-        headers.set('accept-language', 'en-US,en;q=0.9');
-        headers.set('accept-encoding', 'gzip, deflate, br');
-        headers.set('user-agent', this.#userAgent);
-        headers.set('sec-ch-ua', '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"');
-        headers.set('sec-ch-ua-mobile', '?0');
-        headers.set('sec-ch-ua-platform', '"Windows"');
-        headers.set('sec-fetch-dest', 'document');
-        headers.set('sec-fetch-mode', 'navigate');
-        headers.set('sec-fetch-site', 'none');
-        headers.set('sec-fetch-user', '?1');
-        headers.set('upgrade-insecure-requests', '1');
-        const timeoutSignal = AbortSignal.timeout(this.#timeoutMs);
-        const signal = init.signal ? AbortSignal.any([init.signal, timeoutSignal]) : timeoutSignal;
-        const response = await this.#fetch(requestUrl, { ...init, method: 'GET', redirect: 'follow', headers, signal });
-        const body = await response.text();
-        const retryAfterMs = parseRetryAfter(response.headers.get('retry-after'), this.#now());
-        if (retryAfterMs !== null) this.#nextRequestAtByHost.set(host, Math.max(this.#nextRequestAtByHost.get(host) ?? 0, this.#now() + retryAfterMs));
-        const blockedReason = detectBlockedResponse(response.status, body);
-        if (response.status === 429 && attempts < 6) {
-          const backoff = Math.max(retryAfterMs ?? 0, 15_000 * attempts);
-          console.warn(`[HTTP 429] Host ${host} throttled attempt ${attempts}, backing off ${backoff / 1000}s...`);
-          this.#nextRequestAtByHost.set(host, this.#now() + backoff);
-          await this.#sleep(backoff);
-          continue;
-        }
-        return { url: response.url || requestUrl.href, status: response.status, headers: response.headers, body, blocked: blockedReason !== null, ...(blockedReason ? { blockedReason } : {}) };
-      }
+      const waitMs = Math.max(0, (this.#nextRequestAtByHost.get(host) ?? 0) - this.#now());
+      if (waitMs > 0) await this.#sleep(waitMs);
+      this.#nextRequestAtByHost.set(host, this.#now() + this.#paceMs);
+      const headers = new Headers(init.headers);
+      headers.set('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8');
+      headers.set('accept-language', 'en-US,en;q=0.9');
+      headers.set('accept-encoding', 'gzip, deflate, br');
+      headers.set('user-agent', this.#userAgent);
+      headers.set('sec-ch-ua', '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"');
+      headers.set('sec-ch-ua-mobile', '?0');
+      headers.set('sec-ch-ua-platform', '"Windows"');
+      headers.set('sec-fetch-dest', 'document');
+      headers.set('sec-fetch-mode', 'navigate');
+      headers.set('sec-fetch-site', 'none');
+      headers.set('sec-fetch-user', '?1');
+      headers.set('upgrade-insecure-requests', '1');
+      const timeoutSignal = AbortSignal.timeout(this.#timeoutMs);
+      const signal = init.signal ? AbortSignal.any([init.signal, timeoutSignal]) : timeoutSignal;
+      const response = await this.#fetch(requestUrl, { ...init, method: 'GET', redirect: 'follow', headers, signal });
+      const body = await response.text();
+      const retryAfterMs = parseRetryAfter(response.headers.get('retry-after'), this.#now());
+      if (retryAfterMs !== null) this.#nextRequestAtByHost.set(host, Math.max(this.#nextRequestAtByHost.get(host) ?? 0, this.#now() + retryAfterMs));
+      const blockedReason = detectBlockedResponse(response.status, body);
+      return { url: response.url || requestUrl.href, status: response.status, headers: response.headers, body, blocked: blockedReason !== null, ...(blockedReason ? { blockedReason } : {}) };
     } finally { releaseQueue(); }
   }
 }
