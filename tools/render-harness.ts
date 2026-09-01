@@ -12,7 +12,14 @@ async function main(): Promise<HarnessSummary> {
     const stagingUrl = new URL(required('STAGING_URL'));
     const expectedBuild = required('EXPECTED_THEME_BUILD');
     const client = new HarnessHttpClient();
-    const home = await client.get(stagingUrl);
+    let home: any;
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      home = await client.get(stagingUrl);
+      if (!home.blocked || home.status !== 429 || attempt === 4) break;
+      const backoff = 15000 * attempt;
+      console.warn(`[HTTP 429 on initial staging fetch] Backing off ${backoff / 1000}s (attempt ${attempt})...`);
+      await new Promise((resolve) => setTimeout(resolve, backoff));
+    }
     if (home.blocked) return summarizeHarnessRun([{ requirementId: 'R-BUILD-2 AC2', status: 'BLOCKED', message: 'Build-stamp gate could not be measured.', evidence: home.blockedReason ?? `HTTP ${home.status}` }]);
     if (home.status < 200 || home.status >= 400) return fatalHarnessSummary(`Staging homepage returned HTTP ${home.status}; no render assertions ran.`);
     const deployed = extractThemeBuild(home.body);
