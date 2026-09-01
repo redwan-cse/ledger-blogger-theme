@@ -176,7 +176,6 @@ input[type='submit']:active,
   border-top: 1px solid $rule;
 }
 
-// Blogger injects .blog-pager for Older/Newer Posts pagination
 .blog-pager {
   grid-column: 1 / -1;
   display: flex;
@@ -185,6 +184,21 @@ input[type='submit']:active,
   margin-top: $space-7;
   padding-top: $space-5;
   border-top: 1px solid $rule;
+
+  @media (max-width: 639px) {
+    flex-direction: column;
+    gap: $space-3;
+    align-items: stretch;
+
+    .newer-link,
+    .blog-pager-newer-link,
+    .older-link,
+    .blog-pager-older-link {
+      width: 100%;
+      justify-content: center;
+      margin-left: 0;
+    }
+  }
 }
 
 // Blogger status-message wrapper

@@ -125,31 +125,15 @@ describe('M2 Challenger Empirical Verification Suite', () => {
       expect(themeXml).toContain('class="drawer-nav-list"');
     });
 
-    it('verifies Search Modal trigger in header.pug matches dialog#search-modal in theme.pug', () => {
-      const headerMatch = themeXml.match(/<b:widget\b[^>]*\bid=['"]Header1['"][\s\S]*?<\/b:widget>/);
-      expect(headerMatch).not.toBeNull();
-      const header = headerMatch![0];
-
-      const btnMatch = header.match(/<button\b([^>]*)class=['"]search-toggle['"]([^>]*)>/);
-      expect(btnMatch).not.toBeNull();
-      const btnAttrs = btnMatch![1] + ' ' + btnMatch![2];
-      expect(btnAttrs).toContain('aria-controls="search-modal"');
-      expect(btnAttrs).toContain('aria-expanded="false"');
-      expect(btnAttrs).toContain('aria-label="Open search"');
-      expect(btnAttrs).toContain('type="button"');
-
-      const dialogMatch = themeXml.match(/<dialog\b([^>]*)id=['"]search-modal['"]([^>]*)>([\s\S]*?)<\/dialog>/);
-      expect(dialogMatch).not.toBeNull();
-      const dialogContent = dialogMatch![0];
-      expect(dialogContent).toContain('class="search-modal"');
-      expect(dialogContent).toContain('aria-hidden="true"');
-      expect(dialogContent).toContain('aria-labelledby="search-modal-title"');
-      expect(dialogContent).toContain('id="search-modal-title"');
-      expect(dialogContent).toContain('class="search-modal-close"');
-      expect(dialogContent).toContain('expr:action="data:blog.searchUrl"');
-      expect(dialogContent).toContain('name="q"');
-      expect(dialogContent).toContain('type="search"');
-      expect(dialogContent).toContain('required="required"');
+    it('verifies Search Card and search form in sidebar and drawer', () => {
+      expect(themeXml).toContain('sidebar-search-card');
+      expect(themeXml).toContain('sidebar-search-input');
+      expect(themeXml).toContain('drawer-search-wrap');
+      expect(themeXml).toContain('drawer-search-input');
+      expect(themeXml).toContain('search-results-dropdown');
+      expect(themeXml).toContain('data:blog.searchUrl');
+      expect(themeXml).toContain('name="q"');
+      expect(themeXml).toContain('type="search"');
     });
 
     it('verifies Share Button Suite, Author Bio, and Prev/Next Post Navigation in blog-post', () => {

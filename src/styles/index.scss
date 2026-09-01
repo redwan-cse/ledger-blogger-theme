@@ -23,10 +23,6 @@
     box-shadow: $shadow-md;
     border-color: oklch(54.615% 0.2152 262.881 / 0.35);
   }
-
-  @media (min-width: 1024px) {
-    grid-column: 1 / -1;
-  }
 }
 
 .post-card {
@@ -224,6 +220,7 @@
 // ---------------------------------------------------------------------------
 
 body.is-home-lead .post:first-of-type {
+  grid-column: 1 / 9;
   background: $surface;
   border: 1px solid $rule;
   border-top: 3px solid $accent;
@@ -231,10 +228,6 @@ body.is-home-lead .post:first-of-type {
   padding: $space-6;
   margin-bottom: $space-6;
   box-shadow: $shadow-md;
-
-  @media (min-width: 1024px) {
-    grid-column: 1 / 9; // Span columns 1-8 on 12-column grid
-  }
 
   .post-title {
     font-size: clamp(1.4rem, 1.2rem + 1vw, 1.85rem);

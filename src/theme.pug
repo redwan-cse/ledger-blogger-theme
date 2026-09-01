@@ -22,6 +22,7 @@ html&attributes(rootAttributes)
       body#layout .mobile-drawer,
       body#layout .mobile-nav-drawer,
       body#layout .search-modal,
+      body#layout .search-results-dropdown,
       body#layout .toast-container {
         display: none;
       }
@@ -74,13 +75,29 @@ html&attributes(rootAttributes)
       include widgets/label.pug
     main#content.main-content(role='main')
       include widgets/blog.pug
-      b:if(cond='data:view.isMultipleItems')
-        aside.desktop-sidebar(aria-label='Author and Navigation Sidebar')
+      b:if(cond='not data:view.isError')
+        aside.desktop-sidebar(aria-label='Sidebar')
+          div.sidebar-card.sidebar-search-card
+            div.sidebar-card-header
+              div.sidebar-header-status
+                span.sidebar-status-dot
+                h3.sidebar-card-title Search
+            form.sidebar-search-form(expr:action='data:blog.searchUrl' method='get' role='search')
+              div.sidebar-search-input-wrap
+                svg.sidebar-search-icon(aria-hidden='true' height='16' viewBox='0 0 24 24' width='16')
+                  path(d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 14z' fill='currentColor')
+                input.sidebar-search-input(aria-label='Search articles' autocomplete='off' name='q' placeholder='Search articles…' type='search')/
+              div.sidebar-search-results.search-results-dropdown(aria-live='polite' style='display:none;')
           div.sidebar-card.sidebar-profile-card
             div.sidebar-profile-header
+              img.sidebar-avatar(alt='Md Redwan Ahmed' height='52' loading='lazy' src='https://redwan.work/profile.jpg' width='52')/
               div.sidebar-profile-info
                 h3.sidebar-name
-                  b:eval(expr='data:widgets.Blog.first.posts.first.author.name ?: data:blog.title')/
+                  b:eval(expr='"Md Redwan Ahmed"')/
+                span.sidebar-tagline
+                  b:eval(expr='"Cyber Security Professional"')/
+                span.sidebar-badge
+                  b:eval(expr='"Security Researcher"')/
             p.sidebar-bio
               b:eval(expr='data:widgets.Blog.first.posts.first.author.aboutMe ?: (data:blog.description ?: "Cybersecurity research, vulnerability analysis, and penetration testing publications.")')/
             div.sidebar-actions
@@ -88,6 +105,24 @@ html&attributes(rootAttributes)
                 span Book Consultation →
               a.sidebar-btn.sidebar-btn-secondary(href='https://redwan.work/' target='_blank' rel='noopener noreferrer')
                 span Portfolio
+          div.sidebar-card.sidebar-recent-card
+            div.sidebar-card-header
+              h3.sidebar-card-title Recent Publications
+            div.sidebar-recent-list
+              b:if(cond='data:widgets.Blog.first.posts')
+                b:loop(values='data:widgets.Blog.first.posts' var='post' index='i')
+                  b:if(cond='data:i < 5')
+                    article.sidebar-recent-item
+                      a.sidebar-recent-link(expr:href='data:post.url')
+                        span.sidebar-recent-title
+                          b:eval(expr='data:post.title')/
+                        div.sidebar-recent-meta
+                          b:if(cond='data:post.labels.first')
+                            span.sidebar-recent-tag
+                              b:eval(expr='data:post.labels.first.name')/
+                          b:if(cond='data:post.date')
+                            time.sidebar-recent-date(expr:datetime='data:post.date.iso8601')
+                              b:eval(expr='data:post.date')/
     div.cta-container
       include widgets/cta.pug
     footer.footer-container(role='contentinfo')
@@ -95,36 +130,67 @@ html&attributes(rootAttributes)
     div.drawer-backdrop(aria-hidden='true')
     nav#mobile-drawer.mobile-drawer(aria-hidden='true' aria-label='Mobile Navigation' inert='true')
       div.drawer-header
-        div.drawer-title
-          b:eval(expr='data:blog.title')/
+        div.drawer-brand
+          img.drawer-avatar(alt='Md Redwan Ahmed' height='38' loading='lazy' src='https://redwan.work/profile.jpg' width='38')/
+          div.drawer-brand-text
+            div.drawer-title Md Redwan Ahmed
+            div.drawer-subtitle Cyber Security Professional
         button.drawer-close(aria-label='Close navigation' type='button')
           svg(aria-hidden='true' height='20' viewBox='0 0 24 24' width='20')
             path(d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')
-      form.drawer-search-form.search-form(expr:action='data:blog.searchUrl' method='get' role='search')
-        input(aria-label='Search query' autocomplete='off' name='q' placeholder='Search articles…' required='required' type='search')/
-        button(type='submit')
-          b:eval(expr='data:messages.search ?: "Search"')/
-      ul.drawer-nav-list
-        li.drawer-nav-item
-          a.drawer-nav-link(expr:href='data:blog.homepageUrl')
-            b:eval(expr='data:messages.home ?: "Home"')/
-        li.drawer-nav-item
-          a.drawer-nav-link(href='/p/about.html') About
-        li.drawer-nav-item
-          a.drawer-nav-link(href='/p/contact.html') Contact
-        li.drawer-nav-item
-          a.drawer-nav-link(expr:href='data:blog.homepageUrl path "search"') All Posts
-    dialog#search-modal.search-modal(aria-hidden='true' aria-labelledby='search-modal-title')
-      div.search-modal-container
-        div.search-modal-header
-          div#search-modal-title.search-modal-title Search
-          button.search-modal-close(aria-label='Close search' type='button')
-            svg(aria-hidden='true' height='20' viewBox='0 0 24 24' width='20')
-              path(d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')
-        form.search-form(expr:action='data:blog.searchUrl' method='get' role='search')
-          input(aria-label='Search query' autocomplete='off' name='q' placeholder='Search articles…' required='required' type='search')/
-          button(type='submit')
-            b:eval(expr='data:messages.search ?: "Search"')/
+      div.drawer-section.drawer-search-wrap
+        form.drawer-search-form.search-form(expr:action='data:blog.searchUrl' method='get' role='search')
+          div.sidebar-search-input-wrap
+            svg.sidebar-search-icon(aria-hidden='true' height='16' viewBox='0 0 24 24' width='16')
+              path(d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 14z' fill='currentColor')
+            input.drawer-search-input(aria-label='Search articles' autocomplete='off' name='q' placeholder='Search articles…' type='search')/
+          div.drawer-search-results.search-results-dropdown(aria-live='polite' style='display:none;')
+      div.drawer-section.drawer-nav-section
+        div.drawer-section-title Navigation
+        ul.drawer-nav-list
+          li.drawer-nav-item
+            a.drawer-nav-link(expr:href='data:blog.homepageUrl path "search"')
+              span.drawer-nav-icon 📄
+              span.drawer-nav-text All Publications
+          li.drawer-nav-item
+            a.drawer-nav-link(href='https://redwan.work/' target='_blank' rel='noopener noreferrer')
+              span.drawer-nav-icon 🌐
+              span.drawer-nav-text Main Portfolio (redwan.work)
+          li.drawer-nav-item
+            a.drawer-nav-link(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer')
+              span.drawer-nav-icon 📅
+              span.drawer-nav-text Book Consultation
+          li.drawer-nav-item
+            a.drawer-nav-link(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer')
+              span.drawer-nav-icon 🛡️
+              span.drawer-nav-text Fast Cyber Defense
+      div.drawer-section.drawer-recent-card.sidebar-card.sidebar-recent-card
+        div.sidebar-card-header
+          h3.sidebar-card-title Recent Publications
+        div.sidebar-recent-list
+          b:if(cond='data:widgets.Blog.first.posts')
+            b:loop(values='data:widgets.Blog.first.posts' var='post' index='i')
+              b:if(cond='data:i < 5')
+                article.sidebar-recent-item
+                  a.sidebar-recent-link(expr:href='data:post.url')
+                    span.sidebar-recent-title
+                      b:eval(expr='data:post.title')/
+                    div.sidebar-recent-meta
+                      b:if(cond='data:post.labels.first')
+                        span.sidebar-recent-tag
+                          b:eval(expr='data:post.labels.first.name')/
+                      b:if(cond='data:post.date')
+                        time.sidebar-recent-date(expr:datetime='data:post.date.iso8601')
+                          b:eval(expr='data:post.date')/
+      div.drawer-section.drawer-social-section
+        div.drawer-section-title Connect
+        div.drawer-social-grid
+          a.drawer-social-btn(href='https://github.com/redwan-cse' target='_blank' rel='noopener noreferrer' aria-label='GitHub')
+            span GitHub
+          a.drawer-social-btn(href='https://linkedin.com/in/redwancse' target='_blank' rel='noopener noreferrer' aria-label='LinkedIn')
+            span LinkedIn
+          a.drawer-social-btn(href='https://x.com/redwan_cse' target='_blank' rel='noopener noreferrer' aria-label='X / Twitter')
+            span Twitter
     div#toast-container.toast-container(aria-live='polite')
     if script
       script.

@@ -129,6 +129,69 @@ html[data-theme='dark'] {
     }
   }
 
+  .sidebar-card-title,
+  .drawer-section-title,
+  .drawer-title {
+    color: oklch(98.415% 0.0034 247.858);
+  }
+
+  .sidebar-recent-title,
+  .sidebar-recent-link {
+    color: oklch(98.415% 0.0034 247.858);
+
+    &:hover {
+      color: oklch(75% 0.15 259.735) !important;
+    }
+  }
+
+  .sidebar-recent-item:hover .sidebar-recent-title {
+    color: oklch(75% 0.15 259.735);
+  }
+
+  .sidebar-recent-date,
+  .sidebar-recent-meta,
+  .drawer-subtitle,
+  .sidebar-tagline {
+    color: oklch(80% 0.015 255);
+  }
+
+  .sidebar-search-input,
+  .drawer-search-input {
+    background-color: oklch(16% 0.025 260) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+    color: oklch(98.415% 0.0034 247.858) !important;
+
+    &::placeholder {
+      color: oklch(65% 0.015 255) !important;
+    }
+
+    &:focus {
+      border-color: oklch(75% 0.15 259.735) !important;
+      box-shadow: 0 0 0 2px oklch(75% 0.15 259.735 / 0.3) !important;
+    }
+  }
+
+  .sidebar-search-results,
+  .drawer-search-results {
+    background-color: oklch(18% 0.025 260) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+    box-shadow: 0 16px 36px oklch(0% 0 0 / 0.6) !important;
+  }
+
+  .search-result-item:hover,
+  .search-result-item.is-active {
+    background-color: oklch(24% 0.03 260) !important;
+  }
+
+  .search-result-title {
+    color: oklch(98.415% 0.0034 247.858) !important;
+  }
+
+  .search-result-meta,
+  .search-result-date {
+    color: oklch(75% 0.015 255) !important;
+  }
+
   .sidebar-cta-tag {
     color: oklch(75% 0.15 259.735);
   }

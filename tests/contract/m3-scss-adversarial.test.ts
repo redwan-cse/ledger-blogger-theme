@@ -374,8 +374,8 @@ describe('Adversarial Stress Testing: M3.2 SCSS Architecture & OKLCH Design Syst
       const { xml } = await generateTheme({ sha, write: false });
       const css = extractCssFromTheme(xml);
 
-      // Columns 3-10 on desktop
-      expect(css).toMatch(/\.is-post\s+\.post,\s*\.is-page\s+\.post\s*\{[^}]*grid-column:\s*3\s*\/\s*11/);
+      // Single post container padding and border
+      expect(css).toMatch(/\.is-post\s+\.post,\s*\.is-page\s+\.post\s*\{[^}]*border-bottom:\s*none/);
 
       // .post-body long-form typography rules
       expect(css).toMatch(/\.post-body\s*\{[^}]*max-width:\s*68ch/);

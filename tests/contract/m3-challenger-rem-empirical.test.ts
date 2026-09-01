@@ -6,7 +6,8 @@ import { generateTheme } from '../../tools/generate.js';
 import {
   initReadingProgress,
   initMobileDrawer,
-  initSearchModal,
+  initInlineLiveSearch,
+  initLiveSearch,
   showToast,
   copyToClipboard,
   initShareCopy
@@ -145,24 +146,18 @@ class MockDOMElement {
   querySelectorAll<T = MockDOMElement>(selector: string): T[] {
     const results: MockDOMElement[] = [];
     const matchElement = (el: MockDOMElement): boolean => {
-      if (selector === '#reading-progress' && el.id === 'reading-progress') return true;
-      if (selector === '.reading-progress-bar' && el.classList.contains('reading-progress-bar')) return true;
-      if (selector === '#mobile-drawer' && el.id === 'mobile-drawer') return true;
-      if (selector === '.drawer-backdrop' && el.classList.contains('drawer-backdrop')) return true;
-      if (selector === '.drawer-toggle' && el.classList.contains('drawer-toggle')) return true;
-      if (selector === '.drawer-close' && el.classList.contains('drawer-close')) return true;
-      if (selector === '#search-modal' && el.id === 'search-modal') return true;
-      if (selector === '.search-toggle' && el.classList.contains('search-toggle')) return true;
-      if (selector === '.search-modal-close' && el.classList.contains('search-modal-close')) return true;
-      if (selector === '.search-modal-container' && el.classList.contains('search-modal-container')) return true;
-      if (selector === '#toast-container' && el.id === 'toast-container') return true;
-      if (selector === 'textarea' && el.tagName === 'TEXTAREA') return true;
-      if (selector.includes('[data-action="copy-link"]') && el.dataset['action'] === 'copy-link') return true;
-      if (selector === 'a, button' && (el.tagName === 'A' || el.tagName === 'BUTTON')) return true;
-      if (selector === '.drawer-close, a, button' && (el.classList.contains('drawer-close') || el.tagName === 'A' || el.tagName === 'BUTTON')) return true;
-      if (selector.includes('input') && el.tagName === 'INPUT') return true;
-      if (selector.includes('a[href]') && el.tagName === 'A' && el.hasAttribute('href')) return true;
-      if (selector.includes('button') && el.tagName === 'BUTTON' && !el.hasAttribute('disabled')) return true;
+      const parts = selector.split(',').map((s) => s.trim());
+      for (const part of parts) {
+        if (part.startsWith('.') && el.classList.contains(part.slice(1))) return true;
+        if (part.startsWith('#') && el.id === part.slice(1)) return true;
+        if (part === 'textarea' && el.tagName === 'TEXTAREA') return true;
+        if (part === 'a, button' && (el.tagName === 'A' || el.tagName === 'BUTTON')) return true;
+        if (part === '.drawer-close, a, button' && (el.classList.contains('drawer-close') || el.tagName === 'A' || el.tagName === 'BUTTON')) return true;
+        if (part.includes('[data-action="copy-link"]') && el.dataset['action'] === 'copy-link') return true;
+        if (part.includes('input') && el.tagName === 'INPUT') return true;
+        if (part.includes('a[href]') && el.tagName === 'A' && el.hasAttribute('href')) return true;
+        if (part.includes('button') && el.tagName === 'BUTTON' && !el.hasAttribute('disabled')) return true;
+      }
       return false;
     };
 
@@ -369,91 +364,28 @@ describe('Empirical Challenge Remediation Verification Suite', () => {
       document.body.appendChild(backdrop);
       document.body.appendChild(drawerToggle);
 
-      const modal = document.createElement('dialog');
-      modal.id = 'search-modal';
-      modal.setAttribute('aria-hidden', 'true');
+      const searchCard = document.createElement('div');
+      searchCard.className = 'sidebar-search-card';
 
-      const searchToggle = document.createElement('button');
-      searchToggle.className = 'search-toggle';
-      searchToggle.setAttribute('aria-expanded', 'false');
+      const input = document.createElement('input');
+      input.className = 'sidebar-search-input';
+      input.setAttribute('type', 'search');
+      input.setAttribute('name', 'q');
 
-      document.body.appendChild(modal);
-      document.body.appendChild(searchToggle);
+      const dropdown = document.createElement('div');
+      dropdown.className = 'search-results-dropdown';
 
-      initSearchModal();
+      searchCard.appendChild(input);
+      searchCard.appendChild(dropdown);
+      document.body.appendChild(searchCard);
 
-      // Open search modal via toggle button click
-      searchToggle.dispatchEvent({
-        type: 'click',
-        defaultPrevented: false,
-        preventDefault: () => {}
-      } as any);
+      initLiveSearch();
 
-      // Verify Modal is OPEN
-      expect(modal.getAttribute('aria-hidden')).toBe('false');
-      expect(searchToggle.getAttribute('aria-expanded')).toBe('true');
-      expect(document.body.style.overflow).toBe('hidden');
+      input.value = 'Security';
+      input.dispatchEvent({ type: 'input' } as any);
 
-      // Verify Drawer is completely CLOSED and ARIA attributes synchronized
-      expect(drawer.classList.contains('is-open')).toBe(false);
-      expect(backdrop.classList.contains('is-open')).toBe(false);
-      expect(drawer.getAttribute('aria-hidden')).toBe('true');
-      expect(backdrop.getAttribute('aria-hidden')).toBe('true');
-      expect(drawerToggle.getAttribute('aria-expanded')).toBe('false');
-      expect(document.body.classList.contains('drawer-open')).toBe(false);
-    });
-
-    it('properly synchronizes CSS classes and ARIA attributes when drawer opens while search modal is open', () => {
-      const modal = document.createElement('dialog');
-      modal.id = 'search-modal';
-      modal.className = 'search-modal is-open';
-      modal.setAttribute('open', '');
-      modal.setAttribute('aria-hidden', 'false');
-
-      const searchToggle = document.createElement('button');
-      searchToggle.className = 'search-toggle';
-      searchToggle.setAttribute('aria-expanded', 'true');
-
-      const drawer = document.createElement('nav');
-      drawer.id = 'mobile-drawer';
-      drawer.setAttribute('aria-hidden', 'true');
-
-      const backdrop = document.createElement('div');
-      backdrop.className = 'drawer-backdrop';
-      backdrop.setAttribute('aria-hidden', 'true');
-
-      const drawerToggle = document.createElement('button');
-      drawerToggle.className = 'drawer-toggle';
-      drawerToggle.setAttribute('aria-expanded', 'false');
-
-      document.body.appendChild(modal);
-      document.body.appendChild(searchToggle);
-      document.body.appendChild(drawer);
-      document.body.appendChild(backdrop);
-      document.body.appendChild(drawerToggle);
-
-      initMobileDrawer();
-
-      // Open drawer via toggle button click
-      drawerToggle.dispatchEvent({
-        type: 'click',
-        defaultPrevented: false,
-        preventDefault: () => {}
-      } as any);
-
-      // Verify Drawer is OPEN
-      expect(drawer.classList.contains('is-open')).toBe(true);
-      expect(backdrop.classList.contains('is-open')).toBe(true);
-      expect(drawer.getAttribute('aria-hidden')).toBe('false');
-      expect(backdrop.getAttribute('aria-hidden')).toBe('false');
-      expect(drawerToggle.getAttribute('aria-expanded')).toBe('true');
-      expect(document.body.classList.contains('drawer-open')).toBe(true);
-
-      // Verify Search Modal is completely CLOSED and ARIA attributes synchronized
-      expect(modal.classList.contains('is-open')).toBe(false);
-      expect(modal.hasAttribute('open')).toBe(false);
-      expect(modal.getAttribute('aria-hidden')).toBe('true');
-      expect(searchToggle.getAttribute('aria-expanded')).toBe('false');
+      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.innerHTML).toContain('Searching publications');
     });
   });
 

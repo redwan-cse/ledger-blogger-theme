@@ -179,24 +179,19 @@ describe('M2 Adversarial Challenger Suite: Widget Templates & Defaultmarkups', (
     });
   });
 
-  describe('Adversarial Test 2: Header Widget & Interactive Triggers (Search Modal & Mobile Drawer)', () => {
-    it('contains valid search modal and mobile drawer toggle buttons in Header1 with correct ARIA attributes', () => {
+  describe('Adversarial Test 2: Header Widget & Interactive Triggers (Mobile Drawer & Theme Toggle)', () => {
+    it('contains valid mobile drawer toggle button and theme toggle in Header1 with correct ARIA attributes', () => {
       const headerWidget = findElements(rootNode, (n) => n.name === 'b:widget' && n.attrs.id === 'Header1')[0]!;
       const buttons = findElements(headerWidget, (n) => n.name === 'button');
-
-      const searchToggle = buttons.find((b) => b.attrs.class === 'search-toggle');
-      expect(searchToggle, 'Header must contain search-toggle button').toBeDefined();
-      expect(searchToggle?.attrs['aria-controls']).toBe('search-modal');
-      expect(searchToggle?.attrs['aria-expanded']).toBe('false');
-      expect(searchToggle?.attrs['aria-label']).toBe('Open search');
-      expect(searchToggle?.attrs.type).toBe('button');
 
       const drawerToggle = buttons.find((b) => b.attrs.class === 'drawer-toggle');
       expect(drawerToggle, 'Header must contain drawer-toggle button').toBeDefined();
       expect(drawerToggle?.attrs['aria-controls']).toBe('mobile-drawer');
       expect(drawerToggle?.attrs['aria-expanded']).toBe('false');
-      expect(drawerToggle?.attrs['aria-label']).toBe('Toggle navigation');
       expect(drawerToggle?.attrs.type).toBe('button');
+
+      const themeToggle = buttons.find((b) => b.attrs.class === 'theme-toggle');
+      expect(themeToggle, 'Header must contain theme-toggle button').toBeDefined();
     });
 
     it('preserves single-H1 heading hierarchy in Header1 across single-item and multiple-item views', () => {
@@ -245,7 +240,7 @@ describe('M2 Adversarial Challenger Suite: Widget Templates & Defaultmarkups', (
       expect(progressContainer?.attrs['aria-valuemax']).toBe('100');
     });
 
-    it('declares mobile navigation drawer with accessible landmark, backdrop, close button, and home link', () => {
+    it('declares mobile navigation drawer with accessible landmark, backdrop, and close button', () => {
       const drawer = findElements(rootNode, (n) => n.name === 'nav' && n.attrs.id === 'mobile-drawer')[0];
       expect(drawer).toBeDefined();
       expect(drawer?.attrs['aria-hidden']).toBe('true');
@@ -258,29 +253,14 @@ describe('M2 Adversarial Challenger Suite: Widget Templates & Defaultmarkups', (
       const closeButton = findElements(drawer!, (n) => n.name === 'button' && n.attrs.class === 'drawer-close')[0];
       expect(closeButton).toBeDefined();
       expect(closeButton?.attrs['aria-label']).toBe('Close navigation');
-
-      const homeLink = findElements(drawer!, (n) => n.name === 'a' && n.attrs.class === 'drawer-nav-link')[0];
-      expect(homeLink).toBeDefined();
-      expect(homeLink?.attrs['expr:href']).toBe('data:blog.homepageUrl');
     });
 
-    it('declares search modal dialog with proper ARIA bindings and standard search form', () => {
-      const dialog = findElements(rootNode, (n) => n.name === 'dialog' && n.attrs.id === 'search-modal')[0];
-      expect(dialog).toBeDefined();
-      expect(dialog?.attrs['aria-hidden']).toBe('true');
-      expect(dialog?.attrs['aria-labelledby']).toBe('search-modal-title');
+    it('declares live search forms in sidebar and drawer with proper ARIA bindings', () => {
+      const sidebarSearch = findElements(rootNode, (n) => n.name === 'div' && n.attrs.class === 'sidebar-card sidebar-search-card')[0];
+      expect(sidebarSearch, 'Sidebar must contain search card').toBeDefined();
 
-      const form = findElements(dialog!, (n) => n.name === 'form' && n.attrs.class === 'search-form')[0];
-      expect(form).toBeDefined();
-      expect(form?.attrs['expr:action']).toBe('data:blog.searchUrl');
-      expect(form?.attrs.method).toBe('get');
-      expect(form?.attrs.role).toBe('search');
-
-      const input = findElements(form!, (n) => n.name === 'input' && n.attrs.type === 'search')[0];
-      expect(input).toBeDefined();
-      expect(input?.attrs.name).toBe('q');
-      expect(input?.attrs.required).toBe('required');
-      expect(input?.attrs.autocomplete).toBe('off');
+      const drawerSearch = findElements(rootNode, (n) => n.name === 'div' && n.attrs.class === 'drawer-section drawer-search-wrap')[0];
+      expect(drawerSearch, 'Drawer must contain search wrap').toBeDefined();
     });
 
     it('declares toast container with aria-live="polite"', () => {

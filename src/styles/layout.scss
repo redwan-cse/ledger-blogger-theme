@@ -143,15 +143,6 @@
   }
 }
 
-// The inline search icon has nowhere to go once the single-line nav no
-// longer fits (same breakpoint as .nav-container below); search moves into
-// the mobile drawer's own search form instead (see theme.pug).
-.search-toggle {
-  @media (max-width: 1023px) {
-    display: none;
-  }
-}
-
 .drawer-toggle {
   @media (min-width: 1024px) {
     display: none;
@@ -229,9 +220,9 @@ html[data-theme='dark'] .theme-icon-moon {
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: oklch(14.479% 0 0 / 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: oklch(14.479% 0 0 / 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: $z-drawer-backdrop;
   opacity: 0;
   pointer-events: none;
@@ -249,25 +240,28 @@ html[data-theme='dark'] .theme-icon-moon {
   position: fixed;
   top: 0;
   left: 0;
-  width: 300px;
-  max-width: 85vw;
+  width: 340px;
+  max-width: 90vw;
   height: 100vh;
   height: 100dvh;
   background: $glass-bg-drawer;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-right: 1px solid $rule;
   box-shadow: $shadow-xl;
   visibility: hidden;
   transform: translateX(-100%);
-  transition: transform $motion-moderate $ease-out-quart, visibility $motion-moderate $ease-out-quart;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: $z-drawer;
   display: flex;
   flex-direction: column;
-  padding: $space-5 $space-4;
+  gap: $space-4;
+  padding: $space-5 $space-4 $space-7;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: $rule transparent;
 
-  @supports not (backdrop-filter: blur(16px)) {
+  @supports not (backdrop-filter: blur(20px)) {
     background: $page;
   }
 
@@ -281,41 +275,139 @@ html[data-theme='dark'] .theme-icon-moon {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: $space-4;
+    padding-bottom: $space-3;
     border-bottom: 1px solid $rule;
-    margin-bottom: $space-4;
+    margin-bottom: 0;
+  }
+
+  .drawer-brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  .drawer-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid $accent;
+    flex-shrink: 0;
+  }
+
+  .drawer-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
   }
 
   .drawer-title {
-    font-family: $font-serif;
-    font-size: $font-size-h3;
+    font-family: $font-sans;
+    font-size: 0.9375rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: $ink;
     margin: 0;
+    line-height: 1.2;
+  }
+
+  .drawer-subtitle {
+    font-family: $font-mono;
+    font-size: 0.6875rem;
+    color: $ink-muted;
+    letter-spacing: 0.02em;
+    margin-top: 1px;
   }
 
   .drawer-close {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 40px;
+    min-height: 40px;
     background: transparent;
-    border: 1px solid transparent;
+    border: 1px solid $rule;
     cursor: pointer;
     border-radius: 8px;
     color: $ink-muted;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
+    transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
 
     &:hover {
       color: $accent;
       background: $surface;
+      border-color: $accent;
     }
   }
 
-  // Search form shown in the drawer once the inline header search icon is
-  // hidden below 1024px (see .search-toggle above) — the side panel is
-  // where search lives when it no longer fits the single-line nav.
-  .drawer-search-form {
-    margin: 0 0 $space-4;
+  .drawer-section {
+    width: 100%;
+  }
+
+  .drawer-section-title {
+    font-family: $font-mono;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $ink-muted;
+    margin-bottom: $space-2;
+  }
+
+  .drawer-search-wrap {
+    position: relative;
+
+    .sidebar-search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar-search-icon {
+      position: absolute;
+      left: 12px;
+      color: $ink-muted;
+      pointer-events: none;
+    }
+
+    .drawer-search-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 $space-3 0 38px;
+      font-family: $font-sans;
+      font-size: 0.875rem;
+      color: $ink;
+      background: $surface;
+      border: 1px solid $rule;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
+
+      &::placeholder {
+        color: $ink-muted;
+        opacity: 0.8;
+      }
+
+      &:focus {
+        border-color: $accent;
+        box-shadow: 0 0 0 2px oklch(54.615% 0.2152 262.881 / 0.25);
+      }
+    }
+
+    .drawer-search-results {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      width: 100%;
+      max-height: 280px;
+      overflow-y: auto;
+      background: $surface;
+      border: 1px solid $rule;
+      border-radius: 10px;
+      box-shadow: $shadow-xl;
+      z-index: 100;
+      padding: $space-2;
+    }
   }
 
   .drawer-nav-list {
@@ -330,99 +422,359 @@ html[data-theme='dark'] .theme-icon-moon {
   .drawer-nav-link {
     display: flex;
     align-items: center;
+    gap: $space-3;
     min-height: 44px;
     padding: $space-2 $space-3;
-    border-radius: 8px;
+    border-radius: 10px;
     color: $ink;
     text-decoration: none;
-    font-size: $font-size-row;
-    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: $surface;
+    border: 1px solid $rule;
+    box-shadow: $shadow-sm;
+    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
 
     &:hover {
       background-color: $accent-wash;
       color: $accent;
+      border-color: oklch(54.615% 0.2152 262.881 / 0.35);
+      transform: translateX(2px);
+    }
+  }
+
+  .drawer-nav-icon {
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .drawer-nav-text {
+    flex: 1;
+  }
+
+  .drawer-profile-card {
+    background: $surface;
+    border: 1px solid $rule;
+    border-radius: 12px;
+    padding: $space-4;
+    box-shadow: $shadow-sm;
+
+    .sidebar-profile-header {
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+    }
+
+    .sidebar-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid $rule;
+      flex-shrink: 0;
+    }
+
+    .sidebar-name {
+      font-family: $font-sans;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: $ink;
+      margin: 0 0 2px;
+      line-height: 1.2;
+    }
+
+    .sidebar-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px $space-2;
+      background: oklch(36% 0.14 140 / 0.1);
+      border: 1px solid oklch(36% 0.14 140 / 0.3);
+      border-radius: 999px;
+      font-family: $font-mono;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: oklch(36% 0.14 140);
+      white-space: nowrap;
+
+      html[data-theme='dark'] & {
+        color: oklch(78% 0.16 145);
+        background: oklch(78% 0.16 145 / 0.12);
+        border-color: oklch(78% 0.16 145 / 0.35);
+      }
+    }
+
+    .sidebar-bio {
+      font-family: $font-sans;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: $ink-muted;
+      margin: $space-2 0 0;
+    }
+  }
+
+  .drawer-recent-card {
+    background: $surface;
+    border: 1px solid $rule;
+    border-radius: 12px;
+    padding: $space-4;
+    box-shadow: $shadow-sm;
+
+    .sidebar-card-header {
+      padding-bottom: $space-2;
+      border-bottom: 1px solid $rule;
+      margin-bottom: $space-2;
+    }
+
+    .sidebar-card-title {
+      font-family: $font-sans;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: $ink-muted;
+      margin: 0;
+    }
+
+    .sidebar-recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: $space-2;
+    }
+
+    .sidebar-recent-item {
+      padding: $space-2 0;
+      border-bottom: 1px solid $rule;
+
+      &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+    }
+
+    .sidebar-recent-link {
+      display: block;
+      text-decoration: none;
+    }
+
+    .sidebar-recent-title {
+      display: block;
+      font-family: $font-sans;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: $ink;
+      line-height: 1.35;
+      transition: color $motion-fast $ease-out-quart;
+
+      &:hover {
+        color: $accent;
+      }
+    }
+
+    .sidebar-recent-meta {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      font-family: $font-mono;
+      font-size: 0.6875rem;
+      color: $ink-muted;
+      margin-top: 2px;
+    }
+
+    .sidebar-recent-tag {
+      color: $accent;
+      background: $accent-wash;
+      border: 1px solid oklch(54.615% 0.2152 262.881 / 0.2);
+      padding: 0 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+  }
+
+  .drawer-social-section {
+    margin-top: auto;
+    padding-top: $space-3;
+    border-top: 1px solid $rule;
+  }
+
+  .drawer-social-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $space-2;
+  }
+
+  .drawer-social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: $space-1 $space-2;
+    border-radius: 8px;
+    background: $surface;
+    border: 1px solid $rule;
+    font-family: $font-mono;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $ink;
+    text-decoration: none;
+    transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
+
+    &:hover {
+      background: $accent-wash;
+      color: $accent;
+      border-color: oklch(54.615% 0.2152 262.881 / 0.3);
     }
   }
 }
 
 // ---------------------------------------------------------------------------
-// Search Modal Overlay Dialog
+// Inline Expandable Header Search & Live Dropdown Results
 // ---------------------------------------------------------------------------
 
-.search-modal {
-  &:not([open]) {
-    display: none;
-  }
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  padding: 0;
-  border: none;
-  background: transparent;
-  max-width: 560px;
-  width: calc(100% - 32px);
-  z-index: $z-modal;
-  overflow: visible;
+.header-search-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 
-  &::backdrop {
-    background: oklch(14.479% 0 0 / 0.5);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    opacity: 0;
-    transition: opacity $motion-moderate $ease-out-quart;
-  }
-
-  &[open]::backdrop {
-    opacity: 1;
-  }
-
-  .search-modal-container {
-    background: $page;
-    border: 1px solid $rule;
-    border-radius: 12px;
-    box-shadow: $shadow-xl;
-    padding: $space-5;
-    transform: scale(0.95) translateY(-10px);
-    opacity: 0;
-    transition: transform $motion-moderate $ease-spring, opacity $motion-moderate $ease-out-quart;
-  }
-
-  &[open] .search-modal-container,
-  &.is-open .search-modal-container {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-
-  .search-modal-header {
+  .header-search-form {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: $space-4;
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    transition: width $motion-moderate $ease-out-quart, opacity $motion-fast $ease-out-quart, margin $motion-fast $ease-out-quart;
+    margin-left: 0;
   }
 
-  .search-modal-title {
-    font-family: $font-serif;
-    font-size: $font-size-h3;
-    margin: 0;
-  }
-
-  .search-modal-close {
-    min-width: 44px;
-    min-height: 44px;
-    background: transparent;
-    border: 1px solid transparent;
-    cursor: pointer;
+  .header-search-input {
+    width: 100%;
+    min-height: 38px;
+    padding: $space-1 $space-3;
+    font-family: $font-sans;
+    font-size: 0.875rem;
+    color: $ink;
+    background: $surface;
+    border: 1px solid $rule;
     border-radius: 8px;
-    color: $ink-muted;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart;
+    outline: none;
+    transition: border-color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
-    &:hover {
-      color: $accent;
-      background: $surface;
+    &::placeholder {
+      color: $ink-muted;
+      opacity: 0.8;
     }
+
+    &:focus {
+      border-color: $accent;
+      box-shadow: 0 0 0 2px oklch(54.615% 0.2152 262.881 / 0.2);
+    }
+  }
+
+  &.is-expanded .header-search-form {
+    width: 220px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-left: $space-2;
+
+    @media (min-width: 1280px) {
+      width: 260px;
+    }
+
+    @media (max-width: 639px) {
+      width: calc(100vw - 190px);
+      max-width: 220px;
+    }
+  }
+}
+
+.search-results-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  max-width: 90vw;
+  max-height: 380px;
+  overflow-y: auto;
+  background: $page;
+  border: 1px solid $rule;
+  border-radius: 10px;
+  box-shadow: $shadow-xl;
+  z-index: 100;
+  padding: $space-2;
+
+  .search-status-message {
+    padding: $space-3 $space-4;
+    font-family: $font-sans;
+    font-size: 0.8125rem;
+    color: $ink-muted;
+    text-align: center;
+  }
+
+  .search-results-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .search-result-item {
+    border-radius: 6px;
+    transition: background-color $motion-fast $ease-out-quart;
+
+    &.is-active,
+    &:hover {
+      background-color: $surface;
+    }
+  }
+
+  .search-result-link {
+    display: block;
+    padding: $space-2 $space-3;
+    text-decoration: none;
+  }
+
+  .search-result-title {
+    display: block;
+    font-family: $font-sans;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $ink;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    transition: color $motion-fast $ease-out-quart;
+
+    .search-result-item:hover &,
+    .search-result-item.is-active & {
+      color: $accent;
+    }
+  }
+
+  .search-result-meta {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-family: $font-mono;
+    font-size: 0.72rem;
+    color: $ink-muted;
+  }
+
+  .search-result-tag {
+    color: $accent;
+    background: $accent-wash;
+    border: 1px solid oklch(54.615% 0.2152 262.881 / 0.2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.6875rem;
+  }
+
+  .search-result-date {
+    color: $ink-muted;
   }
 }
 
@@ -525,6 +877,12 @@ html[data-theme='dark'] .theme-icon-moon {
     box-shadow: $shadow-lg;
     transition: transform $motion-moderate $ease-out-quart, border-color $motion-moderate $ease-out-quart;
 
+    @media (max-width: 767px) {
+      width: 160px;
+      height: 160px;
+      border-width: 3px;
+    }
+
     &:hover {
       transform: scale(1.03);
       border-color: $accent;
@@ -544,27 +902,40 @@ html[data-theme='dark'] .theme-icon-moon {
     align-items: center;
     gap: $space-2;
     padding: $space-1 $space-3;
-    background: oklch(32% 0.13 140 / 0.08);
-    border: 1px solid oklch(32% 0.13 140 / 0.25);
+    background: oklch(36% 0.14 140 / 0.08);
+    border: 1px solid oklch(36% 0.14 140 / 0.25);
     border-radius: 999px;
     font-family: $font-mono;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.05em;
-    color: oklch(32% 0.13 140);
+    color: oklch(36% 0.14 140);
+    white-space: nowrap;
+
+    html[data-theme='dark'] & {
+      color: oklch(78% 0.16 145);
+      background: oklch(78% 0.16 145 / 0.12);
+      border-color: oklch(78% 0.16 145 / 0.35);
+    }
   }
 
   .status-label {
-    color: oklch(32% 0.13 140);
+    color: inherit;
   }
 
   .status-beacon {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: oklch(32% 0.13 140);
-    box-shadow: 0 0 8px oklch(32% 0.13 140);
+    background-color: oklch(36% 0.14 140);
+    box-shadow: 0 0 8px oklch(36% 0.14 140);
     animation: beaconPulse 2s infinite ease-in-out;
+    flex-shrink: 0;
+
+    html[data-theme='dark'] & {
+      background-color: oklch(78% 0.16 145);
+      box-shadow: 0 0 8px oklch(78% 0.16 145);
+    }
   }
 
 
@@ -644,13 +1015,16 @@ html[data-theme='dark'] .theme-icon-moon {
     }
 
     &.hero-btn-tertiary {
-      background: transparent;
-      color: $ink-muted;
-      border: 1px solid transparent;
+      background: $surface;
+      color: $ink;
+      border: 1px solid $rule;
+      box-shadow: $shadow-sm;
 
       &:hover {
         color: $accent;
-        transform: translateY(-1px);
+        border-color: $accent;
+        background: $accent-wash;
+        transform: translateY(-2px);
       }
     }
   }
@@ -677,12 +1051,28 @@ html[data-theme='dark'] .theme-icon-moon {
   .topics-list,
   .topics-cloud {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    align-items: center;
     gap: $space-2;
     list-style: none;
     margin: 0;
     padding: 0;
+
+    @media (max-width: 1023px) {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 0 $space-2;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   }
 
   .topic-pill {
@@ -1668,40 +2058,31 @@ html[data-theme='dark'] .theme-icon-moon {
 // Mobile (<640px): single column, 20px gutters
 @media (max-width: 639px) {
   .main-content {
-    padding: $space-5 $space-4 $space-8;
+    padding: $space-5 20px $space-8;
   }
 }
 
 // Tablet (640-1023px): single column, 48px gutters
 @media (min-width: 640px) and (max-width: 1023px) {
   .main-content {
-    padding: $space-6 $space-6 $space-9;
+    padding: $space-6 $space-7 $space-9;
   }
 }
 
-// Desktop (>=1024px): 12-column grid layout on the main container
+// Desktop (>=1024px): 12-column grid layout on the main container (75% / 25% split)
 @media (min-width: 1024px) {
   .main-content {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     column-gap: $space-6;
     row-gap: $space-6;
-    padding: $space-7 $space-5 $space-9;
+    padding: $space-7 $space-6 $space-9;
   }
 
   .main.section,
   #page_body,
   .widget.Blog {
-    grid-column: 1 / 10; // 9 columns for a fuller editorial stream
-  }
-
-  .is-post .main.section,
-  .is-post #page_body,
-  .is-post .widget.Blog,
-  .is-page .main.section,
-  .is-page #page_body,
-  .is-page .widget.Blog {
-    grid-column: 1 / -1; // Full 12 columns for single article views
+    grid-column: 1 / 10;
   }
 
   .blog-posts {
@@ -1712,18 +2093,19 @@ html[data-theme='dark'] .theme-icon-moon {
 
   .is-post .blog-posts,
   .is-page .blog-posts {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    display: block;
+    width: 100%;
   }
 
   .desktop-sidebar {
-    grid-column: 10 / 13; // 3 columns keeps the sidebar useful without shrinking the stream
+    grid-column: 10 / 13;
     display: flex;
     flex-direction: column;
     gap: $space-5;
     position: sticky;
-    top: 96px;
+    top: 84px;
     align-self: start;
+    width: 100%;
   }
 }
 
@@ -1733,11 +2115,6 @@ html[data-theme='dark'] .theme-icon-moon {
   @media (min-width: 1024px) {
     display: flex;
   }
-}
-
-.is-post .desktop-sidebar,
-.is-page .desktop-sidebar {
-  display: none !important;
 }
 
 // ---------------------------------------------------------------------------
@@ -1755,6 +2132,182 @@ html[data-theme='dark'] .theme-icon-moon {
   &:hover {
     box-shadow: $shadow-md;
     border-color: oklch(54.615% 0.2152 262.881 / 0.3);
+  }
+}
+
+.sidebar-search-card {
+  .sidebar-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $rule;
+    margin-bottom: $space-3;
+  }
+
+  .sidebar-header-status {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  .sidebar-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: $accent;
+    box-shadow: 0 0 6px $accent;
+  }
+
+  .sidebar-card-title {
+    font-family: $font-sans;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $ink;
+    margin: 0;
+  }
+
+  .sidebar-search-form {
+    position: relative;
+    margin: 0;
+  }
+
+  .sidebar-search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar-search-icon {
+    position: absolute;
+    left: 12px;
+    color: $ink-muted;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar-search-input {
+    width: 100%;
+    height: 42px;
+    padding: 0 $space-3 0 38px;
+    font-family: $font-sans;
+    font-size: 0.875rem;
+    color: $ink;
+    background: $surface;
+    border: 1px solid $rule;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
+
+    &::placeholder {
+      color: $ink-muted;
+      opacity: 0.75;
+    }
+
+    &:focus {
+      border-color: $accent;
+      box-shadow: 0 0 0 2px oklch(54.615% 0.2152 262.881 / 0.25);
+    }
+  }
+
+  .sidebar-search-results {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 360px;
+    overflow-y: auto;
+    background: $surface;
+    border: 1px solid $rule;
+    border-radius: 10px;
+    box-shadow: $shadow-xl;
+    z-index: 100;
+    padding: $space-2;
+  }
+}
+
+.sidebar-recent-card {
+  .sidebar-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $rule;
+    margin-bottom: $space-3;
+  }
+
+  .sidebar-card-title {
+    font-family: $font-sans;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $ink;
+    margin: 0;
+  }
+
+  .sidebar-recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+
+  .sidebar-recent-item {
+    border-bottom: 1px solid $rule;
+    padding-bottom: $space-3;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+
+  .sidebar-recent-link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .sidebar-recent-title {
+    display: block;
+    font-family: $font-sans;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: $ink;
+    margin-bottom: 4px;
+    transition: color $motion-fast $ease-out-quart;
+
+    &:hover {
+      color: $accent;
+    }
+  }
+
+  .sidebar-recent-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-2;
+    font-family: $font-mono;
+    font-size: 0.72rem;
+    color: $ink-muted;
+  }
+
+  .sidebar-recent-tag {
+    color: $accent;
+    background: $accent-wash;
+    border: 1px solid oklch(54.615% 0.2152 262.881 / 0.2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.6875rem;
+  }
+
+  .sidebar-recent-date {
+    color: $ink-muted;
   }
 }
 
@@ -1791,6 +2344,14 @@ html[data-theme='dark'] .theme-icon-moon {
     margin: 0;
   }
 
+  .sidebar-tagline {
+    font-family: $font-mono;
+    font-size: 0.75rem;
+    color: $ink-muted;
+    letter-spacing: 0.02em;
+    margin-bottom: 2px;
+  }
+
   .sidebar-badge {
     display: inline-block;
     font-family: $font-mono;
@@ -1804,6 +2365,12 @@ html[data-theme='dark'] .theme-icon-moon {
     padding: 1px 6px;
     border-radius: 8px;
     width: fit-content;
+
+    html[data-theme='dark'] & {
+      color: oklch(80% 0.14 155);
+      background: oklch(80% 0.14 155 / 0.15);
+      border-color: oklch(80% 0.14 155 / 0.35);
+    }
   }
 
   .sidebar-bio {

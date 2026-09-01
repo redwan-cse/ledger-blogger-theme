@@ -153,10 +153,7 @@ export function initMobileDrawer(): MobileDrawerController | null {
         firstFocusable.focus();
       }
     } else {
-      const isModalOpen = document.querySelector('#search-modal[open], #search-modal.is-open') !== null;
-      if (!isModalOpen) {
-        document.body.style.overflow = '';
-      }
+      document.body.style.overflow = '';
       if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
         lastActiveElement.focus();
       }
@@ -177,7 +174,6 @@ export function initMobileDrawer(): MobileDrawerController | null {
       if (isDrawerOpen()) {
         closeDrawer();
       } else {
-        closeSearchModalDirect();
         openDrawer();
       }
     });
@@ -213,160 +209,182 @@ export function initMobileDrawer(): MobileDrawerController | null {
 }
 
 // ---------------------------------------------------------------------------
-// Module 3: Expandable Search Modal (<dialog>)
+// Module 3: Inline Live Header Search & Sidebar Dynamic Hydration
 // ---------------------------------------------------------------------------
 
-function closeDrawerDirect(): void {
-  const drawer = document.querySelector<HTMLElement>('#mobile-drawer');
-  const backdrop = document.querySelector<HTMLElement>('.drawer-backdrop');
-  const toggles = document.querySelectorAll<HTMLElement>('.drawer-toggle');
-
-  if (drawer) {
-    drawer.classList.remove('is-open');
-    drawer.setAttribute('aria-hidden', 'true');
-  }
-  if (backdrop) {
-    backdrop.classList.remove('is-open');
-    backdrop.setAttribute('aria-hidden', 'true');
-  }
-  toggles.forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
-  document.body.classList.remove('drawer-open');
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function closeSearchModalDirect(): void {
-  const modal = document.querySelector<HTMLDialogElement>('#search-modal');
-  if (!modal) return;
-  if (typeof modal.showModal === 'function' && modal.open) {
-    modal.close();
-  } else {
-    modal.removeAttribute('open');
-    modal.classList.remove('is-open');
-  }
-  modal.setAttribute('aria-hidden', 'true');
-  const toggles = document.querySelectorAll<HTMLElement>('.search-toggle');
-  toggles.forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
-}
+export function initLiveSearch(): void {
+  const searchContainers = document.querySelectorAll<HTMLElement>(
+    '.sidebar-search-card, .drawer-search-wrap, .header-search-wrap'
+  );
 
-export interface SearchModalController {
-  open: () => void;
-  close: () => void;
-  isOpen: () => boolean;
-}
+  searchContainers.forEach((container) => {
+    const searchInput = container.querySelector<HTMLInputElement>(
+      '.sidebar-search-input, .drawer-search-input, .header-search-input'
+    );
+    const resultsDropdown = container.querySelector<HTMLElement>('.search-results-dropdown');
+    if (!searchInput || !resultsDropdown) return;
 
-/**
- * Initializes the expandable search modal overlay.
- */
-export function initSearchModal(): SearchModalController | null {
-  const modal = document.querySelector<HTMLDialogElement>('#search-modal');
-  const toggleButtons = document.querySelectorAll<HTMLElement>('.search-toggle');
-  const closeButtons = modal ? modal.querySelectorAll<HTMLElement>('.search-modal-close') : [];
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let activeIndex = -1;
+    let currentResults: Array<{ title: string; url: string; date?: string; label?: string; snippet?: string }> = [];
 
-  if (!modal) return null;
-
-  let lastActiveElement: HTMLElement | null = null;
-  const isDialogSupported = typeof modal.showModal === 'function';
-
-  function isModalOpen(): boolean {
-    return modal!.hasAttribute('open') || modal!.classList.contains('is-open');
-  }
-
-  function openModal(): void {
-    lastActiveElement = document.activeElement as HTMLElement | null;
-
-    if (isDialogSupported) {
-      if (!modal!.open) {
-        modal!.showModal();
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (!query) {
+        resultsDropdown.style.display = 'none';
+        resultsDropdown.innerHTML = '';
+        activeIndex = -1;
+        return;
       }
-    } else {
-      modal!.setAttribute('open', '');
-      modal!.classList.add('is-open');
-    }
 
-    modal!.setAttribute('aria-hidden', 'false');
-    toggleButtons.forEach((btn) => btn.setAttribute('aria-expanded', 'true'));
-    document.body.style.overflow = 'hidden';
+      resultsDropdown.style.display = 'block';
+      resultsDropdown.innerHTML = '<div class="search-status-message">Searching publications…</div>';
 
-    const input = modal!.querySelector<HTMLInputElement>('input[type="search"], input[name="q"], input[type="text"]');
-    if (input) {
-      input.focus();
-      input.select();
-    }
-  }
+      debounceTimer = setTimeout(async () => {
+        try {
+          const feedUrl = `/feeds/posts/summary?alt=json&q=${encodeURIComponent(query)}&max-results=6`;
+          const res = await fetch(feedUrl, { headers: { Accept: 'application/json' } });
+          if (!res.ok) throw new Error('Search request failed');
+          const data = await res.json();
+          const entries = data?.feed?.entry || [];
 
-  function closeModal(): void {
-    if (isDialogSupported) {
-      if (modal!.open) {
-        modal!.close();
+          if (entries.length === 0) {
+            resultsDropdown.innerHTML = '<div class="search-status-message">No matching publications found.</div>';
+            currentResults = [];
+            activeIndex = -1;
+            return;
+          }
+
+          currentResults = entries.map((entry: any) => {
+            const title = entry.title?.$t || 'Untitled';
+            const link = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
+            const date = entry.published?.$t
+              ? new Date(entry.published.$t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              : '';
+            const label = entry.category?.[0]?.term || '';
+            const snippet = entry.summary?.$t ? entry.summary.$t.replace(/<[^>]*>/g, '').slice(0, 90) + '…' : '';
+            return { title, url: link, date, label, snippet };
+          });
+
+          renderResults();
+        } catch {
+          resultsDropdown.innerHTML = '<div class="search-status-message">Search unavailable. Press Enter for full search.</div>';
+          currentResults = [];
+          activeIndex = -1;
+        }
+      }, 250);
+    });
+
+    function renderResults(): void {
+      if (currentResults.length === 0) {
+        resultsDropdown!.style.display = 'none';
+        resultsDropdown!.innerHTML = '';
+        return;
       }
-    } else {
-      modal!.removeAttribute('open');
-      modal!.classList.remove('is-open');
+
+      resultsDropdown!.innerHTML = `
+        <ul class="search-results-list" role="listbox">
+          ${currentResults
+            .map(
+              (item, idx) => `
+            <li class="search-result-item ${idx === activeIndex ? 'is-active' : ''}" role="option" aria-selected="${idx === activeIndex}">
+              <a class="search-result-link" href="${item.url}">
+                <span class="search-result-title">${escapeHtml(item.title)}</span>
+                <div class="search-result-meta">
+                  ${item.label ? `<span class="search-result-tag">${escapeHtml(item.label)}</span>` : ''}
+                  ${item.date ? `<span class="search-result-date">${escapeHtml(item.date)}</span>` : ''}
+                </div>
+              </a>
+            </li>
+          `
+            )
+            .join('')}
+        </ul>
+      `;
+      resultsDropdown!.style.display = 'block';
     }
 
-    modal!.setAttribute('aria-hidden', 'true');
-    toggleButtons.forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        resultsDropdown.style.display = 'none';
+        resultsDropdown.innerHTML = '';
+        activeIndex = -1;
+      } else if (e.key === 'ArrowDown') {
+        if (currentResults.length > 0) {
+          e.preventDefault();
+          activeIndex = (activeIndex + 1) % currentResults.length;
+          renderResults();
+        }
+      } else if (e.key === 'ArrowUp') {
+        if (currentResults.length > 0) {
+          e.preventDefault();
+          activeIndex = (activeIndex - 1 + currentResults.length) % currentResults.length;
+          renderResults();
+        }
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0) {
+          const item = currentResults[activeIndex];
+          if (item) {
+            e.preventDefault();
+            window.location.href = item.url;
+          }
+        }
+      }
+    });
 
-    const isDrawerActive = document.body.classList.contains('drawer-open');
-    if (!isDrawerActive) {
-      document.body.style.overflow = '';
-    }
-
-    if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
-      lastActiveElement.focus();
-    }
-  }
-
-  toggleButtons.forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (isModalOpen()) {
-        closeModal();
-      } else {
-        closeDrawerDirect();
-        openModal();
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target as Node)) {
+        resultsDropdown.style.display = 'none';
       }
     });
   });
+}
 
-  closeButtons.forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeModal();
-    });
-  });
+// Backward compatibility alias
+export const initInlineLiveSearch = initLiveSearch;
 
-  modal.addEventListener('close', () => {
-    modal.setAttribute('aria-hidden', 'true');
-    toggleButtons.forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
-    const isDrawerActive = document.body.classList.contains('drawer-open');
-    if (!isDrawerActive) {
-      document.body.style.overflow = '';
-    }
-  });
+export function initSidebarRecentPosts(): void {
+  const recentList = document.querySelector<HTMLElement>('.sidebar-recent-list');
+  if (!recentList) return;
 
-  modal.addEventListener('cancel', () => {
-    closeModal();
-  });
+  if (recentList.querySelectorAll('.sidebar-recent-item').length >= 2) return;
 
-  modal.addEventListener('click', (e: MouseEvent) => {
-    const container = modal.querySelector('.search-modal-container');
-    if (container && !container.contains(e.target as Node)) {
-      closeModal();
-    } else if (e.target === modal) {
-      closeModal();
-    }
-  });
+  fetch('/feeds/posts/summary?alt=json&max-results=5', { headers: { Accept: 'application/json' } })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      const entries = data?.feed?.entry || [];
+      if (entries.length === 0) return;
 
-  modal.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key === 'Tab') {
-      trapFocus(modal, e);
-    } else if (e.key === 'Escape' && !isDialogSupported) {
-      e.preventDefault();
-      closeModal();
-    }
-  });
+      recentList.innerHTML = entries
+        .map((entry: any) => {
+          const title = entry.title?.$t || 'Untitled';
+          const link = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
+          const date = entry.published?.$t
+            ? new Date(entry.published.$t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : '';
+          const label = entry.category?.[0]?.term || '';
 
-  return { open: openModal, close: closeModal, isOpen: isModalOpen };
+          return `
+          <article class="sidebar-recent-item">
+            <a class="sidebar-recent-link" href="${link}">
+              <span class="sidebar-recent-title">${escapeHtml(title)}</span>
+              <div class="sidebar-recent-meta">
+                ${label ? `<span class="sidebar-recent-tag">${escapeHtml(label)}</span>` : ''}
+                ${date ? `<time class="sidebar-recent-date">${escapeHtml(date)}</time>` : ''}
+              </div>
+            </a>
+          </article>
+        `;
+        })
+        .join('');
+    })
+    .catch(() => {});
 }
 
 // ---------------------------------------------------------------------------
@@ -821,7 +839,8 @@ function init(): void {
 
   defer(() => {
     initMobileDrawer();
-    initSearchModal();
+    initInlineLiveSearch();
+    initSidebarRecentPosts();
     initShareCopy();
     initIframeAccessibility();
 

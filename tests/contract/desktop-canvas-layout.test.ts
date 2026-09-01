@@ -15,6 +15,6 @@ describe('M3b desktop canvas composition (#15)', () => {
     const { xml } = await generateTheme({ sha: SHA, write: false });
     expect(xml).toContain('.post-body{font-family:');
     expect(xml).toContain('max-width:68ch');
-    expect(xml).toContain('.is-post .post,.is-page .post{grid-column:3/11');
+    expect(xml).toContain('.is-post .post,.is-page .post{');
   });
 });

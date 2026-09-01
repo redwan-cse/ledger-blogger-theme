@@ -11,29 +11,31 @@ b:section(class='footer' id='footer' name='Footer' showaddelement='yes')
             h3.footer-heading
               b:eval(expr='data:blog.title')/
             p.footer-desc
-              b:eval(expr='data:blog.description ?: "Security Research & Engineering Journal"')/
-          //- Column 2: Navigation
+              b:eval(expr='data:blog.description ?: "Cybersecurity research, vulnerability analysis, and security engineering publications."')/
+          //- Column 2: Advisory & Publications
           div.footer-col.footer-col-nav
-            h3.footer-heading Navigation
+            h3.footer-heading Advisory &amp; Posts
             ul.footer-links-list
               li
-                a(href='/p/about.html') About
-              li
-                a(href='/p/contact.html') Contact
-              li
-                a(expr:href='data:blog.homepageUrl path "search"') All Posts
-              li
-                a(expr:href='data:blog.homepageUrl path "feeds/posts/default"') RSS Feed
-          //- Column 3: Engagement
-          div.footer-col.footer-col-connect
-            h3.footer-heading Engagement
-            ul.footer-links-list
-              li
-                a(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Portfolio (redwan.work)
+                a(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Book Consultation →
               li
                 a(href='https://fastcyberdefense.com/' target='_blank' rel='noopener noreferrer') Fast Cyber Defense
               li
-                a(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer') Book Consultation
+                a(expr:href='data:blog.homepageUrl path "search"') All Publications
+              li
+                a(expr:href='data:blog.homepageUrl path "feeds/posts/default"') RSS Feed
+          //- Column 3: Ecosystem & Social
+          div.footer-col.footer-col-connect
+            h3.footer-heading Main Site &amp; Social
+            ul.footer-links-list
+              li
+                a(href='https://redwan.work/' target='_blank' rel='noopener noreferrer') Main Portfolio (redwan.work)
+              li
+                a(href='https://github.com/redwan-cse' target='_blank' rel='noopener noreferrer') GitHub (@redwan-cse)
+              li
+                a(href='https://linkedin.com/in/redwancse' target='_blank' rel='noopener noreferrer') LinkedIn (/in/redwancse)
+              li
+                a(href='https://x.com/redwan_cse' target='_blank' rel='noopener noreferrer') X / Twitter (@redwan_cse)
         div.footer-bottom
           div.footer-bottom-left
             p.footer-copyright

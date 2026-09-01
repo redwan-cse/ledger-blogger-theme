@@ -31,13 +31,12 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(scriptSource).toContain('aria-expanded');
       expect(scriptSource).toContain('aria-hidden');
 
-      // Module 3: Search Modal Dialog
-      expect(scriptSource).toContain('initSearchModal');
-      expect(scriptSource).toContain('#search-modal');
-      expect(scriptSource).toContain('.search-toggle');
-      expect(scriptSource).toContain('.search-modal-close');
-      expect(scriptSource).toContain('.search-modal-container');
-      expect(scriptSource).toContain('showModal');
+      // Module 3: Live Search & Dropdown
+      expect(scriptSource).toContain('initLiveSearch');
+      expect(scriptSource).toContain('.sidebar-search-card');
+      expect(scriptSource).toContain('.drawer-search-wrap');
+      expect(scriptSource).toContain('.search-results-dropdown');
+      expect(scriptSource).toContain('feeds/posts/summary');
 
       // Module 4: Share Copy & Toast
       expect(scriptSource).toContain('showToast');
@@ -70,10 +69,10 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(themePug).toContain('.drawer-close');
       expect(headerPug).toContain('.drawer-toggle');
 
-      // Search modal hooks
-      expect(themePug).toContain('#search-modal');
-      expect(themePug).toContain('.search-modal-close');
-      expect(headerPug).toContain('.search-toggle');
+      // Search hooks
+      expect(themePug).toContain('.sidebar-search-card');
+      expect(themePug).toContain('.drawer-search-wrap');
+      expect(themePug).toContain('.search-results-dropdown');
 
       // Share button & toast container hooks
       expect(postPug).toContain('data-action=\'copy-link\'');
@@ -95,7 +94,7 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(xml).toContain('document.documentElement.classList.add("js")');
       expect(xml).toContain('reading-progress');
       expect(xml).toContain('mobile-drawer');
-      expect(xml).toContain('search-modal');
+      expect(xml).toContain('sidebar-search');
       expect(xml).toContain('toast-container');
     });
 

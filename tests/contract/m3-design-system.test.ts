@@ -191,12 +191,13 @@ describe('Milestone M3.2: Modular SCSS Architecture & OKLCH Design System', () =
       expect(xml).toMatch(/@media\s*\(min-width:\s*1024px\)\s*\{[^}]*\.main-content\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*1fr\)/);
     });
 
-    it('allocates columns 1-8 for lead post and columns 3-10 for article body on desktop', async () => {
+    it('allocates columns 1-9 for main content stream and columns 10-12 for sidebar on desktop', async () => {
       const { xml } = await generateTheme({ sha, write: false });
       // Lead post on home p1: columns 1-8 (1 / 9)
       expect(xml).toMatch(/body\.is-home-lead\s+\.post:first-of-type\s*\{[^}]*grid-column:\s*1\s*\/\s*9/);
-      // Single post/page: columns 3-10 (3 / 11)
-      expect(xml).toMatch(/\.is-post\s+\.post[^{]*\{[^}]*grid-column:\s*3\s*\/\s*11/);
+      // Main stream columns 1-9 and sidebar columns 10-12
+      expect(xml).toContain('.main.section,#page_body,.widget.Blog{grid-column:1/10}');
+      expect(xml).toContain('.desktop-sidebar{grid-column:10/13');
     });
 
     it('provides distinct layout rules for mobile (<640px) and tablet (640-1023px)', async () => {

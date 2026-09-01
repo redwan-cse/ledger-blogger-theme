@@ -1,20 +1,11 @@
 b:section(class='navlinks' id='navlinks' name='Navigation' showaddelement='false')
   b:widget(id='LinkList1' locked='false' title='Navigation' type='LinkList' version='2' visible='true')
     b:includable(id='main')
-      nav.site-nav(aria-label='Main Navigation')
-        ul.nav-list
-          b:if(cond='data:links')
-            b:loop(values='data:links' var='link')
-              li.nav-item
-                a.nav-link(expr:href='data:link.target')
-                  b:eval(expr='data:link.name')/
-          b:if(cond='not data:links')
-            li.nav-item
-              a.nav-link(expr:href='data:blog.homepageUrl')
-                b:eval(expr='data:messages.home ?: "Home"')/
-            li.nav-item
-              a.nav-link(href='/p/about.html') About
-            li.nav-item
-              a.nav-link(href='/p/contact.html') Contact
-            li.nav-item
-              a.nav-link(expr:href='data:blog.homepageUrl path "search"') All Posts
+      b:with(value='data:links filter (l => l.name != "Home" and l.name != "home" and l.name != "About" and l.name != "about" and l.name != "Contact" and l.name != "contact")' var='filteredLinks')
+        b:if(cond='data:filteredLinks')
+          nav.site-nav(aria-label='Main Navigation')
+            ul.nav-list
+              b:loop(values='data:filteredLinks' var='link')
+                li.nav-item
+                  a.nav-link(expr:href='data:link.target')
+                    b:eval(expr='data:link.name')/
