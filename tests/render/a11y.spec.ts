@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { BloggerDiscoveryClient } from '../../tools/harness/blogger-api.js';
 import { extractThemeBuild } from '../../tools/harness/build-stamp.js';
-import { HarnessHttpClient } from '../../tools/harness/http.js';
+import { HarnessHttpClient, type HarnessHttpResponse } from '../../tools/harness/http.js';
 import { createViewTargets, type ViewTarget } from '../../tools/harness/views.js';
 import { test, expect } from './fixture.js';
 
