@@ -20,7 +20,15 @@ let targets: ViewTarget[] = [];
 test.beforeAll(async () => {
   const stagingUrl = required('STAGING_URL');
   const client = new HarnessHttpClient();
-  const homeRes = await client.get(stagingUrl);
+  let homeRes: HarnessHttpResponse | undefined;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    homeRes = await client.get(stagingUrl);
+    if (!homeRes.blocked || homeRes.status !== 429 || attempt === 4) break;
+    const backoff = 15000 * attempt;
+    console.warn(`[HTTP 429 in beforeAll] Backing off ${backoff / 1000}s (attempt ${attempt})...`);
+    await new Promise((resolve) => setTimeout(resolve, backoff));
+  }
+  if (!homeRes) throw new Error('Staging homepage could not be retrieved.');
   expect(homeRes.status).toBeLessThan(400);
   const homeHtml = homeRes.body;
   expect(extractThemeBuild(homeHtml)).toBe(required('EXPECTED_THEME_BUILD'));

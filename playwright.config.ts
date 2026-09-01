@@ -10,7 +10,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  timeout: 90_000,
+  timeout: 240_000,
   forbidOnly: Boolean(process.env.CI),
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'line',
   projects: [
