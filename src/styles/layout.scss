@@ -995,6 +995,16 @@ html[data-theme='dark'] .theme-icon-moon {
     align-items: center;
     flex-wrap: wrap;
     gap: $space-3;
+
+    @media (max-width: 639px) {
+      flex-direction: column;
+      align-items: stretch;
+
+      .hero-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   }
 
   .hero-btn {

@@ -178,6 +178,62 @@ html[data-theme='dark'] {
     box-shadow: 0 16px 36px oklch(0% 0 0 / 0.6) !important;
   }
 
+  .drawer-nav-link {
+    background-color: oklch(22.749% 0.0288 266.273) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+    color: oklch(98.415% 0.0034 247.858) !important;
+
+    &:hover {
+      background-color: oklch(27.950% 0.0368 260.031) !important;
+      border-color: oklch(75% 0.15 259.735 / 0.5) !important;
+      color: oklch(75% 0.15 259.735) !important;
+    }
+  }
+
+  .drawer-recent-card {
+    background-color: oklch(22.749% 0.0288 266.273) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+
+    .sidebar-card-header {
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+    }
+
+    .sidebar-recent-item {
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+    }
+
+    .sidebar-recent-title {
+      color: oklch(98.415% 0.0034 247.858) !important;
+
+      &:hover {
+        color: oklch(75% 0.15 259.735) !important;
+      }
+    }
+  }
+
+  .drawer-social-btn {
+    background-color: oklch(22.749% 0.0288 266.273) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+    color: oklch(98.415% 0.0034 247.858) !important;
+
+    &:hover {
+      background-color: oklch(27.950% 0.0368 260.031) !important;
+      border-color: oklch(75% 0.15 259.735 / 0.5) !important;
+      color: oklch(75% 0.15 259.735) !important;
+    }
+  }
+
+  .drawer-close {
+    color: oklch(98.415% 0.0034 247.858) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+
+    &:hover {
+      background-color: oklch(27.950% 0.0368 260.031) !important;
+      border-color: oklch(75% 0.15 259.735 / 0.5) !important;
+      color: oklch(75% 0.15 259.735) !important;
+    }
+  }
+
   .search-result-item:hover,
   .search-result-item.is-active {
     background-color: oklch(24% 0.03 260) !important;
