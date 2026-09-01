@@ -82,7 +82,9 @@ jobs:
           LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
           HARNESS_PACE_MS: '6000'
           EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
-        run: npm run test:lighthouse
+        run: |
+          npm run test:lighthouse
+          sleep 15
       - name: Verify rendered HTML across ten views
         env:
           STAGING_URL: https://blogs.redwan.work/
@@ -90,7 +92,9 @@ jobs:
           LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
           HARNESS_PACE_MS: '6000'
           EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
-        run: npm run harness
+        run: |
+          npm run harness
+          sleep 15
       - name: Verify JS, no-JS, and reduced-motion browser contexts
         env:
           STAGING_URL: https://blogs.redwan.work/
@@ -98,7 +102,9 @@ jobs:
           LAYOUT_MODE_URL: ${{ secrets.LAYOUT_MODE_URL }}
           HARNESS_PACE_MS: '6000'
           EXPECTED_THEME_BUILD: ${{ steps.resolve.outputs.expected_build }}
-        run: npm run harness:browser
+        run: |
+          npm run harness:browser
+          sleep 15
       - name: Verify serious and critical accessibility violations
         env:
           STAGING_URL: https://blogs.redwan.work/

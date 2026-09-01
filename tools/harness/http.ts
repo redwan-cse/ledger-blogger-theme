@@ -120,7 +120,8 @@ export class HarnessHttpClient {
       const response = await this.#fetch(requestUrl, { ...init, method: 'GET', redirect: 'follow', headers, signal });
       const body = await response.text();
       const retryAfterMs = parseRetryAfter(response.headers.get('retry-after'), this.#now());
-      if (retryAfterMs !== null) this.#nextRequestAtByHost.set(host, Math.max(this.#nextRequestAtByHost.get(host) ?? 0, this.#now() + retryAfterMs));
+      const coolDownMs = response.status === 429 ? Math.max(retryAfterMs ?? 0, 15_000) : (retryAfterMs ?? 0);
+      if (coolDownMs > 0) this.#nextRequestAtByHost.set(host, Math.max(this.#nextRequestAtByHost.get(host) ?? 0, this.#now() + coolDownMs));
       const blockedReason = detectBlockedResponse(response.status, body);
       return { url: response.url || requestUrl.href, status: response.status, headers: response.headers, body, blocked: blockedReason !== null, ...(blockedReason ? { blockedReason } : {}) };
     } finally { releaseQueue(); }

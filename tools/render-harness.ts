@@ -28,7 +28,12 @@ async function main(): Promise<HarnessSummary> {
     const assertions: HarnessAssertion[] = [];
     for (const target of targets) {
       if (!target.url) { assertions.push(assessView(target, 0, '')); continue; }
-      const response = target.name === 'home-p1' ? home : await client.get(target.url);
+      let response = target.name === 'home-p1' ? home : await client.get(target.url);
+      if (response.blocked && response.status === 429) {
+        console.warn(`[HTTP 429] Backing off 15s before retrying ${target.name}...`);
+        await new Promise((resolve) => setTimeout(resolve, 15000));
+        response = await client.get(target.url);
+      }
       if (response.blocked) assertions.push({ requirementId: target.requirementId, status: 'BLOCKED', message: `${target.name} could not be measured.`, evidence: response.blockedReason ?? `HTTP ${response.status}` });
       else assertions.push(assessView(target, response.status, response.body));
     }
