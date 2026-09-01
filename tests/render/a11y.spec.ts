@@ -52,10 +52,11 @@ async function gotoWithRetry(page: any, url: string, pace: number = paceMs) {
   while (true) {
     attempts += 1;
     await new Promise((resolve) => setTimeout(resolve, pace));
-    const response = await page.goto(url);
-    if (response && response.status() === 429 && attempts < 3) {
-      console.warn(`[RETRY] 429 rate limit encountered on ${url}, backing off 8s...`);
-      await new Promise((resolve) => setTimeout(resolve, 8000));
+    const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    if (response && response.status() === 429 && attempts < 4) {
+      const backoff = 15000 * attempts;
+      console.warn(`[RETRY] 429 rate limit encountered on ${url}, backing off ${backoff / 1000}s (attempt ${attempts})...`);
+      await new Promise((resolve) => setTimeout(resolve, backoff));
       continue;
     }
     return response;
