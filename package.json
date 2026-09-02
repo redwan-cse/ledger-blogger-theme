@@ -32,7 +32,7 @@
     "capture:baselines": "tsx tools/capture-baselines.ts"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.2",
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.54.0",
     "@types/node": "^24.0.0",
     "esbuild": "^0.25.0",
