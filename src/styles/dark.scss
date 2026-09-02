@@ -155,6 +155,12 @@ html[data-theme='dark'] {
     color: oklch(80% 0.015 255);
   }
 
+  .sidebar-recent-tag {
+    color: oklch(80% 0.14 260) !important;
+    background-color: oklch(22% 0.04 260) !important;
+    border-color: oklch(35% 0.06 260) !important;
+  }
+
   .sidebar-search-input,
   .drawer-search-input {
     background-color: oklch(16% 0.025 260) !important;
@@ -360,23 +366,35 @@ html[data-theme='dark'] {
     }
   }
 
-  .topic-pill,
-  .label-link {
-    background-color: oklch(22.749% 0.0288 266.273);
-    border-color: oklch(27.950% 0.0368 260.031);
-    color: oklch(80% 0.015 255);
+  .topic-pill {
+    background-color: oklch(20% 0.028 260) !important;
+    border-color: oklch(30% 0.035 260) !important;
+    color: oklch(88% 0.02 260) !important;
 
     &.is-active {
-      background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(75% 0.15 259.735);
-      color: oklch(75% 0.15 259.735);
+      background-color: oklch(26% 0.06 260) !important;
+      border-color: oklch(75% 0.15 259.735) !important;
+      color: oklch(75% 0.15 259.735) !important;
       font-weight: 600;
     }
 
     &:hover {
-      background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(75% 0.15 259.735 / 0.5);
-      color: oklch(75% 0.15 259.735);
+      background-color: oklch(26% 0.06 260) !important;
+      border-color: oklch(75% 0.15 259.735 / 0.6) !important;
+      color: oklch(75% 0.15 259.735) !important;
+    }
+  }
+
+  .label-link,
+  .post-labels .label-link {
+    background-color: oklch(22% 0.04 260) !important;
+    border-color: oklch(35% 0.06 260) !important;
+    color: oklch(80% 0.14 260) !important;
+
+    &:hover {
+      background-color: oklch(28% 0.08 260) !important;
+      border-color: oklch(75% 0.15 259.735) !important;
+      color: oklch(90% 0.15 260) !important;
     }
   }
 

@@ -6,6 +6,9 @@ html&attributes(rootAttributes)
     meta(name='color-scheme' content='dark light')/
     link(rel='alternate' type='application/rss+xml' expr:title='data:blog.title.escaped' expr:href='data:blog.canonicalHomepageUrl path "feeds/posts/default"')/
     link(rel='me' href='https://redwan.work')/
+    link(rel='icon' type='image/png' href='https://redwan.work/profile.jpg')/
+    link(rel='shortcut icon' type='image/png' href='https://redwan.work/profile.jpg')/
+    link(rel='apple-touch-icon' href='https://redwan.work/profile.jpg')/
     title
       | <data:view.title.escaped/>
     b:include(data='blog' name='all-head-content')/
@@ -93,16 +96,12 @@ html&attributes(rootAttributes)
               div.sidebar-search-results.search-results-dropdown(aria-live='polite' style='display:none;')
           div.sidebar-card.sidebar-profile-card
             div.sidebar-profile-header
-              img.sidebar-avatar(alt='Md Redwan Ahmed' height='52' loading='lazy' src='https://redwan.work/profile.jpg' width='52')/
+              img.sidebar-avatar(alt='Md Redwan Ahmed' height='48' loading='lazy' src='https://redwan.work/profile.jpg' width='48')/
               div.sidebar-profile-info
                 h3.sidebar-name
                   b:eval(expr='"Md Redwan Ahmed"')/
                 span.sidebar-tagline
                   b:eval(expr='"Cyber Security Professional"')/
-                span.sidebar-badge
-                  b:eval(expr='"Security Researcher"')/
-            p.sidebar-bio
-              b:eval(expr='data:widgets.Blog.first.posts.first.author.aboutMe ?: (data:blog.description ?: "Cybersecurity research, vulnerability analysis, and penetration testing publications.")')/
             div.sidebar-actions
               a.sidebar-btn.sidebar-btn-primary(href='https://cal.com/redwancse' target='_blank' rel='noopener noreferrer')
                 span Book Consultation →

@@ -2351,12 +2351,12 @@ html[data-theme='dark'] .theme-icon-moon {
     display: flex;
     align-items: center;
     gap: $space-3;
-    margin-bottom: $space-3;
+    margin-bottom: $space-4;
   }
 
   .sidebar-avatar {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid $rule;
@@ -2372,7 +2372,7 @@ html[data-theme='dark'] .theme-icon-moon {
 
   .sidebar-name {
     font-family: $font-sans;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 750;
     color: $ink;
     letter-spacing: -0.015em;
@@ -2381,10 +2381,10 @@ html[data-theme='dark'] .theme-icon-moon {
 
   .sidebar-tagline {
     font-family: $font-mono;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: $ink-muted;
     letter-spacing: 0.02em;
-    margin-bottom: 2px;
+    margin-bottom: 0;
   }
 
   .sidebar-badge {
