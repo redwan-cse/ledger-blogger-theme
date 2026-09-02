@@ -1313,7 +1313,6 @@
                     <li><a href="https://orcid.org/0009-0001-9419-4760" target="_blank" rel="noopener noreferrer">ORCID (0009-0001-9419-4760)</a></li>
                     <li><a href="https://github.com/redwan-cse" target="_blank" rel="noopener noreferrer">GitHub (@redwan-cse)</a></li>
                     <li><a href="https://linkedin.com/in/redwancse" target="_blank" rel="noopener noreferrer">LinkedIn (/in/redwancse)</a></li>
-                    <li><a href="https://x.com/redwan_cse" target="_blank" rel="noopener noreferrer">X / Twitter (@redwan_cse)</a></li>
                   </ul>
                 </div>
               </div>
@@ -1400,7 +1399,7 @@
       </div>
       <div class="drawer-section drawer-social-section">
         <div class="drawer-section-title">Connect</div>
-        <div class="drawer-social-grid"><a class="drawer-social-btn" href="https://orcid.org/0009-0001-9419-4760" target="_blank" rel="noopener noreferrer" aria-label="ORCID"><span>ORCID</span></a><a class="drawer-social-btn" href="https://github.com/redwan-cse" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><span>GitHub</span></a><a class="drawer-social-btn" href="https://linkedin.com/in/redwancse" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><span>LinkedIn</span></a><a class="drawer-social-btn" href="https://x.com/redwan_cse" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter"><span>Twitter</span></a></div>
+        <div class="drawer-social-grid"><a class="drawer-social-btn" href="https://orcid.org/0009-0001-9419-4760" target="_blank" rel="noopener noreferrer" aria-label="ORCID"><span>ORCID</span></a><a class="drawer-social-btn" href="https://github.com/redwan-cse" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><span>GitHub</span></a><a class="drawer-social-btn" href="https://linkedin.com/in/redwancse" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><span>LinkedIn</span></a></div>
       </div>
     </nav>
     <div class="toast-container" id="toast-container" aria-live="polite"></div>
