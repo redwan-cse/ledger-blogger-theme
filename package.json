@@ -10,7 +10,9 @@
     "npm": ">=11"
   },
   "scripts": {
+    "build": "tsx tools/generate.ts",
     "generate": "tsx tools/generate.ts",
+    "verify": "npm run typecheck && npm run generate && npm run contract:check && npm run test:golden && npm test && npm run test:contract",
     "watch": "tsx tools/watch.ts",
     "test:contract": "vitest run --config vitest.contract.config.ts",
     "test:golden": "tsx tools/golden-check.ts",
