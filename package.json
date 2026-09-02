@@ -36,6 +36,7 @@
     "@playwright/test": "^1.54.0",
     "@types/node": "^24.0.0",
     "esbuild": "^0.25.0",
+    "fast-check": "^4.9.0",
     "lighthouse": "^13.0.1",
     "pug": "^3.0.3",
     "sass": "^1.89.0",
