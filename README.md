@@ -3,6 +3,8 @@
 [![CI](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml)
 [![Build Theme Artifact](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml)
 [![CodeQL Analysis](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/codeql.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/redwan-cse/ledger-blogger-theme/badge)](https://scorecard.dev/viewer/?site=github.com/redwan-cse/ledger-blogger-theme)
+[![Gitleaks](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/gitleaks.yml)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blueviolet.svg)](SECURITY.md)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-blue.svg)](LICENSE)
 [![Blogger Layouts](https://img.shields.io/badge/Blogger-Layouts_V3-ff5722.svg)](https://support.google.com/blogger/answer/46870)
