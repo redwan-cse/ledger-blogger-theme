@@ -7,12 +7,14 @@ html&attributes(rootAttributes)
     link(rel='alternate' type='application/rss+xml' expr:title='data:blog.title.escaped' expr:href='data:blog.canonicalHomepageUrl path "feeds/posts/default"')/
     link(rel='me' href='https://redwan.work')/
     link(rel='me' href='https://orcid.org/0009-0001-9419-4760')/
-    link(rel='icon' type='image/png' href='https://redwan.work/profile.jpg')/
-    link(rel='shortcut icon' type='image/png' href='https://redwan.work/profile.jpg')/
-    link(rel='apple-touch-icon' href='https://redwan.work/profile.jpg')/
     title
       | <data:view.title.escaped/>
     b:include(data='blog' name='all-head-content')/
+    link(rel='icon' href='https://redwan.work/profile.jpg')/
+    link(rel='icon' type='image/jpeg' href='https://redwan.work/profile.jpg')/
+    link(rel='shortcut icon' type='image/jpeg' href='https://redwan.work/profile.jpg')/
+    link(rel='apple-touch-icon' href='https://redwan.work/profile.jpg')/
+    meta(name='thumbnail' content='https://redwan.work/profile.jpg')/
     b:skin(version=templateVersion).
       <![CDATA[
       !{css}
