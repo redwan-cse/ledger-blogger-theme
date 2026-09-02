@@ -1,15 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { extractWidget, getWidgetPattern, replaceWidget, buildControls } from '../../tools/build-controls.js';
 import {
-  META_THEME_BUILD,
-  STAMP_FORMAT,
   normalizeLineEndings,
   normalizeGoldenTheme,
   assertGoldenTheme,
   updateGoldenTheme
 } from '../../tools/golden-check.js';
-import { generateTheme } from '../../tools/generate.js';
-import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -110,6 +107,7 @@ describe('Adversarial Stress Testing: tools/build-controls.ts', () => {
       const customId = 'Custom.Widget[1]+$';
       const pattern = getWidgetPattern(customId);
       const xml = `<b:section id='sec'><b:widget id='${customId}' type='Custom' version='2'><b:includable id='main'/></b:widget></b:section>`;
+      expect(pattern.test(xml)).toBe(true);
       expect(extractWidget(xml, customId)).toBe(`<b:widget id='${customId}' type='Custom' version='2'><b:includable id='main'/></b:widget>`);
       const replaced = replaceWidget(xml, customId, '<new-widget/>');
       expect(replaced).toBe(`<b:section id='sec'><new-widget/></b:section>`);
@@ -253,8 +251,7 @@ describe('Adversarial Stress Testing: tools/golden-check.ts', () => {
 
   describe('assertGoldenTheme & diff diagnostics', () => {
     it('passes when actual and golden differ only by git sha and line endings', async () => {
-      const tmpDir = path.join(os.tmpdir(), `golden-test-${Date.now()}`);
-      await mkdir(tmpDir, { recursive: true });
+      const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'golden-test-'));
       const actualPath = path.join(tmpDir, 'actual.xml');
       const goldenPath = path.join(tmpDir, 'golden.xml');
 
@@ -269,8 +266,7 @@ describe('Adversarial Stress Testing: tools/golden-check.ts', () => {
     });
 
     it('throws detailed byte offset, line, and column diff when content differs', async () => {
-      const tmpDir = path.join(os.tmpdir(), `golden-diff-${Date.now()}`);
-      await mkdir(tmpDir, { recursive: true });
+      const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'golden-diff-'));
       const actualPath = path.join(tmpDir, 'actual.xml');
       const goldenPath = path.join(tmpDir, 'golden.xml');
 
@@ -287,8 +283,7 @@ describe('Adversarial Stress Testing: tools/golden-check.ts', () => {
     });
 
     it('updates golden file when updateGoldenTheme is called', async () => {
-      const tmpDir = path.join(os.tmpdir(), `golden-upd-${Date.now()}`);
-      await mkdir(tmpDir, { recursive: true });
+      const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'golden-upd-'));
       const actualPath = path.join(tmpDir, 'actual.xml');
       const goldenPath = path.join(tmpDir, 'golden.xml');
 

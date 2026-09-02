@@ -216,6 +216,21 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function extractPlainText(html: string): string {
+  if (!html) return '';
+  if (typeof DOMParser !== 'undefined') {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || '';
+  }
+  let prev: string;
+  let text = html;
+  do {
+    prev = text;
+    text = text.replace(/<[^>]+>/g, '');
+  } while (text !== prev);
+  return text;
+}
+
 export function initLiveSearch(): void {
   const searchContainers = document.querySelectorAll<HTMLElement>(
     '.sidebar-search-card, .drawer-search-wrap, .header-search-wrap'
@@ -235,9 +250,11 @@ export function initLiveSearch(): void {
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim();
       if (debounceTimer) clearTimeout(debounceTimer);
-      if (!query) {
+
+      if (query.length < 2) {
         resultsDropdown.style.display = 'none';
         resultsDropdown.innerHTML = '';
+        currentResults = [];
         activeIndex = -1;
         return;
       }
@@ -267,7 +284,7 @@ export function initLiveSearch(): void {
               ? new Date(entry.published.$t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
               : '';
             const label = entry.category?.[0]?.term || '';
-            const snippet = entry.summary?.$t ? entry.summary.$t.replace(/<[^>]*>/g, '').slice(0, 90) + '…' : '';
+            const snippet = entry.summary?.$t ? extractPlainText(entry.summary.$t).slice(0, 90) + '…' : '';
             return { title, url: link, date, label, snippet };
           });
 

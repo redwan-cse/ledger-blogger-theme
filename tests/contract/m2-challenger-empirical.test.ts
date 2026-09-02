@@ -2,10 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { generateTheme } from '../../tools/generate.js';
 import { buildControls } from '../../tools/build-controls.js';
 import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SHA = '0123456789abcdef0123456789abcdef01234567';
 
 describe('M2 Challenger Empirical Verification Suite', () => {

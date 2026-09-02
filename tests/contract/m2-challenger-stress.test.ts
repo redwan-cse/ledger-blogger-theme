@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { generateTheme } from '../../tools/generate.js';
-import { checkThemeContract, CONTRACT_RULES } from '../../tools/contract-check.js';
+import { checkThemeContract } from '../../tools/contract-check.js';
 
 const SHA = '0123456789abcdef0123456789abcdef01234567';
 

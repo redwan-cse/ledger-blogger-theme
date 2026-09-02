@@ -55,7 +55,6 @@ function named(document: XmlDocument, namespaceUri: string | null, localName: st
 function expressions(document: XmlDocument): string[] { const values: string[] = []; for (const element of active(document)) for (const [name, value] of element.attributes) { const expression = name === 'cond' || name.startsWith('expr:') || (element.namespaceUri === BLOGGER_NS && ['with', 'loop', 'include', 'attr', 'class', 'eval', 'case', 'switch'].includes(element.localName) && ['value', 'values', 'data', 'name', 'var'].includes(name)); if (expression) values.push(value); } return values; }
 function semanticValues(document: XmlDocument): string[] { return [...expressions(document), ...active(document).filter((element) => element.prefix === 'data').map((element) => element.name)]; }
 function descendants(element: XmlElement): XmlElement[] { const result: XmlElement[] = []; for (const child of element.children) if (child.kind === 'element') { result.push(child, ...descendants(child)); } return result; }
-function literalText(element: XmlElement): string { return element.children.filter((child): child is XmlText => child.kind === 'text').map((child) => child.value).join('').trim(); }
 function allLiteralText(element: XmlElement): string { let text = ''; for (const child of element.children) { if (child.kind === 'text') text += child.value; else if (child.kind === 'element') text += allLiteralText(child); } return text.trim(); }
 function jsonLdScript(element: XmlElement): boolean {
   if (element.localName !== 'script') return false;

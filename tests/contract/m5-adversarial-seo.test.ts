@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { generateTheme } from '../../tools/generate.js';
-import { checkThemeContract } from '../../tools/contract-check.js';
 
 // --- Blogger V3 Template Simulation Engine for SEO, Metadata & Shell ---
 
@@ -110,7 +109,12 @@ export function bloggerSnippet(
   options: { length?: number; links?: boolean; linebreaks?: boolean; ellipsis?: boolean } = {}
 ): string {
   if (!text) return '';
-  let cleaned = text.replace(/<[^>]+>/g, '');
+  let cleaned = text;
+  let prevCleaned: string;
+  do {
+    prevCleaned = cleaned;
+    cleaned = cleaned.replace(/<[^>]+>/g, '');
+  } while (cleaned !== prevCleaned);
   if (options.linebreaks === false) {
     cleaned = cleaned.replace(/[\r\n\t]+/g, ' ');
   }

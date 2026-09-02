@@ -1,19 +1,12 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { generateTheme } from '../../tools/generate.js';
 import {
-  initReadingProgress,
-  initMobileDrawer,
-  initInlineLiveSearch,
   initLiveSearch,
   showToast,
-  copyToClipboard,
-  initShareCopy
+  copyToClipboard
 } from '../../src/scripts/main.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SHA = '0123456789abcdef0123456789abcdef01234567';
 
 class MockDOMElement {

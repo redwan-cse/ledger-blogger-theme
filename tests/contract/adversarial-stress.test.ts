@@ -6,14 +6,12 @@ import {
 } from '../../tools/contract-check.js';
 import { generateTheme } from '../../tools/generate.js';
 import {
-  extractWidget,
   getWidgetPattern,
   replaceWidget
 } from '../../tools/build-controls.js';
 import {
   normalizeGoldenTheme,
   normalizeLineEndings,
-  META_THEME_BUILD,
   STAMP_FORMAT
 } from '../../tools/golden-check.js';
 

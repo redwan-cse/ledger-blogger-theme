@@ -47,6 +47,7 @@ export async function refreshBloggerAccessToken(options: RefreshTokenOptions): P
     throw new Error(`Google OAuth refresh failed: ${error}.${help}`);
   }
   if (typeof payload.access_token !== 'string' || !payload.access_token) throw new Error('Google OAuth response omitted access_token.');
+  if (!/^[a-zA-Z0-9._~+/=-]+$/.test(payload.access_token)) throw new Error('Google OAuth response returned invalid characters in access_token.');
   if (payload.token_type !== 'Bearer') throw new Error('Google OAuth response did not return Bearer token_type.');
   if (typeof payload.expires_in !== 'number' || payload.expires_in <= 0) throw new Error('Google OAuth response has invalid expires_in.');
 
