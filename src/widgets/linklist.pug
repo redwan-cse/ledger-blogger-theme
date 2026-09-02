@@ -5,9 +5,10 @@ b:section(class='navlinks' id='navlinks' name='Navigation' showaddelement='false
         ul.nav-list
           b:if(cond='data:links')
             b:loop(values='data:links' var='link')
-              li.nav-item
-                a.nav-link(expr:href='data:link.target')
-                  b:eval(expr='data:link.name')/
+              b:if(cond='data:link.name != "Home" and data:link.target != data:blog.homepageUrl')
+                li.nav-item
+                  a.nav-link(expr:href='data:link.target')
+                    b:eval(expr='data:link.name')/
           b:if(cond='not data:links')
             li.nav-item
               a.nav-link(expr:href='data:blog.canonicalHomepageUrl path "search"') All Posts
