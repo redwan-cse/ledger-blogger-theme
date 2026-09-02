@@ -443,12 +443,23 @@ html[data-theme='dark'] {
   .attribution-text a,
   .blogger,
   .blogger a,
-  .hero-badge-mono,
   .footer-links-list li,
   .footer-links-list a,
   .footer-bottom,
   .footer-back-to-top {
     color: oklch(80% 0.015 255) !important;
+  }
+
+  .hero-badge-mono {
+    background: oklch(20% 0.028 260) !important;
+    border-color: oklch(30% 0.035 260) !important;
+    color: oklch(85% 0.02 260) !important;
+
+    &:hover {
+      background: oklch(26% 0.06 260) !important;
+      border-color: oklch(75% 0.15 259.735 / 0.6) !important;
+      color: oklch(98% 0.01 260) !important;
+    }
   }
 
   .footer-links-list a:hover,

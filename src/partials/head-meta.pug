@@ -102,7 +102,13 @@ b:if(cond='data:view.isPost')
         </b:if>
         , "author": {
           "@type": "Person",
-          "name": "<data:post.author.name.jsonEscaped/>"
+          "name": "<data:post.author.name.jsonEscaped/>",
+          "sameAs": [
+            "https://orcid.org/0009-0001-9419-4760",
+            "https://redwan.work",
+            "https://github.com/redwan-cse",
+            "https://linkedin.com/in/redwancse"
+          ]
           <b:if cond='data:post.author.profileUrl'>
           , "url": "<data:post.author.profileUrl.jsonEscaped/>"
           </b:if>

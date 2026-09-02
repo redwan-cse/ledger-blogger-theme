@@ -614,7 +614,7 @@ html[data-theme='dark'] .theme-icon-moon {
 
   .drawer-social-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: $space-2;
   }
 
@@ -965,10 +965,32 @@ html[data-theme='dark'] .theme-icon-moon {
 
 
   .hero-badge-mono {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
     font-family: $font-mono;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    color: $ink-muted;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: $ink;
+    text-decoration: none;
+    background: $surface;
+    border: 1px solid $rule;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    box-shadow: $shadow-sm;
+    transition: color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      color: $accent;
+      border-color: oklch(54.615% 0.2152 262.881 / 0.35);
+      background: $accent-wash;
+      transform: translateY(-1px);
+    }
   }
 
   .hero-title {
