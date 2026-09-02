@@ -50,6 +50,9 @@ b:includable(id='postHeader' var='post')
         span.post-meta-sep ·
         time.post-date(expr:datetime='data:post.date.iso8601' itemprop='datePublished')
           b:eval(expr='data:post.date')/
+      b:if(cond='data:view.isSingleItem')
+        span.post-meta-sep.reading-time-sep(style='display:none;') ·
+        span.post-reading-time#reading-time-mount(style='display:none;')
     b:if(cond='data:view.isSingleItem')
       div.post-listen-bar
         button.listen-btn(type='button' data-action='listen-article' aria-label='Listen to this article')

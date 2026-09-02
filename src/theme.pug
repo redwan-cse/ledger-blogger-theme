@@ -3,6 +3,9 @@ html&attributes(rootAttributes)
   head
     meta(content='width=device-width, initial-scale=1' name='viewport')/
     meta(content=build name='theme-build')/
+    meta(name='color-scheme' content='dark light')/
+    link(rel='alternate' type='application/rss+xml' expr:title='data:blog.title.escaped' expr:href='data:blog.canonicalHomepageUrl path "feeds/posts/default"')/
+    link(rel='me' href='https://redwan.work')/
     title
       | <data:view.title.escaped/>
     b:include(data='blog' name='all-head-content')/

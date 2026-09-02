@@ -842,14 +842,125 @@ export function initIframeAccessibility(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Module 10: GitHub-Style Alert Callouts ([!NOTE], [!TIP], etc.)
+// ---------------------------------------------------------------------------
+
+const ALERT_TYPES: Record<string, { title: string; class: string; svg: string }> = {
+  NOTE: {
+    title: 'Note',
+    class: 'alert-callout-note',
+    svg: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
+  },
+  TIP: {
+    title: 'Tip',
+    class: 'alert-callout-tip',
+    svg: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>'
+  },
+  IMPORTANT: {
+    title: 'Important',
+    class: 'alert-callout-important',
+    svg: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
+  },
+  WARNING: {
+    title: 'Warning',
+    class: 'alert-callout-warning',
+    svg: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>'
+  },
+  CAUTION: {
+    title: 'Caution',
+    class: 'alert-callout-caution',
+    svg: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>'
+  }
+};
+
+export function initAlertCallouts(): void {
+  const blockquotes = document.querySelectorAll<HTMLQuoteElement>('.post-body blockquote');
+  blockquotes.forEach((bq) => {
+    const text = bq.textContent || '';
+    const match = text.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+    if (!match || !match[1]) return;
+
+    const alertKey = match[1].toUpperCase();
+    const alertConfig = ALERT_TYPES[alertKey];
+    if (!alertConfig) return;
+
+    bq.classList.add('alert-callout', alertConfig.class);
+
+    const firstP = bq.querySelector('p') || bq;
+    if (firstP.firstChild && firstP.firstChild.nodeType === Node.TEXT_NODE) {
+      firstP.firstChild.textContent = (firstP.firstChild.textContent || '').replace(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+    }
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'alert-callout-title';
+    titleEl.innerHTML = `${alertConfig.svg}<span>${alertConfig.title}</span>`;
+    bq.insertBefore(titleEl, bq.firstChild);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Module 11: Dynamic Client-Side Reading Time
+// ---------------------------------------------------------------------------
+
+export function initReadingTime(): void {
+  const postBody = document.querySelector<HTMLElement>('.post-body');
+  const mount = document.getElementById('reading-time-mount');
+  const sep = document.querySelector<HTMLElement>('.reading-time-sep');
+  if (!postBody || !mount) return;
+
+  const text = postBody.innerText || '';
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  if (words < 20) return;
+
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  mount.textContent = `⏱️ ${minutes} min read`;
+  mount.style.display = 'inline';
+  if (sep) sep.style.display = 'inline';
+}
+
+// ---------------------------------------------------------------------------
+// Module 12: Global Keyboard Shortcuts
+// ---------------------------------------------------------------------------
+
+export function initKeyboardShortcuts(): void {
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target) {
+      const tag = target.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) {
+        return;
+      }
+    }
+
+    if (e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+      e.preventDefault();
+      const searchInput = document.querySelector<HTMLInputElement>('.sidebar-search-input, .drawer-search-input');
+      if (searchInput) {
+        const drawerToggle = document.querySelector<HTMLElement>('.drawer-toggle');
+        const drawer = document.getElementById('mobile-drawer');
+        if (window.innerWidth < 1024 && drawer && !drawer.classList.contains('is-open')) {
+          drawerToggle?.click();
+          setTimeout(() => searchInput.focus(), 150);
+        } else {
+          searchInput.focus();
+        }
+      }
+    } else if (e.key.toLowerCase() === 't' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const themeToggle = document.querySelector<HTMLElement>('.theme-toggle');
+      if (themeToggle) {
+        themeToggle.click();
+      }
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Global Initialization
 // ---------------------------------------------------------------------------
 
 function init(): void {
-  // Theme toggle runs synchronously to prevent dark/light flash
   initThemeToggle();
 
-  // Defer all interactive modules and post enhancements to idle / next frame
   const defer = typeof window.requestIdleCallback === 'function'
     ? window.requestIdleCallback
     : (cb: () => void) => setTimeout(cb, 50);
@@ -860,12 +971,15 @@ function init(): void {
     initSidebarRecentPosts();
     initShareCopy();
     initIframeAccessibility();
+    initKeyboardShortcuts();
 
     const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post'));
     if (isPost) {
       initReadingProgress();
       initCodeBlockEnhancements();
       initTableOfContents();
+      initAlertCallouts();
+      initReadingTime();
       initArticleAudioReader();
     }
   });

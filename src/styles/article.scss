@@ -874,3 +874,173 @@
     justify-content: center;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Reading Time Badge
+// ---------------------------------------------------------------------------
+
+.post-reading-time {
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  color: $ink-muted;
+  letter-spacing: 0.02em;
+}
+
+// ---------------------------------------------------------------------------
+// GitHub-Style Alert Callouts
+// ---------------------------------------------------------------------------
+
+.post-body blockquote.alert-callout {
+  padding: $space-4 $space-5;
+  margin: $space-5 0;
+  border-radius: 8px;
+  border-left-width: 4px;
+  border-left-style: solid;
+  background: $surface;
+
+  .alert-callout-title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-family: $font-sans;
+    font-size: 0.875rem;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: $space-2;
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  p {
+    margin: 0 0 $space-2;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &.alert-callout-note {
+    border-left-color: oklch(54.615% 0.2152 262.881);
+    background: oklch(54.615% 0.2152 262.881 / 0.06);
+
+    .alert-callout-title {
+      color: oklch(54.615% 0.2152 262.881);
+    }
+  }
+
+  &.alert-callout-tip {
+    border-left-color: oklch(62% 0.18 145);
+    background: oklch(62% 0.18 145 / 0.06);
+
+    .alert-callout-title {
+      color: oklch(62% 0.18 145);
+    }
+  }
+
+  &.alert-callout-important {
+    border-left-color: oklch(58% 0.22 300);
+    background: oklch(58% 0.22 300 / 0.06);
+
+    .alert-callout-title {
+      color: oklch(58% 0.22 300);
+    }
+  }
+
+  &.alert-callout-warning {
+    border-left-color: oklch(65% 0.18 55);
+    background: oklch(65% 0.18 55 / 0.06);
+
+    .alert-callout-title {
+      color: oklch(65% 0.18 55);
+    }
+  }
+
+  &.alert-callout-caution {
+    border-left-color: oklch(55% 0.22 25);
+    background: oklch(55% 0.22 25 / 0.06);
+
+    .alert-callout-title {
+      color: oklch(55% 0.22 25);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Professional Print Stylesheet (@media print)
+// ---------------------------------------------------------------------------
+
+@media print {
+  .header-outer,
+  .nav-container,
+  .intro-container,
+  .topics-container,
+  .desktop-sidebar,
+  .cta-container,
+  .footer-container,
+  .mobile-drawer,
+  .drawer-backdrop,
+  .reading-progress,
+  .post-share-bar,
+  .post-listen-bar,
+  .post-navigation,
+  .post-nav,
+  .toast-container,
+  .comments-section,
+  #comments,
+  .skip-link {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  .main-content,
+  .post,
+  .post-body {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .post-title {
+    color: #000000 !important;
+    font-size: 24pt !important;
+    margin-bottom: 8pt !important;
+  }
+
+  a {
+    color: #000000 !important;
+    text-decoration: underline !important;
+  }
+
+  a[href^="http"]:not(.post-thumbnail-link)::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #444444;
+  }
+
+  pre,
+  blockquote,
+  table,
+  figure,
+  img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  pre {
+    background: #f4f4f4 !important;
+    color: #000000 !important;
+    border: 1px solid #cccccc !important;
+  }
+}
