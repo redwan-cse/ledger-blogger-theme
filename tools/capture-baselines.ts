@@ -20,6 +20,7 @@ const VIEWPORT_BOUNDARIES = [
   { width: 768, height: 900, name: '768_sidebar_boundary_min' },
   { width: 1023, height: 900, name: '1023_tablet_boundary_max' },
   { width: 1024, height: 900, name: '1024_desktop_12col_min' },
+  { width: 1024, height: 1366, name: '1024_ipad_pro_portrait' },
   { width: 1280, height: 900, name: '1280_desktop_standard' },
   { width: 1440, height: 900, name: '1440_desktop_wide' }
 ];

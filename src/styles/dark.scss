@@ -450,15 +450,15 @@ html[data-theme='dark'] {
     color: oklch(80% 0.015 255) !important;
   }
 
-  .hero-badge-mono {
+  .orcid-badge {
     background: oklch(20% 0.028 260) !important;
     border-color: oklch(30% 0.035 260) !important;
-    color: oklch(85% 0.02 260) !important;
+    color: oklch(88% 0.01 260) !important;
 
     &:hover {
-      background: oklch(26% 0.06 260) !important;
-      border-color: oklch(75% 0.15 259.735 / 0.6) !important;
-      color: oklch(98% 0.01 260) !important;
+      background: oklch(24% 0.04 135) !important;
+      border-color: rgba(166, 206, 57, 0.6) !important;
+      color: #A6CE39 !important;
     }
   }
 

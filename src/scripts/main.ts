@@ -361,6 +361,23 @@ export function initLiveSearch(): void {
       }
     });
   });
+
+  const searchToggles = document.querySelectorAll<HTMLElement>('.search-toggle');
+  searchToggles.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const searchInput = document.querySelector<HTMLInputElement>('.sidebar-search-input, .drawer-search-input');
+      const drawerToggle = document.querySelector<HTMLElement>('.drawer-toggle');
+      const drawer = document.getElementById('mobile-drawer');
+      if (window.innerWidth < 1024 && drawer && !drawer.classList.contains('is-open')) {
+        drawerToggle?.click();
+        setTimeout(() => searchInput?.focus(), 150);
+      } else if (searchInput) {
+        searchInput.focus();
+        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  });
 }
 
 // Backward compatibility alias
