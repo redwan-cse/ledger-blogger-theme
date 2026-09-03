@@ -127,6 +127,7 @@ function slugify(text: string): string {
 function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string {
   const renderer = new marked.Renderer();
 
+  renderer.code = function({ text, lang }: { text: string; lang?: string }) {
     if (!text || !text.trim() || text.trim() === '[ ]' || text.trim() === '[]') {
       return ''; // NEVER EMIT EMPTY CODE BLOCKS
     }
