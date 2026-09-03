@@ -1,5 +1,5 @@
 async function check() {
-  const url = 'https://blogs.redwan.work/2026/09/dissecting-kerberoasting-protocol_01233267518.html';
+  const url = 'https://blogs.redwan.work/2026/09/breaking-active-directory-certificate.html';
   const res = await fetch(url);
   const text = await res.text();
 
@@ -18,6 +18,9 @@ async function check() {
     const lines = codeBlocks[0].replace(/<[^>]+>/g, '').split('\n');
     console.log('First Code Block Lines Count:', lines.length);
     console.log('First 5 lines sample:\n' + lines.slice(0, 5).join('\n'));
+    const headings = text.match(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi) || [];
+    console.log('Total Headings:', headings.length);
+    headings.forEach(h => console.log('Heading:', h.slice(0, 100)));
   }
 }
 
