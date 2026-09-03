@@ -2,7 +2,8 @@ name: Publish From Google Drive (Free / Zero API Cost)
 
 on:
   schedule:
-    - cron: '0 6 * * *' # Daily at 6:00 AM UTC (12:00 PM BST)
+    - cron: '0 4 * * *' # Daily at 10:00 AM BST (04:00 AM UTC, 1 hr after Spark runs)
+    - cron: '0 16 * * *' # Backup check at 10:00 PM BST (04:00 PM UTC)
   workflow_dispatch: # Allows 1-click manual trigger from GitHub Actions tab
 
 jobs:
