@@ -20,11 +20,23 @@ const QUEUE_FOLDER_NAME = 'Blog_Queue';
 const PUBLISHED_FOLDER_NAME = 'Blog_Published';
 
 // 1. Authenticate with Google Drive via Service Account JWT
-async function getDriveAccessToken(sa: ServiceAccountKey): Promise<string> {
+async function getDriveAccessToken(sa: any): Promise<string> {
+  const privateKeyRaw = sa.private_key || sa.privateKey;
+  if (!privateKeyRaw) {
+    throw new Error(`Service account private_key not found. Available JSON keys: ${Object.keys(sa).join(', ')}`);
+  }
+
+  const clientEmail = sa.client_email || sa.clientEmail;
+  if (!clientEmail) {
+    throw new Error(`Service account client_email not found. Available JSON keys: ${Object.keys(sa).join(', ')}`);
+  }
+
+  const normalizedKey = privateKeyRaw.includes('\\n') ? privateKeyRaw.replace(/\\n/g, '\n') : privateKeyRaw;
+
   const header = { alg: 'RS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
   const claim = {
-    iss: sa.client_email,
+    iss: clientEmail,
     scope: 'https://www.googleapis.com/auth/drive',
     aud: 'https://oauth2.googleapis.com/token',
     exp: now + 3600,
@@ -38,7 +50,7 @@ async function getDriveAccessToken(sa: ServiceAccountKey): Promise<string> {
 
   const signer = crypto.createSign('RSA-SHA256');
   signer.update(signatureInput);
-  const signature = signer.sign(sa.private_key, 'base64url');
+  const signature = signer.sign(normalizedKey, 'base64url');
   const jwt = `${signatureInput}.${signature}`;
 
   const res = await fetch('https://oauth2.googleapis.com/token', {
@@ -220,18 +232,48 @@ async function main() {
     throw new Error('DRIVE_SERVICE_ACCOUNT_KEY secret is required (paste the full JSON of your service account key).');
   }
 
-  const sa = JSON.parse(SERVICE_ACCOUNT_JSON) as ServiceAccountKey;
+  let rawJson = SERVICE_ACCOUNT_JSON.trim();
+  if (!rawJson.startsWith('{')) {
+    try {
+      const decoded = Buffer.from(rawJson, 'base64').toString('utf8');
+      if (decoded.startsWith('{')) {
+        rawJson = decoded;
+      }
+    } catch {}
+  }
+
+  let sa: any;
+  try {
+    sa = JSON.parse(rawJson);
+  } catch (err: any) {
+    throw new Error(`DRIVE_SERVICE_ACCOUNT_KEY is not valid JSON (${err.message}). Raw value starts with: ${SERVICE_ACCOUNT_JSON.slice(0, 30)}...`);
+  }
+
+  console.log(`Authenticated service account: ${sa.client_email || sa.clientEmail}`);
   const driveToken = await getDriveAccessToken(sa);
   const bloggerToken = await getBloggerAccessToken();
+
+  const ROOT_FOLDER_ID = '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
 
   // Find Blog_Queue and Blog_Published folders
   console.log('1. Searching for Google Drive folders: Blog_Queue and Blog_Published...');
   const searchFolder = async (name: string): Promise<string | null> => {
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`, {
+    // Search within root folder first, then global
+    const q1 = `'${ROOT_FOLDER_ID}' in parents and name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const res1 = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q1)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
       headers: { Authorization: `Bearer ${driveToken}` }
     });
-    const data = await res.json() as { files?: DriveFile[] };
-    return data.files?.[0]?.id || null;
+    const data1 = await res1.json() as { files?: DriveFile[] };
+    if (data1.files && data1.files.length > 0) {
+      return data1.files[0].id;
+    }
+
+    const q2 = `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const res2 = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q2)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    const data2 = await res2.json() as { files?: DriveFile[] };
+    return data2.files?.[0]?.id || null;
   };
 
   const queueFolderId = await searchFolder(QUEUE_FOLDER_NAME);
@@ -243,7 +285,8 @@ async function main() {
 
   // List Docs in Blog_Queue
   console.log(`2. Checking files in "${QUEUE_FOLDER_NAME}" (ID: ${queueFolderId})...`);
-  const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q='${queueFolderId}' in parents and mimeType='application/vnd.google-apps.document' and trashed=false&fields=files(id,name)`, {
+  const listQ = `'${queueFolderId}' in parents and mimeType='application/vnd.google-apps.document' and trashed=false`;
+  const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(listQ)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
     headers: { Authorization: `Bearer ${driveToken}` }
   });
   const listData = await listRes.json() as { files?: DriveFile[] };
