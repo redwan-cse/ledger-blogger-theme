@@ -22,8 +22,9 @@ const REFRESH_TOKEN = process.env.BLOGGER_REFRESH_TOKEN?.trim();
 const SERVICE_ACCOUNT_JSON = process.env.DRIVE_SERVICE_ACCOUNT_KEY?.trim();
 
 const ROOT_FOLDER_ID = process.env.DRIVE_ROOT_FOLDER_ID?.trim() || '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
-const QUEUE_FOLDER_ID = process.env.DRIVE_QUEUE_FOLDER_ID?.trim() || '17Il9OEUn3OluptlReqefnrn2DlfMmdbl';
+const QUEUE_FOLDER_ID = process.env.DRIVE_QUEUE_FOLDER_ID?.trim() || '1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv'; // Blog_Queue_Shared
 const PUBLISHED_FOLDER_NAME = 'Blog_Published';
+const DEFAULT_PUBLISHED_FOLDER_ID = '1Ht4jr07tIl4Wb8OI1PVAKL5y5Ayr_XCk'; // Blog_Published
 const SPREADSHEET_ID = process.env.DRIVE_SHEET_ID?.trim() || '1Pox6crGHIr0t8fR5iTR5CM-0e_OjAaOQ7VoKde9baro';
 
 // 1. Authenticate with Google Drive & Sheets via Service Account JWT
@@ -455,8 +456,8 @@ async function main() {
   const driveToken = await getDriveAccessToken(sa);
   const bloggerToken = await getBloggerAccessToken();
 
-  // Find Blog_Published folder ID (either via env, inside root, or directly by name)
-  let publishedFolderId = process.env.DRIVE_PUBLISHED_FOLDER_ID?.trim() || null;
+  // Find Blog_Published folder ID (either via env, default ID, inside root, or directly by name)
+  let publishedFolderId = process.env.DRIVE_PUBLISHED_FOLDER_ID?.trim() || DEFAULT_PUBLISHED_FOLDER_ID;
   if (!publishedFolderId) {
     try {
       const pubQuery = `'${ROOT_FOLDER_ID}' in parents and name='${PUBLISHED_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
