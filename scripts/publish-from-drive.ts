@@ -21,10 +21,10 @@ const CLIENT_SECRET = process.env.BLOGGER_CLIENT_SECRET?.trim() || process.env.G
 const REFRESH_TOKEN = process.env.BLOGGER_REFRESH_TOKEN?.trim();
 const SERVICE_ACCOUNT_JSON = process.env.DRIVE_SERVICE_ACCOUNT_KEY?.trim();
 
-const ROOT_FOLDER_ID = '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
-const QUEUE_FOLDER_ID = '17Il9OEUn3OluptlReqefnrn2DlfMmdbl';
+const ROOT_FOLDER_ID = process.env.DRIVE_ROOT_FOLDER_ID?.trim() || '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
+const QUEUE_FOLDER_ID = process.env.DRIVE_QUEUE_FOLDER_ID?.trim() || '17Il9OEUn3OluptlReqefnrn2DlfMmdbl';
 const PUBLISHED_FOLDER_NAME = 'Blog_Published';
-const SPREADSHEET_ID = '1Pox6crGHIr0t8fR5iTR5CM-0e_OjAaOQ7VoKde9baro';
+const SPREADSHEET_ID = process.env.DRIVE_SHEET_ID?.trim() || '1Pox6crGHIr0t8fR5iTR5CM-0e_OjAaOQ7VoKde9baro';
 
 // 1. Authenticate with Google Drive & Sheets via Service Account JWT
 async function getDriveAccessToken(sa: any): Promise<string> {
@@ -455,13 +455,28 @@ async function main() {
   const driveToken = await getDriveAccessToken(sa);
   const bloggerToken = await getBloggerAccessToken();
 
-  // Find Blog_Published folder ID inside root
-  const pubQuery = `'${ROOT_FOLDER_ID}' in parents and name='${PUBLISHED_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-  const pubRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(pubQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
-    headers: { Authorization: `Bearer ${driveToken}` }
-  });
-  const pubData = await pubRes.json() as { files?: DriveItem[] };
-  const publishedFolderId = pubData.files?.[0]?.id || null;
+  // Find Blog_Published folder ID (either via env, inside root, or directly by name)
+  let publishedFolderId = process.env.DRIVE_PUBLISHED_FOLDER_ID?.trim() || null;
+  if (!publishedFolderId) {
+    try {
+      const pubQuery = `'${ROOT_FOLDER_ID}' in parents and name='${PUBLISHED_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      const pubRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(pubQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${driveToken}` }
+      });
+      const pubData = await pubRes.json() as { files?: DriveItem[] };
+      publishedFolderId = pubData.files?.[0]?.id || null;
+    } catch {}
+  }
+  if (!publishedFolderId) {
+    try {
+      const pubQueryDirect = `name='${PUBLISHED_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      const pubRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(pubQueryDirect)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${driveToken}` }
+      });
+      const pubData = await pubRes.json() as { files?: DriveItem[] };
+      publishedFolderId = pubData.files?.[0]?.id || null;
+    } catch {}
+  }
 
   // 1. Check for 'Intake' drop folder inside Blog_Queue
   try {

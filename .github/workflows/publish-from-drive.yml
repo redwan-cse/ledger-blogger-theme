@@ -45,6 +45,10 @@ jobs:
           GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
           DRIVE_SERVICE_ACCOUNT_KEY: ${{ secrets.DRIVE_SERVICE_ACCOUNT_KEY }}
+          DRIVE_ROOT_FOLDER_ID: ${{ vars.DRIVE_ROOT_FOLDER_ID || '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq' }}
+          DRIVE_QUEUE_FOLDER_ID: ${{ vars.DRIVE_QUEUE_FOLDER_ID || '17Il9OEUn3OluptlReqefnrn2DlfMmdbl' }}
+          DRIVE_PUBLISHED_FOLDER_ID: ${{ vars.DRIVE_PUBLISHED_FOLDER_ID || '' }}
+          DRIVE_SHEET_ID: ${{ vars.DRIVE_SHEET_ID || '1Pox6crGHIr0t8fR5iTR5CM-0e_OjAaOQ7VoKde9baro' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPUBLISH_LATEST: ${{ inputs.republish_latest || 'false' }}
         run: npx tsx scripts/publish-from-drive.ts
