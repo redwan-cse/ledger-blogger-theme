@@ -135,78 +135,80 @@
 
   pre {
     overflow-x: auto;
-    background: $surface;
-    padding: $space-4;
+    background-color: oklch(98.415% 0.0034 247.858);
+    border: 1px solid oklch(92.876% 0.0126 255.508);
+    padding: $space-4 $space-5;
     border-radius: 6px;
     white-space: pre;
     margin: $space-5 0;
+    font-family: $font-mono;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    position: relative;
+    color: $ink;
+
+    &:hover .code-copy-btn {
+      opacity: 1;
+    }
   }
 
   code {
     font-family: $font-mono;
-    background: $surface;
-    padding: 0.15em 0.35em;
+    background-color: oklch(94% 0.005 255 / 0.6);
+    padding: 0.2em 0.4em;
     border-radius: 6px;
-    font-size: 0.9em;
+    font-size: 0.85em;
+    color: $ink;
   }
 
   pre code {
-    background: transparent;
-    padding: 0;
+    background: transparent !important;
+    padding: 0 !important;
     font-size: inherit;
+    color: inherit;
+    border-radius: 0;
   }
 
-  .code-window {
-    margin: $space-5 0;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid $rule;
-    background: $surface;
-    box-shadow: $shadow-sm;
+  .code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    min-height: 28px;
+    padding: 2px 8px;
+    font-family: $font-sans;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: $ink-muted;
+    background: oklch(100% 0 0 / 0.9);
+    border: 1px solid oklch(90% 0.01 255);
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+    transition: opacity $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart;
 
-    .code-window-header {
-      background: oklch(95.5% 0.008 255);
-      padding: 0.45rem 1rem;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: $ink-muted;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      border-bottom: 1px solid $rule;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: $font-mono;
+    &:hover {
+      color: $ink;
+      background: #ffffff;
+      border-color: $accent;
     }
 
-    pre {
-      margin: 0 !important;
-      padding: 1.1rem !important;
-      background: $surface !important;
-      color: $ink !important;
-      overflow-x: auto;
-      font-family: $font-mono;
-      font-size: 0.875rem;
-      line-height: 1.65;
-      border-radius: 0;
-      box-shadow: none;
-    }
-
-    code {
-      background: transparent !important;
-      color: inherit !important;
-      padding: 0 !important;
-      font-family: inherit;
+    &.copied {
+      color: oklch(60% 0.18 140);
+      border-color: oklch(60% 0.18 140);
     }
   }
 
   .mermaid-diagram-wrap {
     overflow-x: auto;
-    background: $surface;
-    padding: 1.5rem;
-    border-radius: 8px;
+    background: #ffffff;
+    padding: $space-5;
+    border-radius: 6px;
     margin: $space-6 0;
-    border: 1px solid $rule;
+    border: 1px solid oklch(92.876% 0.0126 255.508);
     text-align: center;
     box-shadow: $shadow-sm;
 
@@ -215,16 +217,16 @@
       border: none !important;
       margin: 0 !important;
       padding: 0 !important;
-      color: $ink;
+      color: $ink !important;
+      overflow: visible;
     }
   }
 
   .table-container {
     overflow-x: auto;
     margin: $space-5 0;
-    border-radius: 8px;
-    border: 1px solid $rule;
-    box-shadow: $shadow-sm;
+    border-radius: 6px;
+    border: 1px solid oklch(92.876% 0.0126 255.508);
 
     table {
       width: 100%;
@@ -235,26 +237,30 @@
     }
 
     thead {
-      background: $surface;
-      border-bottom: 2px solid $rule;
+      background: oklch(98.415% 0.0034 247.858);
+      border-bottom: 2px solid oklch(92.876% 0.0126 255.508);
     }
 
     th {
       padding: 0.85rem 1.2rem;
       font-weight: 700;
       color: $ink;
-      border-bottom: 2px solid $rule;
+      border-bottom: 2px solid oklch(92.876% 0.0126 255.508);
       font-family: $font-sans;
     }
 
     td {
       padding: 0.85rem 1.2rem;
-      border-bottom: 1px solid $rule;
+      border-bottom: 1px solid oklch(92.876% 0.0126 255.508);
       color: $ink;
     }
 
     tr:last-child td {
       border-bottom: none;
+    }
+
+    tr:nth-child(even) td {
+      background: oklch(99% 0.002 255);
     }
   }
 
@@ -343,74 +349,6 @@
     &.is-active {
       color: $accent;
       font-weight: 600;
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Enhanced Code Blocks with Copy Controls & Terminal Header
-// ---------------------------------------------------------------------------
-
-.code-block-wrapper {
-  margin: $space-5 0;
-  border: 1px solid oklch(28% 0.020 260);
-  border-radius: 8px;
-  background: oklch(16% 0.018 260);
-  overflow: hidden;
-  box-shadow: $shadow-md;
-
-  pre {
-    margin: 0;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    padding: $space-4 $space-5;
-    color: oklch(88% 0.010 260);
-  }
-}
-
-.code-block-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-2 $space-4;
-  background: oklch(12% 0.015 260);
-  border-bottom: 1px solid oklch(28% 0.020 260);
-
-  .code-lang-badge {
-    font-family: $font-mono;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: oklch(75% 0.15 259.735);
-  }
-
-
-  .code-copy-btn {
-    min-height: 26px;
-    padding: 2px $space-3;
-    font-family: $font-mono;
-    font-size: 0.7rem;
-    color: oklch(60% 0.010 260);
-    background: transparent;
-    border: 1px solid oklch(32% 0.020 260);
-    border-radius: 6px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: $space-1;
-    transition: color $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
-
-    &:hover {
-      color: oklch(80% 0.18 260);
-      border-color: oklch(54.615% 0.2152 262.881 / 0.35);
-      background: oklch(22% 0.035 260);
-    }
-
-    &.copied {
-      color: oklch(70% 0.15 155);
-      border-color: oklch(55% 0.15 155 / 0.5);
     }
   }
 }

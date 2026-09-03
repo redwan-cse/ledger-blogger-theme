@@ -712,28 +712,35 @@ html[data-theme='dark'] {
     }
   }
 
-  .code-window {
-    background: oklch(20% 0.028 266) !important;
+  pre {
+    background-color: oklch(18% 0.028 266) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
+    color: oklch(98.415% 0.0034 247.858) !important;
+  }
 
-    .code-window-header {
-      background: oklch(18% 0.025 260) !important;
-      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
-      color: oklch(65.613% 0.0019 247.851) !important;
-    }
+  code {
+    background-color: oklch(25% 0.03 260 / 0.7) !important;
+    color: oklch(98.415% 0.0034 247.858) !important;
+  }
 
-    pre {
-      background: oklch(16% 0.028 266) !important;
-      color: oklch(98.415% 0.0034 247.858) !important;
-    }
+  pre code {
+    background: transparent !important;
+    color: inherit !important;
+  }
 
-    code {
-      color: oklch(98.415% 0.0034 247.858) !important;
+  .code-copy-btn {
+    background: oklch(22% 0.028 266 / 0.85) !important;
+    border-color: oklch(30% 0.03 260) !important;
+    color: oklch(75% 0.01 255) !important;
+
+    &:hover {
+      background: oklch(26% 0.03 260) !important;
+      color: #ffffff !important;
     }
   }
 
   .mermaid-diagram-wrap {
-    background: oklch(18% 0.028 266) !important;
+    background: oklch(16% 0.028 266) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
 
     pre.mermaid {

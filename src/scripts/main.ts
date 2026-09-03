@@ -616,23 +616,14 @@ export function initThemeToggle(): void {
 export function initCodeBlockEnhancements(): void {
   const preElements = document.querySelectorAll<HTMLPreElement>('.post-body pre');
   preElements.forEach((pre) => {
-    if (pre.parentElement?.classList.contains('code-block-wrapper')) return;
+    // Ignore Mermaid diagrams
+    if (pre.classList.contains('mermaid') || pre.closest('.mermaid') || pre.closest('.mermaid-diagram-wrap')) {
+      return;
+    }
+    // Avoid double-attaching
+    if (pre.querySelector('.code-copy-btn')) return;
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'code-block-wrapper';
-
-    const header = document.createElement('div');
-    header.className = 'code-block-header';
-
-    const code = pre.querySelector('code');
-    const classList = code ? Array.from(code.classList) : [];
-    const langClass = classList.find((c) => c.startsWith('language-') || c.startsWith('lang-'));
-    const lang = langClass ? langClass.replace(/^(language-|lang-)/, '') : 'code';
-
-    const langBadge = document.createElement('span');
-    langBadge.className = 'code-lang-badge';
-    langBadge.textContent = lang.toUpperCase();
-    header.appendChild(langBadge);
+    pre.style.position = 'relative';
 
     const copyBtn = document.createElement('button');
     copyBtn.type = 'button';
@@ -640,7 +631,9 @@ export function initCodeBlockEnhancements(): void {
     copyBtn.setAttribute('aria-label', 'Copy code to clipboard');
     copyBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copy</span>`;
 
-    copyBtn.addEventListener('click', async () => {
+    copyBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const code = pre.querySelector('code');
       const textToCopy = (code ? code.innerText : pre.innerText) || '';
       const copied = await copyToClipboard(textToCopy);
       if (copied) {
@@ -655,11 +648,7 @@ export function initCodeBlockEnhancements(): void {
       }
     });
 
-    header.appendChild(copyBtn);
-
-    pre.parentNode?.insertBefore(wrapper, pre);
-    wrapper.appendChild(header);
-    wrapper.appendChild(pre);
+    pre.appendChild(copyBtn);
   });
 }
 
@@ -1014,13 +1003,26 @@ export function initMermaidDiagrams(): void {
   script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
   script.async = true;
   script.onload = () => {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-      (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const mermaid = (window as unknown as { mermaid?: { initialize: (opts: unknown) => void; run: () => void } }).mermaid;
     if (mermaid) {
       mermaid.initialize({
         startOnLoad: false,
-        theme: isDark ? 'dark' : 'neutral',
+        theme: isDark ? 'dark' : 'default',
+        themeVariables: isDark ? {
+          darkMode: true,
+          background: '#161B22',
+          primaryColor: '#2563EB',
+          primaryTextColor: '#F8FAFC',
+          lineColor: '#58A6FF'
+        } : {
+          darkMode: false,
+          background: '#FFFFFF',
+          primaryColor: '#F6F8FA',
+          primaryTextColor: '#1F2328',
+          primaryBorderColor: '#D0D7DE',
+          lineColor: '#57606A'
+        },
         securityLevel: 'loose'
       });
       mermaid.run();

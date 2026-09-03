@@ -127,7 +127,10 @@ function slugify(text: string): string {
 function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string {
   const renderer = new marked.Renderer();
 
-  renderer.code = function({ text, lang }: { text: string; lang?: string }) {
+    if (!text || !text.trim() || text.trim() === '[ ]' || text.trim() === '[]') {
+      return ''; // NEVER EMIT EMPTY CODE BLOCKS
+    }
+
     const rawLang = (lang || '').trim().toLowerCase();
 
     // Auto-detect Mermaid sequence diagrams and flowcharts
@@ -164,16 +167,12 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
       } else if (text.includes('curl ') || text.includes('chmod ') || text.includes('sudo ') || text.includes('#!/bin')) {
         displayLang = 'bash';
       } else {
-        displayLang = 'code';
+        displayLang = 'plaintext';
       }
     }
 
-    return `\n<div class="code-window">
-  <div class="code-window-header">
-    <span>${displayLang}</span>
-  </div>
-  <pre><code class="language-${displayLang}">${escapeHtml(text)}</code></pre>
-</div>\n`;
+    // Authentic GitHub / Medium Markdown code block (clean, no bulky headers)
+    return `\n<pre><code class="language-${displayLang}">${escapeHtml(text.trim())}</code></pre>\n`;
   };
 
   renderer.table = function({ header, rows }: { header: string; rows: string }) {
@@ -201,10 +200,13 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
-  // Merge fragmented adjacent code blocks
-  for (let i = 0; i < 5; i++) {
+  // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
+  cleanedMarkdown = cleanedMarkdown.replace(/```[a-z0-9_-]*\s*```/gi, '');
+
+  // 2. Aggressively merge consecutive code blocks separated by whitespace or empty lines
+  for (let i = 0; i < 10; i++) {
     const before = cleanedMarkdown;
-    cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]*)\n([\s\S]*?)\n```\s*\n+```\1?\n/gi, (match, lang, code) => {
+    cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]*)\n([\s\S]*?)\n```[\s\r\n]+```\1?\n/gi, (match, lang, code) => {
       return '```' + (lang || '') + '\n' + code + '\n';
     });
     if (before === cleanedMarkdown) break;
@@ -221,52 +223,130 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   if (htmlBody.includes('class="mermaid"')) {
     const mermaidScript = `\n<script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   mermaid.initialize({
     startOnLoad: true,
-    theme: isDark ? 'dark' : 'neutral',
+    theme: isDark ? 'dark' : 'default',
+    themeVariables: isDark ? {
+      darkMode: true,
+      background: '#161B22',
+      primaryColor: '#2563EB',
+      primaryTextColor: '#F8FAFC',
+      lineColor: '#58A6FF'
+    } : {
+      darkMode: false,
+      background: '#FFFFFF',
+      primaryColor: '#F6F8FA',
+      primaryTextColor: '#1F2328',
+      primaryBorderColor: '#D0D7DE',
+      lineColor: '#57606A'
+    },
     securityLevel: 'loose'
   });
 </script>\n`;
     htmlBody += mermaidScript;
   }
 
-  // Prepend scoped style block for responsive light/dark code blocks and diagrams
+  // Prepend scoped style block for authentic GitHub/Medium Markdown code blocks and diagrams
   const scopedStyles = `<style>
-  .code-window { margin: 1.8rem 0; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: #F8FAFC; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-  .code-window-header { background: #F1F5F9; padding: 0.45rem 1rem; font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; font-family: ui-monospace,monospace; }
-  .code-window pre { margin: 0 !important; padding: 1.1rem !important; background: #F8FAFC !important; color: #0F172A !important; overflow-x: auto; font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 0.875rem; line-height: 1.65; border-radius: 0; }
-  .code-window code { background: transparent !important; color: inherit !important; font-family: inherit; }
-  .mermaid-diagram-wrap { overflow-x: auto; background: #F8FAFC; padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border: 1px solid #E2E8F0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-  .mermaid-diagram-wrap pre.mermaid { background: transparent !important; color: #0F172A !important; }
-  .table-container { overflow-x: auto; margin: 2rem 0; border-radius: 8px; border: 1px solid #E2E8F0; }
-  .table-container table { width: 100%; border-collapse: collapse; font-size: 0.92rem; line-height: 1.6; }
-  .table-container thead { background: #F8FAFC; border-bottom: 2px solid #E2E8F0; }
-  .table-container th { padding: 0.85rem 1.2rem; font-weight: 700; color: #0F172A; border-bottom: 2px solid #E2E8F0; }
-  .table-container td { padding: 0.85rem 1.2rem; border-bottom: 1px solid #E2E8F0; color: #334155; }
+  /* GitHub / Medium Markdown Clean Code Styles */
+  .post-body pre {
+    background-color: #f6f8fa !important;
+    border: 1px solid #d0d7de !important;
+    padding: 16px !important;
+    border-radius: 6px !important;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+    color: #1f2328 !important;
+    margin: 16px 0 !important;
+    overflow-x: auto !important;
+    position: relative !important;
+  }
+  .post-body pre code {
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    font-size: inherit !important;
+    border: none !important;
+  }
+  .post-body code {
+    background-color: rgba(175, 184, 193, 0.2) !important;
+    padding: 0.2em 0.4em !important;
+    border-radius: 6px !important;
+    font-size: 0.85em !important;
+    color: #1f2328 !important;
+  }
+  .mermaid-diagram-wrap {
+    background: #ffffff !important;
+    border: 1px solid #d0d7de !important;
+    padding: 24px !important;
+    border-radius: 6px !important;
+    margin: 24px 0 !important;
+    text-align: center !important;
+    overflow-x: auto !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  }
+  .mermaid-diagram-wrap pre.mermaid {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #1f2328 !important;
+    overflow: visible !important;
+  }
+  .table-container {
+    overflow-x: auto;
+    margin: 20px 0;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+  }
+  .table-container table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+  .table-container thead { background: #f6f8fa; border-bottom: 2px solid #d0d7de; }
+  .table-container th { padding: 8px 14px; font-weight: 600; color: #1f2328; border-bottom: 2px solid #d0d7de; }
+  .table-container td { padding: 8px 14px; border-bottom: 1px solid #d0d7de; color: #1f2328; }
+  .table-container tr:nth-child(even) td { background: #fbfcfd; }
 
-  /* Dark mode overrides (by attribute or OS theme) */
-  [data-theme='dark'] .code-window, html[data-theme='dark'] .code-window { background: #0D1117 !important; border-color: #30363D !important; }
-  [data-theme='dark'] .code-window-header, html[data-theme='dark'] .code-window-header { background: #161B22 !important; border-bottom-color: #30363D !important; color: #8B949E !important; }
-  [data-theme='dark'] .code-window pre, html[data-theme='dark'] .code-window pre { background: #0D1117 !important; color: #F0F6FC !important; }
-  [data-theme='dark'] .mermaid-diagram-wrap, html[data-theme='dark'] .mermaid-diagram-wrap { background: #161B22 !important; border-color: #30363D !important; }
-  [data-theme='dark'] .mermaid-diagram-wrap pre.mermaid, html[data-theme='dark'] .mermaid-diagram-wrap pre.mermaid { color: #F0F6FC !important; }
-  [data-theme='dark'] .table-container, html[data-theme='dark'] .table-container { border-color: #30363D !important; }
-  [data-theme='dark'] .table-container thead, html[data-theme='dark'] .table-container thead { background: #161B22 !important; border-bottom-color: #30363D !important; }
-  [data-theme='dark'] .table-container th, html[data-theme='dark'] .table-container th { color: #F0F6FC !important; border-bottom-color: #30363D !important; }
-  [data-theme='dark'] .table-container td, html[data-theme='dark'] .table-container td { border-bottom-color: #30363D !important; color: #C9D1D9 !important; }
+  /* Dark mode overrides (attribute or OS) */
+  [data-theme='dark'] .post-body pre, html[data-theme='dark'] .post-body pre {
+    background-color: #161b22 !important;
+    border-color: #30363d !important;
+    color: #e6edf3 !important;
+  }
+  [data-theme='dark'] .post-body code, html[data-theme='dark'] .post-body code {
+    background-color: rgba(110, 118, 129, 0.4) !important;
+    color: #e6edf3 !important;
+  }
+  [data-theme='dark'] .mermaid-diagram-wrap, html[data-theme='dark'] .mermaid-diagram-wrap {
+    background: #161b22 !important;
+    border-color: #30363d !important;
+  }
+  [data-theme='dark'] .mermaid-diagram-wrap pre.mermaid, html[data-theme='dark'] .mermaid-diagram-wrap pre.mermaid {
+    color: #e6edf3 !important;
+  }
+  [data-theme='dark'] .table-container, html[data-theme='dark'] .table-container { border-color: #30363d; }
+  [data-theme='dark'] .table-container thead, html[data-theme='dark'] .table-container thead { background: #161b22; border-bottom-color: #30363d; }
+  [data-theme='dark'] .table-container th, html[data-theme='dark'] .table-container th { color: #e6edf3; border-bottom-color: #30363d; }
+  [data-theme='dark'] .table-container td, html[data-theme='dark'] .table-container td { border-bottom-color: #30363d; color: #c9d1d9; }
+  [data-theme='dark'] .table-container tr:nth-child(even) td { background: #0d1117; }
 
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme='light']) .code-window { background: #0D1117 !important; border-color: #30363D !important; }
-    :root:not([data-theme='light']) .code-window-header { background: #161B22 !important; border-bottom-color: #30363D !important; color: #8B949E !important; }
-    :root:not([data-theme='light']) .code-window pre { background: #0D1117 !important; color: #F0F6FC !important; }
-    :root:not([data-theme='light']) .mermaid-diagram-wrap { background: #161B22 !important; border-color: #30363D !important; }
-    :root:not([data-theme='light']) .mermaid-diagram-wrap pre.mermaid { color: #F0F6FC !important; }
-    :root:not([data-theme='light']) .table-container { border-color: #30363D !important; }
-    :root:not([data-theme='light']) .table-container thead { background: #161B22 !important; border-bottom-color: #30363D !important; }
-    :root:not([data-theme='light']) .table-container th { color: #F0F6FC !important; border-bottom-color: #30363D !important; }
-    :root:not([data-theme='light']) .table-container td { border-bottom-color: #30363D !important; color: #C9D1D9 !important; }
+    :root:not([data-theme='light']) .post-body pre {
+      background-color: #161b22 !important;
+      border-color: #30363d !important;
+      color: #e6edf3 !important;
+    }
+    :root:not([data-theme='light']) .post-body code {
+      background-color: rgba(110, 118, 129, 0.4) !important;
+      color: #e6edf3 !important;
+    }
+    :root:not([data-theme='light']) .mermaid-diagram-wrap {
+      background: #161b22 !important;
+      border-color: #30363d !important;
+    }
+    :root:not([data-theme='light']) .mermaid-diagram-wrap pre.mermaid {
+      color: #e6edf3 !important;
+    }
   }
 </style>\n`;
 
