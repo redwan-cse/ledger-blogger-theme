@@ -279,11 +279,27 @@ async function main() {
     headers: { Authorization: `Bearer ${driveToken}` }
   });
   const queueData = await queueRes.json() as { files?: DriveItem[] };
-  const items = queueData.files || [];
+  let items = queueData.files || [];
 
   if (items.length === 0) {
-    console.log('No pending items found in Blog_Queue. Everything is up to date!');
-    return;
+    if (process.env.REPUBLISH_LATEST === 'true' && publishedFolderId) {
+      console.log('Blog_Queue is empty. REPUBLISH_LATEST is true. Checking Blog_Published for latest package...');
+      const pubCheckQuery = `'${publishedFolderId}' in parents and trashed=false`;
+      const pubCheckRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(pubCheckQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)&orderBy=modifiedTime desc`, {
+        headers: { Authorization: `Bearer ${driveToken}` }
+      });
+      const pubCheckData = await pubCheckRes.json() as { files?: DriveItem[] };
+      const latestFolder = pubCheckData.files?.find(f => f.mimeType === 'application/vnd.google-apps.folder');
+      if (latestFolder) {
+        console.log(`Found published package to re-verify: "${latestFolder.name}"`);
+        items = [latestFolder];
+      }
+    }
+
+    if (items.length === 0) {
+      console.log('No pending items found in Blog_Queue. Everything is up to date!');
+      return;
+    }
   }
 
   console.log(`Found ${items.length} item(s) in Blog_Queue.`);

@@ -5,6 +5,11 @@ on:
     - cron: '0 4 * * *' # Daily at 10:00 AM BST (04:00 AM UTC, 1 hr after Spark runs)
     - cron: '0 16 * * *' # Backup check at 10:00 PM BST (04:00 PM UTC)
   workflow_dispatch: # Allows 1-click manual trigger from GitHub Actions tab
+    inputs:
+      republish_latest:
+        description: 'Republish latest post from Blog_Published (for testing formatting updates)'
+        type: boolean
+        default: true
 
 jobs:
   publish-from-drive:
@@ -40,4 +45,5 @@ jobs:
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
           DRIVE_SERVICE_ACCOUNT_KEY: ${{ secrets.DRIVE_SERVICE_ACCOUNT_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPUBLISH_LATEST: ${{ inputs.republish_latest || 'false' }}
         run: npx tsx scripts/publish-from-drive.ts
