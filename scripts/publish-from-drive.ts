@@ -24,8 +24,9 @@ const SERVICE_ACCOUNT_JSON = process.env.DRIVE_SERVICE_ACCOUNT_KEY?.trim();
 const ROOT_FOLDER_ID = '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
 const QUEUE_FOLDER_ID = '17Il9OEUn3OluptlReqefnrn2DlfMmdbl';
 const PUBLISHED_FOLDER_NAME = 'Blog_Published';
+const SPREADSHEET_ID = '1Pox6crGHIr0t8fR5iTR5CM-0e_OjAaOQ7VoKde9baro';
 
-// 1. Authenticate with Google Drive via Service Account JWT
+// 1. Authenticate with Google Drive & Sheets via Service Account JWT
 async function getDriveAccessToken(sa: any): Promise<string> {
   const privateKeyRaw = sa.private_key || sa.privateKey;
   if (!privateKeyRaw) {
@@ -43,7 +44,7 @@ async function getDriveAccessToken(sa: any): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const claim = {
     iss: clientEmail,
-    scope: 'https://www.googleapis.com/auth/drive',
+    scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
     aud: 'https://oauth2.googleapis.com/token',
     exp: now + 3600,
     iat: now
@@ -69,12 +70,36 @@ async function getDriveAccessToken(sa: any): Promise<string> {
   });
 
   const data = await res.json() as { access_token?: string; error?: string; error_description?: string };
-  if (!data.access_token) {
-    throw new Error(`Failed to get Google Drive access token: ${data.error} - ${data.error_description}`);
+  if (!res.ok || !data.access_token) {
+    throw new Error(`Google Service Account Token Error: ${data.error || res.statusText} - ${data.error_description || ''}`);
   }
 
   return data.access_token;
 }
+
+async function logToGoogleSheet(token: string, row: (string | number)[]): Promise<void> {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ values: [row] })
+    });
+    if (res.ok) {
+      console.log(`[✓] Successfully logged entry to Content_Planner_and_History Google Sheet.`);
+    } else {
+      const err = await res.text();
+      console.warn(`[!] Warning: Failed to log to Google Sheet: ${err}`);
+    }
+  } catch (e: any) {
+    console.warn(`[!] Exception logging to Google Sheet: ${e.message}`);
+  }
+}
+
+
 
 // 2. Authenticate with Blogger as Md Redwan Ahmed via User Refresh Token
 async function getBloggerAccessToken(): Promise<string> {
@@ -445,6 +470,27 @@ async function main() {
   const queueData = await queueRes.json() as { files?: DriveItem[] };
   let items = queueData.files || [];
 
+  // Also check if any package folder was created directly in root blogs.redwan.work
+  try {
+    const rootQuery = `'${ROOT_FOLDER_ID}' in parents and trashed=false`;
+    const rootRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(rootQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)`, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    const rootData = await rootRes.json() as { files?: DriveItem[] };
+    const rootPackages = (rootData.files || []).filter(f => 
+      f.name.startsWith('[') && 
+      f.id !== QUEUE_FOLDER_ID && 
+      f.id !== publishedFolderId &&
+      !f.name.includes('Content_Planner')
+    );
+    if (rootPackages.length > 0) {
+      console.log(`Found ${rootPackages.length} package(s) directly in root folder:`, rootPackages.map(p => p.name));
+      items = [...items, ...rootPackages];
+    }
+  } catch (e: any) {
+    console.warn(`Could not check root folder: ${e.message}`);
+  }
+
   if (items.length === 0) {
     if (process.env.REPUBLISH_LATEST === 'true' && publishedFolderId) {
       console.log('Blog_Queue is empty. REPUBLISH_LATEST is true. Checking Blog_Published for latest package...');
@@ -598,13 +644,41 @@ async function main() {
     console.log(`🎉 PUBLISHED LIVE: "${post.title}"`);
     console.log(`🔗 URL: ${post.url}`);
 
-    // Move folder/file to Blog_Published
+    // 1. Log to Content_Planner_and_History Google Sheet
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const weekdayStr = days[new Date().getUTCDay()];
+    const cveMatch = markdownContent.match(/\b(CVE-\d{4}-\d+|RFC\s*\d+|AD\s*CS\s*ESC\d+|NIST\s*[\w\.\-]+)\b/i);
+    const focusCve = cveMatch ? cveMatch[0] : label;
+
+    await logToGoogleSheet(driveToken, [
+      todayStr,
+      weekdayStr,
+      label,
+      cleanTitle,
+      focusCve,
+      'PowerShell, Python, Bash, Sigma, Mermaid',
+      'Published',
+      post.url
+    ]);
+
+    // 2. Move folder/file to Blog_Published
     if (publishedFolderId) {
-      await fetch(`https://www.googleapis.com/drive/v3/files/${item.id}?addParents=${publishedFolderId}&removeParents=${QUEUE_FOLDER_ID}&enforceSingleParent=true`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${driveToken}` }
-      });
-      console.log(`Moved "${item.name}" to "${PUBLISHED_FOLDER_NAME}".`);
+      try {
+        const detailRes = await fetch(`https://www.googleapis.com/drive/v3/files/${item.id}?fields=parents&supportsAllDrives=true`, {
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        const detail = await detailRes.json() as { parents?: string[] };
+        const currentParent = detail.parents?.[0] || QUEUE_FOLDER_ID;
+
+        await fetch(`https://www.googleapis.com/drive/v3/files/${item.id}?addParents=${publishedFolderId}&removeParents=${currentParent}&enforceSingleParent=true&supportsAllDrives=true`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        console.log(`Moved "${item.name}" to "${PUBLISHED_FOLDER_NAME}".`);
+      } catch (e: any) {
+        console.warn(`Could not move folder to Blog_Published: ${e.message}`);
+      }
     }
   }
 
