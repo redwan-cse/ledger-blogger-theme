@@ -461,6 +461,85 @@ async function main() {
   const pubData = await pubRes.json() as { files?: DriveItem[] };
   const publishedFolderId = pubData.files?.[0]?.id || null;
 
+  // 1. Check for 'Intake' drop folder inside Blog_Queue
+  try {
+    const intakeQuery = `'${QUEUE_FOLDER_ID}' in parents and name='Intake' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const intakeRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(intakeQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    const intakeData = await intakeRes.json() as { files?: DriveItem[] };
+    const intakeFolder = intakeData.files?.[0];
+
+    if (intakeFolder) {
+      console.log(`Checking Intake folder (ID: ${intakeFolder.id}) for newly dropped files...`);
+      const intakeFilesRes = await fetch(`https://www.googleapis.com/drive/v3/files?q='${intakeFolder.id}'+in+parents+and+trashed=false&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)`, {
+        headers: { Authorization: `Bearer ${driveToken}` }
+      });
+      const intakeFilesData = await intakeFilesRes.json() as { files?: DriveItem[] };
+      const intakeFiles = intakeFilesData.files || [];
+
+      const articleItem = intakeFiles.find(f => f.name.toLowerCase().includes('article') || f.mimeType === 'application/vnd.google-apps.document');
+      const thumbnailItem = intakeFiles.find(f => f.name.toLowerCase().includes('thumb') || f.mimeType.startsWith('image/'));
+
+      if (articleItem) {
+        console.log(`Found newly dropped post in Intake: "${articleItem.name}". Auto-organizing into dedicated subfolder...`);
+        let rawContent = '';
+        if (articleItem.mimeType === 'application/vnd.google-apps.document') {
+          const expRes = await fetch(`https://www.googleapis.com/drive/v3/files/${articleItem.id}/export?mimeType=text/plain`, {
+            headers: { Authorization: `Bearer ${driveToken}` }
+          });
+          rawContent = await expRes.text();
+        } else {
+          const downRes = await fetch(`https://www.googleapis.com/drive/v3/files/${articleItem.id}?alt=media`, {
+            headers: { Authorization: `Bearer ${driveToken}` }
+          });
+          rawContent = await downRes.text();
+        }
+
+        // Detect title & category
+        const titleMatch = rawContent.match(/^#\s+(.+)$/m) || rawContent.match(/^##\s+(.+)$/m);
+        let detectedTitle = titleMatch ? titleMatch[1].replace(/[#*`_]/g, '').trim() : articleItem.name.replace(/\.[^/.]+$/, '');
+        const catMatch = rawContent.match(/\[(AI Security|Cloud Security|DevSecOps|Penetration Testing|Linux Hardening|OSINT & Threat Intel|Digital Forensics)\]/i) || detectedTitle.match(/\[(.*?)\]/);
+        const detectedCat = catMatch ? `[${catMatch[1]}]` : '[Cybersecurity]';
+
+        if (!detectedTitle.includes('[')) {
+          detectedTitle = `${detectedCat} ${detectedTitle}`;
+        }
+
+        // Create dedicated subfolder in Blog_Queue
+        const folderCreateRes = await fetch('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${driveToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: detectedTitle,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [QUEUE_FOLDER_ID]
+          })
+        });
+        const newSubfolder = await folderCreateRes.json() as { id: string; name: string };
+        console.log(`[✓] Created dedicated package folder in Blog_Queue: "${detectedTitle}" (ID: ${newSubfolder.id})`);
+
+        // Move article & thumbnail from Intake into newSubfolder
+        await fetch(`https://www.googleapis.com/drive/v3/files/${articleItem.id}?addParents=${newSubfolder.id}&removeParents=${intakeFolder.id}&enforceSingleParent=true&supportsAllDrives=true`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        if (thumbnailItem) {
+          await fetch(`https://www.googleapis.com/drive/v3/files/${thumbnailItem.id}?addParents=${newSubfolder.id}&removeParents=${intakeFolder.id}&enforceSingleParent=true&supportsAllDrives=true`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${driveToken}` }
+          });
+        }
+        console.log(`[✓] Moved article and thumbnail into "${detectedTitle}".`);
+      }
+    }
+  } catch (e: any) {
+    console.warn(`[!] Note checking Intake folder: ${e.message}`);
+  }
+
   // List all items inside Blog_Queue
   console.log(`Checking items in Blog_Queue (ID: ${QUEUE_FOLDER_ID})...`);
   const queueQuery = `'${QUEUE_FOLDER_ID}' in parents and trashed=false`;
@@ -468,7 +547,7 @@ async function main() {
     headers: { Authorization: `Bearer ${driveToken}` }
   });
   const queueData = await queueRes.json() as { files?: DriveItem[] };
-  let items = queueData.files || [];
+  let items = (queueData.files || []).filter(f => f.name !== 'Intake');
 
   // Also check if any package folder was created directly in root blogs.redwan.work
   try {
