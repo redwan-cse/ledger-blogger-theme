@@ -204,7 +204,42 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
   cleanedMarkdown = cleanedMarkdown.replace(/```[a-z0-9_-]*\s*```/gi, '');
 
-  // 2. Aggressively merge consecutive code blocks separated by whitespace or empty lines
+  // 2. Intelligent Auto-Fencer for Google Docs plain-text exports (where Spark forgot fences)
+  // A. Mermaid sequence diagrams & flowcharts
+  if (!cleanedMarkdown.includes('```mermaid')) {
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(sequenceDiagram[\s\S]*?)(?=\n\n(?:[A-Z0-9#]|\d+\.|\##)|$)/g, '\n\n```mermaid\n$1\n```\n\n');
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:flowchart|graph)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\n(?:[A-Z0-9#]|\d+\.|\##)|$)/g, '\n\n```mermaid\n$1\n```\n\n');
+  }
+
+  // B. C Structures (struct cred, etc.)
+  if (!cleanedMarkdown.includes('```c')) {
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(struct\s+\w+\s*\{[\s\S]*?\};)/g, '\n\n```c\n$1\n```\n\n');
+  }
+
+  // C. Bash runbooks and scripts (with shebang or shell comments)
+  if (!cleanedMarkdown.includes('```bash')) {
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:#!.*bash|# Fast Cyber.*|set -euo pipefail)[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```bash\n$1\n```\n\n');
+  }
+
+  // D. Sigma Detection Rules (YAML)
+  if (!cleanedMarkdown.includes('```yaml')) {
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(title:\s*[\s\S]*?tags:[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+)|$)/g, '\n\n```yaml\n$1\n```\n\n');
+  }
+
+  // E. Python Monitoring Scripts
+  if (!cleanedMarkdown.includes('```python')) {
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:#!.*python3?|import sys|import subprocess|import json|from typing import|class \w+Auditor)[\s\S]*?)(?=\n\n(?:\d+\.|\##|Fast Cyber Defense)|$)/g, '\n\n```python\n$1\n```\n\n');
+  }
+
+  // F. PowerShell Audit Modules
+  if (!cleanedMarkdown.includes('```powershell')) {
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(\[CmdletBinding\(\)\][\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```powershell\n$1\n```\n\n');
+  }
+
+  // 3. Demote any accidental '# ' headings in body to '## ' (prevents shell comments from becoming H1)
+  cleanedMarkdown = cleanedMarkdown.replace(/^# (?!#)/gm, '## ');
+
+  // 4. Aggressively merge consecutive code blocks separated by whitespace or empty lines
   for (let i = 0; i < 10; i++) {
     const before = cleanedMarkdown;
     cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]*)\n([\s\S]*?)\n```[\s\r\n]+```\1?\n/gi, (match, lang, code) => {
@@ -212,6 +247,15 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     });
     if (before === cleanedMarkdown) break;
   }
+
+  // Disable 4-space indented code blocks in marked to prevent random code fragmentation
+  marked.use({
+    tokenizer: {
+      code(src: string) {
+        return undefined as any;
+      }
+    }
+  });
 
   let htmlBody = marked.parse(cleanedMarkdown, { renderer, gfm: true }) as string;
 
