@@ -998,8 +998,35 @@ function init(): void {
       initAlertCallouts();
       initReadingTime();
       initArticleAudioReader();
+      initMermaidDiagrams();
     }
   });
+}
+
+/**
+ * Dynamically loads and renders Mermaid.js sequence and flow diagrams if present in article.
+ */
+export function initMermaidDiagrams(): void {
+  const mermaidEls = document.querySelectorAll('.mermaid');
+  if (mermaidEls.length === 0) return;
+
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  script.async = true;
+  script.onload = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+      (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const mermaid = (window as unknown as { mermaid?: { initialize: (opts: unknown) => void; run: () => void } }).mermaid;
+    if (mermaid) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'neutral',
+        securityLevel: 'loose'
+      });
+      mermaid.run();
+    }
+  };
+  document.head.appendChild(script);
 }
 
 if (typeof document !== 'undefined') {

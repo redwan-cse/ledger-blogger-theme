@@ -1,13 +1,18 @@
 import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { execSync } from 'node:child_process';
+import { marked } from 'marked';
 
 interface ServiceAccountKey {
   client_email: string;
   private_key: string;
 }
 
-interface DriveFile {
+interface DriveItem {
   id: string;
   name: string;
+  mimeType: string;
 }
 
 const BLOG_ID = process.env.BLOGGER_BLOG_ID?.trim() || '5972841034338492159';
@@ -16,7 +21,8 @@ const CLIENT_SECRET = process.env.BLOGGER_CLIENT_SECRET?.trim() || process.env.G
 const REFRESH_TOKEN = process.env.BLOGGER_REFRESH_TOKEN?.trim();
 const SERVICE_ACCOUNT_JSON = process.env.DRIVE_SERVICE_ACCOUNT_KEY?.trim();
 
-const QUEUE_FOLDER_NAME = 'Blog_Queue';
+const ROOT_FOLDER_ID = '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
+const QUEUE_FOLDER_ID = '17Il9OEUn3OluptlReqefnrn2DlfMmdbl';
 const PUBLISHED_FOLDER_NAME = 'Blog_Published';
 
 // 1. Authenticate with Google Drive via Service Account JWT
@@ -99,122 +105,6 @@ async function getBloggerAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-// 3. Stateful HTML Converter for Google Doc Text
-function convertDocTextToHtml(rawText: string): { contentHtml: string; snippet: string } {
-  const lines = rawText.split(/\r?\n/);
-  const htmlParts: string[] = [];
-  let inCode = false;
-  let codeBuffer: string[] = [];
-  let snippet = '';
-
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
-
-    // Skip redundant author/date bylines
-    if (/^Author:/i.test(line) || /^Publication:/i.test(line) || /^Date:/i.test(line) || /^ORCID:/i.test(line)) {
-      continue;
-    }
-
-    // Unescape markdown backslashes from AI
-    line = line.replace(/\\([\[\]_\$\#\*\=])/g, '$1');
-
-    const isCode = isCodeOrDiagramLine(line);
-
-    if (isCode) {
-      if (!inCode) {
-        inCode = true;
-        codeBuffer = [];
-      }
-      codeBuffer.push(escapeHtml(line));
-      continue;
-    } else {
-      if (inCode) {
-        htmlParts.push(`<pre style="overflow-x:auto;background:var(--card-bg, #1a1a1a);padding:1rem;border-radius:6px;font-family:monospace;font-size:0.88rem;line-height:1.5;"><code>${codeBuffer.join('\n')}</code></pre>`);
-        inCode = false;
-        codeBuffer = [];
-      }
-    }
-
-    if (!line) continue;
-
-    // Capture first regular paragraph for search snippet
-    if (!snippet && !isMainHeading(line) && !isSubHeading(line) && line.length > 50) {
-      snippet = line.slice(0, 155).trim();
-    }
-
-    const linkedText = convertMarkdownLinks(escapeHtml(line));
-
-    if (isMainHeading(line)) {
-      htmlParts.push(`<h2 style="margin-top:2rem;margin-bottom:0.75rem;">${linkedText}</h2>`);
-    } else if (isSubHeading(line)) {
-      htmlParts.push(`<h3 style="margin-top:1.5rem;margin-bottom:0.5rem;">${linkedText}</h3>`);
-    } else if (line.startsWith('- ') || line.startsWith('* ')) {
-      htmlParts.push(`<li>${linkedText.replace(/^[-*]\s*/, '')}</li>`);
-    } else {
-      htmlParts.push(`<p style="margin-bottom:1rem;line-height:1.7;">${linkedText}</p>`);
-    }
-  }
-
-  if (inCode && codeBuffer.length > 0) {
-    htmlParts.push(`<pre style="overflow-x:auto;background:var(--card-bg, #1a1a1a);padding:1rem;border-radius:6px;font-family:monospace;font-size:0.88rem;line-height:1.5;"><code>${codeBuffer.join('\n')}</code></pre>`);
-  }
-
-  return { contentHtml: htmlParts.join('\n'), snippet };
-}
-
-function isMainHeading(text: string): boolean {
-  const clean = text.replace(/^[#*]+\s*/, '').replace(/[*#]/g, '').trim();
-  return clean === 'Executive Overview & The Emerging Threat Surface' ||
-         clean === 'Attack Anatomy & Technical Breakdown' ||
-         clean === 'Hardening Tactics & Detection Engineering' ||
-         clean === 'Fast Cyber Defense Key Takeaways' ||
-         clean === 'References & Further Reading';
-}
-
-function isSubHeading(text: string): boolean {
-  const clean = text.replace(/^[#*]+\s*/, '').replace(/[*#]/g, '').trim();
-  return clean === 'The Three-Tier Protocol Exchange' ||
-         clean === 'Cipher Negotiation & Cryptographic Threat Matrix' ||
-         clean.startsWith('The Critical "0x18" Trap') ||
-         clean === 'PowerShell Environment Audit Script' ||
-         clean.startsWith('1. Architectural Remediation') ||
-         clean.startsWith('2. Domain-Wide RC4') ||
-         clean.startsWith('3. Canary Accounts') ||
-         clean.startsWith('4. Production-Grade Detection') ||
-         clean.startsWith('5. Automated SIEM Log');
-}
-
-function isCodeOrDiagramLine(text: string): boolean {
-  if (!text) return false;
-  return text.startsWith('+---') ||
-         text.startsWith('|') ||
-         text.startsWith('===') ||
-         text.startsWith('[CmdletBinding') ||
-         text.startsWith('param (') ||
-         text.startsWith('$') ||
-         text.startsWith('Import-Module') ||
-         text.startsWith('Write-Host') ||
-         text.startsWith('Get-ADUser') ||
-         text.startsWith('New-ADServiceAccount') ||
-         text.startsWith('Add-KdcRootKey') ||
-         text.startsWith('title:') ||
-         text.startsWith('id:') ||
-         text.startsWith('status:') ||
-         text.startsWith('detection:') ||
-         text.startsWith('logsource:') ||
-         text.startsWith('#!') ||
-         text.startsWith('from collections') ||
-         text.startsWith('import ') ||
-         text.startsWith('class KerberoastDetector') ||
-         text.startsWith('def ') ||
-         text.startsWith('if __name__') ||
-         text.startsWith('detector =');
-}
-
-function convertMarkdownLinks(text: string): string {
-  return text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-}
-
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -224,9 +114,76 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
-// 4. Main Processing Flow
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/\[.*?\]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);
+}
+
+// 3. Configure Marked Markdown Compiler with Code Window & Mermaid Support
+function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string {
+  const renderer = new marked.Renderer();
+
+  renderer.code = function({ text, lang }: { text: string; lang?: string }) {
+    const rawLang = (lang || '').trim().toLowerCase();
+
+    if (rawLang === 'mermaid') {
+      return `\n<div class="mermaid-diagram-wrap" style="overflow-x:auto;background:var(--card-bg, #161b22);padding:1.5rem;border-radius:8px;margin:2rem 0;border:1px solid var(--border-subtle, #30363d);text-align:center;"><pre class="mermaid" style="background:transparent;border:none;margin:0;">${text}</pre></div>\n`;
+    }
+
+    const displayLang = rawLang || 'code';
+    return `\n<div class="code-window" style="margin:1.8rem 0;border-radius:8px;overflow:hidden;border:1px solid var(--border-subtle, #30363d);box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+  <div class="code-window-header" style="background:var(--code-header-bg, #21262d);padding:0.45rem 1rem;font-size:0.75rem;font-weight:600;color:var(--text-muted, #8b949e);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border-subtle, #30363d);display:flex;justify-content:space-between;align-items:center;">
+    <span>${displayLang}</span>
+  </div>
+  <pre style="margin:0;padding:1.1rem;background:var(--code-bg, #0d1117);overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:0.875rem;line-height:1.65;"><code class="language-${displayLang}">${escapeHtml(text)}</code></pre>
+</div>\n`;
+  };
+
+  renderer.table = function({ header, rows }: { header: string; rows: string }) {
+    return `\n<div class="table-container" style="overflow-x:auto;margin:2rem 0;border-radius:8px;border:1px solid var(--border-subtle, #30363d);">
+  <table style="width:100%;border-collapse:collapse;font-size:0.92rem;line-height:1.6;text-align:left;">
+    <thead style="background:var(--card-bg, #161b22);border-bottom:2px solid var(--border-subtle, #30363d);">${header}</thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>\n`;
+  };
+
+  renderer.tablecell = function({ text, header }: { text: string; header: boolean }) {
+    const tag = header ? 'th' : 'td';
+    const style = header
+      ? 'padding:0.85rem 1.2rem;font-weight:700;color:var(--text, #f0f6fc);border-bottom:2px solid var(--border-subtle, #30363d);'
+      : 'padding:0.85rem 1.2rem;border-bottom:1px solid var(--border-subtle, #30363d);color:var(--text-muted, #c9d1d9);';
+    return `<${tag} style="${style}">${text}</${tag}>`;
+  };
+
+  // Strip manual bylines if present in markdown
+  const cleanedMarkdown = markdown
+    .replace(/^Author:.*$/gim, '')
+    .replace(/^Publication:.*$/gim, '')
+    .replace(/^Date:.*$/gim, '')
+    .replace(/^ORCID:.*$/gim, '')
+    .trim();
+
+  let htmlBody = marked.parse(cleanedMarkdown, { renderer, gfm: true }) as string;
+
+  // Prepend Hero Image if available
+  if (heroImageUrl) {
+    const heroBlock = `<div class="post-hero-wrap" style="margin-bottom:2.2rem;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+  <img src="${heroImageUrl}" alt="Article Hero" class="post-hero-image" style="width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;display:block;" loading="eager" fetchpriority="high" width="1200" height="675"/>
+</div>\n`;
+    htmlBody = heroBlock + htmlBody;
+  }
+
+  return htmlBody;
+}
+
+// 4. Main Processing Engine
 async function main() {
-  console.log('=== Google Drive to Blogger Auto-Publisher ===');
+  console.log('=== Google Drive (Folders & Markdown) to Blogger Auto-Publisher ===');
 
   if (!SERVICE_ACCOUNT_JSON) {
     throw new Error('DRIVE_SERVICE_ACCOUNT_KEY secret is required (paste the full JSON of your service account key).');
@@ -236,93 +193,132 @@ async function main() {
   if (!rawJson.startsWith('{')) {
     try {
       const decoded = Buffer.from(rawJson, 'base64').toString('utf8');
-      if (decoded.startsWith('{')) {
-        rawJson = decoded;
-      }
+      if (decoded.startsWith('{')) rawJson = decoded;
     } catch {}
   }
 
-  let sa: any;
-  try {
-    sa = JSON.parse(rawJson);
-  } catch (err: any) {
-    throw new Error(`DRIVE_SERVICE_ACCOUNT_KEY is not valid JSON (${err.message}). Raw value starts with: ${SERVICE_ACCOUNT_JSON.slice(0, 30)}...`);
-  }
+  const sa = JSON.parse(rawJson);
+  console.log(`Authenticated Service Account: ${sa.client_email || sa.clientEmail}`);
 
-  console.log(`Authenticated service account: ${sa.client_email || sa.clientEmail}`);
   const driveToken = await getDriveAccessToken(sa);
   const bloggerToken = await getBloggerAccessToken();
 
-  const ROOT_FOLDER_ID = '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
-
-  // Find Blog_Queue and Blog_Published folders
-  console.log('1. Searching for Google Drive folders: Blog_Queue and Blog_Published...');
-  const searchFolder = async (name: string): Promise<string | null> => {
-    // Search within root folder first, then global
-    const q1 = `'${ROOT_FOLDER_ID}' in parents and name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-    const res1 = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q1)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
-      headers: { Authorization: `Bearer ${driveToken}` }
-    });
-    const data1 = await res1.json() as { files?: DriveFile[] };
-    if (data1.files && data1.files.length > 0) {
-      return data1.files[0].id;
-    }
-
-    const q2 = `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-    const res2 = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q2)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
-      headers: { Authorization: `Bearer ${driveToken}` }
-    });
-    const data2 = await res2.json() as { files?: DriveFile[] };
-    return data2.files?.[0]?.id || null;
-  };
-
-  const queueFolderId = await searchFolder(QUEUE_FOLDER_NAME);
-  if (!queueFolderId) {
-    throw new Error(`Google Drive folder "${QUEUE_FOLDER_NAME}" was not found or has not been shared with ${sa.client_email}.`);
-  }
-
-  const publishedFolderId = await searchFolder(PUBLISHED_FOLDER_NAME);
-
-  // List Docs in Blog_Queue
-  console.log(`2. Checking files in "${QUEUE_FOLDER_NAME}" (ID: ${queueFolderId})...`);
-  const listQ = `'${queueFolderId}' in parents and mimeType='application/vnd.google-apps.document' and trashed=false`;
-  const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(listQ)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
+  // Find Blog_Published folder ID inside root
+  const pubQuery = `'${ROOT_FOLDER_ID}' in parents and name='${PUBLISHED_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const pubRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(pubQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name)`, {
     headers: { Authorization: `Bearer ${driveToken}` }
   });
-  const listData = await listRes.json() as { files?: DriveFile[] };
-  const files = listData.files || [];
+  const pubData = await pubRes.json() as { files?: DriveItem[] };
+  const publishedFolderId = pubData.files?.[0]?.id || null;
 
-  if (files.length === 0) {
-    console.log(`No pending Google Docs found in "${QUEUE_FOLDER_NAME}". Everything is up to date!`);
+  // List all items inside Blog_Queue
+  console.log(`Checking items in Blog_Queue (ID: ${QUEUE_FOLDER_ID})...`);
+  const queueQuery = `'${QUEUE_FOLDER_ID}' in parents and trashed=false`;
+  const queueRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queueQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)`, {
+    headers: { Authorization: `Bearer ${driveToken}` }
+  });
+  const queueData = await queueRes.json() as { files?: DriveItem[] };
+  const items = queueData.files || [];
+
+  if (items.length === 0) {
+    console.log('No pending items found in Blog_Queue. Everything is up to date!');
     return;
   }
 
-  console.log(`Found ${files.length} pending document(s) to publish:`);
+  console.log(`Found ${items.length} item(s) in Blog_Queue.`);
 
-  for (const file of files) {
-    console.log(`\nProcessing: "${file.name}" (ID: ${file.id})...`);
+  for (const item of items) {
+    const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
+    console.log(`\nProcessing ${isFolder ? 'Folder' : 'File'}: "${item.name}" (ID: ${item.id})...`);
 
-    // Parse category and title
-    let label = 'Penetration Testing';
-    let cleanTitle = file.name;
-    const match = file.name.match(/^\[(.*?)\]\s*(.*)$/);
+    // Parse category and clean title
+    let label = 'Cybersecurity';
+    let cleanTitle = item.name;
+    const match = item.name.match(/^\[(.*?)\]\s*(.*)$/);
     if (match) {
-      label = match[1];
-      cleanTitle = match[2];
+      label = match[1].trim();
+      cleanTitle = match[2].trim();
     }
 
-    // Export Google Doc as plain text
-    const exportRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=text/plain`, {
-      headers: { Authorization: `Bearer ${driveToken}` }
-    });
+    const postSlug = slugify(cleanTitle);
+    let markdownContent = '';
+    let heroImageUrl: string | undefined = undefined;
 
-    if (!exportRes.ok) {
-      console.error(`Failed to export "${file.name}": ${exportRes.statusText}`);
+    if (isFolder) {
+      // List files inside the subfolder
+      const childQuery = `'${item.id}' in parents and trashed=false`;
+      const childRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(childQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)`, {
+        headers: { Authorization: `Bearer ${driveToken}` }
+      });
+      const childData = await childRes.json() as { files?: DriveItem[] };
+      const childFiles = childData.files || [];
+
+      // Find article file (.md or Google Doc)
+      const articleFile = childFiles.find((f) => f.name.toLowerCase().endsWith('.md') || f.mimeType === 'application/vnd.google-apps.document');
+      const thumbnailFile = childFiles.find((f) => f.name.toLowerCase().includes('thumbnail') || f.mimeType.startsWith('image/'));
+
+      if (!articleFile) {
+        console.warn(`No article.md or Google Doc found inside folder "${item.name}". Skipping.`);
+        continue;
+      }
+
+      // Download / Export article content
+      if (articleFile.mimeType === 'application/vnd.google-apps.document') {
+        const expRes = await fetch(`https://www.googleapis.com/drive/v3/files/${articleFile.id}/export?mimeType=text/plain`, {
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        markdownContent = await expRes.text();
+      } else {
+        const downRes = await fetch(`https://www.googleapis.com/drive/v3/files/${articleFile.id}?alt=media`, {
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        markdownContent = await downRes.text();
+      }
+
+      // Process thumbnail if present
+      if (thumbnailFile) {
+        console.log(`Downloading thumbnail image: "${thumbnailFile.name}"...`);
+        const imgRes = await fetch(`https://www.googleapis.com/drive/v3/files/${thumbnailFile.id}?alt=media`, {
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        if (imgRes.ok) {
+          const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
+          const assetDir = path.join(process.cwd(), 'assets', 'posts', postSlug);
+          fs.mkdirSync(assetDir, { recursive: true });
+          const assetPath = path.join(assetDir, 'thumbnail.png');
+          fs.writeFileSync(assetPath, imgBuffer);
+          console.log(`Saved thumbnail to: ${assetPath}`);
+
+          // Commit to repository if in Git context
+          try {
+            execSync(`git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"`, { stdio: 'ignore' });
+            execSync(`git add assets/posts/${postSlug}/thumbnail.png`, { stdio: 'ignore' });
+            execSync(`git commit -m "chore(assets): add thumbnail for ${postSlug}"`, { stdio: 'ignore' });
+            execSync(`git push origin main`, { stdio: 'ignore' });
+            console.log(`Committed & pushed thumbnail to repository.`);
+          } catch (e: any) {
+            console.log(`Note: Local git commit/push skipped (${e.message}).`);
+          }
+
+          heroImageUrl = `https://raw.githubusercontent.com/redwan-cse/ledger-blogger-theme/main/assets/posts/${postSlug}/thumbnail.png`;
+        }
+      }
+    } else {
+      // Standalone Google Doc
+      const expRes = await fetch(`https://www.googleapis.com/drive/v3/files/${item.id}/export?mimeType=text/plain`, {
+        headers: { Authorization: `Bearer ${driveToken}` }
+      });
+      markdownContent = await expRes.text();
+    }
+
+    if (!markdownContent.trim()) {
+      console.warn(`Article content is empty for "${item.name}". Skipping.`);
       continue;
     }
 
-    const docText = await exportRes.text();
-    const { contentHtml } = convertDocTextToHtml(docText);
+    // Compile Markdown to Semantic HTML
+    console.log(`Compiling GFM markdown (with Mermaid diagrams and unified code windows)...`);
+    const compiledHtml = compileMarkdownToHtml(markdownContent, heroImageUrl);
 
     // Publish to Blogger as Md Redwan Ahmed
     console.log(`Publishing to https://blogs.redwan.work/ as Md Redwan Ahmed...`);
@@ -335,14 +331,14 @@ async function main() {
       body: JSON.stringify({
         kind: 'blogger#post',
         title: cleanTitle,
-        content: contentHtml,
+        content: compiledHtml,
         labels: [label]
       })
     });
 
     if (!pubRes.ok) {
       const err = await pubRes.text();
-      console.error(`Blogger API error for "${cleanTitle}": ${err}`);
+      console.error(`Blogger API publish failed for "${cleanTitle}": ${err}`);
       continue;
     }
 
@@ -350,13 +346,13 @@ async function main() {
     console.log(`🎉 PUBLISHED LIVE: "${post.title}"`);
     console.log(`🔗 URL: ${post.url}`);
 
-    // Move file to Blog_Published if folder exists
+    // Move folder/file to Blog_Published
     if (publishedFolderId) {
-      await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?addParents=${publishedFolderId}&removeParents=${queueFolderId}&enforceSingleParent=true`, {
+      await fetch(`https://www.googleapis.com/drive/v3/files/${item.id}?addParents=${publishedFolderId}&removeParents=${QUEUE_FOLDER_ID}&enforceSingleParent=true`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${driveToken}` }
       });
-      console.log(`Moved "${file.name}" to "${PUBLISHED_FOLDER_NAME}".`);
+      console.log(`Moved "${item.name}" to "${PUBLISHED_FOLDER_NAME}".`);
     }
   }
 
