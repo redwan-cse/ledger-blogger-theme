@@ -22,10 +22,10 @@ const REFRESH_TOKEN = process.env.BLOGGER_REFRESH_TOKEN?.trim();
 const SERVICE_ACCOUNT_JSON = process.env.DRIVE_SERVICE_ACCOUNT_KEY?.trim();
 
 const ROOT_FOLDER_ID = process.env.DRIVE_ROOT_FOLDER_ID?.trim() || '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq';
-const QUEUE_FOLDER_ID = process.env.DRIVE_QUEUE_FOLDER_ID?.trim() || '1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv'; // Blog_Queue_Shared
+const QUEUE_FOLDER_ID = process.env.DRIVE_QUEUE_FOLDER_ID?.trim() || '1qR-RZ6MA1YJmLSAFYJQ-h7bAo-cf0QLY'; // Blog_Queue_Shared (2nd Account)
 const PUBLISHED_FOLDER_NAME = 'Blog_Published';
-const DEFAULT_PUBLISHED_FOLDER_ID = '1Ht4jr07tIl4Wb8OI1PVAKL5y5Ayr_XCk'; // Blog_Published
-const SPREADSHEET_ID = process.env.DRIVE_SHEET_ID?.trim() || '1Pox6crGHIr0t8fR5iTR5CM-0e_OjAaOQ7VoKde9baro';
+const DEFAULT_PUBLISHED_FOLDER_ID = '1eyxxZCJF97Krkg49osWF_dc39x1SFmDX'; // Blog_Published (2nd Account)
+const SPREADSHEET_ID = process.env.DRIVE_SHEET_ID?.trim() || '19XFToal3vWSZpNSW1hKksxq1uT4N-6r2FnIXeZrTkxQ'; // Content_Planner_and_History (2nd Account)
 
 // 1. Authenticate with Google Drive & Sheets via Service Account JWT
 async function getDriveAccessToken(sa: any): Promise<string> {

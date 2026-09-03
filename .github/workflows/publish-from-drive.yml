@@ -2,8 +2,8 @@ name: Publish From Google Drive (Free / Zero API Cost)
 
 on:
   schedule:
-    - cron: '15 3 * * *' # Daily at 09:15 AM BST (03:15 AM UTC, 15m after Spark runs)
-    - cron: '0 4 * * *'  # Daily backup at 10:00 AM BST (04:00 AM UTC)
+    - cron: '0 4 * * *'  # Daily at 10:00 AM BST (04:00 AM UTC, after Apps Script runs)
+    - cron: '30 4 * * *' # Backup check at 10:30 AM BST (04:30 AM UTC)
     - cron: '0 16 * * *' # Evening backup check at 10:00 PM BST (04:00 PM UTC)
   workflow_dispatch: # Allows 1-click manual trigger from GitHub Actions tab
     inputs:
@@ -46,9 +46,9 @@ jobs:
           BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }}
           DRIVE_SERVICE_ACCOUNT_KEY: ${{ secrets.DRIVE_SERVICE_ACCOUNT_KEY }}
           DRIVE_ROOT_FOLDER_ID: ${{ vars.DRIVE_ROOT_FOLDER_ID || '1bJGScEpKr2iuP6nynxAW_lNScI_8I0jq' }}
-          DRIVE_QUEUE_FOLDER_ID: ${{ vars.DRIVE_QUEUE_FOLDER_ID || '1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv' }}
-          DRIVE_PUBLISHED_FOLDER_ID: ${{ vars.DRIVE_PUBLISHED_FOLDER_ID || '1Ht4jr07tIl4Wb8OI1PVAKL5y5Ayr_XCk' }}
-          DRIVE_SHEET_ID: ${{ vars.DRIVE_SHEET_ID || '1Pox6crGHIr0t8fR5iTR5CM-0e_OjAaOQ7VoKde9baro' }}
+          DRIVE_QUEUE_FOLDER_ID: ${{ vars.DRIVE_QUEUE_FOLDER_ID || '1qR-RZ6MA1YJmLSAFYJQ-h7bAo-cf0QLY' }}
+          DRIVE_PUBLISHED_FOLDER_ID: ${{ vars.DRIVE_PUBLISHED_FOLDER_ID || '1eyxxZCJF97Krkg49osWF_dc39x1SFmDX' }}
+          DRIVE_SHEET_ID: ${{ vars.DRIVE_SHEET_ID || '19XFToal3vWSZpNSW1hKksxq1uT4N-6r2FnIXeZrTkxQ' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPUBLISH_LATEST: ${{ inputs.republish_latest || 'false' }}
         run: npx tsx scripts/publish-from-drive.ts
