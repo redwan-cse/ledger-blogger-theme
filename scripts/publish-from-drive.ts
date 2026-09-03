@@ -149,7 +149,7 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
           mermaidCode = 'graph TD\n' + mermaidCode;
         }
       }
-      return `\n<div class="mermaid-diagram-wrap" style="overflow-x:auto;background:var(--card-bg, #161b22);padding:1.5rem;border-radius:8px;margin:2rem 0;border:1px solid var(--border-subtle, #30363d);text-align:center;"><pre class="mermaid" style="background:transparent;border:none;margin:0;">${mermaidCode}</pre></div>\n`;
+      return `\n<div class="mermaid-diagram-wrap"><pre class="mermaid">${mermaidCode}</pre></div>\n`;
     }
 
     // Auto-detect programming language if missing
@@ -168,18 +168,18 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
       }
     }
 
-    return `\n<div class="code-window" style="margin:1.8rem 0;border-radius:8px;overflow:hidden;border:1px solid var(--border-subtle, #30363d);box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-  <div class="code-window-header" style="background:var(--code-header-bg, #21262d);padding:0.45rem 1rem;font-size:0.75rem;font-weight:600;color:var(--text-muted, #8b949e);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border-subtle, #30363d);display:flex;justify-content:space-between;align-items:center;">
+    return `\n<div class="code-window">
+  <div class="code-window-header">
     <span>${displayLang}</span>
   </div>
-  <pre style="margin:0;padding:1.1rem;background:var(--code-bg, #0d1117);overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:0.875rem;line-height:1.65;"><code class="language-${displayLang}">${escapeHtml(text)}</code></pre>
+  <pre><code class="language-${displayLang}">${escapeHtml(text)}</code></pre>
 </div>\n`;
   };
 
   renderer.table = function({ header, rows }: { header: string; rows: string }) {
-    return `\n<div class="table-container" style="overflow-x:auto;margin:2rem 0;border-radius:8px;border:1px solid var(--border-subtle, #30363d);">
-  <table style="width:100%;border-collapse:collapse;font-size:0.92rem;line-height:1.6;text-align:left;">
-    <thead style="background:var(--card-bg, #161b22);border-bottom:2px solid var(--border-subtle, #30363d);">${header}</thead>
+    return `\n<div class="table-container">
+  <table>
+    <thead>${header}</thead>
     <tbody>${rows}</tbody>
   </table>
 </div>\n`;
@@ -187,10 +187,7 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
 
   renderer.tablecell = function({ text, header }: { text: string; header: boolean }) {
     const tag = header ? 'th' : 'td';
-    const style = header
-      ? 'padding:0.85rem 1.2rem;font-weight:700;color:var(--text, #f0f6fc);border-bottom:2px solid var(--border-subtle, #30363d);'
-      : 'padding:0.85rem 1.2rem;border-bottom:1px solid var(--border-subtle, #30363d);color:var(--text-muted, #c9d1d9);';
-    return `<${tag} style="${style}">${text}</${tag}>`;
+    return `<${tag}>${text}</${tag}>`;
   };
 
   // Strip manual bylines if present in markdown
@@ -220,13 +217,17 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     return match.replace(/\n\s*\n\s*\n/g, '\n\n').replace(/\n{2,}/g, '\n');
   });
 
-  // Inject Mermaid ESM script if post contains Mermaid diagrams
+  // Inject Mermaid ESM script with dynamic light/dark theme support
   if (htmlBody.includes('class="mermaid"')) {
     const mermaidScript = `\n<script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
     (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  mermaid.initialize({ startOnLoad: true, theme: isDark ? 'dark' : 'neutral', securityLevel: 'loose' });
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: isDark ? 'dark' : 'neutral',
+    securityLevel: 'loose'
+  });
 </script>\n`;
     htmlBody += mermaidScript;
   }

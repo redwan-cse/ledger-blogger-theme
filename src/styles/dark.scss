@@ -711,4 +711,52 @@ html[data-theme='dark'] {
       color: oklch(75% 0.15 259.735);
     }
   }
+
+  .code-window {
+    background: oklch(20% 0.028 266) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+
+    .code-window-header {
+      background: oklch(18% 0.025 260) !important;
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+      color: oklch(65.613% 0.0019 247.851) !important;
+    }
+
+    pre {
+      background: oklch(16% 0.028 266) !important;
+      color: oklch(98.415% 0.0034 247.858) !important;
+    }
+
+    code {
+      color: oklch(98.415% 0.0034 247.858) !important;
+    }
+  }
+
+  .mermaid-diagram-wrap {
+    background: oklch(18% 0.028 266) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+
+    pre.mermaid {
+      color: oklch(98.415% 0.0034 247.858) !important;
+    }
+  }
+
+  .table-container {
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+
+    thead {
+      background: oklch(22% 0.028 266) !important;
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+    }
+
+    th {
+      color: oklch(98.415% 0.0034 247.858) !important;
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+    }
+
+    td {
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+      color: oklch(80% 0.015 255) !important;
+    }
+  }
 }

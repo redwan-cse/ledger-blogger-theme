@@ -156,6 +156,108 @@
     font-size: inherit;
   }
 
+  .code-window {
+    margin: $space-5 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid $rule;
+    background: $surface;
+    box-shadow: $shadow-sm;
+
+    .code-window-header {
+      background: oklch(95.5% 0.008 255);
+      padding: 0.45rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: $ink-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid $rule;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: $font-mono;
+    }
+
+    pre {
+      margin: 0 !important;
+      padding: 1.1rem !important;
+      background: $surface !important;
+      color: $ink !important;
+      overflow-x: auto;
+      font-family: $font-mono;
+      font-size: 0.875rem;
+      line-height: 1.65;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      font-family: inherit;
+    }
+  }
+
+  .mermaid-diagram-wrap {
+    overflow-x: auto;
+    background: $surface;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: $space-6 0;
+    border: 1px solid $rule;
+    text-align: center;
+    box-shadow: $shadow-sm;
+
+    pre.mermaid {
+      background: transparent !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      color: $ink;
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+    margin: $space-5 0;
+    border-radius: 8px;
+    border: 1px solid $rule;
+    box-shadow: $shadow-sm;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    thead {
+      background: $surface;
+      border-bottom: 2px solid $rule;
+    }
+
+    th {
+      padding: 0.85rem 1.2rem;
+      font-weight: 700;
+      color: $ink;
+      border-bottom: 2px solid $rule;
+      font-family: $font-sans;
+    }
+
+    td {
+      padding: 0.85rem 1.2rem;
+      border-bottom: 1px solid $rule;
+      color: $ink;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
+
   ul,
   ol {
     margin: 0 0 $space-4;
