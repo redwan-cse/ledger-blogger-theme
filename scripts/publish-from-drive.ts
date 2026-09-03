@@ -232,6 +232,44 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     htmlBody += mermaidScript;
   }
 
+  // Prepend scoped style block for responsive light/dark code blocks and diagrams
+  const scopedStyles = `<style>
+  .code-window { margin: 1.8rem 0; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: #F8FAFC; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .code-window-header { background: #F1F5F9; padding: 0.45rem 1rem; font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; font-family: ui-monospace,monospace; }
+  .code-window pre { margin: 0 !important; padding: 1.1rem !important; background: #F8FAFC !important; color: #0F172A !important; overflow-x: auto; font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 0.875rem; line-height: 1.65; border-radius: 0; }
+  .code-window code { background: transparent !important; color: inherit !important; font-family: inherit; }
+  .mermaid-diagram-wrap { overflow-x: auto; background: #F8FAFC; padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border: 1px solid #E2E8F0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .mermaid-diagram-wrap pre.mermaid { background: transparent !important; color: #0F172A !important; }
+  .table-container { overflow-x: auto; margin: 2rem 0; border-radius: 8px; border: 1px solid #E2E8F0; }
+  .table-container table { width: 100%; border-collapse: collapse; font-size: 0.92rem; line-height: 1.6; }
+  .table-container thead { background: #F8FAFC; border-bottom: 2px solid #E2E8F0; }
+  .table-container th { padding: 0.85rem 1.2rem; font-weight: 700; color: #0F172A; border-bottom: 2px solid #E2E8F0; }
+  .table-container td { padding: 0.85rem 1.2rem; border-bottom: 1px solid #E2E8F0; color: #334155; }
+
+  /* Dark mode overrides (by attribute or OS theme) */
+  [data-theme='dark'] .code-window, html[data-theme='dark'] .code-window { background: #0D1117 !important; border-color: #30363D !important; }
+  [data-theme='dark'] .code-window-header, html[data-theme='dark'] .code-window-header { background: #161B22 !important; border-bottom-color: #30363D !important; color: #8B949E !important; }
+  [data-theme='dark'] .code-window pre, html[data-theme='dark'] .code-window pre { background: #0D1117 !important; color: #F0F6FC !important; }
+  [data-theme='dark'] .mermaid-diagram-wrap, html[data-theme='dark'] .mermaid-diagram-wrap { background: #161B22 !important; border-color: #30363D !important; }
+  [data-theme='dark'] .mermaid-diagram-wrap pre.mermaid, html[data-theme='dark'] .mermaid-diagram-wrap pre.mermaid { color: #F0F6FC !important; }
+  [data-theme='dark'] .table-container, html[data-theme='dark'] .table-container { border-color: #30363D !important; }
+  [data-theme='dark'] .table-container thead, html[data-theme='dark'] .table-container thead { background: #161B22 !important; border-bottom-color: #30363D !important; }
+  [data-theme='dark'] .table-container th, html[data-theme='dark'] .table-container th { color: #F0F6FC !important; border-bottom-color: #30363D !important; }
+  [data-theme='dark'] .table-container td, html[data-theme='dark'] .table-container td { border-bottom-color: #30363D !important; color: #C9D1D9 !important; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .code-window { background: #0D1117 !important; border-color: #30363D !important; }
+    :root:not([data-theme='light']) .code-window-header { background: #161B22 !important; border-bottom-color: #30363D !important; color: #8B949E !important; }
+    :root:not([data-theme='light']) .code-window pre { background: #0D1117 !important; color: #F0F6FC !important; }
+    :root:not([data-theme='light']) .mermaid-diagram-wrap { background: #161B22 !important; border-color: #30363D !important; }
+    :root:not([data-theme='light']) .mermaid-diagram-wrap pre.mermaid { color: #F0F6FC !important; }
+    :root:not([data-theme='light']) .table-container { border-color: #30363D !important; }
+    :root:not([data-theme='light']) .table-container thead { background: #161B22 !important; border-bottom-color: #30363D !important; }
+    :root:not([data-theme='light']) .table-container th { color: #F0F6FC !important; border-bottom-color: #30363D !important; }
+    :root:not([data-theme='light']) .table-container td { border-bottom-color: #30363D !important; color: #C9D1D9 !important; }
+  }
+</style>\n`;
+
   // Prepend Hero Image if available
   if (heroImageUrl) {
     const heroBlock = `<div class="post-hero-wrap" style="margin-bottom:2.2rem;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
@@ -240,7 +278,7 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     htmlBody = heroBlock + htmlBody;
   }
 
-  return htmlBody;
+  return scopedStyles + htmlBody;
 }
 
 // 4. Main Processing Engine
