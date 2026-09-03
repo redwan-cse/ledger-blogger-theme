@@ -199,6 +199,9 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     .replace(/^Publication:.*$/gim, '')
     .replace(/^Date:.*$/gim, '')
     .replace(/^ORCID:.*$/gim, '')
+    .replace(/\\([*_`~[\]()#+\-.!])/g, '$1') // Unescape markdown backslashes
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 
   // Merge fragmented adjacent code blocks
@@ -211,6 +214,22 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   }
 
   let htmlBody = marked.parse(cleanedMarkdown, { renderer, gfm: true }) as string;
+
+  // Compact excessive whitespace inside <pre><code> blocks
+  htmlBody = htmlBody.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match) => {
+    return match.replace(/\n\s*\n\s*\n/g, '\n\n').replace(/\n{2,}/g, '\n');
+  });
+
+  // Inject Mermaid ESM script if post contains Mermaid diagrams
+  if (htmlBody.includes('class="mermaid"')) {
+    const mermaidScript = `\n<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  mermaid.initialize({ startOnLoad: true, theme: isDark ? 'dark' : 'neutral', securityLevel: 'loose' });
+</script>\n`;
+    htmlBody += mermaidScript;
+  }
 
   // Prepend Hero Image if available
   if (heroImageUrl) {
@@ -336,7 +355,12 @@ async function main() {
             execSync(`git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"`, { stdio: 'ignore' });
             execSync(`git add assets/posts/${postSlug}/thumbnail.png`, { stdio: 'ignore' });
             execSync(`git commit -m "chore(assets): add thumbnail for ${postSlug}"`, { stdio: 'ignore' });
-            execSync(`git push origin main`, { stdio: 'ignore' });
+            const ghToken = process.env.GITHUB_TOKEN?.trim();
+            if (ghToken) {
+              execSync(`git push https://x-access-token:${ghToken}@github.com/redwan-cse/ledger-blogger-theme.git HEAD:main`, { stdio: 'ignore' });
+            } else {
+              execSync(`git push origin main`, { stdio: 'ignore' });
+            }
             console.log(`Committed & pushed thumbnail to repository.`);
             pushSucceeded = true;
           } catch (e: any) {
