@@ -122,10 +122,12 @@ async function getBloggerAccessToken(): Promise<string> {
     })
   });
 
-  const data = await res.json() as { access_token?: string; error?: string; error_description?: string };
+  const data = await res.json() as { access_token?: string; scope?: string; error?: string; error_description?: string };
   if (!data.access_token) {
     throw new Error(`Failed to refresh Blogger access token: ${data.error} - ${data.error_description}`);
   }
+
+  console.log(`User OAuth Token Scopes: ${data.scope || 'none'}`);
 
   return data.access_token;
 }
