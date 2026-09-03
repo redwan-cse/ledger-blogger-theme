@@ -130,11 +130,44 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   renderer.code = function({ text, lang }: { text: string; lang?: string }) {
     const rawLang = (lang || '').trim().toLowerCase();
 
-    if (rawLang === 'mermaid') {
-      return `\n<div class="mermaid-diagram-wrap" style="overflow-x:auto;background:var(--card-bg, #161b22);padding:1.5rem;border-radius:8px;margin:2rem 0;border:1px solid var(--border-subtle, #30363d);text-align:center;"><pre class="mermaid" style="background:transparent;border:none;margin:0;">${text}</pre></div>\n`;
+    // Auto-detect Mermaid sequence diagrams and flowcharts
+    const isMermaid = rawLang === 'mermaid' ||
+      text.includes('sequenceDiagram') ||
+      text.includes('autonumber') ||
+      text.includes('participant ') ||
+      text.includes('actor ') ||
+      (text.includes('-->') && text.includes('[') && text.includes(']'));
+
+    if (isMermaid) {
+      let mermaidCode = text.trim();
+      if (mermaidCode.includes('participant') || mermaidCode.includes('actor') || mermaidCode.includes('autonumber')) {
+        if (!mermaidCode.startsWith('sequenceDiagram')) {
+          mermaidCode = 'sequenceDiagram\n' + mermaidCode;
+        }
+      } else if (mermaidCode.includes('-->')) {
+        if (!mermaidCode.startsWith('graph') && !mermaidCode.startsWith('flowchart')) {
+          mermaidCode = 'graph TD\n' + mermaidCode;
+        }
+      }
+      return `\n<div class="mermaid-diagram-wrap" style="overflow-x:auto;background:var(--card-bg, #161b22);padding:1.5rem;border-radius:8px;margin:2rem 0;border:1px solid var(--border-subtle, #30363d);text-align:center;"><pre class="mermaid" style="background:transparent;border:none;margin:0;">${mermaidCode}</pre></div>\n`;
     }
 
-    const displayLang = rawLang || 'code';
+    // Auto-detect programming language if missing
+    let displayLang = rawLang;
+    if (!displayLang || displayLang === 'code' || displayLang === 'text') {
+      if (text.includes('$') || text.includes('Get-AD') || text.includes('param (') || text.includes('Write-Host')) {
+        displayLang = 'powershell';
+      } else if (text.includes('def ') || text.includes('import ') || text.includes('from collections')) {
+        displayLang = 'python';
+      } else if (text.includes('title:') || text.includes('logsource:') || text.includes('detection:')) {
+        displayLang = 'yaml';
+      } else if (text.includes('curl ') || text.includes('chmod ') || text.includes('sudo ') || text.includes('#!/bin')) {
+        displayLang = 'bash';
+      } else {
+        displayLang = 'code';
+      }
+    }
+
     return `\n<div class="code-window" style="margin:1.8rem 0;border-radius:8px;overflow:hidden;border:1px solid var(--border-subtle, #30363d);box-shadow:0 4px 12px rgba(0,0,0,0.15);">
   <div class="code-window-header" style="background:var(--code-header-bg, #21262d);padding:0.45rem 1rem;font-size:0.75rem;font-weight:600;color:var(--text-muted, #8b949e);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border-subtle, #30363d);display:flex;justify-content:space-between;align-items:center;">
     <span>${displayLang}</span>
@@ -161,12 +194,21 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   };
 
   // Strip manual bylines if present in markdown
-  const cleanedMarkdown = markdown
+  let cleanedMarkdown = markdown
     .replace(/^Author:.*$/gim, '')
     .replace(/^Publication:.*$/gim, '')
     .replace(/^Date:.*$/gim, '')
     .replace(/^ORCID:.*$/gim, '')
     .trim();
+
+  // Merge fragmented adjacent code blocks
+  for (let i = 0; i < 5; i++) {
+    const before = cleanedMarkdown;
+    cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]*)\n([\s\S]*?)\n```\s*\n+```\1?\n/gi, (match, lang, code) => {
+      return '```' + (lang || '') + '\n' + code + '\n';
+    });
+    if (before === cleanedMarkdown) break;
+  }
 
   let htmlBody = marked.parse(cleanedMarkdown, { renderer, gfm: true }) as string;
 
@@ -289,18 +331,24 @@ async function main() {
           fs.writeFileSync(assetPath, imgBuffer);
           console.log(`Saved thumbnail to: ${assetPath}`);
 
-          // Commit to repository if in Git context
+          let pushSucceeded = false;
           try {
             execSync(`git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"`, { stdio: 'ignore' });
             execSync(`git add assets/posts/${postSlug}/thumbnail.png`, { stdio: 'ignore' });
             execSync(`git commit -m "chore(assets): add thumbnail for ${postSlug}"`, { stdio: 'ignore' });
             execSync(`git push origin main`, { stdio: 'ignore' });
             console.log(`Committed & pushed thumbnail to repository.`);
+            pushSucceeded = true;
           } catch (e: any) {
-            console.log(`Note: Local git commit/push skipped (${e.message}).`);
+            console.log(`Note: Local git commit/push skipped (${e.message}). Using base64 inline image.`);
           }
 
-          heroImageUrl = `https://raw.githubusercontent.com/redwan-cse/ledger-blogger-theme/main/assets/posts/${postSlug}/thumbnail.png`;
+          if (pushSucceeded) {
+            heroImageUrl = `https://raw.githubusercontent.com/redwan-cse/ledger-blogger-theme/main/assets/posts/${postSlug}/thumbnail.png`;
+          } else {
+            const mime = thumbnailFile.mimeType || 'image/png';
+            heroImageUrl = `data:${mime};base64,${imgBuffer.toString('base64')}`;
+          }
         }
       }
     } else {
