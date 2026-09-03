@@ -1,5 +1,5 @@
 async function check() {
-  const url = 'https://blogs.redwan.work/2026/09/dissecting-kerberoasting-protocol_0229686542.html';
+  const url = 'https://blogs.redwan.work/2026/09/dissecting-kerberoasting-protocol_01233267518.html';
   const res = await fetch(url);
   const text = await res.text();
 
