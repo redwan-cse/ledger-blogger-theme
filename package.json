@@ -29,7 +29,8 @@
     "m0:empty-theme": "tsx tools/create-empty-theme.ts",
     "test:a11y": "playwright test tests/render/a11y.spec.ts --project=javascript",
     "test:lighthouse": "tsx tools/lighthouse-check.ts",
-    "capture:baselines": "tsx tools/capture-baselines.ts"
+    "capture:baselines": "tsx tools/capture-baselines.ts",
+    "publish:drive": "tsx scripts/publish-from-drive.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
