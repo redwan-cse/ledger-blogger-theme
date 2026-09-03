@@ -7,8 +7,8 @@ interface ArticlePayload {
 
 const BLOG_ID = process.env.BLOGGER_BLOG_ID?.trim() || '5972841034338492159';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
-const CLIENT_ID = process.env.BLOGGER_CLIENT_ID?.trim();
-const CLIENT_SECRET = process.env.BLOGGER_CLIENT_SECRET?.trim();
+const CLIENT_ID = process.env.BLOGGER_CLIENT_ID?.trim() || process.env.GOOGLE_OAUTH_CLIENT_ID?.trim();
+const CLIENT_SECRET = process.env.BLOGGER_CLIENT_SECRET?.trim() || process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim();
 const REFRESH_TOKEN = process.env.BLOGGER_REFRESH_TOKEN?.trim();
 
 const VALID_LABELS = [
