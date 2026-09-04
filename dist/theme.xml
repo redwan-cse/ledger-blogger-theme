@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+4d1ac3d6556b52d1afc2dd9901032b53938e219c" name="theme-build"/>
+    <meta content="0.0.0+42367017a717c1611d5d5d432ee1c4074af0accf" name="theme-build"/>
     <meta name="color-scheme" content="dark light"/>
     <link rel="alternate" type="application/rss+xml" expr:title="data:blog.title.escaped" expr:href="data:blog.canonicalHomepageUrl path &quot;feeds/posts/default&quot;"/>
     <link rel="me" href="https://redwan.work"/>
