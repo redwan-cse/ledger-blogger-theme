@@ -569,7 +569,51 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     htmlBody = heroBlock + htmlBody;
   }
 
-  return scopedStyles + htmlBody;
+  const helperScript = `\n<script>
+(function() {
+  // Wire up code block copy buttons
+  document.querySelectorAll('.code-block-header .code-copy-btn').forEach(function(btn) {
+    if (btn.dataset.wired) return;
+    btn.dataset.wired = 'true';
+    btn.addEventListener('click', async function() {
+      const wrap = btn.closest('.code-block-wrap');
+      const code = wrap ? wrap.querySelector('code, pre') : null;
+      if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code.textContent || '');
+        const span = btn.querySelector('span');
+        if (span) span.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          if (span) span.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (e) {
+        console.error('Clipboard copy failed:', e);
+      }
+    });
+  });
+
+  // Ensure Prism syntax highlighting is active
+  if (!window.Prism) {
+    var s1 = document.createElement('script');
+    s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js';
+    s1.onload = function() {
+      var s2 = document.createElement('script');
+      s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js';
+      s2.onload = function() {
+        if (window.Prism) window.Prism.highlightAll();
+      };
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+  } else {
+    window.Prism.highlightAll();
+  }
+})();
+</script>\n`;
+
+  return scopedStyles + htmlBody + helperScript;
 }
 
 // 4. Main Processing Engine
