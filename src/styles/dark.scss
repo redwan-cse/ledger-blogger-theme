@@ -109,6 +109,10 @@ html[data-theme='dark'] {
     box-shadow: none;
   }
 
+  .post-thumbnail-link {
+    background-color: oklch(18% 0.025 260) !important;
+  }
+
   .mobile-drawer,
   .search-modal-container {
     background-color: oklch(16% 0.025 260 / 0.96) !important;
@@ -902,9 +906,18 @@ html[data-theme='dark'] {
     border-color: oklch(27.950% 0.0368 260.031) !important;
 
     .mermaid-modern-toolbar {
-      background: oklch(18% 0.025 260 / 0.85) !important;
-      border-color: oklch(30% 0.03 260) !important;
-      box-shadow: 0 4px 12px oklch(0% 0 0 / 0.35) !important;
+      background: transparent !important;
+      border-color: oklch(35% 0.02 260 / 0.6) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+
+      &:hover {
+        background: oklch(18% 0.025 260 / 0.85) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        box-shadow: 0 4px 12px oklch(0% 0 0 / 0.35) !important;
+      }
 
       .mm-btn {
         color: oklch(75% 0.015 255) !important;

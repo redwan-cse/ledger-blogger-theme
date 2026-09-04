@@ -40,22 +40,97 @@
   }
 }
 
+// ---------------------------------------------------------------------------
+// Modern Horizontal Post Card Layout
+// [Thumbnail with original ratio][Blog Title other info like before.]
+// ---------------------------------------------------------------------------
+
+.post-card-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: $space-5;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: $space-3;
+  }
+}
+
 .post-thumbnail-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 240px;
+  width: 240px;
+  max-width: 240px;
+  border-radius: 8px;
   overflow: hidden;
-  border-radius: 12px;
-  margin: $space-3 0;
-  aspect-ratio: 16 / 9;
+  margin: 0;
+  background: oklch(96% 0.005 255);
+  align-self: flex-start;
+
+  @media (min-width: 1024px) {
+    flex: 0 0 260px;
+    width: 260px;
+    max-width: 260px;
+  }
+
+  @media (max-width: 640px) {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 .post-thumbnail {
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
+  display: block;
+  border-radius: 8px;
   transition: transform $motion-moderate $ease-out-quart;
 
   .post:hover & {
-    transform: $thumb-hover-scale;
+    transform: scale(1.04);
+  }
+}
+
+.post-content-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  .post-title {
+    margin: 0 0 $space-2;
+  }
+
+  .post-header {
+    margin-bottom: $space-2;
+  }
+
+  .post-excerpt {
+    margin: 0 0 $space-3;
+    color: $ink-muted;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .post-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    margin-top: auto;
+    padding-top: $space-2;
   }
 }
 

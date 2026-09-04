@@ -477,12 +477,19 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
     gap: 1px !important;
     padding: 3px 6px !important;
     border-radius: 9999px !important;
-    background: rgba(255, 255, 255, 0.88) !important;
+    background: transparent !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: all 0.2s ease !important;
+  }
+  .mermaid-modern-toolbar:hover {
+    background: rgba(255, 255, 255, 0.85) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-    transition: opacity 0.2s ease, transform 0.2s ease !important;
+    border-color: rgba(0, 0, 0, 0.18) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
   }
   .mermaid-modern-toolbar .mm-btn {
     display: inline-flex !important;
@@ -620,9 +627,20 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   [data-theme='dark'] .mermaid-diagram-wrap, html[data-theme='dark'] .mermaid-diagram-wrap {
     background: #161b22 !important;
     border-color: #30363d !important;
+  }
   [data-theme='dark'] .mermaid-modern-toolbar, html[data-theme='dark'] .mermaid-modern-toolbar {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: all 0.2s ease !important;
+  }
+  [data-theme='dark'] .mermaid-modern-toolbar:hover, html[data-theme='dark'] .mermaid-modern-toolbar:hover {
     background: rgba(22, 27, 34, 0.85) !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
   }
   [data-theme='dark'] .mermaid-modern-toolbar .mm-btn, html[data-theme='dark'] .mermaid-modern-toolbar .mm-btn {
@@ -1084,14 +1102,11 @@ async function main() {
             console.log(`Committed & pushed thumbnail to repository.`);
             pushSucceeded = true;
           } catch (e: any) {
-            console.log(`Note: Local git commit/push skipped (${e.message}). Using Google Drive thumbnail URL.`);
+            console.log(`Note: git push attempt (${e.message}). Assets saved locally.`);
           }
 
-          if (pushSucceeded) {
-            heroImageUrl = `https://raw.githubusercontent.com/redwan-cse/ledger-blogger-theme/main/assets/posts/${postSlug}/thumbnail.png`;
-          } else {
-            heroImageUrl = `https://lh3.googleusercontent.com/d/${thumbnailFile.id}`;
-          }
+          // Always use fast, open jsDelivr CDN URL (never Google Drive login URLs)
+          heroImageUrl = `https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/${postSlug}/thumbnail.png`;
         }
       }
     } else {

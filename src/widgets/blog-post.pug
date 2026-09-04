@@ -5,29 +5,29 @@ b:includable(id='postMeta' var='post')
 b:includable(id='post' var='post')
   article.post(itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting')
     b:include(name='postMeta' data='post')/
-    //- Title first, then date metadata — correct reading order
-    b:include(name='postTitle' data='post')/
-    b:include(name='postHeader' data='post')/
-    //- Featured image on list views (eager on first post above fold, lazy for remaining)
-    b:if(cond='data:post.featuredImage and not data:view.isSingleItem')
-      a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
-        b:if(cond='data:post.id == data:posts.first.id')
-          img.post-thumbnail(expr:src='data:post.featuredImage' fetchpriority='high' loading='eager' alt='' width='1200' height='630')/
-        b:if(cond='data:post.id != data:posts.first.id')
-          img.post-thumbnail(expr:src='data:post.featuredImage' loading='lazy' decoding='async' alt='' width='1200' height='630')/
-
-
-
     b:if(cond='data:view.isSingleItem')
+      b:include(name='postTitle' data='post')/
+      b:include(name='postHeader' data='post')/
       b:include(name='postBody' data='post')/
       b:if(cond='data:view.isPost')
         b:include(name='postShareBar' data='post')/
+      b:include(name='postFooter' data='post')/
+      b:if(cond='data:view.isPost')
+        b:include(name='postAuthorBio' data='post')/
+        b:include(name='postNav' data='post')/
     b:if(cond='not data:view.isSingleItem')
-      b:include(name='postBodySnippet' data='post')/
-    b:include(name='postFooter' data='post')/
-    b:if(cond='data:view.isPost')
-      b:include(name='postAuthorBio' data='post')/
-      b:include(name='postNav' data='post')/
+      div.post-card-inner
+        b:if(cond='data:post.featuredImage')
+          a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
+            b:if(cond='data:post.id == data:posts.first.id')
+              img.post-thumbnail(expr:src='data:post.featuredImage' fetchpriority='high' loading='eager' alt='' referrerpolicy='no-referrer')/
+            b:if(cond='data:post.id != data:posts.first.id')
+              img.post-thumbnail(expr:src='data:post.featuredImage' loading='lazy' decoding='async' alt='' referrerpolicy='no-referrer')/
+        div.post-content-wrap
+          b:include(name='postTitle' data='post')/
+          b:include(name='postHeader' data='post')/
+          b:include(name='postBodySnippet' data='post')/
+          b:include(name='postFooter' data='post')/
 
 b:includable(id='postTitle' var='post')
   b:if(cond='data:view.isSingleItem')

@@ -1194,8 +1194,32 @@ export function initHomepageCatalog(): void {
         let thumbnail = entry.media$thumbnail?.url;
         if (!thumbnail) {
           const img = tempDiv.querySelector('img');
-          if (img && img.src && !img.src.startsWith('data:')) {
+          if (img && img.src) {
             thumbnail = img.src;
+          }
+        }
+
+        const lowerTitle = title.toLowerCase();
+        if (thumbnail) {
+          // Upgrade Blogger low-res 72px thumbnail to crisp 600px
+          thumbnail = thumbnail.replace(/\/s72-c\//, '/s600/').replace(/=s72-c/, '=s600');
+
+          // Map known Google Drive links (which block unauthenticated Chrome requests) to open jsDelivr CDN
+          if (thumbnail.includes('1lpgnegmqweg8a6uclg02ahi_rs22cx2y') || lowerTitle.includes('linux user namespaces')) {
+            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
+          } else if (thumbnail.includes('1zbmp_o9ba7oba2oqfezbzn_kwtt1sxt1') || lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
+            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
+          } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
+            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
+          }
+        } else {
+          // Fallback mapping for posts without media$thumbnail
+          if (lowerTitle.includes('linux user namespaces')) {
+            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
+          } else if (lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
+            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
+          } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
+            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
           }
         }
 
@@ -1293,32 +1317,36 @@ export function initHomepageCatalog(): void {
         .map((p, idx) => {
           return `
           <article class="post">
-            <${h2Tag} class="post-title">
-              <a href="${p.url}">${escapeHtml(p.title)}</a>
-            </${h2Tag}>
-            <div class="post-meta-row">
-              <div class="post-author-mini">
-                <img class="post-author-mini-avatar" src="https://redwan.work/profile.jpg" alt="Md Redwan Ahmed" width="22" height="22" loading="lazy" />
-                <span class="post-author-mini-name">Md. Redwan Ahmed</span>
-              </div>
-              <span class="post-meta-sep">·</span>
-              <time class="post-date" datetime="${p.published}">${escapeHtml(p.dateStr)}</time>
-            </div>
-            ${p.thumbnail ? `
-              <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
-                <img class="post-thumbnail" src="${p.thumbnail}" alt="" width="1200" height="630" loading="${idx < 2 ? 'eager' : 'lazy'}" />
-              </a>
-            ` : ''}
-            <div class="post-excerpt">${escapeHtml(p.excerpt)}</div>
-            <div class="post-footer">
-              <div class="post-labels">
-                ${p.categories.map((c) => `<span class="post-label">${escapeHtml(c)}</span>`).join('')}
-              </div>
-              <div class="jump-link">
-                <a href="${p.url}">
-                  <span class="jump-link-text">Read article</span>
-                  <span class="jump-link-arrow" aria-hidden="true">→</span>
+            <div class="post-card-inner">
+              ${p.thumbnail ? `
+                <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
+                  <img class="post-thumbnail" src="${p.thumbnail}" alt="" loading="${idx < 2 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" />
                 </a>
+              ` : ''}
+              <div class="post-content-wrap">
+                <${h2Tag} class="post-title">
+                  <a href="${p.url}">${escapeHtml(p.title)}</a>
+                </${h2Tag}>
+                <div class="post-meta-row">
+                  <div class="post-author-mini">
+                    <img class="post-author-mini-avatar" src="https://redwan.work/profile.jpg" alt="Md Redwan Ahmed" width="22" height="22" loading="lazy" />
+                    <span class="post-author-mini-name">Md. Redwan Ahmed</span>
+                  </div>
+                  <span class="post-meta-sep">·</span>
+                  <time class="post-date" datetime="${p.published}">${escapeHtml(p.dateStr)}</time>
+                </div>
+                <div class="post-excerpt">${escapeHtml(p.excerpt)}</div>
+                <div class="post-footer">
+                  <div class="post-labels">
+                    ${p.categories.map((c) => `<span class="post-label">${escapeHtml(c)}</span>`).join('')}
+                  </div>
+                  <div class="jump-link">
+                    <a href="${p.url}">
+                      <span class="jump-link-text">Read article</span>
+                      <span class="jump-link-arrow" aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </article>
