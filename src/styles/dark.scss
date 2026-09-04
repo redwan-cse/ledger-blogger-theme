@@ -909,9 +909,37 @@ html[data-theme='dark'] {
       color: oklch(75% 0.015 255) !important;
     }
 
-    .mermaid-btn {
-      background: oklch(22% 0.028 266) !important;
-      border-color: oklch(30% 0.03 260) !important;
+    .mermaid-zoom-controls {
+      background: oklch(20% 0.025 266) !important;
+      border-color: oklch(28% 0.035 260) !important;
+    }
+
+    .mermaid-ctrl-btn {
+      color: oklch(85% 0.015 255) !important;
+
+      &:hover {
+        background: oklch(75% 0.15 259.735 / 0.15) !important;
+        color: oklch(75% 0.15 259.735) !important;
+      }
+    }
+
+    .mermaid-zoom-level {
+      border-color: oklch(28% 0.035 260) !important;
+      color: oklch(75% 0.015 255) !important;
+
+      &:hover {
+        background: oklch(75% 0.15 259.735 / 0.15) !important;
+        color: oklch(75% 0.15 259.735) !important;
+      }
+    }
+
+    .mermaid-ctrl-sep {
+      background: oklch(28% 0.035 260) !important;
+    }
+
+    .mermaid-btn-download {
+      background: oklch(20% 0.025 266) !important;
+      border-color: oklch(28% 0.035 260) !important;
       color: oklch(85% 0.015 255) !important;
 
       &:hover {

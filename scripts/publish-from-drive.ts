@@ -490,26 +490,63 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   .mermaid-toolbar-right {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
-  .mermaid-btn {
+  .mermaid-zoom-controls {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    padding: 4px 10px !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    border-radius: 6px !important;
     border: 1px solid #d0d7de !important;
+    border-radius: 6px !important;
     background: #ffffff !important;
+    overflow: hidden !important;
+  }
+  .mermaid-ctrl-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 26px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
     color: #24292f !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
   }
-  .mermaid-btn:hover {
+  .mermaid-ctrl-btn:hover {
     background-color: #f3f4f6 !important;
-    border-color: #1f6feb !important;
     color: #1f6feb !important;
+  }
+  .mermaid-zoom-level {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    padding: 0 6px !important;
+    height: 24px !important;
+    line-height: 24px !important;
+    border: none !important;
+    border-left: 1px solid #d0d7de !important;
+    border-right: 1px solid #d0d7de !important;
+    background: transparent !important;
+    color: #57606a !important;
+    cursor: pointer !important;
+    user-select: none !important;
+  }
+  .mermaid-zoom-level:hover {
+    background-color: #f3f4f6 !important;
+    color: #1f6feb !important;
+  }
+  .mermaid-ctrl-sep {
+    display: inline-block !important;
+    width: 1px !important;
+    height: 16px !important;
+    background: #d0d7de !important;
+    margin: 0 2px !important;
+  }
+  .mermaid-btn-download {
+    border: 1px solid #d0d7de !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
   }
   .mermaid-diagram-wrap pre.mermaid {
     background: transparent !important;
@@ -606,12 +643,34 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   [data-theme='dark'] .mermaid-badge, html[data-theme='dark'] .mermaid-badge {
     color: #8b949e !important;
   }
-  [data-theme='dark'] .mermaid-btn, html[data-theme='dark'] .mermaid-btn {
-    background-color: #21262d !important;
+  [data-theme='dark'] .mermaid-zoom-controls, html[data-theme='dark'] .mermaid-zoom-controls {
+    background-color: #161b22 !important;
+    border-color: #30363d !important;
+  }
+  [data-theme='dark'] .mermaid-ctrl-btn, html[data-theme='dark'] .mermaid-ctrl-btn {
+    color: #c9d1d9 !important;
+  }
+  [data-theme='dark'] .mermaid-ctrl-btn:hover, html[data-theme='dark'] .mermaid-ctrl-btn:hover {
+    background-color: #30363d !important;
+    color: #58a6ff !important;
+  }
+  [data-theme='dark'] .mermaid-zoom-level, html[data-theme='dark'] .mermaid-zoom-level {
+    border-color: #30363d !important;
+    color: #8b949e !important;
+  }
+  [data-theme='dark'] .mermaid-zoom-level:hover, html[data-theme='dark'] .mermaid-zoom-level:hover {
+    background-color: #30363d !important;
+    color: #58a6ff !important;
+  }
+  [data-theme='dark'] .mermaid-ctrl-sep, html[data-theme='dark'] .mermaid-ctrl-sep {
+    background-color: #30363d !important;
+  }
+  [data-theme='dark'] .mermaid-btn-download, html[data-theme='dark'] .mermaid-btn-download {
+    background-color: #161b22 !important;
     border-color: #30363d !important;
     color: #c9d1d9 !important;
   }
-  [data-theme='dark'] .mermaid-btn:hover, html[data-theme='dark'] .mermaid-btn:hover {
+  [data-theme='dark'] .mermaid-btn-download:hover, html[data-theme='dark'] .mermaid-btn-download:hover {
     background-color: #30363d !important;
     border-color: #58a6ff !important;
     color: #58a6ff !important;

@@ -1473,6 +1473,8 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
     wraps.forEach((wrap, index) => {
       if (wrap.querySelector('.mermaid-toolbar')) return;
 
+      let zoomScale = 1.0;
+
       const toolbar = document.createElement('div');
       toolbar.className = 'mermaid-toolbar';
       toolbar.innerHTML = `
@@ -1480,46 +1482,111 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
           <span class="mermaid-badge">Architecture Diagram</span>
         </div>
         <div class="mermaid-toolbar-right">
-          <button type="button" class="mermaid-btn mermaid-btn-zoom" aria-label="Toggle diagram zoom">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-            <span>Zoom</span>
-          </button>
-          <button type="button" class="mermaid-btn mermaid-btn-download" aria-label="Download diagram as SVG">
+          <div class="mermaid-zoom-controls">
+            <button type="button" class="mermaid-ctrl-btn mermaid-btn-zoom-out" aria-label="Zoom out" title="Zoom out">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button type="button" class="mermaid-zoom-level" aria-label="Reset zoom" title="Reset zoom (100%)">100%</button>
+            <button type="button" class="mermaid-ctrl-btn mermaid-btn-zoom-in" aria-label="Zoom in" title="Zoom in">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+          <span class="mermaid-ctrl-sep" aria-hidden="true"></span>
+          <button type="button" class="mermaid-ctrl-btn mermaid-btn-download" aria-label="Download diagram as SVG" title="Download SVG">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span>Download SVG</span>
           </button>
         </div>
       `;
 
-      const zoomBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-zoom');
-      if (zoomBtn) {
-        zoomBtn.addEventListener('click', () => {
-          wrap.classList.toggle('is-zoomed');
-          const isZoomed = wrap.classList.contains('is-zoomed');
-          const span = zoomBtn.querySelector('span');
-          if (span) span.textContent = isZoomed ? 'Reset' : 'Zoom';
-        });
+      const levelBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-zoom-level');
+      const zoomInBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-zoom-in');
+      const zoomOutBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-zoom-out');
+      const dlBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-download');
+
+      const getDiagramSvg = (): SVGElement | null => {
+        const allSvgs = Array.from(wrap.querySelectorAll<SVGElement>('svg'));
+        return allSvgs.find((s) => !s.closest('.mermaid-toolbar')) || null;
+      };
+
+      const updateZoom = (newScale: number) => {
+        zoomScale = Math.min(2.5, Math.max(0.5, Math.round(newScale * 100) / 100));
+        const diagramSvg = getDiagramSvg();
+        if (diagramSvg) {
+          if (zoomScale === 1.0) {
+            diagramSvg.style.transform = '';
+            diagramSvg.style.transformOrigin = '';
+            diagramSvg.style.margin = '';
+            wrap.classList.remove('is-zoomed');
+          } else {
+            diagramSvg.style.transform = `scale(${zoomScale})`;
+            diagramSvg.style.transformOrigin = 'top center';
+            diagramSvg.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
+            diagramSvg.style.margin = zoomScale > 1 ? `${Math.round((zoomScale - 1) * 30)}px 0` : '';
+            wrap.classList.add('is-zoomed');
+          }
+        }
+        if (levelBtn) {
+          levelBtn.textContent = `${Math.round(zoomScale * 100)}%`;
+        }
+      };
+
+      if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => updateZoom(zoomScale + 0.25));
       }
 
-      const dlBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-download');
+      if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => updateZoom(zoomScale - 0.25));
+      }
+
+      if (levelBtn) {
+        levelBtn.addEventListener('click', () => updateZoom(1.0));
+      }
+
       if (dlBtn) {
         dlBtn.addEventListener('click', () => {
-          const svg = wrap.querySelector('svg');
-          if (!svg) return;
-          const svgClone = svg.cloneNode(true) as SVGElement;
-          if (!svgClone.getAttribute('xmlns')) {
-            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          const diagramSvg = getDiagramSvg();
+          if (!diagramSvg) return;
+
+          const svgClone = diagramSvg.cloneNode(true) as SVGElement;
+          const viewBox = svgClone.getAttribute('viewBox') || '';
+          const parts = viewBox.split(/[\s,]+/).map(Number);
+          let minX = 0, minY = 0, vbWidth = 1200, vbHeight = 800;
+          if (parts.length === 4 && parts.every((n) => !isNaN(n))) {
+            minX = parts[0]!;
+            minY = parts[1]!;
+            vbWidth = parts[2]!;
+            vbHeight = parts[3]!;
           }
+
+          svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          svgClone.setAttribute('width', String(vbWidth));
+          svgClone.setAttribute('height', String(vbHeight));
+
+          // Clean inline scale transform if currently zoomed
+          svgClone.style.transform = '';
+          svgClone.style.transformOrigin = '';
+          svgClone.style.margin = '';
+
+          // Add clean background rect so SVG renders cleanly in standalone viewer
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.classList.contains('dark-theme');
+          const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          bg.setAttribute('x', String(minX));
+          bg.setAttribute('y', String(minY));
+          bg.setAttribute('width', String(vbWidth));
+          bg.setAttribute('height', String(vbHeight));
+          bg.setAttribute('fill', isDark ? '#161b22' : '#ffffff');
+          svgClone.insertBefore(bg, svgClone.firstChild);
+
           const svgData = new XMLSerializer().serializeToString(svgClone);
           const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `diagram-${index + 1}.svg`;
+          a.download = `architecture-diagram-${index + 1}.svg`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 100);
+          setTimeout(() => URL.revokeObjectURL(url), 200);
         });
       }
 
