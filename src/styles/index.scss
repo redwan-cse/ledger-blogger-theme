@@ -300,34 +300,28 @@
 
 body.is-home-lead .post:first-of-type {
   grid-column: 1 / 9;
-  background: $surface;
-  border: 1px solid $rule;
-  border-top: 3px solid $accent;
-  border-radius: 12px;
-  padding: $space-6;
-  margin-bottom: $space-6;
-  box-shadow: $shadow-md;
 
   .post-title {
-    font-size: clamp(1.4rem, 1.2rem + 1vw, 1.85rem);
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    display: block;
-    -webkit-line-clamp: unset;
-    line-clamp: unset;
-    margin-bottom: $space-3;
+    font-size: 1.1875rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: $space-2;
   }
 
   .post-excerpt {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     font-family: $font-sans;
-    font-size: $font-size-body;
-    line-height: 1.65;
-    max-width: 68ch;
+    font-size: 0.875rem;
+    line-height: 1.55;
     color: $ink-muted;
-    margin: $space-3 0;
+    margin: 0 0 $space-3;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow: hidden;

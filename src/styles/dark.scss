@@ -332,12 +332,10 @@ html[data-theme='dark'] {
   body.is-home-lead .post:first-of-type {
     background-color: oklch(22.749% 0.0288 266.273);
     border-color: oklch(27.950% 0.0368 260.031);
-    border-top-color: oklch(75% 0.15 259.735);
     box-shadow: none;
 
     &:hover {
       border-color: oklch(75% 0.15 259.735 / 0.5);
-      border-top-color: oklch(75% 0.15 259.735);
       box-shadow: none;
     }
   }
