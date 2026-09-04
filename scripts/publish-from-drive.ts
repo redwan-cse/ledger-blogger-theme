@@ -235,56 +235,47 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
   cleanedMarkdown = cleanedMarkdown.replace(/```[a-z0-9_-]*\s*```/gi, '');
 
-  // 2. Clean Google Docs plain-text export quirks
+  // 2. Clean Google Docs plain-text export quirks (apostrophes and single-token spaced backticks only)
   cleanedMarkdown = cleanedMarkdown
     .replace(/(\w)'''(\w)/g, "$1'$2")
     .replace(/(\w)'''/g, "$1'")
-    .replace(/`\s+([^`\n]+?)\s+`/g, '`$1`')
-    .replace(/`\s+([^`\n]+?)`/g, '`$1`')
-    .replace(/`([^`\n]+?)\s+`/g, '`$1`')
-    .replace(/`\s+([,.;:!?\)])/g, '`$1')
-    .replace(/(\()\s+`/g, '$1`');
+    .replace(/`\s+([a-zA-Z0-9_\-./]+)\s+`/g, '`$1`')
+    .replace(/`\s+([a-zA-Z0-9_\-./]+)`/g, '`$1`')
+    .replace(/`([a-zA-Z0-9_\-./]+)\s+`/g, '`$1`');
 
-  // 3. Intelligent Auto-Fencer for Google Docs plain-text exports (where Spark forgot fences)
-  // A. Mermaid sequence diagrams & flowcharts
-  if (!cleanedMarkdown.includes('```mermaid')) {
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(sequenceDiagram[\s\S]*?)(?=\n\n(?:[A-Z0-9#]|\d+\.|\##)|$)/g, '\n\n```mermaid\n$1\n```\n\n');
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:flowchart|graph)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\n(?:[A-Z0-9#]|\d+\.|\##)|$)/g, '\n\n```mermaid\n$1\n```\n\n');
-  }
+  // 3. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences)
+  const existingFences = (cleanedMarkdown.match(/```/g) || []).length;
+  const isWellFormedMarkdown = existingFences >= 4; // Already has 2+ fenced blocks
 
-  // B. C Structures (struct cred, etc.)
-  if (!cleanedMarkdown.includes('```c')) {
+  if (!isWellFormedMarkdown) {
+    // A. Mermaid sequence diagrams & flowcharts
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(sequenceDiagram[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
+    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:flowchart|graph)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
+
+    // B. C Structures (struct cred, etc.)
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(struct\s+\w+\s*\{[\s\S]*?\};)/g, '\n\n```c\n$1\n```\n\n');
-  }
 
-  // C. Bash runbooks and scripts (with shebang or shell comments)
-  if (!cleanedMarkdown.includes('```bash')) {
+    // C. Bash runbooks and scripts (with shebang or shell comments)
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:#!.*bash|# Fast Cyber.*|set -euo pipefail)[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```bash\n$1\n```\n\n');
-  }
 
-  // D. Sigma Detection Rules (YAML)
-  if (!cleanedMarkdown.includes('```yaml')) {
+    // D. Sigma Detection Rules (YAML)
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(title:\s*[\s\S]*?tags:[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+)|$)/g, '\n\n```yaml\n$1\n```\n\n');
-  }
 
-  // E. Python Monitoring Scripts
-  if (!cleanedMarkdown.includes('```python')) {
+    // E. Python Monitoring Scripts
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:#!.*python3?|import sys|import subprocess|import json|from typing import|class \w+Auditor)[\s\S]*?)(?=\n\n(?:\d+\.|\##|Fast Cyber Defense)|$)/g, '\n\n```python\n$1\n```\n\n');
-  }
 
-  // F. PowerShell Audit Modules
-  if (!cleanedMarkdown.includes('```powershell')) {
+    // F. PowerShell Audit Modules
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(\[CmdletBinding\(\)\][\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```powershell\n$1\n```\n\n');
   }
 
   // 4. Demote any accidental '# ' headings in body to '## ' (prevents shell comments from becoming H1)
   cleanedMarkdown = cleanedMarkdown.replace(/^# (?!#)/gm, '## ');
 
-  // 5. Aggressively merge consecutive code blocks separated by whitespace or empty lines
+  // 5. Safely merge consecutive code blocks of identical language separated only by whitespace
   for (let i = 0; i < 10; i++) {
     const before = cleanedMarkdown;
-    cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]*)\n([\s\S]*?)\n```[\s\r\n]+```\1?\n/gi, (match, lang, code) => {
-      return '```' + (lang || '') + '\n' + code + '\n';
+    cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]+)\n([\s\S]*?)\n```[ \t]*\n+[ \t]*```\1\n/gi, (match, lang, code) => {
+      return '```' + lang + '\n' + code + '\n';
     });
     if (before === cleanedMarkdown) break;
   }
@@ -643,7 +634,9 @@ async function main() {
       const intakeFilesData = await intakeFilesRes.json() as { files?: DriveItem[] };
       const intakeFiles = intakeFilesData.files || [];
 
-      const articleItem = intakeFiles.find(f => f.name.toLowerCase().includes('article') || f.mimeType === 'application/vnd.google-apps.document');
+      const mdItem = intakeFiles.find(f => f.name.toLowerCase().endsWith('.md'));
+      const docItem = intakeFiles.find(f => f.mimeType === 'application/vnd.google-apps.document');
+      const articleItem = mdItem || docItem || intakeFiles.find(f => f.name.toLowerCase().includes('article'));
       const thumbnailItem = intakeFiles.find(f => f.name.toLowerCase().includes('thumb') || f.mimeType.startsWith('image/'));
 
       if (articleItem) {
@@ -799,14 +792,19 @@ async function main() {
       const childData = await childRes.json() as { files?: DriveItem[] };
       const childFiles = childData.files || [];
 
-      // Find article file (.md or Google Doc)
-      const articleFile = childFiles.find((f) => f.name.toLowerCase().endsWith('.md') || f.mimeType === 'application/vnd.google-apps.document');
+      // Prioritize Markdown (.md) files over Google Docs exports
+      const mdFile = childFiles.find((f) => f.name.toLowerCase().endsWith('.md'));
+      const docFile = childFiles.find((f) => f.mimeType === 'application/vnd.google-apps.document');
+      const articleFile = mdFile || docFile || childFiles.find((f) => f.name.toLowerCase().includes('article'));
       const thumbnailFile = childFiles.find((f) => f.name.toLowerCase().includes('thumbnail') || f.mimeType.startsWith('image/'));
+
+      console.log(`Subfolder files in "${item.name}":`, childFiles.map(f => `${f.name} (${f.mimeType})`));
 
       if (!articleFile) {
         console.warn(`No article.md or Google Doc found inside folder "${item.name}". Skipping.`);
         continue;
       }
+      console.log(`Using article file: "${articleFile.name}" (MIME: ${articleFile.mimeType}, ID: ${articleFile.id})`);
 
       // Download / Export article content
       if (articleFile.mimeType === 'application/vnd.google-apps.document') {
