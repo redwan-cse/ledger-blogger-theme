@@ -735,7 +735,22 @@ async function main() {
     console.warn(`Could not check root folder: ${e.message}`);
   }
 
-  if (items.length === 0) {
+  const targetTitle = process.env.TARGET_TITLE?.trim();
+  if (targetTitle && publishedFolderId) {
+    console.log(`TARGET_TITLE specified: "${targetTitle}". Searching Blog_Published...`);
+    const pubCheckQuery = `'${publishedFolderId}' in parents and name contains '${targetTitle}' and trashed=false`;
+    const pubCheckRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(pubCheckQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)&orderBy=modifiedTime desc`, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    const pubCheckData = await pubCheckRes.json() as { files?: DriveItem[] };
+    const matchingFolder = pubCheckData.files?.find(f => f.mimeType === 'application/vnd.google-apps.folder');
+    if (matchingFolder) {
+      console.log(`Found matching published package: "${matchingFolder.name}" (ID: ${matchingFolder.id})`);
+      items = [matchingFolder];
+    } else {
+      console.warn(`No package matching "${targetTitle}" found in Blog_Published.`);
+    }
+  } else if (items.length === 0) {
     if (process.env.REPUBLISH_LATEST === 'true' && publishedFolderId) {
       console.log('Blog_Queue is empty. REPUBLISH_LATEST is true. Checking Blog_Published for latest package...');
       const pubCheckQuery = `'${publishedFolderId}' in parents and trashed=false`;

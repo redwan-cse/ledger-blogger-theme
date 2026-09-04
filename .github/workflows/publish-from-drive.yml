@@ -11,6 +11,10 @@ on:
         description: 'Republish latest post from Blog_Published (for testing formatting updates)'
         type: boolean
         default: true
+      target_title:
+        description: 'Filter specific post title to republish (e.g. XDP)'
+        type: string
+        default: ''
 
 jobs:
   publish-from-drive:
@@ -51,4 +55,5 @@ jobs:
           DRIVE_SHEET_ID: ${{ vars.DRIVE_SHEET_ID || '19XFToal3vWSZpNSW1hKksxq1uT4N-6r2FnIXeZrTkxQ' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPUBLISH_LATEST: ${{ inputs.republish_latest || 'false' }}
+          TARGET_TITLE: ${{ inputs.target_title || '' }}
         run: npx tsx scripts/publish-from-drive.ts
