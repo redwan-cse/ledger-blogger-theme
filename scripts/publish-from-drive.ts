@@ -152,7 +152,7 @@ function slugify(text: string): string {
 }
 
 // 3. Configure Marked Markdown Compiler with Code Window & Mermaid Support
-function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string {
+export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string {
   const renderer = new marked.Renderer();
 
   renderer.code = function({ text, lang }: { text: string; lang?: string }) {
@@ -162,13 +162,24 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
 
     const rawLang = (lang || '').trim().toLowerCase();
 
-    // Auto-detect Mermaid sequence diagrams and flowcharts
+    // Auto-detect Mermaid sequence diagrams, flowcharts, graphs, and state diagrams
     const isMermaid = rawLang === 'mermaid' ||
+      rawLang === 'flowchart' ||
+      rawLang === 'graph' ||
+      text.trim().startsWith('flowchart') ||
+      text.trim().startsWith('graph') ||
+      text.trim().startsWith('sequenceDiagram') ||
+      text.trim().startsWith('classDiagram') ||
+      text.trim().startsWith('stateDiagram') ||
+      text.trim().startsWith('erDiagram') ||
+      text.trim().startsWith('gantt') ||
+      text.trim().startsWith('pie') ||
+      text.trim().startsWith('gitGraph') ||
       text.includes('sequenceDiagram') ||
       text.includes('autonumber') ||
       text.includes('participant ') ||
       text.includes('actor ') ||
-      (text.includes('-->') && text.includes('[') && text.includes(']'));
+      (text.includes('-->') && (text.includes('[') || text.includes('(') || text.includes('{') || text.includes('|')));
 
     if (isMermaid) {
       let mermaidCode = text.trim();
@@ -191,6 +202,8 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
         displayLang = 'powershell';
       } else if (text.includes('def ') || text.includes('import ') || text.includes('from collections')) {
         displayLang = 'python';
+      } else if (text.includes('SELECT ') || text.includes('CREATE TABLE') || text.includes('ALTER TABLE') || text.includes('DO $$') || text.includes('SET LOCAL')) {
+        displayLang = 'sql';
       } else if (text.includes('title:') || text.includes('logsource:') || text.includes('detection:')) {
         displayLang = 'yaml';
       } else if (text.includes('curl ') || text.includes('chmod ') || text.includes('sudo ') || text.includes('#!/bin')) {
@@ -245,7 +258,25 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     .replace(/`\s+([,.:;!?\)\]])/g, '`$1')
     .replace(/([\(\[])\s+`/g, '$1`');
 
-  // 3. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences)
+  // 3. Fix glued code fences (Google Docs / AppScript export artifacts)
+  // A. Opening fence glued to preceding text or punctuation (e.g. plan.```mermaid or view:```sql or word```c)
+  cleanedMarkdown = cleanedMarkdown.replace(/([^\n])\s*```+([a-zA-Z0-9_-]*)/g, '$1\n\n```$2');
+
+  // B. Opening fence where language tag and first line of code are on the same line (e.g. ```mermaid flowchart TD or ```sql SELECT)
+  cleanedMarkdown = cleanedMarkdown.replace(/```+([a-zA-Z0-9_-]+)[ \t]+([^\n\r]+)/g, '```$1\n$2');
+
+  // C. Closing fence where preceding code line is glued on the same line (e.g. COMMIT;``` or UserFunc```)
+  cleanedMarkdown = cleanedMarkdown.replace(/([^\n`\s])\s*```+(\s*)$/gm, '$1\n```$2');
+
+  // D. Closing fence glued to subsequent prose, headings, or rules (e.g. ```PostgreSQL addresses or ```--- or ```##)
+  cleanedMarkdown = cleanedMarkdown.replace(/```+([ \t]*[A-Z#\-\*][^\n\r`]+)/g, '```\n\n$1');
+  cleanedMarkdown = cleanedMarkdown.replace(/```+([ \t]*[a-z]+[ \t]+[^\n\r`]+)/g, '```\n\n$1');
+
+  // 4. Ensure tables have blank line before the header row and after the last row
+  cleanedMarkdown = cleanedMarkdown.replace(/([^\n])\n(\s*\|[^\n]+\|\n\s*\|[\s:-|-]+\|)/g, '$1\n\n$2');
+  cleanedMarkdown = cleanedMarkdown.replace(/(\|[^\n]+\|)\n([^\n|# -<])/g, '$1\n\n$2');
+
+  // 5. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences)
   const existingFences = (cleanedMarkdown.match(/```/g) || []).length;
   const isWellFormedMarkdown = existingFences >= 4; // Already has 2+ fenced blocks
 
@@ -270,10 +301,10 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(\[CmdletBinding\(\)\][\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```powershell\n$1\n```\n\n');
   }
 
-  // 4. Demote any accidental '# ' headings in body to '## ' (prevents shell comments from becoming H1)
+  // 6. Demote any accidental '# ' headings in body to '## ' (prevents shell comments from becoming H1)
   cleanedMarkdown = cleanedMarkdown.replace(/^# (?!#)/gm, '## ');
 
-  // 5. Safely merge consecutive code blocks of identical language separated only by whitespace
+  // 7. Safely merge consecutive code blocks of identical language separated only by whitespace
   for (let i = 0; i < 10; i++) {
     const before = cleanedMarkdown;
     cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]+)\n([\s\S]*?)\n```[ \t]*\n+[ \t]*```\1\n/gi, (match, lang, code) => {
@@ -960,31 +991,76 @@ async function main() {
     console.log(`Compiling GFM markdown (with Mermaid diagrams and unified code windows)...`);
     const compiledHtml = compileMarkdownToHtml(markdownContent, heroImageUrl);
 
-    // Publish to Blogger as Md Redwan Ahmed
-    console.log(`Publishing to https://blogs.redwan.work/ as Md Redwan Ahmed...`);
-    const pubRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts/`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${bloggerToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        kind: 'blogger#post',
-        title: cleanTitle,
-        content: compiledHtml,
-        labels: [label]
-      })
-    });
-
-    if (!pubRes.ok) {
-      const err = await pubRes.text();
-      console.error(`Blogger API publish failed for "${cleanTitle}": ${err}`);
-      continue;
+    // Check if post already exists on Blogger to update in-place (avoids duplicate URLs)
+    console.log(`Checking if post "${cleanTitle}" already exists on Blogger...`);
+    let existingPost: { id: string; url: string; title: string } | undefined = undefined;
+    try {
+      const searchRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts/search?q=${encodeURIComponent(cleanTitle.slice(0, 30))}`, {
+        headers: { Authorization: `Bearer ${bloggerToken}` }
+      });
+      if (searchRes.ok) {
+        const searchData = await searchRes.json() as { items?: Array<{ id: string; url: string; title: string }> };
+        existingPost = searchData.items?.find(p => 
+          p.title.trim().toLowerCase() === cleanTitle.trim().toLowerCase() ||
+          slugify(p.title) === postSlug ||
+          (p.url && p.url.includes(postSlug))
+        );
+      }
+    } catch (e: any) {
+      console.log(`Search check notice: ${e.message}`);
     }
 
-    const post = await pubRes.json() as { title: string; url: string };
-    console.log(`🎉 PUBLISHED LIVE: "${post.title}"`);
-    console.log(`🔗 URL: ${post.url}`);
+    let post: { title: string; url: string };
+    if (existingPost) {
+      console.log(`Found existing post (ID: ${existingPost.id}). Updating in-place...`);
+      const updateRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts/${existingPost.id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${bloggerToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          kind: 'blogger#post',
+          id: existingPost.id,
+          title: cleanTitle,
+          content: compiledHtml,
+          labels: [label]
+        })
+      });
+      if (!updateRes.ok) {
+        const err = await updateRes.text();
+        console.error(`Blogger API update failed for "${cleanTitle}": ${err}`);
+        continue;
+      }
+      post = await updateRes.json() as { title: string; url: string };
+      console.log(`🎉 UPDATED LIVE POST: "${post.title}"`);
+      console.log(`🔗 URL: ${post.url}`);
+    } else {
+      console.log(`Publishing new post to https://blogs.redwan.work/ as Md Redwan Ahmed...`);
+      const pubRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${bloggerToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          kind: 'blogger#post',
+          title: cleanTitle,
+          content: compiledHtml,
+          labels: [label]
+        })
+      });
+
+      if (!pubRes.ok) {
+        const err = await pubRes.text();
+        console.error(`Blogger API publish failed for "${cleanTitle}": ${err}`);
+        continue;
+      }
+
+      post = await pubRes.json() as { title: string; url: string };
+      console.log(`🎉 PUBLISHED LIVE: "${post.title}"`);
+      console.log(`🔗 URL: ${post.url}`);
+    }
 
     // 1. Log to Content_Planner_and_History Google Sheet
     const todayStr = new Date().toISOString().slice(0, 10);
