@@ -1329,7 +1329,7 @@ export function initHomepageCatalog(): void {
                 </${h2Tag}>
                 <div class="post-meta-row">
                   <div class="post-author-mini">
-                    <img class="post-author-mini-avatar" src="https://redwan.work/profile.jpg" alt="Md Redwan Ahmed" width="22" height="22" loading="lazy" />
+                    <img class="post-author-mini-avatar" src="https://redwan.work/profile.jpg" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
                     <span class="post-author-mini-name">Md. Redwan Ahmed</span>
                   </div>
                   <span class="post-meta-sep">·</span>
