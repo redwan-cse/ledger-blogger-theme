@@ -342,6 +342,9 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
     return match.replace(/\n{3,}/g, '\n\n');
   });
 
+  // Tag reference lists for clean compact spacing
+  htmlBody = htmlBody.replace(/(<h[23][^>]*>(?:Authoritative\s+)?(?:Technical\s+)?References<\/h[23]>\s*)<ul([^>]*)>/gi, '$1<ul class="references-list"$2>');
+
   // Prepend scoped style block for authentic GitHub/Medium Markdown code blocks, tables, and diagrams
   const scopedStyles = `<style>
   /* Clean Code Block Window */
@@ -459,94 +462,75 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
     overflow-x: auto !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
     position: relative !important;
-    transition: all 0.25s ease !important;
   }
-  .mermaid-diagram-wrap.is-zoomed {
-    max-width: 100% !important;
-    overflow-x: auto !important;
-  }
-  .mermaid-diagram-wrap.is-zoomed svg {
-    transform: scale(1.35) !important;
+  .mermaid-diagram-wrap svg {
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
     transform-origin: top center !important;
-    margin: 20px 0 !important;
-    transition: transform 0.25s ease !important;
   }
-  .mermaid-toolbar {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding-bottom: 10px !important;
-    margin-bottom: 14px !important;
-    border-bottom: 1px solid #d0d7de !important;
-  }
-  .mermaid-badge {
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    color: #57606a !important;
-  }
-  .mermaid-toolbar-right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-  }
-  .mermaid-zoom-controls {
+  .mermaid-modern-toolbar {
+    position: absolute !important;
+    top: 10px !important;
+    right: 12px !important;
+    z-index: 10 !important;
     display: inline-flex !important;
     align-items: center !important;
-    border: 1px solid #d0d7de !important;
-    border-radius: 6px !important;
-    background: #ffffff !important;
-    overflow: hidden !important;
+    gap: 1px !important;
+    padding: 3px 6px !important;
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
   }
-  .mermaid-ctrl-btn {
+  .mermaid-modern-toolbar .mm-btn {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 26px !important;
-    height: 24px !important;
+    width: 22px !important;
+    height: 22px !important;
     padding: 0 !important;
+    border-radius: 50% !important;
     border: none !important;
     background: transparent !important;
-    color: #24292f !important;
+    color: #57606a !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
   }
-  .mermaid-ctrl-btn:hover {
-    background-color: #f3f4f6 !important;
+  .mermaid-modern-toolbar .mm-btn:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.06) !important;
     color: #1f6feb !important;
   }
-  .mermaid-zoom-level {
+  .mermaid-modern-toolbar .mm-btn:disabled {
+    opacity: 0.35 !important;
+    cursor: default !important;
+  }
+  .mermaid-modern-toolbar .mm-level {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 4px !important;
+    height: 20px !important;
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
-    font-size: 0.7rem !important;
+    font-size: 0.65rem !important;
     font-weight: 600 !important;
-    padding: 0 6px !important;
-    height: 24px !important;
-    line-height: 24px !important;
     border: none !important;
-    border-left: 1px solid #d0d7de !important;
-    border-right: 1px solid #d0d7de !important;
     background: transparent !important;
     color: #57606a !important;
     cursor: pointer !important;
     user-select: none !important;
+    letter-spacing: -0.02em !important;
   }
-  .mermaid-zoom-level:hover {
-    background-color: #f3f4f6 !important;
+  .mermaid-modern-toolbar .mm-level:hover {
     color: #1f6feb !important;
   }
-  .mermaid-ctrl-sep {
+  .mermaid-modern-toolbar .mm-sep {
     display: inline-block !important;
     width: 1px !important;
-    height: 16px !important;
-    background: #d0d7de !important;
+    height: 12px !important;
+    background: rgba(0, 0, 0, 0.1) !important;
     margin: 0 2px !important;
-  }
-  .mermaid-btn-download {
-    border: 1px solid #d0d7de !important;
-    border-radius: 6px !important;
-    background: #ffffff !important;
   }
   .mermaid-diagram-wrap pre.mermaid {
     background: transparent !important;
@@ -636,47 +620,56 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   [data-theme='dark'] .mermaid-diagram-wrap, html[data-theme='dark'] .mermaid-diagram-wrap {
     background: #161b22 !important;
     border-color: #30363d !important;
+  [data-theme='dark'] .mermaid-modern-toolbar, html[data-theme='dark'] .mermaid-modern-toolbar {
+    background: rgba(22, 27, 34, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
   }
-  [data-theme='dark'] .mermaid-toolbar, html[data-theme='dark'] .mermaid-toolbar {
-    border-bottom-color: #30363d !important;
-  }
-  [data-theme='dark'] .mermaid-badge, html[data-theme='dark'] .mermaid-badge {
+  [data-theme='dark'] .mermaid-modern-toolbar .mm-btn, html[data-theme='dark'] .mermaid-modern-toolbar .mm-btn {
     color: #8b949e !important;
   }
-  [data-theme='dark'] .mermaid-zoom-controls, html[data-theme='dark'] .mermaid-zoom-controls {
-    background-color: #161b22 !important;
-    border-color: #30363d !important;
-  }
-  [data-theme='dark'] .mermaid-ctrl-btn, html[data-theme='dark'] .mermaid-ctrl-btn {
-    color: #c9d1d9 !important;
-  }
-  [data-theme='dark'] .mermaid-ctrl-btn:hover, html[data-theme='dark'] .mermaid-ctrl-btn:hover {
-    background-color: #30363d !important;
+  [data-theme='dark'] .mermaid-modern-toolbar .mm-btn:hover:not(:disabled), html[data-theme='dark'] .mermaid-modern-toolbar .mm-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1) !important;
     color: #58a6ff !important;
   }
-  [data-theme='dark'] .mermaid-zoom-level, html[data-theme='dark'] .mermaid-zoom-level {
-    border-color: #30363d !important;
+  [data-theme='dark'] .mermaid-modern-toolbar .mm-btn:disabled, html[data-theme='dark'] .mermaid-modern-toolbar .mm-btn:disabled {
+    opacity: 0.25 !important;
+  }
+  [data-theme='dark'] .mermaid-modern-toolbar .mm-level, html[data-theme='dark'] .mermaid-modern-toolbar .mm-level {
     color: #8b949e !important;
   }
-  [data-theme='dark'] .mermaid-zoom-level:hover, html[data-theme='dark'] .mermaid-zoom-level:hover {
-    background-color: #30363d !important;
+  [data-theme='dark'] .mermaid-modern-toolbar .mm-level:hover, html[data-theme='dark'] .mermaid-modern-toolbar .mm-level:hover {
     color: #58a6ff !important;
   }
-  [data-theme='dark'] .mermaid-ctrl-sep, html[data-theme='dark'] .mermaid-ctrl-sep {
-    background-color: #30363d !important;
-  }
-  [data-theme='dark'] .mermaid-btn-download, html[data-theme='dark'] .mermaid-btn-download {
-    background-color: #161b22 !important;
-    border-color: #30363d !important;
-    color: #c9d1d9 !important;
-  }
-  [data-theme='dark'] .mermaid-btn-download:hover, html[data-theme='dark'] .mermaid-btn-download:hover {
-    background-color: #30363d !important;
-    border-color: #58a6ff !important;
-    color: #58a6ff !important;
+  [data-theme='dark'] .mermaid-modern-toolbar .mm-sep, html[data-theme='dark'] .mermaid-modern-toolbar .mm-sep {
+    background: rgba(255, 255, 255, 0.15) !important;
   }
   [data-theme='dark'] .mermaid-diagram-wrap pre.mermaid, html[data-theme='dark'] .mermaid-diagram-wrap pre.mermaid {
     color: #e6edf3 !important;
+  }
+
+  /* Compact Reference Lists */
+  .references-list,
+  .post-body .references-list,
+  .post-body h2 + ul,
+  .post-body h3 + ul {
+    margin-top: 6px !important;
+    margin-bottom: 20px !important;
+    padding-left: 22px !important;
+  }
+  .references-list li,
+  .post-body .references-list li,
+  .post-body h2 + ul li,
+  .post-body h3 + ul li {
+    margin-bottom: 4px !important;
+    line-height: 1.42 !important;
+    font-size: 0.95rem !important;
+  }
+  .references-list li:last-child,
+  .post-body .references-list li:last-child,
+  .post-body h2 + ul li:last-child,
+  .post-body h3 + ul li:last-child {
+    margin-bottom: 0 !important;
   }
   [data-theme='dark'] .table-container, html[data-theme='dark'] .table-container { border-color: #30363d !important; }
   [data-theme='dark'] .table-container thead, html[data-theme='dark'] .table-container thead { background: #161b22 !important; border-bottom-color: #30363d !important; }

@@ -1471,45 +1471,38 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
     }
 
     wraps.forEach((wrap, index) => {
-      if (wrap.querySelector('.mermaid-toolbar')) return;
+      if (wrap.querySelector('.mermaid-modern-toolbar')) return;
 
       let zoomScale = 1.0;
 
       const toolbar = document.createElement('div');
-      toolbar.className = 'mermaid-toolbar';
+      toolbar.className = 'mermaid-modern-toolbar';
       toolbar.innerHTML = `
-        <div class="mermaid-toolbar-left">
-          <span class="mermaid-badge">Architecture Diagram</span>
-        </div>
-        <div class="mermaid-toolbar-right">
-          <div class="mermaid-zoom-controls">
-            <button type="button" class="mermaid-ctrl-btn mermaid-btn-zoom-out" aria-label="Zoom out" title="Zoom out">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <button type="button" class="mermaid-zoom-level" aria-label="Reset zoom" title="Reset zoom (100%)">100%</button>
-            <button type="button" class="mermaid-ctrl-btn mermaid-btn-zoom-in" aria-label="Zoom in" title="Zoom in">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-          </div>
-          <span class="mermaid-ctrl-sep" aria-hidden="true"></span>
-          <button type="button" class="mermaid-ctrl-btn mermaid-btn-download" aria-label="Download diagram as SVG" title="Download SVG">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-        </div>
+        <button type="button" class="mm-btn mm-btn-out" aria-label="Zoom out" title="Zoom out" disabled>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <button type="button" class="mm-level" aria-label="Reset zoom" title="Reset zoom (100%)">100%</button>
+        <button type="button" class="mm-btn mm-btn-in" aria-label="Zoom in" title="Zoom in">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <span class="mm-sep" aria-hidden="true"></span>
+        <button type="button" class="mm-btn mm-btn-dl" aria-label="Download diagram as SVG" title="Download SVG">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
       `;
 
-      const levelBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-zoom-level');
-      const zoomInBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-zoom-in');
-      const zoomOutBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-zoom-out');
-      const dlBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-download');
+      const levelBtn = toolbar.querySelector<HTMLButtonElement>('.mm-level');
+      const zoomInBtn = toolbar.querySelector<HTMLButtonElement>('.mm-btn-in');
+      const zoomOutBtn = toolbar.querySelector<HTMLButtonElement>('.mm-btn-out');
+      const dlBtn = toolbar.querySelector<HTMLButtonElement>('.mm-btn-dl');
 
       const getDiagramSvg = (): SVGElement | null => {
         const allSvgs = Array.from(wrap.querySelectorAll<SVGElement>('svg'));
-        return allSvgs.find((s) => !s.closest('.mermaid-toolbar')) || null;
+        return allSvgs.find((s) => !s.closest('.mermaid-modern-toolbar')) || null;
       };
 
       const updateZoom = (newScale: number) => {
-        zoomScale = Math.min(2.5, Math.max(0.5, Math.round(newScale * 100) / 100));
+        zoomScale = Math.min(2.5, Math.max(1.0, Math.round(newScale * 100) / 100));
         const diagramSvg = getDiagramSvg();
         if (diagramSvg) {
           if (zoomScale === 1.0) {
@@ -1521,12 +1514,18 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
             diagramSvg.style.transform = `scale(${zoomScale})`;
             diagramSvg.style.transformOrigin = 'top center';
             diagramSvg.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
-            diagramSvg.style.margin = zoomScale > 1 ? `${Math.round((zoomScale - 1) * 30)}px 0` : '';
+            diagramSvg.style.margin = `${Math.round((zoomScale - 1) * 35)}px 0`;
             wrap.classList.add('is-zoomed');
           }
         }
         if (levelBtn) {
           levelBtn.textContent = `${Math.round(zoomScale * 100)}%`;
+        }
+        if (zoomOutBtn) {
+          zoomOutBtn.disabled = (zoomScale <= 1.0);
+        }
+        if (zoomInBtn) {
+          zoomInBtn.disabled = (zoomScale >= 2.5);
         }
       };
 

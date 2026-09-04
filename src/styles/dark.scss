@@ -901,51 +901,34 @@ html[data-theme='dark'] {
     background: oklch(16% 0.028 266) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
 
-    .mermaid-toolbar {
-      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
-    }
+    .mermaid-modern-toolbar {
+      background: oklch(18% 0.025 260 / 0.85) !important;
+      border-color: oklch(30% 0.03 260) !important;
+      box-shadow: 0 4px 12px oklch(0% 0 0 / 0.35) !important;
 
-    .mermaid-badge {
-      color: oklch(75% 0.015 255) !important;
-    }
+      .mm-btn {
+        color: oklch(75% 0.015 255) !important;
 
-    .mermaid-zoom-controls {
-      background: oklch(20% 0.025 266) !important;
-      border-color: oklch(28% 0.035 260) !important;
-    }
+        &:hover:not(:disabled) {
+          background: oklch(75% 0.15 259.735 / 0.15) !important;
+          color: oklch(75% 0.15 259.735) !important;
+        }
 
-    .mermaid-ctrl-btn {
-      color: oklch(85% 0.015 255) !important;
-
-      &:hover {
-        background: oklch(75% 0.15 259.735 / 0.15) !important;
-        color: oklch(75% 0.15 259.735) !important;
+        &:disabled {
+          opacity: 0.25 !important;
+        }
       }
-    }
 
-    .mermaid-zoom-level {
-      border-color: oklch(28% 0.035 260) !important;
-      color: oklch(75% 0.015 255) !important;
+      .mm-level {
+        color: oklch(75% 0.015 255) !important;
 
-      &:hover {
-        background: oklch(75% 0.15 259.735 / 0.15) !important;
-        color: oklch(75% 0.15 259.735) !important;
+        &:hover {
+          color: oklch(75% 0.15 259.735) !important;
+        }
       }
-    }
 
-    .mermaid-ctrl-sep {
-      background: oklch(28% 0.035 260) !important;
-    }
-
-    .mermaid-btn-download {
-      background: oklch(20% 0.025 266) !important;
-      border-color: oklch(28% 0.035 260) !important;
-      color: oklch(85% 0.015 255) !important;
-
-      &:hover {
-        background: oklch(75% 0.15 259.735 / 0.15) !important;
-        border-color: oklch(75% 0.15 259.735) !important;
-        color: oklch(75% 0.15 259.735) !important;
+      .mm-sep {
+        background: oklch(28% 0.035 260) !important;
       }
     }
 
