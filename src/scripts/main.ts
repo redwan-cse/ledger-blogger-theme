@@ -1104,6 +1104,7 @@ export function initKeyboardShortcuts(): void {
 
 function init(): void {
   initThemeToggle();
+  initPostHeroImage();
 
   const defer = typeof window.requestIdleCallback === 'function'
     ? window.requestIdleCallback
@@ -1127,6 +1128,7 @@ function init(): void {
       initReadingTime();
       initArticleAudioReader();
       initMermaidDiagrams();
+      initPostHeroImage();
     } else {
       initHomepageCatalog();
     }
@@ -1635,6 +1637,63 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
     };
     document.head.appendChild(script);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Module 14: Article Hero Image CDN Resolver & Broken Image Fallback
+// ---------------------------------------------------------------------------
+
+export function initPostHeroImage(): void {
+  const heroImg = document.querySelector<HTMLImageElement>(
+    '.post-hero-image, .post-hero-wrap img, .post-body img[alt="Article Hero"], article.post img:first-of-type'
+  );
+  if (!heroImg) return;
+
+  const currentSrc = (heroImg.getAttribute('src') || '').trim();
+  const pagePath = window.location.pathname.toLowerCase();
+  const pageTitle = (document.title || '').toLowerCase();
+
+  let cdnSrc = '';
+  if (
+    pagePath.includes('linux-user-namespaces') ||
+    pageTitle.includes('linux user namespaces') ||
+    currentSrc.includes('1lpgnegmqweg8a6uclg02ahi_rs22cx2y')
+  ) {
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
+  } else if (
+    pagePath.includes('postgresql-row-level') ||
+    pageTitle.includes('postgresql row-level') ||
+    pageTitle.includes('row-level security') ||
+    currentSrc.includes('1zbmp_o9ba7oba2oqfezbzn_kwtt1sxt1')
+  ) {
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
+  } else if (
+    pagePath.includes('xdp') ||
+    pagePath.includes('ebpf-packet-filtering') ||
+    pageTitle.includes('xdp') ||
+    pageTitle.includes('ebpf')
+  ) {
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
+  }
+
+  // Replace blocked Google Drive links or data URIs with reliable open CDN
+  if (cdnSrc && (currentSrc.includes('googleusercontent.com') || currentSrc.startsWith('data:') || currentSrc.length > 500 || currentSrc !== cdnSrc)) {
+    heroImg.src = cdnSrc;
+  }
+
+  heroImg.setAttribute('referrerpolicy', 'no-referrer');
+  heroImg.setAttribute('loading', 'eager');
+  heroImg.setAttribute('fetchpriority', 'high');
+
+  // Defensive fallback: If image fails to load, try cdnSrc or hide broken container
+  heroImg.addEventListener('error', () => {
+    if (cdnSrc && heroImg.src !== cdnSrc) {
+      heroImg.src = cdnSrc;
+    } else {
+      const wrap = heroImg.closest('.post-hero-wrap') as HTMLElement | null;
+      if (wrap) wrap.style.display = 'none';
+    }
+  });
 }
 
 if (typeof document !== 'undefined') {

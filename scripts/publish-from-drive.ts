@@ -775,7 +775,7 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   // Prepend Hero Image if available
   if (heroImageUrl) {
     const heroBlock = `<div class="post-hero-wrap" style="margin-bottom:2.2rem;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
-  <img src="${heroImageUrl}" alt="Article Hero" class="post-hero-image" style="width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;display:block;" loading="eager" fetchpriority="high" width="1200" height="675"/>
+  <img src="${heroImageUrl}" alt="Article Hero" class="post-hero-image" style="width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;display:block;" loading="eager" fetchpriority="high" width="1200" height="675" referrerpolicy="no-referrer"/>
 </div>\n`;
     htmlBody = heroBlock + htmlBody;
   }
