@@ -276,6 +276,7 @@ body.is-home-lead .post:first-of-type {
 // ---------------------------------------------------------------------------
 
 .posts-filter-bar {
+  scroll-margin-top: 80px;
   background: $surface;
   border: 1px solid $rule;
   border-radius: 12px;

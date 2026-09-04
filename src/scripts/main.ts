@@ -1155,8 +1155,8 @@ export function initHomepageCatalog(): void {
         let contentHtml = entry.content?.$t || entry.summary?.$t || '';
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = contentHtml;
-        tempDiv.querySelectorAll('pre, code, style, script, .table-of-contents').forEach((el) => el.remove());
-        const rawExcerpt = tempDiv.textContent?.replace(/\s+/g, ' ').trim() || '';
+        tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, pre, code, style, script, .table-of-contents, .heading-anchor').forEach((el) => el.remove());
+        const rawExcerpt = (tempDiv.textContent || '').replace(/^#+.*?[#\n]/, '').replace(/\s+/g, ' ').trim();
         const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
 
         let thumbnail = entry.media$thumbnail?.url;
@@ -1286,10 +1286,6 @@ export function initHomepageCatalog(): void {
       postsContainer!.parentNode?.insertBefore(paginationEl, postsContainer!.nextSibling);
     }
 
-    if (totalPages <= 1) {
-      paginationEl.style.display = 'none';
-      return;
-    }
     paginationEl.style.display = 'flex';
 
     let html = '';
