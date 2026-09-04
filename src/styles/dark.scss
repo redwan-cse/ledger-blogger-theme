@@ -726,6 +726,17 @@ html[data-theme='dark'] {
       color: oklch(75% 0.15 259.735) !important;
     }
 
+    .toc-toggle {
+      border-color: oklch(30% 0.03 260) !important;
+      color: oklch(75% 0.015 255) !important;
+
+      &:hover {
+        background: oklch(75% 0.15 259.735 / 0.15) !important;
+        border-color: oklch(75% 0.15 259.735) !important;
+        color: oklch(75% 0.15 259.735) !important;
+      }
+    }
+
     .toc-link {
       color: oklch(85% 0.012 255) !important;
 
@@ -889,6 +900,26 @@ html[data-theme='dark'] {
   .mermaid-diagram-wrap {
     background: oklch(16% 0.028 266) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
+
+    .mermaid-toolbar {
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+    }
+
+    .mermaid-badge {
+      color: oklch(75% 0.015 255) !important;
+    }
+
+    .mermaid-btn {
+      background: oklch(22% 0.028 266) !important;
+      border-color: oklch(30% 0.03 260) !important;
+      color: oklch(85% 0.015 255) !important;
+
+      &:hover {
+        background: oklch(75% 0.15 259.735 / 0.15) !important;
+        border-color: oklch(75% 0.15 259.735) !important;
+        color: oklch(75% 0.15 259.735) !important;
+      }
+    }
 
     pre.mermaid {
       color: oklch(98.415% 0.0034 247.858) !important;

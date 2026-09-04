@@ -753,8 +753,34 @@ export function initTableOfContents(): void {
   tocBadge.className = 'toc-badge';
   tocBadge.textContent = `${headings.length} sections`;
 
+  const tocActions = document.createElement('div');
+  tocActions.className = 'toc-actions';
+
+  const tocToggle = document.createElement('button');
+  tocToggle.type = 'button';
+  tocToggle.className = 'toc-toggle';
+  tocToggle.setAttribute('aria-expanded', 'true');
+  tocToggle.setAttribute('aria-label', 'Toggle Table of Contents');
+  tocToggle.innerHTML = `
+    <span class="toc-toggle-text">Collapse</span>
+    <svg class="toc-toggle-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  `;
+
+  tocToggle.addEventListener('click', () => {
+    tocNav.classList.toggle('is-collapsed');
+    const isCollapsed = tocNav.classList.contains('is-collapsed');
+    tocToggle.setAttribute('aria-expanded', String(!isCollapsed));
+    const text = tocToggle.querySelector('.toc-toggle-text');
+    if (text) text.textContent = isCollapsed ? 'Expand' : 'Collapse';
+  });
+
+  tocActions.appendChild(tocBadge);
+  tocActions.appendChild(tocToggle);
+
   tocHeader.appendChild(tocTitle);
-  tocHeader.appendChild(tocBadge);
+  tocHeader.appendChild(tocActions);
   tocNav.appendChild(tocHeader);
 
   const tocList = document.createElement('ol');
@@ -791,7 +817,7 @@ export function initTableOfContents(): void {
 
     const numSpan = document.createElement('span');
     numSpan.className = 'toc-num';
-    numSpan.textContent = isH2 ? String(h2Index).padStart(2, '0') : '↳';
+    numSpan.textContent = isH2 ? String(h2Index).padStart(2, '0') : '—';
 
     const textSpan = document.createElement('span');
     textSpan.className = 'toc-text';
@@ -804,7 +830,10 @@ export function initTableOfContents(): void {
       e.preventDefault();
       const target = document.getElementById(heading.id);
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const headerOffset = 85;
+        const elementPosition = target.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
         history.pushState(null, '', `#${heading.id}`);
       }
     });
@@ -1440,6 +1469,62 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
     } catch (e) {
       console.warn('Mermaid rendering notice:', e);
     }
+
+    wraps.forEach((wrap, index) => {
+      if (wrap.querySelector('.mermaid-toolbar')) return;
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'mermaid-toolbar';
+      toolbar.innerHTML = `
+        <div class="mermaid-toolbar-left">
+          <span class="mermaid-badge">Architecture Diagram</span>
+        </div>
+        <div class="mermaid-toolbar-right">
+          <button type="button" class="mermaid-btn mermaid-btn-zoom" aria-label="Toggle diagram zoom">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            <span>Zoom</span>
+          </button>
+          <button type="button" class="mermaid-btn mermaid-btn-download" aria-label="Download diagram as SVG">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download SVG</span>
+          </button>
+        </div>
+      `;
+
+      const zoomBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-zoom');
+      if (zoomBtn) {
+        zoomBtn.addEventListener('click', () => {
+          wrap.classList.toggle('is-zoomed');
+          const isZoomed = wrap.classList.contains('is-zoomed');
+          const span = zoomBtn.querySelector('span');
+          if (span) span.textContent = isZoomed ? 'Reset' : 'Zoom';
+        });
+      }
+
+      const dlBtn = toolbar.querySelector<HTMLButtonElement>('.mermaid-btn-download');
+      if (dlBtn) {
+        dlBtn.addEventListener('click', () => {
+          const svg = wrap.querySelector('svg');
+          if (!svg) return;
+          const svgClone = svg.cloneNode(true) as SVGElement;
+          if (!svgClone.getAttribute('xmlns')) {
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          }
+          const svgData = new XMLSerializer().serializeToString(svgClone);
+          const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `diagram-${index + 1}.svg`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+        });
+      }
+
+      wrap.insertBefore(toolbar, wrap.firstChild);
+    });
   }
 
   const win = window as any;

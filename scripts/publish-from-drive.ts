@@ -337,16 +337,16 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
     return `\n<div class="table-container">\n${match}\n</div>\n`;
   });
 
-  // Compact excessive whitespace inside <pre><code> blocks
+  // Compact excessive whitespace inside <pre><code> blocks (preserve standard blank lines, cap 3+ consecutive newlines)
   htmlBody = htmlBody.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match) => {
-    return match.replace(/\n\s*\n\s*\n/g, '\n\n').replace(/\n{2,}/g, '\n');
+    return match.replace(/\n{3,}/g, '\n\n');
   });
 
   // Prepend scoped style block for authentic GitHub/Medium Markdown code blocks, tables, and diagrams
   const scopedStyles = `<style>
   /* Clean Code Block Window */
   .code-block-wrap {
-    margin: 20px 0 !important;
+    margin: 24px 0 !important;
     border: 1px solid #d0d7de !important;
     border-radius: 8px !important;
     overflow: hidden !important;
@@ -391,24 +391,24 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
     margin: 0 !important;
     border: none !important;
     border-radius: 0 !important;
-    padding: 16px !important;
+    padding: 18px !important;
     background: transparent !important;
     color: #1f2328 !important;
     overflow-x: auto !important;
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
-    font-size: 0.85rem !important;
-    line-height: 1.5 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.65 !important;
   }
   .post-body pre {
     background-color: #f6f8fa !important;
     border: 1px solid #d0d7de !important;
-    padding: 16px !important;
+    padding: 18px !important;
     border-radius: 6px !important;
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
-    font-size: 0.85rem !important;
-    line-height: 1.5 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.65 !important;
     color: #1f2328 !important;
-    margin: 16px 0 !important;
+    margin: 20px 0 !important;
     overflow-x: auto !important;
   }
   .post-body pre code,
@@ -452,12 +452,64 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   .mermaid-diagram-wrap {
     background: #ffffff !important;
     border: 1px solid #d0d7de !important;
-    padding: 24px !important;
+    padding: 20px !important;
     border-radius: 8px !important;
     margin: 24px 0 !important;
     text-align: center !important;
     overflow-x: auto !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    position: relative !important;
+    transition: all 0.25s ease !important;
+  }
+  .mermaid-diagram-wrap.is-zoomed {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+  .mermaid-diagram-wrap.is-zoomed svg {
+    transform: scale(1.35) !important;
+    transform-origin: top center !important;
+    margin: 20px 0 !important;
+    transition: transform 0.25s ease !important;
+  }
+  .mermaid-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 14px !important;
+    border-bottom: 1px solid #d0d7de !important;
+  }
+  .mermaid-badge {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #57606a !important;
+  }
+  .mermaid-toolbar-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  .mermaid-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    border: 1px solid #d0d7de !important;
+    background: #ffffff !important;
+    color: #24292f !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+  }
+  .mermaid-btn:hover {
+    background-color: #f3f4f6 !important;
+    border-color: #1f6feb !important;
+    color: #1f6feb !important;
   }
   .mermaid-diagram-wrap pre.mermaid {
     background: transparent !important;
@@ -547,6 +599,22 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   [data-theme='dark'] .mermaid-diagram-wrap, html[data-theme='dark'] .mermaid-diagram-wrap {
     background: #161b22 !important;
     border-color: #30363d !important;
+  }
+  [data-theme='dark'] .mermaid-toolbar, html[data-theme='dark'] .mermaid-toolbar {
+    border-bottom-color: #30363d !important;
+  }
+  [data-theme='dark'] .mermaid-badge, html[data-theme='dark'] .mermaid-badge {
+    color: #8b949e !important;
+  }
+  [data-theme='dark'] .mermaid-btn, html[data-theme='dark'] .mermaid-btn {
+    background-color: #21262d !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+  }
+  [data-theme='dark'] .mermaid-btn:hover, html[data-theme='dark'] .mermaid-btn:hover {
+    background-color: #30363d !important;
+    border-color: #58a6ff !important;
+    color: #58a6ff !important;
   }
   [data-theme='dark'] .mermaid-diagram-wrap pre.mermaid, html[data-theme='dark'] .mermaid-diagram-wrap pre.mermaid {
     color: #e6edf3 !important;
