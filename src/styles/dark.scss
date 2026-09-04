@@ -634,7 +634,9 @@ html[data-theme='dark'] {
   }
 
   .comment-form,
-  .comment {
+  #comments .comment,
+  .comments-list .comment,
+  .comment-thread .comment {
     background-color: oklch(22.749% 0.0288 266.273) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
   }
@@ -699,16 +701,57 @@ html[data-theme='dark'] {
   }
 
   .table-of-contents {
-    background-color: oklch(22.749% 0.0288 266.273);
-    border-color: oklch(27.950% 0.0368 260.031);
-  }
+    background-color: oklch(18% 0.025 266) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+    box-shadow: 0 4px 20px oklch(0% 0 0 / 0.25) !important;
 
-  .toc-link {
-    color: oklch(80% 0.015 255);
+    &::before {
+      background: linear-gradient(90deg, oklch(75% 0.15 259.735), oklch(50% 0.12 250 / 0.2)) !important;
+    }
 
-    &.is-active,
-    &:hover {
-      color: oklch(75% 0.15 259.735);
+    .toc-header {
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+    }
+
+    .toc-title {
+      color: oklch(75% 0.015 255) !important;
+
+      .toc-icon {
+        color: oklch(75% 0.15 259.735) !important;
+      }
+    }
+
+    .toc-badge {
+      background: oklch(75% 0.15 259.735 / 0.15) !important;
+      color: oklch(75% 0.15 259.735) !important;
+    }
+
+    .toc-link {
+      color: oklch(85% 0.012 255) !important;
+
+      .toc-num {
+        color: oklch(60% 0.015 255) !important;
+      }
+
+      &:hover {
+        color: oklch(98% 0.003 247) !important;
+        background: oklch(75% 0.15 259.735 / 0.12) !important;
+        border-left-color: oklch(75% 0.15 259.735) !important;
+
+        .toc-num {
+          color: oklch(75% 0.15 259.735) !important;
+        }
+      }
+
+      &.is-active {
+        color: oklch(98% 0.003 247) !important;
+        background: oklch(75% 0.15 259.735 / 0.15) !important;
+        border-left-color: oklch(75% 0.15 259.735) !important;
+
+        .toc-num {
+          color: oklch(75% 0.15 259.735) !important;
+        }
+      }
     }
   }
 
@@ -786,6 +829,13 @@ html[data-theme='dark'] {
   .token.cdata {
     color: #8b949e !important;
     font-style: italic !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    display: inline !important;
   }
 
   .token.punctuation {
@@ -849,18 +899,23 @@ html[data-theme='dark'] {
     border-color: oklch(27.950% 0.0368 260.031) !important;
 
     thead {
-      background: oklch(22% 0.028 266) !important;
+      background: oklch(20% 0.028 266) !important;
       border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
     }
 
     th {
+      background: oklch(20% 0.028 266) !important;
       color: oklch(98.415% 0.0034 247.858) !important;
-      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+      border-bottom: 2px solid oklch(27.950% 0.0368 260.031) !important;
     }
 
     td {
       border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
-      color: oklch(80% 0.015 255) !important;
+      color: oklch(85% 0.015 255) !important;
+    }
+
+    tr:nth-child(even) td {
+      background: oklch(18% 0.02 266) !important;
     }
   }
 }

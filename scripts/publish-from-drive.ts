@@ -216,7 +216,7 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     if (depth === 2 || depth === 3) {
       const plainText = text.replace(/<[^>]+>/g, '').trim();
       const id = slugify(plainText);
-      return `<h${depth} id="${id}"><a href="#${id}" class="heading-anchor" aria-label="Direct link to ${escapeHtml(plainText)}">#</a>${text}</h${depth}>\n`;
+      return `<h${depth} id="${id}">${text}<a href="#${id}" class="heading-anchor" aria-label="Direct link to ${escapeHtml(plainText)}">#</a></h${depth}>\n`;
     }
     return `<h${depth}>${text}</h${depth}>\n`;
   };
@@ -235,13 +235,15 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
   cleanedMarkdown = cleanedMarkdown.replace(/```[a-z0-9_-]*\s*```/gi, '');
 
-  // 2. Clean Google Docs plain-text export quirks (apostrophes and single-token spaced backticks only)
+  // 2. Clean Google Docs plain-text export quirks (apostrophes, backtick spaces, and punctuation)
   cleanedMarkdown = cleanedMarkdown
     .replace(/(\w)'''(\w)/g, "$1'$2")
     .replace(/(\w)'''/g, "$1'")
     .replace(/`\s+([a-zA-Z0-9_\-./]+)\s+`/g, '`$1`')
     .replace(/`\s+([a-zA-Z0-9_\-./]+)`/g, '`$1`')
-    .replace(/`([a-zA-Z0-9_\-./]+)\s+`/g, '`$1`');
+    .replace(/`([a-zA-Z0-9_\-./]+)\s+`/g, '`$1`')
+    .replace(/`\s+([,.:;!?\)\]])/g, '`$1')
+    .replace(/([\(\[])\s+`/g, '$1`');
 
   // 3. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences)
   const existingFences = (cleanedMarkdown.match(/```/g) || []).length;
@@ -396,11 +398,15 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
     font-weight: 500 !important;
     font-size: 0.85em !important;
-    margin-right: 0.35em !important;
-    opacity: 0.4 !important;
+    margin-left: 0.35em !important;
+    margin-right: 0 !important;
+    opacity: 0 !important;
     transition: opacity 0.15s ease, color 0.15s ease !important;
   }
-  .heading-anchor:hover {
+  h2:hover .heading-anchor, h3:hover .heading-anchor {
+    opacity: 0.6 !important;
+  }
+  .heading-anchor:hover, h2 .heading-anchor:hover, h3 .heading-anchor:hover {
     opacity: 1 !important;
     color: #1f6feb !important;
   }
@@ -435,7 +441,17 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   .table-container tr:nth-child(even) td { background: #fbfcfd !important; }
 
   /* Prism Syntax Highlighting Tokens (Light Mode) */
-  .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #6e7781 !important; font-style: italic !important; }
+  .token.comment, .token.prolog, .token.doctype, .token.cdata {
+    color: #6e7781 !important;
+    font-style: italic !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    display: inline !important;
+  }
   .token.punctuation { color: #24292f !important; }
   .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted { color: #0550ae !important; }
   .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted { color: #0a3069 !important; }
@@ -498,12 +514,22 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   }
   [data-theme='dark'] .table-container, html[data-theme='dark'] .table-container { border-color: #30363d !important; }
   [data-theme='dark'] .table-container thead, html[data-theme='dark'] .table-container thead { background: #161b22 !important; border-bottom-color: #30363d !important; }
-  [data-theme='dark'] .table-container th, html[data-theme='dark'] .table-container th { color: #e6edf3 !important; border-bottom-color: #30363d !important; }
+  [data-theme='dark'] .table-container th, html[data-theme='dark'] .table-container th { background: #161b22 !important; color: #f0f6fc !important; border-bottom: 2px solid #30363d !important; }
   [data-theme='dark'] .table-container td, html[data-theme='dark'] .table-container td { border-bottom-color: #30363d !important; color: #c9d1d9 !important; }
   [data-theme='dark'] .table-container tr:nth-child(even) td { background: #0d1117 !important; }
 
   /* Prism Syntax Highlighting Tokens (Dark Mode) */
-  [data-theme='dark'] .token.comment, html[data-theme='dark'] .token.comment { color: #8b949e !important; font-style: italic !important; }
+  [data-theme='dark'] .token.comment, html[data-theme='dark'] .token.comment {
+    color: #8b949e !important;
+    font-style: italic !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    display: inline !important;
+  }
   [data-theme='dark'] .token.punctuation, html[data-theme='dark'] .token.punctuation { color: #c9d1d9 !important; }
   [data-theme='dark'] .token.property, [data-theme='dark'] .token.tag, [data-theme='dark'] .token.boolean, [data-theme='dark'] .token.number, [data-theme='dark'] .token.constant, [data-theme='dark'] .token.symbol, [data-theme='dark'] .token.deleted, html[data-theme='dark'] .token.number { color: #79c0ff !important; }
   [data-theme='dark'] .token.selector, [data-theme='dark'] .token.attr-name, [data-theme='dark'] .token.string, [data-theme='dark'] .token.char, [data-theme='dark'] .token.builtin, [data-theme='dark'] .token.inserted, html[data-theme='dark'] .token.string { color: #a5d6ff !important; }
@@ -555,9 +581,17 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     }
     :root:not([data-theme='light']) .table-container { border-color: #30363d !important; }
     :root:not([data-theme='light']) .table-container thead { background: #161b22 !important; border-bottom-color: #30363d !important; }
-    :root:not([data-theme='light']) .table-container th { color: #e6edf3 !important; border-bottom-color: #30363d !important; }
+    :root:not([data-theme='light']) .table-container th { background: #161b22 !important; color: #f0f6fc !important; border-bottom: 2px solid #30363d !important; }
     :root:not([data-theme='light']) .table-container td { border-bottom-color: #30363d !important; color: #c9d1d9 !important; }
     :root:not([data-theme='light']) .table-container tr:nth-child(even) td { background: #0d1117 !important; }
+    :root:not([data-theme='light']) .token.comment {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      display: inline !important;
+    }
   }
 </style>\n`;
 

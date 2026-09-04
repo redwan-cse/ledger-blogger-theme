@@ -731,21 +731,56 @@ export function initTableOfContents(): void {
   tocNav.className = 'table-of-contents';
   tocNav.setAttribute('aria-label', 'Table of Contents');
 
+  // Header container with title and section badge
+  const tocHeader = document.createElement('div');
+  tocHeader.className = 'toc-header';
+
   const tocTitle = document.createElement('div');
   tocTitle.className = 'toc-title';
-  tocTitle.textContent = 'Table of Contents';
-  tocNav.appendChild(tocTitle);
+  tocTitle.innerHTML = `
+    <svg class="toc-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="8" y1="6" x2="21" y2="6"></line>
+      <line x1="8" y1="12" x2="21" y2="12"></line>
+      <line x1="8" y1="18" x2="21" y2="18"></line>
+      <line x1="3" y1="6" x2="3.01" y2="6"></line>
+      <line x1="3" y1="12" x2="3.01" y2="12"></line>
+      <line x1="3" y1="18" x2="3.01" y2="18"></line>
+    </svg>
+    <span>Table of Contents</span>
+  `;
 
-  const tocList = document.createElement('ul');
+  const tocBadge = document.createElement('span');
+  tocBadge.className = 'toc-badge';
+  tocBadge.textContent = `${headings.length} sections`;
+
+  tocHeader.appendChild(tocTitle);
+  tocHeader.appendChild(tocBadge);
+  tocNav.appendChild(tocHeader);
+
+  const tocList = document.createElement('ol');
   tocList.className = 'toc-list';
 
+  let h2Index = 0;
   headings.forEach((heading, idx) => {
+    // Clone heading to extract clean text without anchor (#) or icons
+    const clone = heading.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.heading-anchor, a[href^="#"]').forEach((el) => el.remove());
+    const cleanTitle = (clone.textContent || '')
+      .replace(/^[#\s]+/, '')
+      .replace(/[#\s]+$/, '')
+      .trim();
+
     if (!heading.id) {
-      const slug = heading.textContent
-        ? heading.textContent.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-')
-        : `heading-${idx + 1}`;
+      const slug = cleanTitle
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
       heading.id = slug || `section-${idx + 1}`;
     }
+
+    const isH2 = heading.tagName.toLowerCase() === 'h2';
+    if (isH2) h2Index++;
 
     const li = document.createElement('li');
     li.className = `toc-item toc-${heading.tagName.toLowerCase()}`;
@@ -753,7 +788,17 @@ export function initTableOfContents(): void {
     const link = document.createElement('a');
     link.href = `#${heading.id}`;
     link.className = 'toc-link';
-    link.textContent = heading.textContent || `Section ${idx + 1}`;
+
+    const numSpan = document.createElement('span');
+    numSpan.className = 'toc-num';
+    numSpan.textContent = isH2 ? String(h2Index).padStart(2, '0') : '↳';
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'toc-text';
+    textSpan.textContent = cleanTitle || `Section ${idx + 1}`;
+
+    link.appendChild(numSpan);
+    link.appendChild(textSpan);
 
     link.addEventListener('click', (e) => {
       e.preventDefault();
