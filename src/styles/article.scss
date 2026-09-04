@@ -36,6 +36,10 @@
   border-bottom: none;
   padding-top: $space-6;
 
+  @media (max-width: 639px) {
+    padding: $space-4 12px;
+  }
+
   @media (min-width: 1024px) {
     padding-top: $space-7;
   }
@@ -133,6 +137,88 @@
     }
   }
 
+  .heading-anchor {
+    display: inline-block;
+    color: $ink-muted;
+    text-decoration: none;
+    font-family: $font-mono;
+    font-weight: 500;
+    font-size: 0.85em;
+    margin-right: 0.35em;
+    opacity: 0.35;
+    transition: opacity $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart;
+
+    &:hover {
+      opacity: 1;
+      color: $accent;
+    }
+  }
+
+  h2:hover .heading-anchor,
+  h3:hover .heading-anchor {
+    opacity: 0.85;
+  }
+
+  .code-block-wrap {
+    margin: $space-5 0;
+    border: 1px solid oklch(92.876% 0.0126 255.508);
+    border-radius: 8px;
+    overflow: hidden;
+    background: oklch(98.415% 0.0034 247.858);
+    box-shadow: $shadow-sm;
+
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: oklch(96% 0.006 255);
+      border-bottom: 1px solid oklch(92.876% 0.0126 255.508);
+      font-family: $font-mono;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $ink-muted;
+    }
+
+    .code-copy-btn {
+      position: static;
+      opacity: 1;
+      min-height: 28px;
+      padding: 2px 10px;
+      font-family: $font-sans;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: $ink-muted;
+      background: #ffffff;
+      border: 1px solid oklch(90% 0.01 255);
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart;
+
+      &:hover {
+        color: $accent;
+        border-color: $accent;
+        background: #ffffff;
+      }
+
+      &.copied {
+        color: oklch(60% 0.18 140);
+        border-color: oklch(60% 0.18 140);
+      }
+    }
+
+    pre {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      padding: $space-4 $space-5;
+    }
+  }
+
   pre {
     overflow-x: auto;
     background-color: oklch(98.415% 0.0034 247.858);
@@ -164,8 +250,11 @@
   pre code {
     background: transparent !important;
     padding: 0 !important;
-    font-size: inherit;
-    color: inherit;
+    font-size: inherit !important;
+    color: inherit !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: block !important;
     border-radius: 0;
   }
 
@@ -200,6 +289,63 @@
       color: oklch(60% 0.18 140);
       border-color: oklch(60% 0.18 140);
     }
+  }
+
+  // Prism Syntax Highlighting Tokens (Light Mode)
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    color: #6e7781;
+    font-style: italic;
+  }
+
+  .token.punctuation {
+    color: #24292f;
+  }
+
+  .token.property,
+  .token.tag,
+  .token.boolean,
+  .token.number,
+  .token.constant,
+  .token.symbol,
+  .token.deleted {
+    color: #0550ae;
+  }
+
+  .token.selector,
+  .token.attr-name,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted {
+    color: #0a3069;
+  }
+
+  .token.operator,
+  .token.entity,
+  .token.url {
+    color: #cf222e;
+  }
+
+  .token.atrule,
+  .token.attr-value,
+  .token.keyword {
+    color: #cf222e;
+    font-weight: 600;
+  }
+
+  .token.function,
+  .token.class-name {
+    color: #8250df;
+    font-weight: 600;
+  }
+
+  .token.regex,
+  .token.important,
+  .token.variable {
+    color: #953800;
   }
 
   .mermaid-diagram-wrap {

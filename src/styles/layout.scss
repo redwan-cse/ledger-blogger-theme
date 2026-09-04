@@ -42,7 +42,8 @@
   gap: $space-4;
 
   @media (max-width: 639px) {
-    padding: 0 20px;
+    padding: 0 12px;
+    gap: 8px;
   }
 
   @media (min-width: 640px) and (max-width: 1023px) {
@@ -72,7 +73,12 @@
   gap: $space-2;
   text-decoration: none;
   min-height: 44px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+
+  @media (max-width: 639px) {
+    gap: 6px;
+  }
 }
 
 .header-avatar {
@@ -82,12 +88,18 @@
   object-fit: cover;
   border: 1px solid $rule;
   flex-shrink: 0;
+
+  @media (max-width: 639px) {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .header-brand-text {
   display: flex;
   flex-direction: column;
   line-height: 1.15;
+  min-width: 0;
 }
 
 .site-title {
@@ -99,6 +111,14 @@
   line-height: 1.2;
   color: $ink;
   transition: color $motion-fast $ease-out-quart;
+
+  @media (max-width: 639px) {
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 170px;
+  }
 }
 
 .site-tagline {
@@ -121,6 +141,10 @@
   align-items: center;
   gap: $space-2;
   flex-shrink: 0;
+
+  @media (max-width: 639px) {
+    gap: 4px;
+  }
 }
 
 .drawer-toggle,
@@ -138,6 +162,12 @@
   align-items: center;
   justify-content: center;
   transition: background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+
+  @media (max-width: 639px) {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 6px;
+  }
 
   &:hover {
     background-color: $surface;
@@ -2116,10 +2146,23 @@ html[data-theme='dark'] .theme-icon-moon {
   width: 100%;
 }
 
-// Mobile (<640px): single column, 20px gutters
+.main,
+#page_body,
+.widget.Blog,
+.blog-posts,
+.post,
+.post-body,
+.code-block-wrap,
+pre {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+// Mobile (<640px): single column, 12px gutters
 @media (max-width: 639px) {
   .main-content {
-    padding: $space-5 20px $space-8;
+    padding: $space-5 12px $space-8;
   }
 }
 

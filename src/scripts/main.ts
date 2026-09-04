@@ -599,6 +599,7 @@ export function initThemeToggle(): void {
       // Storage unavailable
     }
     showToast(`Switched to ${next} theme`);
+    initMermaidDiagrams(next === 'dark' ? 'dark' : 'default');
   }
 
   toggleButtons.forEach((btn) => {
@@ -614,12 +615,40 @@ export function initThemeToggle(): void {
 // ---------------------------------------------------------------------------
 
 export function initCodeBlockEnhancements(): void {
+  // 1. Header-based or existing copy buttons
+  document.querySelectorAll<HTMLButtonElement>('.code-copy-btn').forEach((btn) => {
+    if (btn.dataset['initialized']) return;
+    btn.dataset['initialized'] = 'true';
+
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const wrap = btn.closest('.code-block-wrap');
+      const pre = wrap ? wrap.querySelector('pre') : btn.closest('pre');
+      if (!pre) return;
+      const code = pre.querySelector('code');
+      const textToCopy = (code ? code.innerText : pre.innerText) || '';
+      const copied = await copyToClipboard(textToCopy);
+      if (copied) {
+        btn.classList.add('copied');
+        const span = btn.querySelector('span');
+        if (span) span.textContent = 'Copied!';
+        showToast('Code copied to clipboard!');
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          if (span) span.textContent = 'Copy';
+        }, 2000);
+      }
+    });
+  });
+
+  // 2. Legacy / bare <pre> elements without a copy button
   const preElements = document.querySelectorAll<HTMLPreElement>('.post-body pre');
   preElements.forEach((pre) => {
     // Ignore Mermaid diagrams
     if (pre.classList.contains('mermaid') || pre.closest('.mermaid') || pre.closest('.mermaid-diagram-wrap')) {
       return;
     }
+    if (pre.closest('.code-block-wrap')) return;
     // Avoid double-attaching
     if (pre.querySelector('.code-copy-btn')) return;
 
@@ -650,6 +679,41 @@ export function initCodeBlockEnhancements(): void {
 
     pre.appendChild(copyBtn);
   });
+}
+
+// ---------------------------------------------------------------------------
+// Module 6b: Prism.js Asynchronous Syntax Highlighting
+// ---------------------------------------------------------------------------
+
+export function initSyntaxHighlighting(): void {
+  const codeBlocks = document.querySelectorAll('.post-body pre code[class*="language-"]');
+  if (codeBlocks.length === 0) return;
+
+  const win = window as any;
+  function runHighlight(): void {
+    if (win.Prism) {
+      if (win.Prism.plugins && win.Prism.plugins.autoloader) {
+        win.Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+      }
+      win.Prism.highlightAll();
+    }
+  }
+
+  if (win.Prism) {
+    runHighlight();
+    return;
+  }
+
+  const prismScript = document.createElement('script');
+  prismScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js';
+  prismScript.setAttribute('data-manual', 'true');
+  prismScript.onload = () => {
+    const autoloaderScript = document.createElement('script');
+    autoloaderScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js';
+    autoloaderScript.onload = runHighlight;
+    document.head.appendChild(autoloaderScript);
+  };
+  document.head.appendChild(prismScript);
 }
 
 // ---------------------------------------------------------------------------
@@ -983,6 +1047,7 @@ function init(): void {
     if (isPost) {
       initReadingProgress();
       initCodeBlockEnhancements();
+      initSyntaxHighlighting();
       initTableOfContents();
       initAlertCallouts();
       initReadingTime();
@@ -994,41 +1059,73 @@ function init(): void {
 
 /**
  * Dynamically loads and renders Mermaid.js sequence and flow diagrams if present in article.
+ * Supports theme toggling by caching raw diagram source code.
  */
-export function initMermaidDiagrams(): void {
-  const mermaidEls = document.querySelectorAll('.mermaid');
-  if (mermaidEls.length === 0) return;
+export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
+  const wraps = document.querySelectorAll<HTMLElement>('.mermaid-diagram-wrap');
+  const standaloneMermaids = document.querySelectorAll<HTMLElement>('.post-body pre.mermaid');
+  if (wraps.length === 0 && standaloneMermaids.length === 0) return;
 
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
-  script.async = true;
-  script.onload = () => {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const mermaid = (window as unknown as { mermaid?: { initialize: (opts: unknown) => void; run: () => void } }).mermaid;
-    if (mermaid) {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: isDark ? 'dark' : 'default',
-        themeVariables: isDark ? {
-          darkMode: true,
-          background: '#161B22',
-          primaryColor: '#2563EB',
-          primaryTextColor: '#F8FAFC',
-          lineColor: '#58A6FF'
-        } : {
-          darkMode: false,
-          background: '#FFFFFF',
-          primaryColor: '#F6F8FA',
-          primaryTextColor: '#1F2328',
-          primaryBorderColor: '#D0D7DE',
-          lineColor: '#57606A'
-        },
-        securityLevel: 'loose'
+  const currentTheme = targetTheme || (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default');
+  const isDark = currentTheme === 'dark';
+
+  function renderMermaid(mermaidApi: any): void {
+    mermaidApi.initialize({
+      startOnLoad: false,
+      theme: currentTheme,
+      themeVariables: isDark ? {
+        darkMode: true,
+        background: '#161B22',
+        primaryColor: '#2563EB',
+        primaryTextColor: '#F8FAFC',
+        lineColor: '#58A6FF'
+      } : {
+        darkMode: false,
+        background: '#FFFFFF',
+        primaryColor: '#F6F8FA',
+        primaryTextColor: '#1F2328',
+        primaryBorderColor: '#D0D7DE',
+        lineColor: '#57606A'
+      },
+      securityLevel: 'loose'
+    });
+
+    wraps.forEach((wrap, index) => {
+      let code = wrap.dataset['mermaidCode'];
+      if (!code) {
+        const pre = wrap.querySelector('.mermaid');
+        if (pre) {
+          code = pre.textContent || '';
+          wrap.dataset['mermaidCode'] = code;
+        }
+      }
+      if (!code) return;
+      wrap.innerHTML = `<pre class="mermaid" id="mermaid-wrap-${index}">${escapeHtml(code)}</pre>`;
+    });
+
+    try {
+      mermaidApi.run({
+        nodes: document.querySelectorAll('.mermaid-diagram-wrap .mermaid, .post-body pre.mermaid')
       });
-      mermaid.run();
+    } catch (e) {
+      console.warn('Mermaid rendering notice:', e);
     }
-  };
-  document.head.appendChild(script);
+  }
+
+  const win = window as any;
+  if (win.mermaid) {
+    renderMermaid(win.mermaid);
+  } else {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+    script.async = true;
+    script.onload = () => {
+      if (win.mermaid) {
+        renderMermaid(win.mermaid);
+      }
+    };
+    document.head.appendChild(script);
+  }
 }
 
 if (typeof document !== 'undefined') {

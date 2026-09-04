@@ -181,7 +181,7 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
           mermaidCode = 'graph TD\n' + mermaidCode;
         }
       }
-      return `\n<div class="mermaid-diagram-wrap"><pre class="mermaid">${mermaidCode}</pre></div>\n`;
+      return `\n<div class="mermaid-diagram-wrap" data-mermaid-code="${escapeHtml(mermaidCode)}"><pre class="mermaid">${escapeHtml(mermaidCode)}</pre></div>\n`;
     }
 
     // Auto-detect programming language if missing
@@ -200,22 +200,25 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
       }
     }
 
-    // Authentic GitHub / Medium Markdown code block (clean, no bulky headers)
-    return `\n<pre><code class="language-${displayLang}">${escapeHtml(text.trim())}</code></pre>\n`;
-  };
-
-  renderer.table = function({ header, rows }: { header: string; rows: string }) {
-    return `\n<div class="table-container">
-  <table>
-    <thead>${header}</thead>
-    <tbody>${rows}</tbody>
-  </table>
+    // Authentic GitHub / Medium Code Block with terminal header bar and accessible copy button
+    return `\n<div class="code-block-wrap">
+  <div class="code-block-header">
+    <span class="code-block-lang">${escapeHtml(displayLang.toUpperCase())}</span>
+    <button type="button" class="code-copy-btn" aria-label="Copy code to clipboard">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copy</span>
+    </button>
+  </div>
+  <pre><code class="language-${displayLang}">${escapeHtml(text.trim())}</code></pre>
 </div>\n`;
   };
 
-  renderer.tablecell = function({ text, header }: { text: string; header: boolean }) {
-    const tag = header ? 'th' : 'td';
-    return `<${tag}>${text}</${tag}>`;
+  renderer.heading = function({ text, depth }: { text: string; depth: number }) {
+    if (depth === 2 || depth === 3) {
+      const plainText = text.replace(/<[^>]+>/g, '').trim();
+      const id = slugify(plainText);
+      return `<h${depth} id="${id}"><a href="#${id}" class="heading-anchor" aria-label="Direct link to ${escapeHtml(plainText)}">#</a>${text}</h${depth}>\n`;
+    }
+    return `<h${depth}>${text}</h${depth}>\n`;
   };
 
   // Strip manual bylines if present in markdown
@@ -232,7 +235,17 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
   cleanedMarkdown = cleanedMarkdown.replace(/```[a-z0-9_-]*\s*```/gi, '');
 
-  // 2. Intelligent Auto-Fencer for Google Docs plain-text exports (where Spark forgot fences)
+  // 2. Clean Google Docs plain-text export quirks
+  cleanedMarkdown = cleanedMarkdown
+    .replace(/(\w)'''(\w)/g, "$1'$2")
+    .replace(/(\w)'''/g, "$1'")
+    .replace(/`\s+([^`\n]+?)\s+`/g, '`$1`')
+    .replace(/`\s+([^`\n]+?)`/g, '`$1`')
+    .replace(/`([^`\n]+?)\s+`/g, '`$1`')
+    .replace(/`\s+([,.;:!?\)])/g, '`$1')
+    .replace(/(\()\s+`/g, '$1`');
+
+  // 3. Intelligent Auto-Fencer for Google Docs plain-text exports (where Spark forgot fences)
   // A. Mermaid sequence diagrams & flowcharts
   if (!cleanedMarkdown.includes('```mermaid')) {
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(sequenceDiagram[\s\S]*?)(?=\n\n(?:[A-Z0-9#]|\d+\.|\##)|$)/g, '\n\n```mermaid\n$1\n```\n\n');
@@ -264,10 +277,10 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(\[CmdletBinding\(\)\][\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```powershell\n$1\n```\n\n');
   }
 
-  // 3. Demote any accidental '# ' headings in body to '## ' (prevents shell comments from becoming H1)
+  // 4. Demote any accidental '# ' headings in body to '## ' (prevents shell comments from becoming H1)
   cleanedMarkdown = cleanedMarkdown.replace(/^# (?!#)/gm, '## ');
 
-  // 4. Aggressively merge consecutive code blocks separated by whitespace or empty lines
+  // 5. Aggressively merge consecutive code blocks separated by whitespace or empty lines
   for (let i = 0; i < 10; i++) {
     const before = cleanedMarkdown;
     cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]*)\n([\s\S]*?)\n```[\s\r\n]+```\1?\n/gi, (match, lang, code) => {
@@ -287,42 +300,73 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
 
   let htmlBody = marked.parse(cleanedMarkdown, { renderer, gfm: true }) as string;
 
+  // Wrap all Markdown tables in responsive scrolling container (eliminates [object Object] bug)
+  htmlBody = htmlBody.replace(/<table(?:\s[^>]*)?>[\s\S]*?<\/table>/gi, (match) => {
+    return `\n<div class="table-container">\n${match}\n</div>\n`;
+  });
+
   // Compact excessive whitespace inside <pre><code> blocks
   htmlBody = htmlBody.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match) => {
     return match.replace(/\n\s*\n\s*\n/g, '\n\n').replace(/\n{2,}/g, '\n');
   });
 
-  // Inject Mermaid ESM script with dynamic light/dark theme support
-  if (htmlBody.includes('class="mermaid"')) {
-    const mermaidScript = `\n<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: isDark ? 'dark' : 'default',
-    themeVariables: isDark ? {
-      darkMode: true,
-      background: '#161B22',
-      primaryColor: '#2563EB',
-      primaryTextColor: '#F8FAFC',
-      lineColor: '#58A6FF'
-    } : {
-      darkMode: false,
-      background: '#FFFFFF',
-      primaryColor: '#F6F8FA',
-      primaryTextColor: '#1F2328',
-      primaryBorderColor: '#D0D7DE',
-      lineColor: '#57606A'
-    },
-    securityLevel: 'loose'
-  });
-</script>\n`;
-    htmlBody += mermaidScript;
-  }
-
-  // Prepend scoped style block for authentic GitHub/Medium Markdown code blocks and diagrams
+  // Prepend scoped style block for authentic GitHub/Medium Markdown code blocks, tables, and diagrams
   const scopedStyles = `<style>
-  /* GitHub / Medium Markdown Clean Code Styles */
+  /* Clean Code Block Window */
+  .code-block-wrap {
+    margin: 20px 0 !important;
+    border: 1px solid #d0d7de !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-color: #f6f8fa !important;
+  }
+  .code-block-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 8px 14px !important;
+    background-color: #eef2f6 !important;
+    border-bottom: 1px solid #d0d7de !important;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    color: #57606a !important;
+  }
+  .code-block-header .code-copy-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 3px 10px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    border: 1px solid #d0d7de !important;
+    background: #ffffff !important;
+    color: #24292f !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+  }
+  .code-block-header .code-copy-btn:hover {
+    background-color: #f3f4f6 !important;
+    border-color: #1f6feb !important;
+    color: #1f6feb !important;
+  }
+  .code-block-header .code-copy-btn.copied {
+    color: #1a7f37 !important;
+    border-color: #1a7f37 !important;
+  }
+  .code-block-wrap pre {
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 16px !important;
+    background: transparent !important;
+    color: #1f2328 !important;
+    overflow-x: auto !important;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+  }
   .post-body pre {
     background-color: #f6f8fa !important;
     border: 1px solid #d0d7de !important;
@@ -334,14 +378,18 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     color: #1f2328 !important;
     margin: 16px 0 !important;
     overflow-x: auto !important;
-    position: relative !important;
   }
-  .post-body pre code {
+  .post-body pre code,
+  [data-theme='dark'] .post-body pre code,
+  html[data-theme='dark'] .post-body pre code,
+  :root:not([data-theme='light']) .post-body pre code {
     background: transparent !important;
     color: inherit !important;
     padding: 0 !important;
     font-size: inherit !important;
     border: none !important;
+    box-shadow: none !important;
+    display: block !important;
   }
   .post-body code {
     background-color: rgba(175, 184, 193, 0.2) !important;
@@ -350,11 +398,26 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     font-size: 0.85em !important;
     color: #1f2328 !important;
   }
+  .heading-anchor {
+    display: inline-block !important;
+    color: #57606a !important;
+    text-decoration: none !important;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+    font-weight: 500 !important;
+    font-size: 0.85em !important;
+    margin-right: 0.35em !important;
+    opacity: 0.4 !important;
+    transition: opacity 0.15s ease, color 0.15s ease !important;
+  }
+  .heading-anchor:hover {
+    opacity: 1 !important;
+    color: #1f6feb !important;
+  }
   .mermaid-diagram-wrap {
     background: #ffffff !important;
     border: 1px solid #d0d7de !important;
     padding: 24px !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     margin: 24px 0 !important;
     text-align: center !important;
     overflow-x: auto !important;
@@ -369,18 +432,50 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     overflow: visible !important;
   }
   .table-container {
-    overflow-x: auto;
-    margin: 20px 0;
-    border: 1px solid #d0d7de;
-    border-radius: 6px;
+    overflow-x: auto !important;
+    margin: 20px 0 !important;
+    border: 1px solid #d0d7de !important;
+    border-radius: 8px !important;
   }
-  .table-container table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-  .table-container thead { background: #f6f8fa; border-bottom: 2px solid #d0d7de; }
-  .table-container th { padding: 8px 14px; font-weight: 600; color: #1f2328; border-bottom: 2px solid #d0d7de; }
-  .table-container td { padding: 8px 14px; border-bottom: 1px solid #d0d7de; color: #1f2328; }
-  .table-container tr:nth-child(even) td { background: #fbfcfd; }
+  .table-container table { width: 100% !important; border-collapse: collapse !important; font-size: 0.9em !important; }
+  .table-container thead { background: #f6f8fa !important; border-bottom: 2px solid #d0d7de !important; }
+  .table-container th { padding: 8px 14px !important; font-weight: 600 !important; color: #1f2328 !important; border-bottom: 2px solid #d0d7de !important; text-align: left !important; }
+  .table-container td { padding: 8px 14px !important; border-bottom: 1px solid #d0d7de !important; color: #1f2328 !important; }
+  .table-container tr:nth-child(even) td { background: #fbfcfd !important; }
+
+  /* Prism Syntax Highlighting Tokens (Light Mode) */
+  .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #6e7781 !important; font-style: italic !important; }
+  .token.punctuation { color: #24292f !important; }
+  .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted { color: #0550ae !important; }
+  .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted { color: #0a3069 !important; }
+  .token.operator, .token.entity, .token.url { color: #cf222e !important; }
+  .token.atrule, .token.attr-value, .token.keyword { color: #cf222e !important; font-weight: 600 !important; }
+  .token.function, .token.class-name { color: #8250df !important; font-weight: 600 !important; }
+  .token.regex, .token.important, .token.variable { color: #953800 !important; }
 
   /* Dark mode overrides (attribute or OS) */
+  [data-theme='dark'] .code-block-wrap, html[data-theme='dark'] .code-block-wrap {
+    border-color: #30363d !important;
+    background-color: #0d1117 !important;
+  }
+  [data-theme='dark'] .code-block-header, html[data-theme='dark'] .code-block-header {
+    background-color: #161b22 !important;
+    border-bottom-color: #30363d !important;
+    color: #8b949e !important;
+  }
+  [data-theme='dark'] .code-block-header .code-copy-btn, html[data-theme='dark'] .code-block-header .code-copy-btn {
+    background-color: #21262d !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+  }
+  [data-theme='dark'] .code-block-header .code-copy-btn:hover, html[data-theme='dark'] .code-block-header .code-copy-btn:hover {
+    background-color: #30363d !important;
+    border-color: #58a6ff !important;
+    color: #58a6ff !important;
+  }
+  [data-theme='dark'] .code-block-wrap pre, html[data-theme='dark'] .code-block-wrap pre {
+    color: #e6edf3 !important;
+  }
   [data-theme='dark'] .post-body pre, html[data-theme='dark'] .post-body pre {
     background-color: #161b22 !important;
     border-color: #30363d !important;
@@ -390,6 +485,19 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     background-color: rgba(110, 118, 129, 0.4) !important;
     color: #e6edf3 !important;
   }
+  [data-theme='dark'] .post-body pre code, html[data-theme='dark'] .post-body pre code {
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  [data-theme='dark'] .heading-anchor, html[data-theme='dark'] .heading-anchor {
+    color: #8b949e !important;
+  }
+  [data-theme='dark'] .heading-anchor:hover, html[data-theme='dark'] .heading-anchor:hover {
+    color: #58a6ff !important;
+  }
   [data-theme='dark'] .mermaid-diagram-wrap, html[data-theme='dark'] .mermaid-diagram-wrap {
     background: #161b22 !important;
     border-color: #30363d !important;
@@ -397,13 +505,40 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
   [data-theme='dark'] .mermaid-diagram-wrap pre.mermaid, html[data-theme='dark'] .mermaid-diagram-wrap pre.mermaid {
     color: #e6edf3 !important;
   }
-  [data-theme='dark'] .table-container, html[data-theme='dark'] .table-container { border-color: #30363d; }
-  [data-theme='dark'] .table-container thead, html[data-theme='dark'] .table-container thead { background: #161b22; border-bottom-color: #30363d; }
-  [data-theme='dark'] .table-container th, html[data-theme='dark'] .table-container th { color: #e6edf3; border-bottom-color: #30363d; }
-  [data-theme='dark'] .table-container td, html[data-theme='dark'] .table-container td { border-bottom-color: #30363d; color: #c9d1d9; }
-  [data-theme='dark'] .table-container tr:nth-child(even) td { background: #0d1117; }
+  [data-theme='dark'] .table-container, html[data-theme='dark'] .table-container { border-color: #30363d !important; }
+  [data-theme='dark'] .table-container thead, html[data-theme='dark'] .table-container thead { background: #161b22 !important; border-bottom-color: #30363d !important; }
+  [data-theme='dark'] .table-container th, html[data-theme='dark'] .table-container th { color: #e6edf3 !important; border-bottom-color: #30363d !important; }
+  [data-theme='dark'] .table-container td, html[data-theme='dark'] .table-container td { border-bottom-color: #30363d !important; color: #c9d1d9 !important; }
+  [data-theme='dark'] .table-container tr:nth-child(even) td { background: #0d1117 !important; }
+
+  /* Prism Syntax Highlighting Tokens (Dark Mode) */
+  [data-theme='dark'] .token.comment, html[data-theme='dark'] .token.comment { color: #8b949e !important; font-style: italic !important; }
+  [data-theme='dark'] .token.punctuation, html[data-theme='dark'] .token.punctuation { color: #c9d1d9 !important; }
+  [data-theme='dark'] .token.property, [data-theme='dark'] .token.tag, [data-theme='dark'] .token.boolean, [data-theme='dark'] .token.number, [data-theme='dark'] .token.constant, [data-theme='dark'] .token.symbol, [data-theme='dark'] .token.deleted, html[data-theme='dark'] .token.number { color: #79c0ff !important; }
+  [data-theme='dark'] .token.selector, [data-theme='dark'] .token.attr-name, [data-theme='dark'] .token.string, [data-theme='dark'] .token.char, [data-theme='dark'] .token.builtin, [data-theme='dark'] .token.inserted, html[data-theme='dark'] .token.string { color: #a5d6ff !important; }
+  [data-theme='dark'] .token.operator, [data-theme='dark'] .token.entity, [data-theme='dark'] .token.url, html[data-theme='dark'] .token.operator { color: #d2a8ff !important; }
+  [data-theme='dark'] .token.atrule, [data-theme='dark'] .token.attr-value, [data-theme='dark'] .token.keyword, html[data-theme='dark'] .token.keyword { color: #ff7b72 !important; font-weight: 600 !important; }
+  [data-theme='dark'] .token.function, [data-theme='dark'] .token.class-name, html[data-theme='dark'] .token.function { color: #d2a8ff !important; font-weight: 600 !important; }
+  [data-theme='dark'] .token.regex, [data-theme='dark'] .token.important, [data-theme='dark'] .token.variable, html[data-theme='dark'] .token.variable { color: #ffa657 !important; }
 
   @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .code-block-wrap {
+      border-color: #30363d !important;
+      background-color: #0d1117 !important;
+    }
+    :root:not([data-theme='light']) .code-block-header {
+      background-color: #161b22 !important;
+      border-bottom-color: #30363d !important;
+      color: #8b949e !important;
+    }
+    :root:not([data-theme='light']) .code-block-header .code-copy-btn {
+      background-color: #21262d !important;
+      border-color: #30363d !important;
+      color: #c9d1d9 !important;
+    }
+    :root:not([data-theme='light']) .code-block-wrap pre {
+      color: #e6edf3 !important;
+    }
     :root:not([data-theme='light']) .post-body pre {
       background-color: #161b22 !important;
       border-color: #30363d !important;
@@ -413,6 +548,13 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
       background-color: rgba(110, 118, 129, 0.4) !important;
       color: #e6edf3 !important;
     }
+    :root:not([data-theme='light']) .post-body pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
     :root:not([data-theme='light']) .mermaid-diagram-wrap {
       background: #161b22 !important;
       border-color: #30363d !important;
@@ -420,6 +562,11 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
     :root:not([data-theme='light']) .mermaid-diagram-wrap pre.mermaid {
       color: #e6edf3 !important;
     }
+    :root:not([data-theme='light']) .table-container { border-color: #30363d !important; }
+    :root:not([data-theme='light']) .table-container thead { background: #161b22 !important; border-bottom-color: #30363d !important; }
+    :root:not([data-theme='light']) .table-container th { color: #e6edf3 !important; border-bottom-color: #30363d !important; }
+    :root:not([data-theme='light']) .table-container td { border-bottom-color: #30363d !important; color: #c9d1d9 !important; }
+    :root:not([data-theme='light']) .table-container tr:nth-child(even) td { background: #0d1117 !important; }
   }
 </style>\n`;
 

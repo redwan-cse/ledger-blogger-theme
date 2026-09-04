@@ -712,8 +712,44 @@ html[data-theme='dark'] {
     }
   }
 
+  .heading-anchor {
+    color: oklch(75% 0.015 255) !important;
+
+    &:hover {
+      color: oklch(75% 0.15 259.735) !important;
+    }
+  }
+
+  .code-block-wrap {
+    background-color: oklch(16% 0.028 266) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+
+    .code-block-header {
+      background: oklch(14% 0.028 266) !important;
+      border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+      color: oklch(80% 0.015 255) !important;
+    }
+
+    .code-copy-btn {
+      background: oklch(22% 0.028 266 / 0.85) !important;
+      border-color: oklch(30% 0.03 260) !important;
+      color: oklch(75% 0.01 255) !important;
+
+      &:hover {
+        background: oklch(26% 0.03 260) !important;
+        color: #ffffff !important;
+        border-color: oklch(75% 0.15 259.735) !important;
+      }
+    }
+
+    pre {
+      background: transparent !important;
+      border: none !important;
+    }
+  }
+
   pre {
-    background-color: oklch(18% 0.028 266) !important;
+    background-color: oklch(16% 0.028 266) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
     color: oklch(98.415% 0.0034 247.858) !important;
   }
@@ -723,9 +759,13 @@ html[data-theme='dark'] {
     color: oklch(98.415% 0.0034 247.858) !important;
   }
 
+  .post-body pre code,
   pre code {
     background: transparent !important;
     color: inherit !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 
   .code-copy-btn {
@@ -737,6 +777,63 @@ html[data-theme='dark'] {
       background: oklch(26% 0.03 260) !important;
       color: #ffffff !important;
     }
+  }
+
+  // Prism Syntax Highlighting Tokens (Dark Mode)
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    color: #8b949e !important;
+    font-style: italic !important;
+  }
+
+  .token.punctuation {
+    color: #c9d1d9 !important;
+  }
+
+  .token.property,
+  .token.tag,
+  .token.boolean,
+  .token.number,
+  .token.constant,
+  .token.symbol,
+  .token.deleted {
+    color: #79c0ff !important;
+  }
+
+  .token.selector,
+  .token.attr-name,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted {
+    color: #a5d6ff !important;
+  }
+
+  .token.operator,
+  .token.entity,
+  .token.url {
+    color: #d2a8ff !important;
+  }
+
+  .token.atrule,
+  .token.attr-value,
+  .token.keyword {
+    color: #ff7b72 !important;
+    font-weight: 600 !important;
+  }
+
+  .token.function,
+  .token.class-name {
+    color: #d2a8ff !important;
+    font-weight: 600 !important;
+  }
+
+  .token.regex,
+  .token.important,
+  .token.variable {
+    color: #ffa657 !important;
   }
 
   .mermaid-diagram-wrap {
