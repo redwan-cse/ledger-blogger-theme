@@ -27,9 +27,29 @@ b:section(class='main' id='page_body' name='Page Body' showaddelement='false')
       b:if(cond='data:view.isError')
         b:include(name='status-message')/
       b:if(cond='not data:view.isError and data:posts.any')
+        b:if(cond='data:view.isMultipleItems')
+          b:include(name='filterBar')/
         b:include(name='super.main')/
       b:if(cond='not data:view.isError and not data:posts.any')
         b:include(name='status-message')/
+    b:includable(id='filterBar')
+      .posts-filter-bar#posts-filter-bar(aria-label='Filter and search articles')
+        .filter-group.filter-search-group
+          label.filter-label(for='catalog-search') Search articles
+          .filter-input-wrap
+            svg.filter-icon(viewBox='0 0 24 24' width='16' height='16' aria-hidden='true')
+              path(d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 14z' fill='currentColor')
+            input#catalog-search.filter-input(type='search' placeholder='Search by event, caption, category, or year' autocomplete='off' aria-label='Search articles')/
+        .filter-group.filter-year-group
+          label.filter-label(for='catalog-year') Year
+          .filter-select-wrap
+            select#catalog-year.filter-select(aria-label='Filter by year')
+              option(value='all') All years
+        .filter-group.filter-category-group
+          label.filter-label(for='catalog-category') Category
+          .filter-select-wrap
+            select#catalog-category.filter-select(aria-label='Filter by category')
+              option(value='all') All categories
     b:includable(id='noContentPlaceholder')
       b:include(name='status-message')/
     b:includable(id='postCommentsAndAd' var='post')

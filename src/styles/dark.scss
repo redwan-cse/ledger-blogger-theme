@@ -918,4 +918,90 @@ html[data-theme='dark'] {
       background: oklch(18% 0.02 266) !important;
     }
   }
+
+  .posts-filter-bar {
+    background-color: oklch(18% 0.025 266) !important;
+    border-color: oklch(27.950% 0.0368 260.031) !important;
+    box-shadow: 0 4px 16px oklch(0% 0 0 / 0.2) !important;
+
+    .filter-label {
+      color: oklch(98.415% 0.0034 247.858) !important;
+    }
+
+    .filter-input {
+      background-color: oklch(14% 0.02 266) !important;
+      border-color: oklch(27.950% 0.0368 260.031) !important;
+      color: oklch(98.415% 0.0034 247.858) !important;
+
+      &::placeholder {
+        color: oklch(65% 0.015 255) !important;
+      }
+
+      &:focus {
+        border-color: oklch(68% 0.19 250) !important;
+        box-shadow: 0 0 0 3px oklch(68% 0.19 250 / 0.2) !important;
+      }
+    }
+
+    .filter-select-wrap::after {
+      border-top-color: oklch(75% 0.015 255) !important;
+    }
+
+    .filter-select {
+      background-color: oklch(14% 0.02 266) !important;
+      border-color: oklch(27.950% 0.0368 260.031) !important;
+      color: oklch(98.415% 0.0034 247.858) !important;
+
+      &:focus {
+        border-color: oklch(68% 0.19 250) !important;
+        box-shadow: 0 0 0 3px oklch(68% 0.19 250 / 0.2) !important;
+      }
+
+      option {
+        background-color: #161b22;
+        color: #f0f6fc;
+      }
+    }
+  }
+
+  .pagination {
+    border-top-color: oklch(27.950% 0.0368 260.031) !important;
+
+    .page-nav-btn {
+      border-color: oklch(62% 0.19 250) !important;
+      color: oklch(75% 0.15 250) !important;
+
+      &:hover:not(:disabled):not(.is-disabled) {
+        background: oklch(62% 0.19 250) !important;
+        color: #ffffff !important;
+      }
+
+      &:disabled,
+      &.is-disabled {
+        border-color: oklch(30% 0.02 260) !important;
+        color: oklch(50% 0.02 260) !important;
+      }
+    }
+
+    .page-num-btn {
+      border-color: oklch(62% 0.19 250) !important;
+      color: oklch(75% 0.15 250) !important;
+
+      &:hover:not(.is-active):not(.page-ellipsis) {
+        background: oklch(62% 0.19 250 / 0.15) !important;
+        color: #ffffff !important;
+      }
+
+      &.is-active {
+        background: oklch(62% 0.19 250) !important;
+        border-color: oklch(62% 0.19 250) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 10px oklch(62% 0.19 250 / 0.4) !important;
+      }
+
+      &.page-ellipsis {
+        color: oklch(60% 0.015 255) !important;
+      }
+    }
+  }
 }

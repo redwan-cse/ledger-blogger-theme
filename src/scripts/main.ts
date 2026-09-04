@@ -1098,7 +1098,270 @@ function init(): void {
       initReadingTime();
       initArticleAudioReader();
       initMermaidDiagrams();
+    } else {
+      initHomepageCatalog();
     }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Module 13: Homepage Auto-Filtered Catalog & Numbered Pagination Suite
+// ---------------------------------------------------------------------------
+
+interface CatalogPost {
+  id: string;
+  title: string;
+  url: string;
+  published: string;
+  dateStr: string;
+  year: string;
+  categories: string[];
+  excerpt: string;
+  thumbnail?: string;
+}
+
+export function initHomepageCatalog(): void {
+  const filterBar = document.getElementById('posts-filter-bar');
+  if (!filterBar) return;
+
+  const searchInput = document.getElementById('catalog-search') as HTMLInputElement | null;
+  const yearSelect = document.getElementById('catalog-year') as HTMLSelectElement | null;
+  const categorySelect = document.getElementById('catalog-category') as HTMLSelectElement | null;
+  const postsContainer = document.querySelector<HTMLElement>('.blog-posts, #page_body .blog-posts, .main-content .blog-posts');
+
+  if (!postsContainer) return;
+
+  let allPosts: CatalogPost[] = [];
+  let filteredPosts: CatalogPost[] = [];
+  let currentPage = 1;
+  const getPageSize = () => (window.innerWidth >= 768 ? 8 : 4);
+
+  fetch('/feeds/posts/default?alt=json&max-results=150', { headers: { Accept: 'application/json' } })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      const entries = data?.feed?.entry || [];
+      if (entries.length === 0) return;
+
+      allPosts = entries.map((entry: any) => {
+        const id = entry.id?.$t || '';
+        const title = entry.title?.$t || 'Untitled';
+        const url = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
+        const published = entry.published?.$t || '';
+        const dateObj = published ? new Date(published) : new Date();
+        const year = String(dateObj.getFullYear());
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
+
+        let contentHtml = entry.content?.$t || entry.summary?.$t || '';
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentHtml;
+        tempDiv.querySelectorAll('pre, code, style, script, .table-of-contents').forEach((el) => el.remove());
+        const rawExcerpt = tempDiv.textContent?.replace(/\s+/g, ' ').trim() || '';
+        const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
+
+        let thumbnail = entry.media$thumbnail?.url;
+        if (!thumbnail) {
+          const img = tempDiv.querySelector('img');
+          if (img && img.src && !img.src.startsWith('data:')) {
+            thumbnail = img.src;
+          }
+        }
+
+        return {
+          id,
+          title,
+          url,
+          published,
+          dateStr,
+          year,
+          categories,
+          excerpt,
+          thumbnail
+        };
+      });
+
+      if (yearSelect) {
+        const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
+        yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
+      }
+
+      if (categorySelect) {
+        const allCats = Array.from(new Set(allPosts.flatMap((p) => p.categories))).sort();
+        categorySelect.innerHTML = '<option value="all">All categories</option>' + allCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      }
+
+      applyFilter();
+    })
+    .catch(() => {});
+
+  function applyFilter(): void {
+    const query = (searchInput?.value || '').toLowerCase().trim();
+    const yearVal = yearSelect?.value || 'all';
+    const catVal = categorySelect?.value || 'all';
+
+    filteredPosts = allPosts.filter((post) => {
+      if (yearVal !== 'all' && post.year !== yearVal) return false;
+      if (catVal !== 'all' && !post.categories.includes(catVal)) return false;
+      if (query) {
+        const matchTitle = post.title.toLowerCase().includes(query);
+        const matchExcerpt = post.excerpt.toLowerCase().includes(query);
+        const matchCat = post.categories.some((c) => c.toLowerCase().includes(query));
+        if (!matchTitle && !matchExcerpt && !matchCat) return false;
+      }
+      return true;
+    });
+
+    currentPage = 1;
+    renderPage();
+  }
+
+  function renderPage(): void {
+    const pageSize = getPageSize();
+    const totalPages = Math.ceil(filteredPosts.length / pageSize) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * pageSize;
+    const pagePosts = filteredPosts.slice(startIdx, startIdx + pageSize);
+
+    const h2Tag = 'h' + '2';
+    const h3Tag = 'h' + '3';
+
+    if (pagePosts.length === 0) {
+      postsContainer!.innerHTML = `
+        <div class="empty-state" style="padding: 40px 20px; text-align: center;">
+          <${h3Tag} class="empty-state-title" style="margin-bottom: 8px;">No articles found</${h3Tag}>
+          <p class="empty-state-desc" style="color: var(--ink-muted, #57606a);">Try clearing your search query or selecting a different year or category.</p>
+        </div>
+      `;
+    } else {
+      postsContainer!.innerHTML = pagePosts
+        .map((p, idx) => {
+          return `
+          <article class="post">
+            <${h2Tag} class="post-title">
+              <a href="${p.url}">${escapeHtml(p.title)}</a>
+            </${h2Tag}>
+            <div class="post-meta-row">
+              <div class="post-author-mini">
+                <img class="post-author-mini-avatar" src="https://redwan.work/profile.jpg" alt="Md Redwan Ahmed" width="22" height="22" loading="lazy" />
+                <span class="post-author-mini-name">Md. Redwan Ahmed</span>
+              </div>
+              <span class="post-meta-sep">·</span>
+              <time class="post-date" datetime="${p.published}">${escapeHtml(p.dateStr)}</time>
+            </div>
+            ${p.thumbnail ? `
+              <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
+                <img class="post-thumbnail" src="${p.thumbnail}" alt="" width="1200" height="630" loading="${idx < 2 ? 'eager' : 'lazy'}" />
+              </a>
+            ` : ''}
+            <div class="post-excerpt">${escapeHtml(p.excerpt)}</div>
+            <div class="post-footer">
+              <div class="post-labels">
+                ${p.categories.map((c) => `<span class="post-label">${escapeHtml(c)}</span>`).join('')}
+              </div>
+              <div class="jump-link">
+                <a href="${p.url}">
+                  <span class="jump-link-text">Read article</span>
+                  <span class="jump-link-arrow" aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+        })
+        .join('');
+    }
+
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages: number): void {
+    let paginationEl = document.getElementById('blog-pagination');
+    if (!paginationEl) {
+      paginationEl = document.createElement('nav');
+      paginationEl.id = 'blog-pagination';
+      paginationEl.className = 'pagination post-pagination';
+      paginationEl.setAttribute('aria-label', 'Articles pagination');
+      postsContainer!.parentNode?.insertBefore(paginationEl, postsContainer!.nextSibling);
+    }
+
+    if (totalPages <= 1) {
+      paginationEl.style.display = 'none';
+      return;
+    }
+    paginationEl.style.display = 'flex';
+
+    let html = '';
+
+    const prevDisabled = currentPage === 1;
+    html += `<button class="page-nav-btn prev-btn" type="button"${prevDisabled ? ' disabled="disabled"' : ''}>Previous</button>`;
+
+    html += '<div class="numbered-pages">';
+    for (let i = 1; i <= totalPages; i++) {
+      if (totalPages > 8) {
+        if (i > 1 && i < currentPage - 2) {
+          if (i === 2) html += '<span class="page-num-btn page-ellipsis">…</span>';
+          continue;
+        }
+        if (i < totalPages && i > currentPage + 2) {
+          if (i === totalPages - 1) html += '<span class="page-num-btn page-ellipsis">…</span>';
+          continue;
+        }
+      }
+      const isActive = i === currentPage;
+      html += `<button class="page-num-btn${isActive ? ' is-active' : ''}" type="button" data-page="${i}" aria-label="Page ${i}">${i}</button>`;
+    }
+    html += '</div>';
+
+    const nextDisabled = currentPage === totalPages;
+    html += `<button class="page-nav-btn next-btn" type="button"${nextDisabled ? ' disabled="disabled"' : ''}>Next</button>`;
+
+    paginationEl.innerHTML = html;
+
+    paginationEl.querySelector('.prev-btn')?.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        scrollToTop();
+        renderPage();
+      }
+    });
+
+    paginationEl.querySelector('.next-btn')?.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        scrollToTop();
+        renderPage();
+      }
+    });
+
+    paginationEl.querySelectorAll<HTMLButtonElement>('.page-num-btn[data-page]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const page = Number(btn.getAttribute('data-page'));
+        if (page && page !== currentPage) {
+          currentPage = page;
+          scrollToTop();
+          renderPage();
+        }
+      });
+    });
+  }
+
+  function scrollToTop(): void {
+    filterBar?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  let debounceTimer: any;
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => applyFilter(), 150);
+  });
+
+  yearSelect?.addEventListener('change', () => applyFilter());
+  categorySelect?.addEventListener('change', () => applyFilter());
+
+  window.addEventListener('resize', () => {
+    renderPage();
   });
 }
 

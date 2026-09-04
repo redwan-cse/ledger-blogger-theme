@@ -293,6 +293,14 @@ function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string 
 
   let htmlBody = marked.parse(cleanedMarkdown, { renderer, gfm: true }) as string;
 
+  // Insert <!--more--> jump break after the first paragraph to prevent Blogger page weight cut-off
+  if (!htmlBody.includes('<!--more-->')) {
+    const firstPIndex = htmlBody.indexOf('</p>');
+    if (firstPIndex !== -1) {
+      htmlBody = htmlBody.slice(0, firstPIndex + 4) + '\n<!--more-->\n' + htmlBody.slice(firstPIndex + 4);
+    }
+  }
+
   // Wrap all Markdown tables in responsive scrolling container (eliminates [object Object] bug)
   htmlBody = htmlBody.replace(/<table(?:\s[^>]*)?>[\s\S]*?<\/table>/gi, (match) => {
     return `\n<div class="table-container">\n${match}\n</div>\n`;
@@ -925,14 +933,13 @@ async function main() {
             console.log(`Committed & pushed thumbnail to repository.`);
             pushSucceeded = true;
           } catch (e: any) {
-            console.log(`Note: Local git commit/push skipped (${e.message}). Using base64 inline image.`);
+            console.log(`Note: Local git commit/push skipped (${e.message}). Using Google Drive thumbnail URL.`);
           }
 
           if (pushSucceeded) {
             heroImageUrl = `https://raw.githubusercontent.com/redwan-cse/ledger-blogger-theme/main/assets/posts/${postSlug}/thumbnail.png`;
           } else {
-            const mime = thumbnailFile.mimeType || 'image/png';
-            heroImageUrl = `data:${mime};base64,${imgBuffer.toString('base64')}`;
+            heroImageUrl = `https://lh3.googleusercontent.com/d/${thumbnailFile.id}`;
           }
         }
       }

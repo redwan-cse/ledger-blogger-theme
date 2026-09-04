@@ -1,14 +1,18 @@
 b:includable(id='postPagination')
   b:if(cond='data:newerPageUrl or data:olderPageUrl')
-    .pagination
+    nav.pagination.post-pagination#blog-pagination(aria-label='Posts navigation')
       b:if(cond='data:newerPageUrl')
-        a.newer-link.blog-pager-newer-link#Blog1_blog-pager-newer-link(expr:href='data:newerPageUrl')
-          svg(aria-hidden='true' height='16' viewBox='0 0 24 24' width='16')
-            path(d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z' fill='currentColor')
-          span Newer Posts
+        a.newer-link.blog-pager-newer-link.page-nav-btn.prev-btn#Blog1_blog-pager-newer-link(expr:href='data:newerPageUrl')
+          span Previous
+      b:if(cond='not data:newerPageUrl')
+        button.page-nav-btn.prev-btn(type='button' disabled='disabled')
+          span Previous
+      div.numbered-pages#numbered-pages
+        span.page-num-btn.is-active 1
       b:if(cond='data:olderPageUrl')
-        a.older-link.blog-pager-older-link#Blog1_blog-pager-older-link(expr:href='data:olderPageUrl')
-          span Older Posts
-          svg(aria-hidden='true' height='16' viewBox='0 0 24 24' width='16')
-            path(d='M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z' fill='currentColor')
+        a.older-link.blog-pager-older-link.page-nav-btn.next-btn#Blog1_blog-pager-older-link(expr:href='data:olderPageUrl')
+          span Next
+      b:if(cond='not data:olderPageUrl')
+        button.page-nav-btn.next-btn(type='button' disabled='disabled')
+          span Next
 
