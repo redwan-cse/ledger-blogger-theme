@@ -294,15 +294,19 @@ body.is-home-lead .post:first-of-type {
     gap: 6px;
 
     &.filter-search-group {
-      flex: 1 1 240px;
+      flex: 2 1 200px;
     }
 
     &.filter-year-group {
-      flex: 0 0 140px;
+      flex: 1 1 110px;
+    }
+
+    &.filter-month-group {
+      flex: 1 1 130px;
     }
 
     &.filter-category-group {
-      flex: 0 0 200px;
+      flex: 1.5 1 160px;
     }
   }
 
@@ -394,10 +398,19 @@ body.is-home-lead .post:first-of-type {
     flex-direction: column;
     align-items: stretch;
     gap: $space-3;
+    padding: $space-4;
 
-    .filter-group.filter-year-group,
-    .filter-group.filter-category-group {
-      flex: 1 1 100%;
+    .filter-group {
+      flex: none !important;
+      width: 100% !important;
+
+      &.filter-search-group,
+      &.filter-year-group,
+      &.filter-month-group,
+      &.filter-category-group {
+        flex: none !important;
+        width: 100% !important;
+      }
     }
   }
 }

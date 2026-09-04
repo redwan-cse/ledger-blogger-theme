@@ -45,6 +45,11 @@ b:section(class='main' id='page_body' name='Page Body' showaddelement='false')
           .filter-select-wrap
             select#catalog-year.filter-select(aria-label='Filter by year')
               option(value='all') All years
+        .filter-group.filter-month-group
+          label.filter-label(for='catalog-month') Month
+          .filter-select-wrap
+            select#catalog-month.filter-select(aria-label='Filter by month')
+              option(value='all') All months
         .filter-group.filter-category-group
           label.filter-label(for='catalog-category') Category
           .filter-select-wrap

@@ -1115,6 +1115,7 @@ interface CatalogPost {
   published: string;
   dateStr: string;
   year: string;
+  month: string;
   categories: string[];
   excerpt: string;
   thumbnail?: string;
@@ -1126,6 +1127,7 @@ export function initHomepageCatalog(): void {
 
   const searchInput = document.getElementById('catalog-search') as HTMLInputElement | null;
   const yearSelect = document.getElementById('catalog-year') as HTMLSelectElement | null;
+  const monthSelect = document.getElementById('catalog-month') as HTMLSelectElement | null;
   const categorySelect = document.getElementById('catalog-category') as HTMLSelectElement | null;
   const postsContainer = document.querySelector<HTMLElement>('.blog-posts, #page_body .blog-posts, .main-content .blog-posts');
 
@@ -1149,6 +1151,7 @@ export function initHomepageCatalog(): void {
         const published = entry.published?.$t || '';
         const dateObj = published ? new Date(published) : new Date();
         const year = String(dateObj.getFullYear());
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
 
@@ -1174,6 +1177,7 @@ export function initHomepageCatalog(): void {
           published,
           dateStr,
           year,
+          month,
           categories,
           excerpt,
           thumbnail
@@ -1183,6 +1187,25 @@ export function initHomepageCatalog(): void {
       if (yearSelect) {
         const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
         yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
+      }
+
+      if (monthSelect) {
+        const MONTHS = [
+          { val: '01', name: 'January' },
+          { val: '02', name: 'February' },
+          { val: '03', name: 'March' },
+          { val: '04', name: 'April' },
+          { val: '05', name: 'May' },
+          { val: '06', name: 'June' },
+          { val: '07', name: 'July' },
+          { val: '08', name: 'August' },
+          { val: '09', name: 'September' },
+          { val: '10', name: 'October' },
+          { val: '11', name: 'November' },
+          { val: '12', name: 'December' }
+        ];
+        monthSelect.innerHTML = '<option value="all">All months</option>' +
+          MONTHS.map((m) => `<option value="${m.val}">${m.name}</option>`).join('');
       }
 
       if (categorySelect) {
@@ -1197,10 +1220,12 @@ export function initHomepageCatalog(): void {
   function applyFilter(): void {
     const query = (searchInput?.value || '').toLowerCase().trim();
     const yearVal = yearSelect?.value || 'all';
+    const monthVal = monthSelect?.value || 'all';
     const catVal = categorySelect?.value || 'all';
 
     filteredPosts = allPosts.filter((post) => {
       if (yearVal !== 'all' && post.year !== yearVal) return false;
+      if (monthVal !== 'all' && post.month !== monthVal) return false;
       if (catVal !== 'all' && !post.categories.includes(catVal)) return false;
       if (query) {
         const matchTitle = post.title.toLowerCase().includes(query);
@@ -1354,6 +1379,7 @@ export function initHomepageCatalog(): void {
   });
 
   yearSelect?.addEventListener('change', () => applyFilter());
+  monthSelect?.addEventListener('change', () => applyFilter());
   categorySelect?.addEventListener('change', () => applyFilter());
 
   window.addEventListener('resize', () => {
