@@ -389,8 +389,10 @@ html[data-theme='dark'] {
     }
   }
 
+  .post-label,
   .label-link,
-  .post-labels .label-link {
+  .post-labels .label-link,
+  .post-labels .post-label {
     background-color: oklch(22% 0.04 260) !important;
     border-color: oklch(35% 0.06 260) !important;
     color: oklch(80% 0.14 260) !important;

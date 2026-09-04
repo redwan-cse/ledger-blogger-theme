@@ -1317,7 +1317,7 @@ export function initHomepageCatalog(): void {
         .map((p, idx) => {
           return `
           <article class="post">
-            <div class="post-card-inner">
+            <div class="post-card-inner ${p.thumbnail ? 'has-thumbnail' : 'no-thumbnail'}">
               ${p.thumbnail ? `
                 <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
                   <img class="post-thumbnail" src="${p.thumbnail}" alt="" loading="${idx < 2 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" />

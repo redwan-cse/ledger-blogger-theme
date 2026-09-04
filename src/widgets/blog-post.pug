@@ -16,7 +16,7 @@ b:includable(id='post' var='post')
         b:include(name='postAuthorBio' data='post')/
         b:include(name='postNav' data='post')/
     b:if(cond='not data:view.isSingleItem')
-      div.post-card-inner
+      div.post-card-inner(expr:class='data:post.featuredImage ? "has-thumbnail" : "no-thumbnail"')
         b:if(cond='data:post.featuredImage')
           a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
             b:if(cond='data:post.id == data:posts.first.id')
