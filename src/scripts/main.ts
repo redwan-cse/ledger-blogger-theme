@@ -1331,7 +1331,7 @@ export function initHomepageCatalog(): void {
                 </${h2Tag}>
                 <div class="post-meta-row">
                   <div class="post-author-mini">
-                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s40-c-rw" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
+                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s80" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
                     <span class="post-author-mini-name">Md. Redwan Ahmed</span>
                   </div>
                   <span class="post-meta-sep">·</span>

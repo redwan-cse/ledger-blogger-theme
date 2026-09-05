@@ -476,7 +476,7 @@
     </b:if>
     <link rel="preconnect" href="https://blogger.googleusercontent.com" crossorigin="anonymous"/>
     <b:if cond="data:view.isHomepage and not data:newerPageUrl">
-      <link rel="preload" as="image" href="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s260-c-rw" fetchpriority="high"/>
+      <link rel="preload" as="image" href="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s520" fetchpriority="high"/>
     </b:if>
     <b:if cond="data:view.isPost and data:view.featuredImage">
       <link rel="preload" as="image" expr:href="data:view.featuredImage" fetchpriority="high"/>
@@ -644,7 +644,7 @@
               <b:widget-setting name="imagePlacement">BEHIND</b:widget-setting>
               <b:widget-setting name="displayWidth">0</b:widget-setting>
             </b:widget-settings>
-            <b:includable id="main" var="this"><a class="header-brand" expr:href="data:blog.homepageUrl" aria-label="Md Redwan Ahmed — Home"><img class="header-avatar" alt="Md Redwan Ahmed" height="40" loading="lazy" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s80-c-rw" width="40"/>
+            <b:includable id="main" var="this"><a class="header-brand" expr:href="data:blog.homepageUrl" aria-label="Md Redwan Ahmed — Home"><img class="header-avatar" alt="Md Redwan Ahmed" height="40" loading="lazy" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s160" width="40"/>
                 <div class="header-brand-text">
                   <b:include cond="data:imagePlacement in {&quot;REPLACE&quot;, &quot;BEFORE_DESCRIPTION&quot;}" name="image"/>
                   <b:include cond="data:imagePlacement not in {&quot;REPLACE&quot;, &quot;BEFORE_DESCRIPTION&quot;}" name="title"/>
@@ -743,7 +743,7 @@
                         <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" fill="currentColor"></path>
                       </svg><span>Fast Cyber Defense</span></a><a class="hero-btn hero-btn-tertiary" href="https://redwan.work/" target="_blank" rel="noopener noreferrer"><span>Portfolio (redwan.work)</span></a></div>
                 </div>
-                <div class="hero-photo-col"><img class="hero-portrait-img" alt="Md Redwan Ahmed — Founder &amp; CEO of Fast Cyber Defense" height="260" width="260" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s260-c-rw" fetchpriority="high" decoding="async"/></div>
+                <div class="hero-photo-col"><img class="hero-portrait-img" alt="Md Redwan Ahmed — Founder &amp; CEO of Fast Cyber Defense" height="260" width="260" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s520" fetchpriority="high" decoding="async"/></div>
               </div>
             </b:if>
           </b:includable>
@@ -902,7 +902,7 @@
             <header class="post-header">
               <div class="post-meta-row">
                 <b:if cond="data:post.author.name">
-                  <div class="post-author-mini"><img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s40-c-rw" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy"/><span class="post-author-mini-name">
+                  <div class="post-author-mini"><img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s80" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy"/><span class="post-author-mini-name">
                       <b:eval expr="data:post.author.name"/></span></div>
                 </b:if>
                 <b:if cond="data:post.date"><span class="post-meta-sep">·</span>
@@ -1276,7 +1276,7 @@
             </form>
           </div>
           <div class="sidebar-card sidebar-profile-card">
-            <div class="sidebar-profile-header"><img class="sidebar-avatar" alt="Md Redwan Ahmed" height="48" loading="lazy" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s96-c-rw" width="48"/>
+            <div class="sidebar-profile-header"><img class="sidebar-avatar" alt="Md Redwan Ahmed" height="48" loading="lazy" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s160" width="48"/>
               <div class="sidebar-profile-info">
                 <h3 class="sidebar-name">
                   <b:eval expr="&quot;Md Redwan Ahmed&quot;"/>
@@ -1405,7 +1405,7 @@
     <div class="drawer-backdrop" aria-hidden="true"></div>
     <nav class="mobile-drawer" id="mobile-drawer" aria-hidden="true" aria-label="Mobile Navigation" inert="true">
       <div class="drawer-header">
-        <div class="drawer-brand"><img class="drawer-avatar" alt="Md Redwan Ahmed" height="38" loading="lazy" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s76-c-rw" width="38"/>
+        <div class="drawer-brand"><img class="drawer-avatar" alt="Md Redwan Ahmed" height="38" loading="lazy" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s160" width="38"/>
           <div class="drawer-brand-text">
             <div class="drawer-title">Md Redwan Ahmed</div>
             <div class="drawer-subtitle">Cyber Security Professional</div>
@@ -1529,7 +1529,7 @@
                 </${m}>
                 <div class="post-meta-row">
                   <div class="post-author-mini">
-                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s40-c-rw" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
+                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s80" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
                     <span class="post-author-mini-name">Md. Redwan Ahmed</span>
                   </div>
                   <span class="post-meta-sep">\xB7</span>
