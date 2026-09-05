@@ -42,9 +42,9 @@ jobs:
 
       - name: Execute Search Engine Submission
         env:
-          BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY }}
-          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
-          INDEXNOW_KEY_LOCATION: ${{ secrets.INDEXNOW_KEY_LOCATION || '' }}
+          BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY || vars.BING_WEBMASTER_API_KEY }}
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY || vars.INDEXNOW_KEY }}
+          INDEXNOW_KEY_LOCATION: ${{ secrets.INDEXNOW_KEY_LOCATION || vars.INDEXNOW_KEY_LOCATION || '' }}
           SUBMIT_ALL: ${{ inputs.submit_all }}
           TARGET_URL: ${{ inputs.target_url }}
           DRY_RUN: ${{ inputs.dry_run }}
