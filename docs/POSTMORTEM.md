@@ -1,51 +1,35 @@
-# Postmortem: the predecessor theme
+# Postmortem: The Predecessor Theme & Layouts V3 Runtime Hazards
 
-**Subject:** `DevRedwanAhmed/GoogleBloggerTheme`
-**Outcome:** shipped a blank homepage for its entire life
-**Why this document exists:** every requirement in the project plan traces back to
-one of the five findings below.
+**Subject:** `DevRedwanAhmed/GoogleBloggerTheme` & Blogger Layouts V3 Architecture  
+**Outcome:** Resolved silent blank rendering, widget instantiation failures, and EL runtime crashes.  
+**Why this document exists:** Every architecture decision and contract rule in this repository traces back to one of the findings below.
 
 ---
 
-## What happened
+## Part 1: What Happened in the Predecessor Theme
 
-The theme was generated in a single pass by an AI agent that had never rendered a
-Blogger page. It produced:
+The predecessor theme was generated in a single pass by an AI agent that had never rendered a real Blogger page. It produced:
 
 - 44 KB of valid, well-formed XML
-- a competent SCSS design system (15 partials, design tokens, dark/light)
-- a three-job CI pipeline
-- 41 passing tests
-- a README documenting features and widget zones
+- A competent SCSS design system (15 partials, design tokens, dark/light)
+- A three-job CI pipeline
+- 41 passing tests asserting XML string presence
+- A README documenting features and layout zones
 
-And it served **zero posts on the homepage, search, label, and archive views**
-from the day it was installed.
-
-Item pages rendered. Nothing else did.
+And it served **zero posts on the homepage, search, label, and archive views** from the day it was installed. Item pages rendered minimal text; nothing else rendered at all.
 
 ---
 
-## The five findings
+## Part 2: The Core Postmortem Findings
 
-### F1 — A V3 theme can fail totally and silently
+### F1 — A V3 Theme Can Fail Totally and Silently
+`<b:widget id='Blog1' type='Blog'>` carried no `version='2'` while `<html>` declared `b:layoutsVersion='3'`. Blogger treated the widget as legacy, discarded every custom includable, and rendered its own defaults.
+- Head markup executed, but widget markup was discarded.
+- One missing attribute deleted the entire template body.
+> **Rule:** Version attributes are load-bearing. Contract check asserts `version='2'` on every `<b:widget>`.
 
-`<b:widget id='Blog1' type='Blog'>` carried no `version='2'` while `<html>`
-declared `b:layoutsVersion='3'`. Blogger treated the widget as legacy, discarded
-every custom includable, and rendered its own defaults.
-
-**The evidence.** The item page served 506 characters of post text while
-containing neither `.post-single` nor `.post-body`. And exactly two JSON-LD
-blocks appeared, both defined in `<head>`, while the third, `BlogPosting`,
-defined inside the `post` includable, never did.
-
-Head markup executed. Widget markup did not. Same file, same upload, different
-fate. One missing attribute deleted the entire template body.
-
-> **Rule:** version attributes are load-bearing. Contract check #1 asserts
-> `version='2'` on every widget.
-
-### F2 — Silence is the worst failure mode
-
+### F2 — Silence is the Worst Failure Mode
+The predecessor fallback emitted nothing unless `data:navMessage` happened to be populated:
 ```xml
 <b:includable id='statusMessage'>
   <b:if cond='data:navMessage'>
@@ -53,114 +37,48 @@ fate. One missing attribute deleted the entire template body.
   </b:if>
 </b:includable>
 ```
+So the theme rendered a blank page instead of an informative error and could not tell anyone why.
+> **Rule:** Empty states are infrastructure, not polish. No branch may emit nothing. Every empty and error state is a named, tested requirement.
 
-The only fallback when posts failed to resolve, and it emitted **nothing** unless
-`data:navMessage` happened to be set. So the theme rendered a blank page instead
-of an error and could not tell anyone why.
+### F3 — Never Hide Content Behind an Animation
+Post cards started with `opacity: 0; transform: translateY(24px);` and depended on an `IntersectionObserver` JavaScript callback to reveal. Any blocked script, parse error, or user motion preference produced a permanently blank page.
+> **Rule:** Content must be visible by default without JavaScript. Core rendering is 100% server-side.
 
-This is what turned a bug into an *undiagnosable* bug. It cost far more time than
-F1 itself.
+### F4 — Testing a Fixture is Not Testing
+The predecessor had Playwright tests pointing at `tests/mock.html` with hardcoded HTML post cards. The tests passed 100% while production was 100% blank.
+> **Rule:** Assert on actual Blogger output or verified contract transformations, never on hand-written static fixtures.
 
-> **Rule:** empty states are infrastructure, not polish. No branch may emit
-> nothing. Every empty and error state is a named, tested requirement.
+### F5 — A Test Must Know What It Is Measuring
+Debugging cycles were lost when an un-uploaded local build was tested against a stale live staging environment, reporting defects from an old build against new source code.
+> **Rule:** A build stamp (`<meta name="theme-build" content="..."/>`) gates verification and refuses to assert against an un-deployed build.
 
-### F3 — Never hide content behind an animation
+### F6 — The `maxwidgets` Hazard and Database Migration Failure
+Declaring `maxwidgets='1'` or `maxwidgets='3'` on `<b:section>` tags caused Blogger's internal layout database migration parser to fail to auto-populate default widget beans for custom section IDs.
+- None of Google's official native V3 themes (Contempo, Soho, Notable, Essential, Emporio) use `maxwidgets`.
+- Removing `maxwidgets` allows Blogger to bind widgets properly into its layout database.
+> **Rule:** Never use `maxwidgets` on any `<b:section>`.
 
-```scss
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-}
-```
+### F7 — Blogger Java EL Runtime Crash on `.empty`
+Blogger's server-side template engine is backed by a custom Java Expression Language (EL) interpreter. Evaluating `.empty` on collections (such as `data:posts.empty`, `data:labels.empty`, or `data:comments.empty`) throws an unhandled Java reflection exception, abruptly terminating template execution and producing a blank page.
+- Native V3 checks for non-empty collections truthily: `<b:if cond='data:posts'>`.
+- Native V3 checks for empty collections with negation: `<b:if cond='not data:posts'>`.
+> **Rule:** Never access `.empty`. Contract rule 37 (`no-dot-empty`) strictly forbids `.empty` anywhere in the template XML.
 
-Every post card started invisible and only appeared when JavaScript added
-`.visible` via IntersectionObserver. No no-JS fallback, no reduced-motion
-handling, and the unsupported-API branch returned silently leaving everything
-hidden forever.
-
-Any blocked script, parse error, or motion preference produced the exact same
-user-visible symptom as F1, with a completely different cause.
-
-> **Rule:** content is visible by default. The successor removes scroll-triggered
-> reveals entirely rather than fixing them.
-
-### F4 — Testing a fixture is not testing
-
-Playwright ran against `tests/mock.html`, a hand-written fixture that was neither
-the built theme nor Blogger output.
-
-That suite contained tests literally named:
-
-- `[REGRESSION] post-grid is visible on homepage index`
-- `[REGRESSION] post-card count is greater than 0 on homepage`
-- `[REGRESSION] no post-card ancestors are at opacity:0 permanently`
-
-**All three passed.** They passed because they pointed at a file where the cards
-were hardcoded HTML. The regression tests for this exact bug already existed and
-were aimed at a fake page.
-
-Meanwhile `scripts/test.js` asserted that certain substrings existed in the
-XML — a theme that is well-formed and renders nothing passes all ten checks.
-
-> **Rule:** assert on output, never on shape. Fixture-based DOM tests are
-> permanently banned.
-
-### F5 — A test must know what it is measuring, or say it cannot tell
-
-Two full debugging cycles were lost to misattribution.
-
-**Cycle one: throttling read as failure.** The first harness run came back red
-with `HTTP 429` and `solveSimpleChallenge is not defined` — Blogger's anti-bot
-defense, not a theme defect. The harness had caused it: `retries: 2` plus
-`workers: 2` across three projects turned ~14 intended page loads into roughly
-100 requests in minutes. Retrying a throttled request is the one thing guaranteed
-to make throttling worse.
-
-**Cycle two: measuring a build that was never uploaded.** After fixing the widget
-locally, the harness reported the *old* theme's defects against the *new* source,
-because nothing had been deployed. Every failure in that run described a build
-that no longer existed.
-
-> **Rule:** four result states, not two. PASS, FAIL, BLOCKED (throttled or
-> challenged), SKIP (precondition absent). BLOCKED is never PASS and never FAIL.
-> And a build stamp gates the whole harness: it refuses to assert against a
-> deployment that is not the working tree.
+### F8 — Mandatory `super.main` Delegation in Blog1
+Attempting to replace `Blog1`'s `main` includable with purely custom XML without invoking `<b:include name='super.main'/>` causes Blogger's Java engine to skip initializing pagination beans, post cursors, threaded comment iframes, and feed data beans.
+> **Rule:** `Blog1`'s `main` includable must call `<b:include name='super.main'/>` and customize presentation through sub-includables (`post`, `postTitle`, `postBody`, `postFooter`, `comments`, etc.).
 
 ---
 
-## The pattern underneath all five
+## Summary of Defect Carry-Over & Successor Protections
 
-Every failure was a **confident claim about something that was never verified**.
-
-- The widget claimed to be V3-compatible. Never verified against a render.
-- The empty state claimed to handle failure. Never verified against a failure.
-- The animation claimed to be an enhancement. Never verified without JS.
-- The test suite claimed coverage. Never verified against the real page.
-- The harness claimed a diagnosis. Never verified what it was measuring.
-
-The README described widget zones that did not exist, SCSS partials that were
-never written, and configurability that was impossible. Not out of malice: the
-generating agent wrote documentation for the theme it imagined, then tests that
-confirmed the imagination.
-
-> **The governing rule for the successor:** nothing is "working" because the XML
-> looks right. Every requirement is verified against HTML that Blogger actually
-> rendered.
-
----
-
-## Defect carry-over
-
-| Issue | Successor coverage |
-|---|---|
-| #1 Multi-item views render zero posts | R-V3-1 AC2 (direct root-cause guard) + R-RENDER-1 |
-| #2 Silent empty state | R-EMPTY-1 |
-| #3 `.reveal` opacity trap | R-EMPTY-2, plus scroll reveals removed entirely |
-| #4 No pagination | R-RENDER-3 |
-| #5 Static pages use post chrome | R-RENDER-4 |
-| #6 Fabricated reading time and blank-Gravatar avatar | BR-3, R-BUILD-1 AC7 |
-| #7 Unescaped JSON-LD | R-V3-2 AC5, R-SEO-1 |
-| #8 Dead label links (7 links, 0 labels on 16 posts) | R-NAV-1 |
-| #9 Phantom widget zones in the README | R-NAV-2 AC5 |
-| #10 Image and font performance | R-PERF-1 |
-| #11 Tests validate shape, not rendering | Testing strategy in full |
+| Defect | Root Cause | Successor Defense |
+|---|---|---|
+| Blank multi-item views | Missing `version='2'`, lack of `super.main` | Contract Rule 3 (`widget-v2`), native `super.main` delegation |
+| Silent empty state | Missing fallback branch | Rule 20, 24: defensive empty states across all 10 views |
+| Opacity trap | `.reveal { opacity: 0; }` without JS fallback | CSS opacity trap permanently eliminated; 100% SSR visible |
+| Fixture delusion | Tests ran against mock HTML | Tests run against generated `dist/theme.xml` & live Blogger HTML |
+| Staging mismatch | Testing wrong deployment | Stamped deployment gate (`name='theme-build'`) |
+| Uninstantiated widgets | `maxwidgets` on `<b:section>` | Removed `maxwidgets` from all 7 layout sections |
+| EL runtime crash | `.empty` accessor on collections | Contract Rule 37 (`no-dot-empty`) enforced across whole theme |
+| Unescaped JSON-LD | String interpolation in JSON-LD | Contract Rule 15 (`json-escaped`) on all schema values |

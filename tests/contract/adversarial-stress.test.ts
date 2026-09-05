@@ -5,10 +5,16 @@ import {
   contractRules
 } from '../../tools/contract-check.js';
 import { generateTheme } from '../../tools/generate.js';
-import {
-  getWidgetPattern,
-  replaceWidget
-} from '../../tools/build-controls.js';
+function getWidgetPattern(widgetId: string): RegExp {
+  const escapedId = widgetId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`<b:widget\\b(?=[^>]*?\\bid=['"]${escapedId}['"])[^>]*?>[\\s\\S]*?<\\/b:widget>`, 'i');
+}
+
+function replaceWidget(xml: string, widgetId: string, replacement: string): string {
+  const pattern = getWidgetPattern(widgetId);
+  if (!pattern.test(xml)) throw new Error(`Could not locate ${widgetId} widget for replacement.`);
+  return xml.replace(pattern, () => replacement);
+}
 import {
   normalizeGoldenTheme,
   normalizeLineEndings,

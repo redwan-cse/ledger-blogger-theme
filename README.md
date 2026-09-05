@@ -73,10 +73,8 @@ ledger-blogger-theme/
 │   ├── README.md                     # Documentation index
 │   ├── PROJECT-PLAN.md               # Milestone specs (M0–M6) & state matrix
 │   ├── V3-REFERENCE.md               # Blogger Layouts V3 contract reference
-│   ├── BLOG_DESIGN_SYSTEM.md         # Typography, OKLCH ramp, & tokens
-│   ├── POSTMORTEM.md                 # Failure analysis of legacy theme models
-│   └── HARNESS.md                    # Staging render harness runbook
-├── example_themes/                   # Google's native V3 themes for parity checks
+│   ├── DESIGN-SYSTEM.md              # Modern OKLCH tokens, type scale, & responsive layout
+│   └── POSTMORTEM.md                 # Failure analysis of legacy theme models & EL runtime
 ├── fixtures/                         # Staging seed fixture data
 ├── src/
 │   ├── theme.pug                     # Root template XML shell
