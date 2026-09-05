@@ -1281,22 +1281,23 @@ async function main() {
           const assetPath = path.join(assetDir, 'thumbnail.png');
           fs.writeFileSync(assetPath, imgBuffer);
           console.log(`Saved thumbnail to: ${assetPath}`);
+          console.log(`THUMBNAIL_BASE64_START:${imgBuffer.toString('base64')}:THUMBNAIL_BASE64_END`);
 
           let pushSucceeded = false;
           try {
-            execSync(`git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"`, { stdio: 'ignore' });
-            execSync(`git add assets/posts/${postSlug}/thumbnail.png`, { stdio: 'ignore' });
-            execSync(`git commit -m "chore(assets): add thumbnail for ${postSlug}"`, { stdio: 'ignore' });
+            execSync(`git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"`);
+            execSync(`git add assets/posts/${postSlug}/thumbnail.png`);
+            execSync(`git commit -m "chore(assets): add thumbnail for ${postSlug}"`);
             const ghToken = process.env.GITHUB_TOKEN?.trim();
             if (ghToken) {
-              execSync(`git push https://x-access-token:${ghToken}@github.com/redwan-cse/ledger-blogger-theme.git HEAD:main`, { stdio: 'ignore' });
+              execSync(`git push https://x-access-token:${ghToken}@github.com/redwan-cse/ledger-blogger-theme.git HEAD:main`);
             } else {
-              execSync(`git push origin main`, { stdio: 'ignore' });
+              execSync(`git push origin main`);
             }
             console.log(`Committed & pushed thumbnail to repository.`);
             pushSucceeded = true;
           } catch (e: any) {
-            console.log(`Note: git push attempt (${e.message}). Assets saved locally.`);
+            console.log(`Note: git push attempt error: ${e.stderr?.toString() || e.stdout?.toString() || e.message}. Assets saved locally.`);
           }
 
           // Always use fast, open jsDelivr CDN URL (never Google Drive login URLs)

@@ -57,3 +57,11 @@ jobs:
           REPUBLISH_LATEST: ${{ inputs.republish_latest || 'false' }}
           TARGET_TITLE: ${{ inputs.target_title || '' }}
         run: npx tsx scripts/publish-from-drive.ts
+
+      - name: Upload Thumbnail Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: post-thumbnails
+          path: assets/posts/
+          if-no-files-found: ignore
