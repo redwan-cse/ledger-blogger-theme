@@ -1025,6 +1025,23 @@ async function main() {
 
   // Diagnostic search: List recent files and folders visible to the Service Account
   try {
+    const sharedQuery = `sharedWithMe=true and trashed=false`;
+    const sharedRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(sharedQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType,parents,modifiedTime)&orderBy=modifiedTime desc&pageSize=30`, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    if (sharedRes.ok) {
+      const sharedData = await sharedRes.json() as { files?: Array<{ id: string; name: string; mimeType: string; parents?: string[]; modifiedTime?: string }> };
+      console.log(`\n--- Diagnostic: Items explicitly 'Shared with me' ---`);
+      for (const f of sharedData.files || []) {
+        console.log(`[SharedWithMe] "${f.name}" | mime: ${f.mimeType} | ID: ${f.id} | parents: ${f.parents?.join(', ')} | modified: ${f.modifiedTime}`);
+      }
+      console.log(`--- End SharedWithMe Diagnostic ---\n`);
+    }
+  } catch (e: any) {
+    console.warn(`[!] SharedWithMe diagnostic error: ${e.message}`);
+  }
+
+  try {
     const diagQuery = `trashed=false and (mimeType='application/vnd.google-apps.folder' or mimeType='application/vnd.google-apps.document' or name contains '.md')`;
     const diagRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(diagQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType,parents,modifiedTime)&orderBy=modifiedTime desc&pageSize=30`, {
       headers: { Authorization: `Bearer ${driveToken}` }
