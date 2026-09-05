@@ -366,7 +366,7 @@ export function initLiveSearch(): void {
   searchToggles.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      const searchInput = document.querySelector<HTMLInputElement>('.sidebar-search-input, .drawer-search-input');
+      const searchInput = document.querySelector<HTMLInputElement>('#catalog-search, .sidebar-search-input, .drawer-search-input');
       const drawerToggle = document.querySelector<HTMLElement>('.drawer-toggle');
       const drawer = document.getElementById('mobile-drawer');
       if (window.innerWidth < 1024 && drawer && !drawer.classList.contains('is-open')) {
@@ -1162,7 +1162,7 @@ export function initKeyboardShortcuts(): void {
 
     if (e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
       e.preventDefault();
-      const searchInput = document.querySelector<HTMLInputElement>('.sidebar-search-input, .drawer-search-input');
+      const searchInput = document.querySelector<HTMLInputElement>('#catalog-search, .sidebar-search-input, .drawer-search-input');
       if (searchInput) {
         const drawerToggle = document.querySelector<HTMLElement>('.drawer-toggle');
         const drawer = document.getElementById('mobile-drawer');
