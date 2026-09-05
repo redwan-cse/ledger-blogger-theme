@@ -103,6 +103,12 @@ async function syncAndCleanGoogleSheet(token: string, newRow?: (string | number)
       let foundDuplicates = false;
 
       for (const row of dataRows) {
+        // Normalize URL to clean canonical format (strip _0123... number suffix)
+        if (row[7] && /_\d+\.html$/i.test(row[7])) {
+          row[7] = row[7].replace(/_\d+\.html$/i, '.html');
+          foundDuplicates = true;
+        }
+
         const title = (row[3] || '').trim().toLowerCase();
         const url = (row[7] || '').trim();
         const slug = url.split('/').pop()?.replace(/_\d+\.html$/, '').replace(/\.html$/, '') || title;
