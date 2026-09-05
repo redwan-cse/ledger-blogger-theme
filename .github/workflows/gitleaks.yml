@@ -31,7 +31,7 @@ jobs:
           GITLEAKS_ENABLE_SARIF: ':results.sarif'
 
       - name: Upload SARIF report
-        uses: github/codeql-action/upload-sarif@6bb034416e767122dc1b9d69d36e41357f7872c4 # v3.28.11
+        uses: github/codeql-action/upload-sarif@4c50b6f6fd9dc6fe03111c2d045c8be2a724cce1 # v3.28.11
         if: always()
         with:
           sarif_file: results.sarif
