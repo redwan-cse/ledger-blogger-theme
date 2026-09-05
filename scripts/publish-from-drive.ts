@@ -78,25 +78,92 @@ async function getDriveAccessToken(sa: any): Promise<string> {
   return data.access_token;
 }
 
-async function logToGoogleSheet(token: string, row: (string | number)[]): Promise<void> {
+async function syncAndCleanGoogleSheet(token: string, newRow?: (string | number)[]): Promise<void> {
   try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-    const res = await fetch(url, {
+    const getUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/A1:Z100`;
+    const getRes = await fetch(getUrl, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!getRes.ok) {
+      console.warn(`[!] Failed to read Google Sheet: ${await getRes.text()}`);
+      return;
+    }
+    const data = await getRes.json() as { values?: string[][] };
+    let rows = data.values || [];
+
+    if (rows.length === 0) {
+      const header = ['Date', 'Day', 'Category', 'Post Title', 'Target / CVE', 'Components', 'Status', 'Live URL'];
+      rows = newRow ? [header, newRow.map(String)] : [header];
+    } else {
+      const header = rows[0] || ['Date', 'Day', 'Category', 'Post Title', 'Target / CVE', 'Components', 'Status', 'Live URL'];
+      const dataRows = rows.slice(1);
+
+      // Deduplicate rows based on title or slug
+      const uniqueMap = new Map<string, string[]>();
+      let foundDuplicates = false;
+
+      for (const row of dataRows) {
+        const title = (row[3] || '').trim().toLowerCase();
+        const url = (row[7] || '').trim();
+        const slug = url.split('/').pop()?.replace(/_\d+\.html$/, '').replace(/\.html$/, '') || title;
+        const key = slug || title;
+        if (!key) continue;
+
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, row);
+        } else {
+          foundDuplicates = true;
+          // If existing row has a URL with numbers and current row has clean URL, prefer clean URL
+          const existingRow = uniqueMap.get(key)!;
+          const existingUrl = existingRow[7] || '';
+          if (/_\d+\.html$/i.test(existingUrl) && !/_\d+\.html$/i.test(url)) {
+            uniqueMap.set(key, row);
+          }
+        }
+      }
+
+      // If newRow is provided, upsert it
+      if (newRow) {
+        const newTitle = String(newRow[3] || '').trim().toLowerCase();
+        const newUrl = String(newRow[7] || '').trim();
+        const newSlug = newUrl.split('/').pop()?.replace(/_\d+\.html$/, '').replace(/\.html$/, '') || newTitle;
+        const key = newSlug || newTitle;
+        uniqueMap.set(key, newRow.map(String));
+      }
+
+      const cleanedDataRows = Array.from(uniqueMap.values());
+      rows = [header, ...cleanedDataRows];
+
+      if (!foundDuplicates && !newRow) {
+        console.log(`[✓] Google Sheet is already clean (${cleanedDataRows.length} entries). No duplicates found.`);
+        return;
+      }
+    }
+
+    // Clear existing sheet range
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/A1:Z100:clear`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    // Write back cleaned rows
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/A1?valueInputOption=USER_ENTERED`;
+    const updateRes = await fetch(updateUrl, {
+      method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ values: [row] })
+      body: JSON.stringify({ values: rows })
     });
-    if (res.ok) {
-      console.log(`[✓] Successfully logged entry to Content_Planner_and_History Google Sheet.`);
+
+    if (updateRes.ok) {
+      console.log(`[✓] Successfully synced and deduplicated Content_Planner_and_History Google Sheet (${rows.length - 1} entries).`);
     } else {
-      const err = await res.text();
-      console.warn(`[!] Warning: Failed to log to Google Sheet: ${err}`);
+      console.warn(`[!] Warning: Failed to update Google Sheet: ${await updateRes.text()}`);
     }
   } catch (e: any) {
-    console.warn(`[!] Exception logging to Google Sheet: ${e.message}`);
+    console.warn(`[!] Exception updating Google Sheet: ${e.message}`);
   }
 }
 
@@ -849,6 +916,9 @@ async function main() {
   const driveToken = await getDriveAccessToken(sa);
   const bloggerToken = await getBloggerAccessToken();
 
+  // Deduplicate and sync Content_Planner_and_History Google Sheet on startup
+  await syncAndCleanGoogleSheet(driveToken);
+
   // Find Blog_Published folder ID (either via env, default ID, inside root, or directly by name)
   let publishedFolderId = process.env.DRIVE_PUBLISHED_FOLDER_ID?.trim() || DEFAULT_PUBLISHED_FOLDER_ID;
   if (!publishedFolderId) {
@@ -1130,16 +1200,39 @@ async function main() {
     console.log(`Checking if post "${cleanTitle}" already exists on Blogger...`);
     let existingPost: { id: string; url: string; title: string } | undefined = undefined;
     try {
-      const searchRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts/search?q=${encodeURIComponent(cleanTitle.slice(0, 30))}`, {
+      // 1. Check live recent posts first (100% reliable, zero search indexing lag)
+      const listRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts?maxResults=50`, {
         headers: { Authorization: `Bearer ${bloggerToken}` }
       });
-      if (searchRes.ok) {
-        const searchData = await searchRes.json() as { items?: Array<{ id: string; url: string; title: string }> };
-        existingPost = searchData.items?.find(p => 
+      if (listRes.ok) {
+        const listData = await listRes.json() as { items?: Array<{ id: string; url: string; title: string }> };
+        const matches = (listData.items || []).filter(p =>
           p.title.trim().toLowerCase() === cleanTitle.trim().toLowerCase() ||
           slugify(p.title) === postSlug ||
           (p.url && p.url.includes(postSlug))
         );
+        if (matches.length > 0) {
+          // Prefer canonical URL without number suffix
+          existingPost = matches.find(p => !/_\d+\.html$/i.test(p.url)) || matches[0];
+        }
+      }
+
+      // 2. Fallback to search query if not in the recent 50 posts
+      if (!existingPost) {
+        const searchRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts/search?q=${encodeURIComponent(cleanTitle.slice(0, 30))}`, {
+          headers: { Authorization: `Bearer ${bloggerToken}` }
+        });
+        if (searchRes.ok) {
+          const searchData = await searchRes.json() as { items?: Array<{ id: string; url: string; title: string }> };
+          const matches = (searchData.items || []).filter(p => 
+            p.title.trim().toLowerCase() === cleanTitle.trim().toLowerCase() ||
+            slugify(p.title) === postSlug ||
+            (p.url && p.url.includes(postSlug))
+          );
+          if (matches.length > 0) {
+            existingPost = matches.find(p => !/_\d+\.html$/i.test(p.url)) || matches[0];
+          }
+        }
       }
     } catch (e: any) {
       console.log(`Search check notice: ${e.message}`);
@@ -1204,7 +1297,7 @@ async function main() {
     const cveMatch = markdownContent.match(/\b(CVE-\d{4}-\d+|RFC\s*\d+|AD\s*CS\s*ESC\d+|NIST\s*[\w\.\-]+)\b/i);
     const focusCve = cveMatch ? cveMatch[0] : label;
 
-    await logToGoogleSheet(driveToken, [
+    await syncAndCleanGoogleSheet(driveToken, [
       todayStr,
       weekdayStr,
       label,
