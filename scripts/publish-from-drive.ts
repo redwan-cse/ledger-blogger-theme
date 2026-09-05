@@ -1023,6 +1023,24 @@ async function main() {
     console.warn(`[!] Note checking Intake folder: ${e.message}`);
   }
 
+  // Diagnostic search: List recent files and folders visible to the Service Account
+  try {
+    const diagQuery = `trashed=false and (mimeType='application/vnd.google-apps.folder' or mimeType='application/vnd.google-apps.document' or name contains '.md')`;
+    const diagRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(diagQuery)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType,parents,modifiedTime)&orderBy=modifiedTime desc&pageSize=30`, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    if (diagRes.ok) {
+      const diagData = await diagRes.json() as { files?: Array<{ id: string; name: string; mimeType: string; parents?: string[]; modifiedTime?: string }> };
+      console.log(`\n--- Diagnostic: Recently modified items visible to Service Account ---`);
+      for (const f of diagData.files || []) {
+        console.log(`[Drive Item] "${f.name}" | mime: ${f.mimeType} | ID: ${f.id} | parents: ${f.parents?.join(', ')} | modified: ${f.modifiedTime}`);
+      }
+      console.log(`--- End Diagnostic ---\n`);
+    }
+  } catch (e: any) {
+    console.warn(`[!] Diagnostic error: ${e.message}`);
+  }
+
   // List all items inside Blog_Queue
   console.log(`Checking items in Blog_Queue (ID: ${QUEUE_FOLDER_ID})...`);
   const queueQuery = `'${QUEUE_FOLDER_ID}' in parents and trashed=false`;
