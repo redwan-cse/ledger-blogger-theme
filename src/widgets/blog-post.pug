@@ -45,7 +45,10 @@ b:includable(id='postHeader' var='post')
     div.post-meta-row
       b:if(cond='data:post.author.name')
         div.post-author-mini
-          img.post-author-mini-avatar(src='https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s40-rw' alt='Md Redwan Ahmed' width='20' height='20' loading='lazy')/
+          b:if(cond='data:post.author.authorPhoto.image')
+            img.post-author-mini-avatar(expr:src='data:post.author.authorPhoto.image' expr:alt='data:post.author.name' width='24' height='24' loading='lazy')/
+          b:if(cond='not data:post.author.authorPhoto.image')
+            img.post-author-mini-avatar(src='https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s96-rw' expr:alt='data:post.author.name' width='24' height='24' loading='lazy')/
           span.post-author-mini-name
             b:eval(expr='data:post.author.name')/
       b:if(cond='data:post.date')

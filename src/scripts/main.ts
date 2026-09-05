@@ -385,9 +385,11 @@ export const initInlineLiveSearch = initLiveSearch;
 
 export function initSidebarRecentPosts(): void {
   const recentLists = document.querySelectorAll<HTMLElement>('.sidebar-recent-list');
-  if (recentLists.length === 0) return;
-
-  const needsFetch = Array.from(recentLists).some((list) => list.querySelectorAll('.sidebar-recent-item').length < 4);
+  const needsFetch = Array.from(recentLists).some((list) => {
+    const items = list.querySelectorAll('.sidebar-recent-item');
+    if (items.length < 4) return true;
+    return Array.from(items).some((item) => !item.querySelector('.sidebar-recent-tag'));
+  });
   if (!needsFetch) return;
 
   fetch('/feeds/posts/summary?alt=json&max-results=6', { headers: { Accept: 'application/json' } })
@@ -1201,8 +1203,18 @@ function init(): void {
     }
   };
 
+  function initAvatarFallbacks(): void {
+    const fallbackUrl = 'https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s96-rw';
+    document.querySelectorAll<HTMLImageElement>('.post-author-mini-avatar, .sidebar-avatar, .drawer-avatar, .header-avatar, .author-avatar').forEach((img) => {
+      img.addEventListener('error', () => {
+        if (img.src !== fallbackUrl) img.src = fallbackUrl;
+      }, { once: true });
+    });
+  }
+
   // Immediate phase: essential navigation and click delegates
   scheduleTask(() => {
+    initAvatarFallbacks();
     initMobileDrawer();
     initShareCopy();
     initBloggerFollowPopup();
@@ -1433,7 +1445,7 @@ export function initHomepageCatalog(): void {
                 </${h2Tag}>
                 <div class="post-meta-row">
                   <div class="post-author-mini">
-                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s40-rw" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
+                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s96-rw" alt="Md Redwan Ahmed" width="24" height="24" loading="lazy" />
                     <span class="post-author-mini-name">Md. Redwan Ahmed</span>
                   </div>
                   <span class="post-meta-sep">·</span>

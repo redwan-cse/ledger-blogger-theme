@@ -603,12 +603,16 @@ html[data-theme='dark'] .theme-icon-moon {
     }
 
     .sidebar-recent-title {
-      display: block;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
       font-family: $font-sans;
       font-size: 0.8125rem;
       font-weight: 600;
       color: $ink;
-      line-height: 1.35;
+      line-height: 1.25;
+      margin-bottom: 3px;
       transition: color $motion-fast $ease-out-quart;
 
       &:hover {
@@ -619,20 +623,34 @@ html[data-theme='dark'] .theme-icon-moon {
     .sidebar-recent-meta {
       display: flex;
       align-items: center;
-      gap: $space-2;
+      flex-wrap: wrap;
+      gap: 6px;
       font-family: $font-mono;
       font-size: 0.6875rem;
       color: $ink-muted;
       margin-top: 2px;
+      line-height: 1.3;
     }
 
     .sidebar-recent-tag {
       color: $accent;
       background: $accent-wash;
       border: 1px solid oklch(54.615% 0.2152 262.881 / 0.2);
-      padding: 0 4px;
-      border-radius: 4px;
+      padding: 0.5px 5px;
+      border-radius: 3px;
       font-weight: 600;
+      font-size: 0.625rem;
+      line-height: 1.4;
+      white-space: nowrap;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-recent-date {
+      color: $ink-muted;
+      font-size: 0.6875rem;
+      white-space: nowrap;
     }
   }
 
@@ -2339,17 +2357,17 @@ pre {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: $space-3;
+    padding-bottom: $space-2;
     border-bottom: 1px solid $rule;
-    margin-bottom: $space-3;
+    margin-bottom: $space-2;
   }
 
   .sidebar-card-title {
     font-family: $font-sans;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     color: $ink;
     margin: 0;
   }
@@ -2357,12 +2375,12 @@ pre {
   .sidebar-recent-list {
     display: flex;
     flex-direction: column;
-    gap: $space-3;
+    gap: 8px;
   }
 
   .sidebar-recent-item {
     border-bottom: 1px solid $rule;
-    padding-bottom: $space-3;
+    padding-bottom: 8px;
 
     &:last-child {
       border-bottom: none;
@@ -2376,13 +2394,16 @@ pre {
   }
 
   .sidebar-recent-title {
-    display: block;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     font-family: $font-sans;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.25;
     color: $ink;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     transition: color $motion-fast $ease-out-quart;
 
     &:hover {
@@ -2394,24 +2415,32 @@ pre {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: $space-2;
+    gap: 6px;
     font-family: $font-mono;
-    font-size: 0.72rem;
+    font-size: 0.6875rem;
     color: $ink-muted;
+    line-height: 1.3;
   }
 
   .sidebar-recent-tag {
     color: $accent;
     background: $accent-wash;
     border: 1px solid oklch(54.615% 0.2152 262.881 / 0.2);
-    padding: 1px 6px;
-    border-radius: 4px;
+    padding: 0.5px 5px;
+    border-radius: 3px;
     font-weight: 600;
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .sidebar-recent-date {
     color: $ink-muted;
+    font-size: 0.6875rem;
+    white-space: nowrap;
   }
 }
 

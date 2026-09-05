@@ -130,9 +130,11 @@ html&attributes(rootAttributes)
                         span.sidebar-recent-title
                           b:eval(expr='data:post.title')/
                         div.sidebar-recent-meta
-                          b:if(cond='data:post.labels.first')
-                            span.sidebar-recent-tag
-                              b:eval(expr='data:post.labels.first.name')/
+                          b:if(cond='data:post.labels')
+                            b:loop(values='data:post.labels' var='label' index='li')
+                              b:if(cond='data:li == 0')
+                                span.sidebar-recent-tag
+                                  b:eval(expr='data:label.name')/
                           b:if(cond='data:post.date')
                             time.sidebar-recent-date(expr:datetime='data:post.date.iso8601')
                               b:eval(expr='data:post.date')/
@@ -197,9 +199,11 @@ html&attributes(rootAttributes)
                     span.sidebar-recent-title
                       b:eval(expr='data:post.title')/
                     div.sidebar-recent-meta
-                      b:if(cond='data:post.labels.first')
-                        span.sidebar-recent-tag
-                          b:eval(expr='data:post.labels.first.name')/
+                      b:if(cond='data:post.labels')
+                        b:loop(values='data:post.labels' var='label' index='li')
+                          b:if(cond='data:li == 0')
+                            span.sidebar-recent-tag
+                              b:eval(expr='data:label.name')/
                       b:if(cond='data:post.date')
                         time.sidebar-recent-date(expr:datetime='data:post.date.iso8601')
                           b:eval(expr='data:post.date')/
