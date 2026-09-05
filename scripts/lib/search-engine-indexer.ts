@@ -308,3 +308,84 @@ export async function submitUrlsToSearchEngines(
   console.log(`======================================================\n`);
   return results;
 }
+
+/**
+ * Submits sitemaps to Bing Webmaster Tools API.
+ */
+export async function submitSitemapsToBing(
+  apiKey: string,
+  siteUrl = DEFAULT_SITE_URL,
+  sitemapUrls = [
+    `${DEFAULT_SITE_URL}sitemap.xml`,
+    `${DEFAULT_SITE_URL}sitemap-pages.xml`,
+    `${DEFAULT_SITE_URL}atom.xml?redirect=false&start-index=1&max-results=500`
+  ],
+  dryRun = false
+): Promise<SubmissionResult[]> {
+  const trimmedKey = apiKey.trim();
+  if (!trimmedKey) {
+    return [{
+      engine: 'bing',
+      status: 'skipped',
+      message: 'Bing Webmaster API Key not provided.'
+    }];
+  }
+
+  const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`;
+  const results: SubmissionResult[] = [];
+
+  for (const feedUrl of sitemapUrls) {
+    if (dryRun) {
+      console.log(`[DRY-RUN] Would submit sitemap to Bing: ${feedUrl}`);
+      results.push({
+        engine: 'bing',
+        status: 'success',
+        message: `[DRY-RUN] Would submit sitemap: ${feedUrl}`,
+        statusCode: 200
+      });
+      continue;
+    }
+
+    try {
+      const endpoint = `https://ssl.bing.com/webmaster/api.svc/json/SubmitFeed?apikey=${encodeURIComponent(trimmedKey)}`;
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+          siteUrl: normalizedSiteUrl,
+          feedUrl
+        })
+      });
+
+      if (response.ok) {
+        console.log(`✅ [Bing Webmaster] Successfully submitted sitemap: ${feedUrl}`);
+        results.push({
+          engine: 'bing',
+          status: 'success',
+          message: `Successfully submitted sitemap: ${feedUrl}`,
+          statusCode: response.status
+        });
+      } else {
+        const errText = await response.text();
+        console.warn(`⚠️ [Bing Webmaster] Failed to submit sitemap (${response.status}): ${errText}`);
+        results.push({
+          engine: 'bing',
+          status: 'warning',
+          message: `Sitemap submission returned ${response.status}: ${errText}`,
+          statusCode: response.status
+        });
+      }
+    } catch (err: any) {
+      console.warn(`⚠️ [Bing Webmaster] Network error submitting sitemap: ${err.message}`);
+      results.push({
+        engine: 'bing',
+        status: 'failed',
+        message: `Network error submitting sitemap: ${err.message}`
+      });
+    }
+  }
+
+  return results;
+}

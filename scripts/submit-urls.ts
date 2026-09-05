@@ -8,7 +8,7 @@
  *   npx tsx scripts/submit-urls.ts --dry-run --all
  */
 
-import { submitUrlsToSearchEngines, normalizeUrls } from './lib/search-engine-indexer.js';
+import { submitUrlsToSearchEngines, normalizeUrls, submitSitemapsToBing } from './lib/search-engine-indexer.js';
 
 interface FeedEntry {
   link?: Array<{
@@ -70,6 +70,7 @@ async function main() {
 
   const dryRun = args.includes('--dry-run');
   const submitAll = args.includes('--all');
+  const submitSitemaps = args.includes('--sitemaps');
 
   let siteUrl = process.env.SITE_URL?.trim() || 'https://blogs.redwan.work/';
   let bingApiKey = process.env.BING_WEBMASTER_API_KEY?.trim();
@@ -79,7 +80,7 @@ async function main() {
   // Extract command line flags if provided
   const targetUrls: string[] = [];
   for (const arg of args) {
-    if (arg === '--dry-run' || arg === '--all') continue;
+    if (arg === '--dry-run' || arg === '--all' || arg === '--sitemaps') continue;
     if (arg.startsWith('--bing-key=')) {
       bingApiKey = arg.slice('--bing-key='.length).trim();
     } else if (arg.startsWith('--indexnow-key=')) {
@@ -93,6 +94,16 @@ async function main() {
     }
   }
 
+  // 1. Submit Sitemaps if requested
+  if (submitSitemaps) {
+    console.log(`\n📡 Submitting Sitemaps to Bing Webmaster Tools...`);
+    if (bingApiKey) {
+      await submitSitemapsToBing(bingApiKey, siteUrl, undefined, dryRun);
+    } else {
+      console.log('ℹ️ BING_WEBMASTER_API_KEY not configured. Skipping automated sitemap submission.');
+    }
+  }
+
   let finalUrls: string[] = [];
 
   if (submitAll) {
@@ -100,15 +111,17 @@ async function main() {
     console.log(`Found ${finalUrls.length} live URL(s) to submit.`);
   } else if (targetUrls.length > 0) {
     finalUrls = normalizeUrls(targetUrls, siteUrl);
-  } else {
+  } else if (!submitSitemaps) {
     console.log(`
 Usage:
   npx tsx scripts/submit-urls.ts <url1> [url2] ...
   npx tsx scripts/submit-urls.ts --all
+  npx tsx scripts/submit-urls.ts --sitemaps
   npx tsx scripts/submit-urls.ts --dry-run --all
 
 Flags:
   --all                 Submit all published blog posts found on the live site
+  --sitemaps            Submit XML sitemaps to Bing Webmaster Tools
   --dry-run             Preview URLs without submitting to search engines
   --bing-key=<key>      Bing Webmaster API Key (or env BING_WEBMASTER_API_KEY)
   --indexnow-key=<key>  IndexNow Key (or env INDEXNOW_KEY)
@@ -119,6 +132,10 @@ Flags:
   }
 
   if (finalUrls.length === 0) {
+    if (submitSitemaps) {
+      console.log('✅ Sitemap submission finished.');
+      return;
+    }
     console.error('No valid URLs found to submit.');
     process.exit(1);
   }

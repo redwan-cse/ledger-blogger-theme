@@ -11,6 +11,10 @@ on:
         description: 'Specific post URL to submit (leave empty if using submit_all)'
         type: string
         default: ''
+      submit_sitemaps:
+        description: 'Submit XML sitemaps to Bing Webmaster Tools'
+        type: boolean
+        default: true
       dry_run:
         description: 'Dry Run (preview URLs without calling search engine APIs)'
         type: boolean
@@ -46,12 +50,16 @@ jobs:
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY || vars.INDEXNOW_KEY }}
           INDEXNOW_KEY_LOCATION: ${{ secrets.INDEXNOW_KEY_LOCATION || vars.INDEXNOW_KEY_LOCATION || '' }}
           SUBMIT_ALL: ${{ inputs.submit_all }}
+          SUBMIT_SITEMAPS: ${{ inputs.submit_sitemaps }}
           TARGET_URL: ${{ inputs.target_url }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           ARGS=""
           if [ "$DRY_RUN" = "true" ]; then
             ARGS="$ARGS --dry-run"
+          fi
+          if [ "$SUBMIT_SITEMAPS" = "true" ]; then
+            ARGS="$ARGS --sitemaps"
           fi
           if [ -n "$TARGET_URL" ]; then
             ARGS="$ARGS $TARGET_URL"
