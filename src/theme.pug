@@ -124,7 +124,7 @@ html&attributes(rootAttributes)
             div.sidebar-recent-list
               b:if(cond='data:widgets.Blog.first.posts')
                 b:loop(values='data:widgets.Blog.first.posts' var='post' index='i')
-                  b:if(cond='data:i < 5')
+                  b:if(cond='data:i < 4')
                     article.sidebar-recent-item
                       a.sidebar-recent-link(expr:href='data:post.url')
                         span.sidebar-recent-title
@@ -191,7 +191,7 @@ html&attributes(rootAttributes)
         div.sidebar-recent-list
           b:if(cond='data:widgets.Blog.first.posts')
             b:loop(values='data:widgets.Blog.first.posts' var='post' index='i')
-              b:if(cond='data:i < 5')
+              b:if(cond='data:i < 4')
                 article.sidebar-recent-item
                   a.sidebar-recent-link(expr:href='data:post.url')
                     span.sidebar-recent-title

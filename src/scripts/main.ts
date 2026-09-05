@@ -384,21 +384,21 @@ export function initLiveSearch(): void {
 export const initInlineLiveSearch = initLiveSearch;
 
 export function initSidebarRecentPosts(): void {
-  const recentList = document.querySelector<HTMLElement>('.sidebar-recent-list');
-  if (!recentList) return;
+  const recentLists = document.querySelectorAll<HTMLElement>('.sidebar-recent-list');
+  if (recentLists.length === 0) return;
 
-  // Skip fetching on mobile/tablet viewports where sidebar is hidden
-  if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
+  const needsFetch = Array.from(recentLists).some((list) => list.querySelectorAll('.sidebar-recent-item').length < 4);
+  if (!needsFetch) return;
 
-  if (recentList.querySelectorAll('.sidebar-recent-item').length >= 2) return;
-
-  fetch('/feeds/posts/summary?alt=json&max-results=5', { headers: { Accept: 'application/json' } })
+  fetch('/feeds/posts/summary?alt=json&max-results=6', { headers: { Accept: 'application/json' } })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       const entries = data?.feed?.entry || [];
       if (entries.length === 0) return;
 
-      recentList.innerHTML = entries
+      const items = entries.slice(0, 4);
+
+      const html = items
         .map((entry: any) => {
           const title = entry.title?.$t || 'Untitled';
           const link = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
@@ -420,6 +420,10 @@ export function initSidebarRecentPosts(): void {
         `;
         })
         .join('');
+
+      recentLists.forEach((list) => {
+        list.innerHTML = html;
+      });
     })
     .catch(() => {});
 }
@@ -1225,8 +1229,8 @@ function init(): void {
       initMermaidDiagrams();
     } else {
       initHomepageCatalog();
-      initSidebarRecentPosts();
     }
+    initSidebarRecentPosts();
   }, 120);
 }
 
