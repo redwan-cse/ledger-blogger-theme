@@ -1262,7 +1262,7 @@ export function initHomepageCatalog(): void {
   let allPosts: CatalogPost[] = [];
   let filteredPosts: CatalogPost[] = [];
   let currentPage = 1;
-  const getPageSize = () => (window.innerWidth >= 768 ? 8 : 4);
+  const getPageSize = () => 5;
 
   let isLoaded = false;
   let isLoading = false;
@@ -1328,6 +1328,8 @@ export function initHomepageCatalog(): void {
           };
         });
 
+        filteredPosts = allPosts;
+
         if (yearSelect) {
           const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
           yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
@@ -1359,6 +1361,8 @@ export function initHomepageCatalog(): void {
 
         if (onSuccess) {
           onSuccess();
+        } else if (allPosts.length > 0) {
+          renderPagination(Math.ceil(allPosts.length / getPageSize()));
         }
       })
       .catch(() => {
@@ -1544,8 +1548,19 @@ export function initHomepageCatalog(): void {
   filterBar.addEventListener('pointerenter', () => loadFeedAndFilter(), { once: true });
 
   window.addEventListener('resize', () => {
-    renderPage();
+    if (allPosts.length > 0) {
+      renderPage();
+    }
   });
+
+  // Pre-load feed quietly in background so dropdown filters and numbered pagination are ready
+  if (typeof window !== 'undefined') {
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => loadFeedAndFilter(), { timeout: 2000 });
+    } else {
+      setTimeout(() => loadFeedAndFilter(), 800);
+    }
+  }
 }
 
 /**

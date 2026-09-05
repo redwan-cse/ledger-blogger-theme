@@ -45,7 +45,8 @@
 // [Thumbnail with original ratio][Blog Title other info like before.]
 // ---------------------------------------------------------------------------
 
-.post-card-inner {
+.post-card-inner,
+.has-thumbnail {
   display: grid;
   grid-template-columns: 280px 1fr;
   align-items: center;
@@ -64,6 +65,11 @@
     grid-template-columns: 1fr;
     gap: $space-3;
   }
+}
+
+.post-card-inner.no-thumbnail,
+.no-thumbnail:not(.has-thumbnail) {
+  grid-template-columns: 1fr;
 }
 
 .post-thumbnail-link {
