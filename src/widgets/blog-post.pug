@@ -58,12 +58,16 @@ b:includable(id='postHeader' var='post')
       b:if(cond='data:view.isSingleItem')
         span.post-meta-sep.reading-time-sep(style='display:none;') ·
         span.post-reading-time#reading-time-mount(style='display:none;')
+          svg.reading-time-icon(viewBox='0 0 24 24' width='13' height='13' aria-hidden='true')
+            circle(cx='12' cy='13' r='8' fill='none' stroke='currentColor' stroke-width='2')
+            path(d='M12 9v4l2.5 2.5M10 2h4M12 2v3' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round')
+          span.reading-time-text
     b:if(cond='data:view.isSingleItem')
       div.post-listen-bar
         button.listen-btn(type='button' data-action='listen-article' aria-label='Listen to this article')
-          svg.listen-icon-play(viewBox='0 0 24 24' width='14' height='14' aria-hidden='true')
+          svg.listen-icon-play(viewBox='0 0 24 24' width='12' height='12' aria-hidden='true')
             path(d='M8 5v14l11-7z' fill='currentColor')
-          svg.listen-icon-pause(viewBox='0 0 24 24' width='14' height='14' aria-hidden='true' style='display:none;')
+          svg.listen-icon-pause(viewBox='0 0 24 24' width='12' height='12' aria-hidden='true' style='display:none;')
             path(d='M6 19h4V5H6v14zm8-14v14h4V5h-4z' fill='currentColor')
           span.listen-label Listen (Audio)
         button.listen-speed-btn(type='button' data-action='audio-speed' aria-label='Playback speed: 1x' title='Change playback speed (0.5x to 1.5x)')

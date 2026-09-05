@@ -1141,9 +1141,14 @@ export function initReadingTime(): void {
   if (words < 20) return;
 
   const minutes = Math.max(1, Math.ceil(words / 200));
-  mount.textContent = `⏱️ ${minutes} min read`;
-  mount.style.display = 'inline';
-  if (sep) sep.style.display = 'inline';
+  const textSpan = mount.querySelector<HTMLElement>('.reading-time-text');
+  if (textSpan) {
+    textSpan.textContent = `${minutes} min read`;
+  } else {
+    mount.textContent = `${minutes} min read`;
+  }
+  mount.style.display = 'inline-flex';
+  if (sep) sep.style.display = 'inline-flex';
 }
 
 // ---------------------------------------------------------------------------

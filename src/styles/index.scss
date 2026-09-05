@@ -181,14 +181,16 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 6px;
+  line-height: 1;
 }
 
 .post-author-mini {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  line-height: 1;
 
   .post-author-mini-avatar {
     width: 24px;
@@ -205,20 +207,30 @@
     font-size: 0.8125rem;
     font-weight: 600;
     color: $ink;
+    line-height: 1;
+    display: inline-block;
   }
 }
 
 .post-meta-sep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: $ink-muted;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1;
+  user-select: none;
+  opacity: 0.6;
 }
 
 .post-date {
   font-family: $font-mono;
   color: $ink-muted;
-  font-size: 0.72rem;
-  letter-spacing: 0.03em;
-  display: inline-block;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 // Excerpt on standard post rows

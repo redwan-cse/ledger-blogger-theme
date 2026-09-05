@@ -1066,14 +1066,14 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: $space-3;
+    gap: 12px;
 
     .post-meta-row {
       margin-bottom: 0;
     }
 
     .post-listen-bar {
-      margin-left: $space-1;
+      margin-left: 0;
       margin-top: 0;
     }
   }
@@ -1087,6 +1087,9 @@
 
     .post-listen-bar {
       display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-left: 0;
       margin-top: $space-2;
     }
@@ -1096,23 +1099,28 @@
 .post-listen-bar {
   display: inline-flex;
   align-items: center;
-  gap: $space-2;
+  gap: 6px;
   vertical-align: middle;
+  line-height: 1;
 }
 
 .listen-btn {
   display: inline-flex;
   align-items: center;
-  gap: $space-2;
+  justify-content: center;
+  gap: 6px;
   font-family: $font-mono;
   font-size: 0.75rem;
-  letter-spacing: 0.03em;
-  padding: $space-1 $space-3;
-  min-height: 32px;
+  letter-spacing: 0.02em;
+  padding: 0 10px;
+  height: 26px;
+  min-height: 26px;
+  box-sizing: border-box;
+  line-height: 1;
   background: $surface;
   color: $ink;
   border: 1px solid $rule;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   box-shadow: $shadow-sm;
   transition: background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
@@ -1126,6 +1134,12 @@
 
   svg {
     flex-shrink: 0;
+    display: block;
+  }
+
+  .listen-label {
+    display: inline-block;
+    line-height: 1;
   }
 }
 
@@ -1136,14 +1150,17 @@
   font-family: $font-mono;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  padding: $space-1 $space-2;
-  min-height: 32px;
-  min-width: 38px;
+  letter-spacing: 0.02em;
+  padding: 0 8px;
+  height: 26px;
+  min-height: 26px;
+  min-width: 34px;
+  box-sizing: border-box;
+  line-height: 1;
   background: $surface;
   color: $ink;
   border: 1px solid $rule;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   box-shadow: $shadow-sm;
   transition: background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
@@ -1157,6 +1174,8 @@
 
   .speed-label {
     pointer-events: none;
+    display: inline-block;
+    line-height: 1;
   }
 }
 
@@ -1164,6 +1183,9 @@
   font-family: $font-mono;
   font-size: 0.75rem;
   color: $accent;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
 }
 
 .author-links-row {
@@ -1412,10 +1434,26 @@
 // ---------------------------------------------------------------------------
 
 .post-reading-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: $font-mono;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: $ink-muted;
   letter-spacing: 0.02em;
+  line-height: 1;
+
+  .reading-time-icon {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    color: $ink-muted;
+  }
+
+  .reading-time-text {
+    display: inline-block;
+    line-height: 1;
+  }
 }
 
 // ---------------------------------------------------------------------------
