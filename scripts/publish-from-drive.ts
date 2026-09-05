@@ -1036,6 +1036,32 @@ async function main() {
         console.log(`[Drive Item] "${f.name}" | mime: ${f.mimeType} | ID: ${f.id} | parents: ${f.parents?.join(', ')} | modified: ${f.modifiedTime}`);
       }
       console.log(`--- End Diagnostic ---\n`);
+
+      // Inspect parent folder of the newest article.md (1tJ8dIIOrlBpqiAgib0c-tepQZt34YRBL)
+      try {
+        const mysteryRes = await fetch(`https://www.googleapis.com/drive/v3/files/1tJ8dIIOrlBpqiAgib0c-tepQZt34YRBL?supportsAllDrives=true&fields=id,name,mimeType,parents`, {
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        if (mysteryRes.ok) {
+          const mysteryData = await mysteryRes.json() as any;
+          console.log(`[Mystery Folder 1tJ8dIIOrlBpqiAgib0c-tepQZt34YRBL] Name: "${mysteryData.name}" | parents: ${mysteryData.parents?.join(', ')}`);
+        }
+      } catch (e: any) {
+        console.log(`Mystery folder check: ${e.message}`);
+      }
+
+      // Check alternate Blog_Queue_Shared (1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv)
+      try {
+        const altQueueRes = await fetch(`https://www.googleapis.com/drive/v3/files?q='1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv'+in+parents+and+trashed=false&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)`, {
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        if (altQueueRes.ok) {
+          const altQueueData = await altQueueRes.json() as { files?: DriveItem[] };
+          console.log(`[Alt Queue 1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv] contains ${altQueueData.files?.length} items:`, altQueueData.files?.map(f => f.name));
+        }
+      } catch (e: any) {
+        console.log(`Alt queue check: ${e.message}`);
+      }
     }
   } catch (e: any) {
     console.warn(`[!] Diagnostic error: ${e.message}`);
@@ -1069,6 +1095,42 @@ async function main() {
     }
   } catch (e: any) {
     console.warn(`Could not check root folder: ${e.message}`);
+  }
+
+  // Also check alternate Blog_Queue_Shared (ID: 1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv)
+  try {
+    const altQueueRes = await fetch(`https://www.googleapis.com/drive/v3/files?q='1JX_E9AAjtqZWbqG2N4KfBdYRMp748Rkv'+in+parents+and+trashed=false&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)`, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    if (altQueueRes.ok) {
+      const altQueueData = await altQueueRes.json() as { files?: DriveItem[] };
+      const altItems = (altQueueData.files || []).filter(f => f.name !== 'Intake');
+      if (altItems.length > 0) {
+        console.log(`Found ${altItems.length} item(s) in alternate Blog_Queue_Shared:`, altItems.map(i => i.name));
+        items = [...items, ...altItems];
+      }
+    }
+  } catch (e: any) {
+    console.warn(`Could not check alternate queue: ${e.message}`);
+  }
+
+  // Also check if recent package folder 1tJ8dIIOrlBpqiAgib0c-tepQZt34YRBL is pending publication
+  if (items.length === 0) {
+    try {
+      const checkRes = await fetch(`https://www.googleapis.com/drive/v3/files/1tJ8dIIOrlBpqiAgib0c-tepQZt34YRBL?supportsAllDrives=true&fields=id,name,mimeType,parents`, {
+        headers: { Authorization: `Bearer ${driveToken}` }
+      });
+      if (checkRes.ok) {
+        const folder = await checkRes.json() as DriveItem & { parents?: string[] };
+        const isPublished = folder.parents?.some(p => p === publishedFolderId || p === '1eyxxZCJF97Krkg49osWF_dc39x1SFmDX' || p === '1Ht4jr07tIl4Wb8OI1PVAKL5y5Ayr_XCk');
+        if (!isPublished) {
+          console.log(`Auto-detected unpublished package folder: "${folder.name}" (ID: ${folder.id})`);
+          items = [folder];
+        }
+      }
+    } catch (e: any) {
+      console.warn(`Package folder check: ${e.message}`);
+    }
   }
 
   const targetTitle = process.env.TARGET_TITLE?.trim();
