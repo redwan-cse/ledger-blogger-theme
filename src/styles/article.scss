@@ -1061,18 +1061,43 @@
   }
 }
 
+.post-header {
+  @media (min-width: 1024px) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-3;
+
+    .post-meta-row {
+      margin-bottom: 0;
+    }
+
+    .post-listen-bar {
+      margin-left: $space-1;
+      margin-top: 0;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    display: block;
+
+    .post-meta-row {
+      margin-bottom: $space-2;
+    }
+
+    .post-listen-bar {
+      display: flex;
+      margin-left: 0;
+      margin-top: $space-2;
+    }
+  }
+}
+
 .post-listen-bar {
   display: inline-flex;
   align-items: center;
-  gap: $space-3;
-  margin-left: $space-4;
+  gap: $space-2;
   vertical-align: middle;
-
-  @media (max-width: 639px) {
-    display: flex;
-    margin-left: 0;
-    margin-top: $space-2;
-  }
 }
 
 .listen-btn {
@@ -1101,6 +1126,37 @@
 
   svg {
     flex-shrink: 0;
+  }
+}
+
+.listen-speed-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: $space-1 $space-2;
+  min-height: 32px;
+  min-width: 38px;
+  background: $surface;
+  color: $ink;
+  border: 1px solid $rule;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;
+
+  &:hover {
+    color: $accent;
+    border-color: oklch(62.308% 0.1880 259.815 / 0.4);
+    background-color: $accent-wash;
+    transform: translateY(-1px);
+  }
+
+  .speed-label {
+    pointer-events: none;
   }
 }
 

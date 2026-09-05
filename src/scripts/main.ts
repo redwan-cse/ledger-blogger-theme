@@ -892,6 +892,8 @@ export function initArticleAudioReader(): void {
   const postBody = document.querySelector<HTMLElement>('.post-body');
   if (!postBody) return;
 
+  const speedBtn = document.querySelector<HTMLButtonElement>('[data-action="audio-speed"]');
+  const speedLabel = speedBtn?.querySelector<HTMLElement>('.speed-label');
   const playIcon = listenBtn.querySelector<HTMLElement>('.listen-icon-play');
   const pauseIcon = listenBtn.querySelector<HTMLElement>('.listen-icon-pause');
   const label = listenBtn.querySelector<HTMLElement>('.listen-label');
@@ -899,12 +901,28 @@ export function initArticleAudioReader(): void {
 
   if (!('speechSynthesis' in window)) {
     listenBtn.style.display = 'none';
+    if (speedBtn) speedBtn.style.display = 'none';
     return;
   }
 
+  const speeds = [1.0, 1.25, 1.5, 0.5, 0.75] as const;
+  let currentSpeedIndex = 0;
+  let playbackRate: number = speeds[currentSpeedIndex] ?? 1.0;
+
   let isPlaying = false;
   let isPaused = false;
-  let currentUtterance: SpeechSynthesisUtterance | null = null;
+  let sentences: string[] = [];
+  let currentSentenceIndex = 0;
+
+  function updateSpeedButton(): void {
+    if (speedLabel) {
+      speedLabel.textContent = `${playbackRate}x`;
+    }
+    if (speedBtn) {
+      speedBtn.setAttribute('aria-label', `Playback speed: ${playbackRate}x`);
+      speedBtn.setAttribute('title', `Playback speed: ${playbackRate}x (click to change)`);
+    }
+  }
 
   function setPlayingState(playing: boolean, paused: boolean): void {
     isPlaying = playing;
@@ -915,7 +933,7 @@ export function initArticleAudioReader(): void {
       label.textContent = playing ? (paused ? 'Resume Audio' : 'Pause Audio') : 'Listen (Audio)';
     }
     if (statusEl) {
-      statusEl.textContent = playing ? (paused ? 'Audio paused' : 'Playing audio...') : '';
+      statusEl.textContent = playing ? (paused ? 'Audio paused' : `Playing (${playbackRate}x)...`) : '';
     }
   }
 
@@ -926,32 +944,74 @@ export function initArticleAudioReader(): void {
     return `${title}. ${clone.textContent || ''}`.replace(/\s+/g, ' ').trim();
   }
 
+  function prepareSentences(): void {
+    const text = getCleanArticleText();
+    if (!text) {
+      sentences = [];
+      return;
+    }
+    // Sentence chunking avoids the 15-second SpeechSynthesis timeout bug on Chromium
+    const chunks = text.match(/[^.!?]+[.!?]+|\S+/g) || [text];
+    sentences = chunks.map((s) => s.trim()).filter(Boolean);
+  }
+
+  function speakSentence(index: number): void {
+    if (!isPlaying || isPaused) return;
+
+    if (index >= sentences.length) {
+      setPlayingState(false, false);
+      currentSentenceIndex = 0;
+      showToast('Finished audio narration');
+      return;
+    }
+
+    currentSentenceIndex = index;
+    const utterance = new SpeechSynthesisUtterance(sentences[index]);
+    utterance.rate = playbackRate;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => {
+      if (isPlaying && !isPaused) {
+        speakSentence(index + 1);
+      }
+    };
+
+    utterance.onerror = (err) => {
+      // Ignored if cancelled by speed change or user pause
+      if (err.error === 'interrupted' || err.error === 'canceled') return;
+      setPlayingState(false, false);
+      currentSentenceIndex = 0;
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  if (speedBtn) {
+    speedBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+      playbackRate = speeds[currentSpeedIndex] ?? 1.0;
+      updateSpeedButton();
+      showToast(`Playback speed: ${playbackRate}x`);
+
+      if (isPlaying && !isPaused) {
+        // Cancel current utterance and resume immediately with the new rate
+        window.speechSynthesis.cancel();
+        speakSentence(currentSentenceIndex);
+      }
+    });
+  }
+
   listenBtn.addEventListener('click', (e) => {
     e.preventDefault();
     if (!isPlaying) {
       window.speechSynthesis.cancel();
-      const text = getCleanArticleText();
-      if (!text) return;
+      prepareSentences();
+      if (sentences.length === 0) return;
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-
-      utterance.onend = () => {
-        setPlayingState(false, false);
-        currentUtterance = null;
-        showToast('Finished audio narration');
-      };
-
-      utterance.onerror = () => {
-        setPlayingState(false, false);
-        currentUtterance = null;
-      };
-
-      currentUtterance = utterance;
-      window.speechSynthesis.speak(utterance);
       setPlayingState(true, false);
-      showToast('Playing audio narration');
+      speakSentence(0);
+      showToast(`Playing audio narration (${playbackRate}x)`);
     } else if (isPaused) {
       window.speechSynthesis.resume();
       setPlayingState(true, false);
