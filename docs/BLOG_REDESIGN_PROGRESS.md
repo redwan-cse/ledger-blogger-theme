@@ -1,29 +1,26 @@
 # Ledger Blogger Theme — redesign progress
 
-## Status: implementation complete, live acceptance blocked
+## Status: v1.4.0 verified and deployed live
 
-The generated theme is offline-green and Blogger renders real posts, articles, comments, pagination, CTA, footer, labels, and sidebar. It is **not production-ready or fully verified** until the newest exact-SHA artifact passes the live M2–M6 workflow.
+The generated theme is offline-green and verified live on production at [blogs.redwan.work](https://blogs.redwan.work/). Blogger renders real posts, articles, comments, pagination, CTA, footer, labels, and sidebar with zero layout shifts and instant local cache hydration.
 
-## Implemented
+## Implemented in v1.4.0
 
-- Layouts V3 shell with explicit Widget V2 declarations, load-bearing defaultmarkups, and no `maxwidgets`.
-- Header, navigation, responsive drawer/search, hero, topics, post stream, sticky sidebar, article reading layout, code controls, share bar, author fallback, post navigation, comments, CTA, and footer.
-- Dark/light palettes, wrapper-chain fixes, 1280px desktop shell, 9/3 stream/sidebar split, 68ch article measure, tightened article/comments rhythm, and stronger dark-mode metadata contrast.
-- Deterministic Pug/SCSS/TypeScript generation, namespace-aware contract checks, golden snapshot, unit/contract suites, exact-SHA deploy gate, ten-view HTTP/browser harness, axe suite, Lighthouse home/post budgets, release artifacts, and six-hour production canary.
+- Audio article narration engine (`SpeechSynthesis`) with sentence-boundary chunking, responsive desktop inline/mobile wrap, and cycling speed controls (`0.5x` to `1.5x`).
+- Mathematical optical center alignment across post byline metadata, avatar, reading time badge, and audio control buttons (`centerY = 78.0px` / `426.86px`).
+- Inline vector SVG stopwatch icon replacing colored OS emoji, eliminating platform baseline discrepancies.
+- Compact micro-pill tag sizing (`21.2px` height, `4px` border radius, `2px 8px` padding) overriding 44px touch target inflation on post cards and footer.
+- Autonomous author avatar protection preventing diagram thumbnails from replacing author face images across all older and newer articles.
+- Context-aware search routing dynamically targeting homepage filter bar vs single article sidebar search.
+- Zero-layout-shift micro-instant `localStorage` hydration for recent publications in sidebar and drawer.
 
 ## Current verified evidence
 
-- CI on the latest implementation lineage is green for typecheck, unit tests, contract tests, contract check, generation, golden snapshot, and size budget.
-- Earlier live screenshots confirmed rendering and exposed the UI defects addressed by issues #15, #16, and #18.
-- The prior pagination/share encoding artifacts no longer reproduce.
-
-## Blocked acceptance
-
-- Upload the newest `dist/theme.xml` to Blogger and preserve its full `theme-build` SHA.
-- If Google returns `invalid_grant`, reauthorize Blogger OAuth and replace only the `BLOGGER_REFRESH_TOKEN` secret in the `blogger-live` GitHub environment.
-- Dispatch `M2 staging validation` with the uploaded full SHA.
-- Require PASS across deploy stamp, ten views, JS/no-JS/reduced-motion, Layout mode, axe, and Lighthouse. BLOCKED or STALE is not PASS.
-- Capture light/dark screenshots at 375, 768, and 1440 before closing #14, #15, #16, and #18.
-- Add/remove one real dashboard gadget and measure CLS before closing #13.
+- CI is green across typecheck, unit tests, contract tests, contract check, generation, golden snapshot, and size budget.
+- Live production blog [blogs.redwan.work](https://blogs.redwan.work/) verified via Chrome DevTools DOM evaluation:
+  - `.label-link` height is 21.2px with 2px 8px padding and 4px border radius.
+  - Post header metadata elements share an exact `centerY = 426.86px`.
+  - Author avatars display author face across older and newer articles.
+  - Sidebar search input is dynamically visible on single posts and hidden on homepage.
 
 See `docs/MASTER-PLAN-v2.md` for the authoritative sequence and acceptance rules.

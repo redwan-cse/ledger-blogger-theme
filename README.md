@@ -1,6 +1,6 @@
 # Ledger — Blogger Layouts V3 Theme
 
-[![Release](https://img.shields.io/badge/Release-v1.3.0-blue.svg)](https://github.com/redwan-cse/ledger-blogger-theme/releases/tag/v1.3.0)
+[![Release](https://img.shields.io/badge/Release-v1.4.0-blue.svg)](https://github.com/redwan-cse/ledger-blogger-theme/releases/tag/v1.4.0)
 [![Changelog](https://img.shields.io/badge/Changelog-Keep_a_Changelog-orange.svg)](CHANGELOG.md)
 [![CI](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml)
 [![Build Theme Artifact](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml)
@@ -24,17 +24,22 @@ Live production blog: **[blogs.redwan.work](https://blogs.redwan.work/)**
 
 - **Platform Contract Conformance**: Strictly complies with Google's native Blogger Layouts V3 architecture and Widget Version 2 specification with zero legacy V1/V2 constructs.
 - **Native `super.main` Delegation**: Dispatches through Blogger's internal pagination beans, post cursors, threaded comments, and feed beans with 12 defensive `<b:defaultmarkup>` blocks.
+- **Audio Article Narration & Speed Controls**: Client-side SpeechSynthesis audio narration engine featuring responsive desktop inline placement, mobile/tablet wrapping, sentence boundary chunking, and dynamic speed cycling (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`).
+- **Mathematical Optical Center Alignment**: Aligns post byline metadata, avatar, reading time badge, and audio buttons on an identical horizontal center line (`centerY = 78.0px` / `426.86px`).
 - **100% OKLCH Color Space**: Precision perceptual color ramp with automatic dark & light theme modes and AAA/AA contrast compliance.
 - **Zero-JS Server-Side Rendering**: Core content, layout grid, typography, topic pills, and article streams render completely without JavaScript dependencies (`R-EMPTY-2`).
+- **Micro-Instant Hydration**: Zero-layout-shift `localStorage` hydration micro-script for sidebar recent posts and mobile drawer navigation.
 - **Responsive 12-Column Grid**: Single-column layout on mobile (`< 640px`), full-width lead cards on tablet (`640px - 1023px`), and a 12-column desktop grid with a sticky sidebar (`>= 1024px`).
-- **Modern 16:9 Post Cards**: Equalized card heights, framed 16:9 thumbnail ratios, strict 2-line title/excerpt clamping, and open jsDelivr CDN image acceleration.
+- **Modern 16:9 Post Cards & Compact Tag Pills**: Equalized card heights, framed 16:9 thumbnail ratios, strict 2-line title/excerpt clamping, compact micro-pill tags, and open jsDelivr CDN image acceleration.
 - **Interactive Mermaid 11 Diagrams & Floating Toolbar**: Embedded architecture flowcharts and protocol sequence diagrams with modern transparent controls (step-by-step zoom `100% – 250%`, fit-to-screen reset, and direct standalone SVG download with embedded styling).
 - **Faceted Homepage Filter Bar**: Instantaneous, zero-latency client-side search, Year dropdown selector, Month dropdown selector, and Category pill filtering across the entire post library.
+- **Context-Aware Search Routing**: Smart `/` and `Ctrl+K` shortcuts dynamically targeting the homepage catalog filter bar or single-post sidebar search.
 - **Syntax Highlighting & Code Blocks**: Statement-level line spacing, Prism.js syntax coloring, language headers, and one-click copy buttons with clipboard toast feedback.
 - **Collapsible Sticky Table of Contents (TOC)**: Smooth scrolling navigation with active heading position tracking.
 - **Mobile Drawer Navigation & Search**: Smooth off-canvas drawer navigation and search modal with full keyboard accessibility (`Escape` trap, focus management).
+- **Autonomous Author Avatar Protection**: Global selector guarding preventing article diagrams and thumbnails from replacing author profile photos across older and newer posts.
 - **SEO & Rich Results**: Automatic Schema.org `BlogPosting` and `WebSite` JSON-LD structured data (using `.jsonEscaped`), dynamic OpenGraph, Twitter Cards, and canonical URLs.
-- **WCAG 2.2 AA Accessibility**: Strict single-`h1` heading hierarchy per view, functional `#content` skip link, 44px touch targets, and `prefers-reduced-motion` fallbacks.
+- **WCAG 2.2 AA Accessibility**: Strict single-`h1` heading hierarchy per view, functional `#content` skip link, accessible touch targets, and `prefers-reduced-motion` fallbacks.
 - **Headless Publishing Automation**: Zero-cost automated pipeline via GitHub Actions, Google Drive shared queue monitoring, Google Sheets planner deduplication, and automated CDN asset hosting.
 
 ---

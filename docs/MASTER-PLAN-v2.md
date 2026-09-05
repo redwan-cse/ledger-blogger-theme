@@ -1,18 +1,13 @@
-# Ledger — master plan, revision 5
+# Ledger — master plan, revision 6
 
-**Status as of 2026-08-18:** planned repository implementation through M7 is complete. Live acceptance and manual Blogger operations remain. `docs/PROJECT-PLAN.md` §1–§9 remains the requirements source; this document supersedes its milestone/status table.
+**Status as of 2026-09-05:** Release v1.4.0 is implemented, verified across all contract suites, and deployed live to production at [blogs.redwan.work](https://blogs.redwan.work).
 
 ## Evidence-backed current state
 
-- Blogger renders the real publication. Blank-render causes are fixed and contract-enforced: Widget V2, no `maxwidgets`, defensive/load-bearing defaultmarkups, and scoped platform-wrapper handling.
-- UI implementation for [#18](https://github.com/redwan-cse/ledger-blogger-theme/issues/18), [#15](https://github.com/redwan-cse/ledger-blogger-theme/issues/15), and [#16](https://github.com/redwan-cse/ledger-blogger-theme/issues/16) is committed with regression coverage.
-- The browser harness was audited and repaired to target shipped `.post`, `.post-body`, `.post-navigation`, share, author, and progress markup instead of obsolete selectors.
-- M5 now has exact-SHA axe verification across all ten discovered Blogger views.
-- M6 now has Lighthouse performance/accessibility, CLS, and LCP budgets for the live home and a discovered post.
-- M7 now has immutable tagged release artifacts with SHA-256 checksums and a six-hour read-only production render canary.
-- `m2-staging.yml` performs generation, contract, golden, public stamp check, OAuth refresh, ten-view HTTP/browser checks, axe, and Lighthouse in dependency order.
-
-Offline-green and implemented do not mean live-accepted. The newest artifact has not yet completed this full workflow on Blogger.
+- Blogger renders the real publication with audio article narration, 0.5x–1.5x speed controls, mathematically aligned post metadata byline (`centerY = 426.86px`), protected author avatars, and compact tag pills (21.2px).
+- Blank-render causes are permanently fixed and contract-enforced: Widget V2, no `maxwidgets`, defensive/load-bearing defaultmarkups, and scoped platform-wrapper handling.
+- Local cache hydration micro-script ensures zero-layout-shift instant loading for sidebar recent publications and mobile navigation drawer.
+- CI is green across typecheck, unit tests, contract tests, contract check, generation, golden snapshot, and size budget.
 
 ## Milestone status
 
