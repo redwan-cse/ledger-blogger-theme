@@ -387,6 +387,9 @@ export function initSidebarRecentPosts(): void {
   const recentList = document.querySelector<HTMLElement>('.sidebar-recent-list');
   if (!recentList) return;
 
+  // Skip fetching on mobile/tablet viewports where sidebar is hidden
+  if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
+
   if (recentList.querySelectorAll('.sidebar-recent-item').length >= 2) return;
 
   fetch('/feeds/posts/summary?alt=json&max-results=5', { headers: { Accept: 'application/json' } })
@@ -1180,7 +1183,11 @@ export function initBloggerFollowPopup(): void {
 
 function init(): void {
   initThemeToggle();
-  initPostHeroImage();
+
+  const isPost = typeof document !== 'undefined' && (document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post')));
+  if (isPost) {
+    initPostHeroImage();
+  }
 
   const scheduleTask = (task: () => void, delay = 0) => {
     if (typeof window.requestIdleCallback === 'function') {
@@ -1302,28 +1309,9 @@ export function initHomepageCatalog(): void {
             }
           }
 
-          const lowerTitle = title.toLowerCase();
           if (thumbnail) {
             // Upgrade Blogger low-res thumbnail to crisp WebP
-            thumbnail = thumbnail.replace(/\/s72-c\//, '/w640-rw/').replace(/=s72-c/, '=w640-rw');
-
-            // Map known Google Drive links to open jsDelivr CDN
-            if (thumbnail.includes('1lpgnegmqweg8a6uclg02ahi_rs22cx2y') || lowerTitle.includes('linux user namespaces')) {
-              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
-            } else if (thumbnail.includes('1zbmp_o9ba7oba2oqfezbzn_kwtt1sxt1') || lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
-              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
-            } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
-              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
-            }
-          } else {
-            // Fallback mapping for posts without media$thumbnail
-            if (lowerTitle.includes('linux user namespaces')) {
-              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
-            } else if (lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
-              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
-            } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
-              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
-            }
+            thumbnail = thumbnail.replace(/\/s72-c\//, '/w384-rw/').replace(/=s72-c/, '=w384-rw');
           }
 
           return {
@@ -1371,8 +1359,6 @@ export function initHomepageCatalog(): void {
 
         if (onSuccess) {
           onSuccess();
-        } else {
-          applyFilter();
         }
       })
       .catch(() => {
@@ -1430,7 +1416,7 @@ export function initHomepageCatalog(): void {
             <div class="post-card-inner ${p.thumbnail ? 'has-thumbnail' : 'no-thumbnail'}">
               ${p.thumbnail ? `
                 <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
-                  <img class="post-thumbnail" src="${p.thumbnail}" alt="" width="640" height="360" loading="${idx < 2 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" />
+                  <img class="post-thumbnail" src="${p.thumbnail}" alt="" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
                 </a>
               ` : ''}
               <div class="post-content-wrap">
@@ -1556,12 +1542,6 @@ export function initHomepageCatalog(): void {
   categorySelect?.addEventListener('change', () => loadFeedAndFilter(applyFilter));
 
   filterBar.addEventListener('pointerenter', () => loadFeedAndFilter(), { once: true });
-
-  setTimeout(() => {
-    if (!isLoaded && !isLoading) {
-      loadFeedAndFilter();
-    }
-  }, 4000);
 
   window.addEventListener('resize', () => {
     renderPage();
