@@ -2505,6 +2505,11 @@ pre {
       white-space: nowrap;
       transition: transform $motion-fast $ease-out-quart, background-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
 
+      .sidebar-btn-icon {
+        margin-right: 6px;
+        flex-shrink: 0;
+      }
+
       &.sidebar-btn-primary {
         background: $accent;
         color: #ffffff;

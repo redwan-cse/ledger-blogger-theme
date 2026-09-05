@@ -8,9 +8,9 @@ b:if(cond='not (data:view.isSearch or data:view.isArchive or (data:view.isMultip
   meta(name='robots' content='index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1')/
 
 //- Resource hints for critical above-the-fold assets
-link(rel='preconnect' href='https://redwan.work' crossorigin='anonymous')/
+link(rel='preconnect' href='https://blogger.googleusercontent.com' crossorigin='anonymous')/
 b:if(cond='data:view.isHomepage and not data:newerPageUrl')
-  link(rel='preload' as='image' href='https://redwan.work/profile.jpg' fetchpriority='high')/
+  link(rel='preload' as='image' href='https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s260-c-rw' fetchpriority='high')/
 b:if(cond='data:view.isPost and data:view.featuredImage')
   link(rel='preload' as='image' expr:href='data:view.featuredImage' fetchpriority='high')/
 

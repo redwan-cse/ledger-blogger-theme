@@ -911,6 +911,54 @@
     color: $ink-muted;
     margin: $space-1 0 0;
   }
+
+  .author-follow-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-top: $space-3;
+
+    .author-follow-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: $font-sans;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all $motion-fast $ease-out-quart;
+
+      svg {
+        flex-shrink: 0;
+      }
+
+      &.author-follow-google {
+        background: $accent;
+        color: #ffffff;
+        box-shadow: $shadow-accent-sm;
+
+        &:hover {
+          background: oklch(48% 0.205 263);
+          transform: translateY(-1px);
+        }
+      }
+
+      &.author-follow-rss {
+        background: $surface;
+        color: $ink;
+        border: 1px solid $rule;
+
+        &:hover {
+          color: $accent;
+          border-color: $accent;
+          background: $accent-wash;
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
