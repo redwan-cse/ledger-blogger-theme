@@ -2,9 +2,12 @@ name: Publish From Google Drive (Free / Zero API Cost)
 
 on:
   schedule:
-    - cron: '0 4 * * *'  # Daily at 10:00 AM BST (04:00 AM UTC, after Apps Script runs)
-    - cron: '30 4 * * *' # Backup check at 10:30 AM BST (04:30 AM UTC)
-    - cron: '0 16 * * *' # Evening backup check at 10:00 PM BST (04:00 PM UTC)
+    # Morning Slot (10:00 AM BST / 04:00 AM UTC)
+    - cron: '5 4 * * *'   # 10:05 AM BST (primary)
+    - cron: '25 4 * * *'  # 10:25 AM BST (backup retry if primary delayed/failed)
+    # Night Slot (10:00 PM BST / 04:00 PM UTC)
+    - cron: '5 16 * * *'  # 10:05 PM BST (primary)
+    - cron: '25 16 * * *' # 10:25 PM BST (backup retry if primary delayed/failed)
   workflow_dispatch: # Allows 1-click manual trigger from GitHub Actions tab
     inputs:
       republish_latest:
