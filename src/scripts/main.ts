@@ -1874,25 +1874,37 @@ export function initPostHeroImage(): void {
 
   let cdnSrc = '';
   if (
+    pagePath.includes('edge-appliance-compromise') ||
+    pageTitle.includes('edge appliance compromise') ||
+    pageTitle.includes('sonicwall')
+  ) {
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/edge-appliance-compromise-threat-modeling-the-soni/thumbnail.png';
+  } else if (
+    pagePath.includes('byovd-edr-evasion') ||
+    pageTitle.includes('byovd edr evasion') ||
+    pageTitle.includes('signed drivers')
+  ) {
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/byovd-edr-evasion-weaponizing-validly/thumbnail.png';
+  } else if (
     pagePath.includes('linux-user-namespaces') ||
     pageTitle.includes('linux user namespaces') ||
     currentSrc.includes('1lpgnegmqweg8a6uclg02ahi_rs22cx2y')
   ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/linux-user-namespaces-security-paradox/thumbnail.png';
   } else if (
     pagePath.includes('postgresql-row-level') ||
     pageTitle.includes('postgresql row-level') ||
     pageTitle.includes('row-level security') ||
     currentSrc.includes('1zbmp_o9ba7oba2oqfezbzn_kwtt1sxt1')
   ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/postgresql-row-level-security-threat/thumbnail.png';
   } else if (
     pagePath.includes('xdp') ||
     pagePath.includes('ebpf-packet-filtering') ||
     pageTitle.includes('xdp') ||
     pageTitle.includes('ebpf')
   ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
+    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/xdp-ebpf-packet-filtering/thumbnail.png';
   }
 
   function isGoogleUserContent(urlStr: string): boolean {

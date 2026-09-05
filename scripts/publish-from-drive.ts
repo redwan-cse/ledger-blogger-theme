@@ -1342,10 +1342,10 @@ async function main() {
           const ghToken = process.env.GITHUB_TOKEN?.trim();
           if (ghToken) {
             try {
-              const relPath = `assets/posts/${postSlug}/thumbnail.png`;
+              const relPath = `posts/${postSlug}/thumbnail.png`;
               let existingSha: string | undefined = undefined;
               try {
-                const getRes = await fetch(`https://api.github.com/repos/redwan-cse/ledger-blogger-theme/contents/${relPath}?ref=assets`, {
+                const getRes = await fetch(`https://api.github.com/repos/redwan-cse/blog-assets/contents/${relPath}?ref=main`, {
                   headers: {
                     Authorization: `Bearer ${ghToken}`,
                     Accept: 'application/vnd.github.v3+json',
@@ -1358,7 +1358,7 @@ async function main() {
                 }
               } catch {}
 
-              const putRes = await fetch(`https://api.github.com/repos/redwan-cse/ledger-blogger-theme/contents/${relPath}`, {
+              const putRes = await fetch(`https://api.github.com/repos/redwan-cse/blog-assets/contents/${relPath}`, {
                 method: 'PUT',
                 headers: {
                   Authorization: `Bearer ${ghToken}`,
@@ -1369,22 +1369,22 @@ async function main() {
                 body: JSON.stringify({
                   message: `chore(assets): add thumbnail for ${postSlug}`,
                   content: imgBuffer.toString('base64'),
-                  branch: 'assets',
+                  branch: 'main',
                   ...(existingSha ? { sha: existingSha } : {})
                 })
               });
               if (putRes.ok) {
-                console.log(`Uploaded thumbnail to 'assets' branch via GitHub API.`);
+                console.log(`Uploaded thumbnail to 'blog-assets' repo via GitHub API.`);
               } else {
-                console.warn(`GitHub API assets upload notice: ${putRes.status}`);
+                console.warn(`GitHub API blog-assets upload notice: ${putRes.status}`);
               }
             } catch (apiErr: any) {
               console.warn(`API upload notice: ${apiErr.message}`);
             }
           }
 
-          // Point to jsDelivr CDN from assets branch
-          heroImageUrl = `https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@assets/assets/posts/${postSlug}/thumbnail.png`;
+          // Point to jsDelivr CDN from dedicated public blog-assets repository
+          heroImageUrl = `https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/${postSlug}/thumbnail.png`;
         }
       }
     } else {
