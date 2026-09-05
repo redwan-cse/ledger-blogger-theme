@@ -1848,10 +1848,20 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
 // ---------------------------------------------------------------------------
 
 export function initPostHeroImage(): void {
+  // Target strictly the article's lead hero image inside .post-body, NEVER the author avatar in .post-header!
   const heroImg = document.querySelector<HTMLImageElement>(
-    '.post-hero-image, .post-hero-wrap img, .post-body img[alt="Article Hero"], article.post img:first-of-type'
+    '.post-body .post-hero-image, .post-body .post-hero-wrap img, .post-body img[alt="Article Hero"], .post-body > img:first-of-type, .post-body > p:first-of-type img:first-of-type, .post-body img:first-of-type'
   );
   if (!heroImg) return;
+  if (
+    heroImg.classList.contains('post-author-mini-avatar') ||
+    heroImg.classList.contains('author-avatar') ||
+    Boolean(heroImg.closest('.post-header')) ||
+    Boolean(heroImg.closest('.post-meta-row')) ||
+    Boolean(heroImg.closest('.post-author-bio'))
+  ) {
+    return;
+  }
 
   const currentSrc = (heroImg.getAttribute('src') || '').trim();
   const pagePath = window.location.pathname.toLowerCase();
