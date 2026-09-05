@@ -1,5 +1,4 @@
 import * as http from 'node:http';
-import * as url from 'node:url';
 
 const CLIENT_ID = process.env.BLOGGER_CLIENT_ID?.trim();
 const CLIENT_SECRET = process.env.BLOGGER_CLIENT_SECRET?.trim();

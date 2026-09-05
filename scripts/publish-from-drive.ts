@@ -1,7 +1,7 @@
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { marked } from 'marked';
 
 interface ServiceAccountKey {
@@ -304,7 +304,13 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
 
   renderer.heading = function({ text, depth }: { text: string; depth: number }) {
     if (depth === 2 || depth === 3) {
-      const plainText = text.replace(/<[^>]+>/g, '').trim();
+      let plainText = text;
+      let prevText = '';
+      do {
+        prevText = plainText;
+        plainText = plainText.replace(/<[^>]+>/g, '');
+      } while (plainText !== prevText);
+      plainText = plainText.trim();
       const id = slugify(plainText);
       return `<h${depth} id="${id}">${text}<a href="#${id}" class="heading-anchor" aria-label="Direct link to ${escapeHtml(plainText)}">#</a></h${depth}>\n`;
     }
@@ -350,7 +356,7 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
   cleanedMarkdown = cleanedMarkdown.replace(/```+([ \t]*[a-z]+[ \t]+[^\n\r`]+)/g, '```\n\n$1');
 
   // 4. Ensure tables have blank line before the header row and after the last row
-  cleanedMarkdown = cleanedMarkdown.replace(/([^\n])\n(\s*\|[^\n]+\|\n\s*\|[\s:-|-]+\|)/g, '$1\n\n$2');
+  cleanedMarkdown = cleanedMarkdown.replace(/([^\n])\n(\s*\|[^\n]+\|\n\s*\|[\s:\-|]+\|)/g, '$1\n\n$2');
   cleanedMarkdown = cleanedMarkdown.replace(/(\|[^\n]+\|)\n([^\n|# -<])/g, '$1\n\n$2');
 
   // 5. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences)
@@ -971,7 +977,7 @@ async function main() {
   }
 
   const sa = JSON.parse(rawJson);
-  console.log(`Authenticated Service Account: ${sa.client_email || sa.clientEmail}`);
+  console.log('Authenticated Google Service Account credentials verified successfully.');
 
   const driveToken = await getDriveAccessToken(sa);
   const bloggerToken = await getBloggerAccessToken();
@@ -1287,7 +1293,7 @@ async function main() {
       cleanTitle = match[2].trim();
     }
 
-    const postSlug = slugify(cleanTitle);
+    const postSlug = slugify(cleanTitle).replace(/[^a-z0-9_-]/g, '').slice(0, 80);
     let markdownContent = '';
     let heroImageUrl: string | undefined = undefined;
 
@@ -1335,40 +1341,70 @@ async function main() {
         });
         if (imgRes.ok) {
           const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
-          const assetDir = path.join(process.cwd(), 'assets', 'posts', postSlug);
+          const postsBaseDir = path.resolve(process.cwd(), 'assets', 'posts');
+          const assetDir = path.resolve(postsBaseDir, postSlug);
+          if (!assetDir.startsWith(postsBaseDir + path.sep)) {
+            throw new Error('Path traversal detected');
+          }
           fs.mkdirSync(assetDir, { recursive: true });
-          const assetPath = path.join(assetDir, 'thumbnail.png');
+          const assetPath = path.resolve(assetDir, 'thumbnail.png');
           fs.writeFileSync(assetPath, imgBuffer);
           console.log(`Saved thumbnail to: ${assetPath}`);
           console.log(`THUMBNAIL_BASE64_START:${imgBuffer.toString('base64')}:THUMBNAIL_BASE64_END`);
 
-          let pushSucceeded = false;
-          try {
-            execSync(`git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"`);
-            execSync(`git add assets/posts/${postSlug}/thumbnail.png`);
-            execSync(`git commit -m "chore(assets): add thumbnail for ${postSlug}"`);
-            const ghToken = process.env.GITHUB_TOKEN?.trim();
-            if (ghToken) {
-              // Push to dedicated unprotected assets branch (bypasses main branch protection)
+          const ghToken = process.env.GITHUB_TOKEN?.trim();
+          if (ghToken) {
+            try {
+              const relPath = `assets/posts/${postSlug}/thumbnail.png`;
+              let existingSha: string | undefined = undefined;
               try {
-                execSync(`git push https://x-access-token:${ghToken}@github.com/redwan-cse/ledger-blogger-theme.git HEAD:assets`);
-                console.log(`Committed & pushed thumbnail to 'assets' branch.`);
-                pushSucceeded = true;
-              } catch (pushErr: any) {
-                console.warn(`Push to assets notice: ${pushErr.message}`);
-              }
-              // Also attempt push to main
-              try {
-                execSync(`git push https://x-access-token:${ghToken}@github.com/redwan-cse/ledger-blogger-theme.git HEAD:main`);
-                console.log(`Committed & pushed thumbnail to 'main' branch.`);
+                const getRes = await fetch(`https://api.github.com/repos/redwan-cse/ledger-blogger-theme/contents/${relPath}?ref=assets`, {
+                  headers: {
+                    Authorization: `Bearer ${ghToken}`,
+                    Accept: 'application/vnd.github.v3+json',
+                    'User-Agent': 'ledger-publisher'
+                  }
+                });
+                if (getRes.ok) {
+                  const getData = await getRes.json() as { sha?: string };
+                  existingSha = getData.sha;
+                }
               } catch {}
-            } else {
-              execSync(`git push origin HEAD:assets`);
-              console.log(`Committed & pushed thumbnail to 'assets' branch.`);
-              pushSucceeded = true;
+
+              const putRes = await fetch(`https://api.github.com/repos/redwan-cse/ledger-blogger-theme/contents/${relPath}`, {
+                method: 'PUT',
+                headers: {
+                  Authorization: `Bearer ${ghToken}`,
+                  Accept: 'application/vnd.github.v3+json',
+                  'User-Agent': 'ledger-publisher',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  message: `chore(assets): add thumbnail for ${postSlug}`,
+                  content: imgBuffer.toString('base64'),
+                  branch: 'assets',
+                  ...(existingSha ? { sha: existingSha } : {})
+                })
+              });
+              if (putRes.ok) {
+                console.log(`Uploaded thumbnail to 'assets' branch via GitHub API.`);
+              } else {
+                console.warn(`GitHub API assets upload notice: ${putRes.status}`);
+              }
+            } catch (apiErr: any) {
+              console.warn(`API upload notice: ${apiErr.message}`);
             }
-          } catch (e: any) {
-            console.log(`Note: git push attempt error: ${e.stderr?.toString() || e.stdout?.toString() || e.message}. Assets saved locally.`);
+          } else {
+            try {
+              execFileSync('git', ['config', 'user.name', 'github-actions[bot]'], { stdio: 'pipe' });
+              execFileSync('git', ['config', 'user.email', 'github-actions[bot]@users.noreply.github.com'], { stdio: 'pipe' });
+              execFileSync('git', ['add', path.relative(process.cwd(), assetPath)], { stdio: 'pipe' });
+              execFileSync('git', ['commit', '-m', `chore(assets): add thumbnail for ${postSlug}`], { stdio: 'pipe' });
+              execFileSync('git', ['push', 'origin', 'HEAD:assets'], { stdio: 'pipe' });
+              console.log(`Committed & pushed thumbnail to 'assets' branch.`);
+            } catch (gitErr: any) {
+              console.log(`Note: git push notice: ${gitErr.message}. Assets saved locally.`);
+            }
           }
 
           // Point to jsDelivr CDN from assets branch (or main)

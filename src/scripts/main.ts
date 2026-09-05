@@ -1246,108 +1246,128 @@ export function initHomepageCatalog(): void {
   let currentPage = 1;
   const getPageSize = () => (window.innerWidth >= 768 ? 8 : 4);
 
-  fetch('/feeds/posts/default?alt=json&max-results=150', { headers: { Accept: 'application/json' } })
-    .then((res) => (res.ok ? res.json() : null))
-    .then((data) => {
-      const entries = data?.feed?.entry || [];
-      if (entries.length === 0) return;
+  let isLoaded = false;
+  let isLoading = false;
 
-      allPosts = entries.map((entry: any) => {
-        const id = entry.id?.$t || '';
-        const title = entry.title?.$t || 'Untitled';
-        const url = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
-        const published = entry.published?.$t || '';
-        const dateObj = published ? new Date(published) : new Date();
-        const year = String(dateObj.getFullYear());
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
+  function loadFeedAndFilter(onSuccess?: () => void): void {
+    if (isLoaded) {
+      if (onSuccess) onSuccess();
+      return;
+    }
+    if (isLoading) return;
+    isLoading = true;
 
-        let contentHtml = entry.content?.$t || entry.summary?.$t || '';
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = contentHtml;
-        tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, pre, code, style, script, .table-of-contents, .heading-anchor').forEach((el) => el.remove());
-        const rawExcerpt = (tempDiv.textContent || '').replace(/^#+.*?[#\n]/, '').replace(/\s+/g, ' ').trim();
-        const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
+    fetch('/feeds/posts/default?alt=json&max-results=50', { headers: { Accept: 'application/json' } })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        isLoaded = true;
+        isLoading = false;
+        const entries = data?.feed?.entry || [];
+        if (entries.length === 0) return;
 
-        let thumbnail = entry.media$thumbnail?.url;
-        if (!thumbnail) {
-          const img = tempDiv.querySelector('img');
-          if (img && img.src) {
-            thumbnail = img.src;
+        allPosts = entries.map((entry: any) => {
+          const id = entry.id?.$t || '';
+          const title = entry.title?.$t || 'Untitled';
+          const url = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
+          const published = entry.published?.$t || '';
+          const dateObj = published ? new Date(published) : new Date();
+          const year = String(dateObj.getFullYear());
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
+
+          let contentHtml = entry.content?.$t || entry.summary?.$t || '';
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = contentHtml;
+          tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, pre, code, style, script, .table-of-contents, .heading-anchor').forEach((el) => el.remove());
+          const rawExcerpt = (tempDiv.textContent || '').replace(/^#+.*?[#\n]/, '').replace(/\s+/g, ' ').trim();
+          const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
+
+          let thumbnail = entry.media$thumbnail?.url;
+          if (!thumbnail) {
+            const img = tempDiv.querySelector('img');
+            if (img && img.src) {
+              thumbnail = img.src;
+            }
           }
+
+          const lowerTitle = title.toLowerCase();
+          if (thumbnail) {
+            // Upgrade Blogger low-res thumbnail to crisp WebP
+            thumbnail = thumbnail.replace(/\/s72-c\//, '/w640-rw/').replace(/=s72-c/, '=w640-rw');
+
+            // Map known Google Drive links to open jsDelivr CDN
+            if (thumbnail.includes('1lpgnegmqweg8a6uclg02ahi_rs22cx2y') || lowerTitle.includes('linux user namespaces')) {
+              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
+            } else if (thumbnail.includes('1zbmp_o9ba7oba2oqfezbzn_kwtt1sxt1') || lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
+              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
+            } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
+              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
+            }
+          } else {
+            // Fallback mapping for posts without media$thumbnail
+            if (lowerTitle.includes('linux user namespaces')) {
+              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
+            } else if (lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
+              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
+            } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
+              thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
+            }
+          }
+
+          return {
+            id,
+            title,
+            url,
+            published,
+            dateStr,
+            year,
+            month,
+            categories,
+            excerpt,
+            thumbnail
+          };
+        });
+
+        if (yearSelect) {
+          const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
+          yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
         }
 
-        const lowerTitle = title.toLowerCase();
-        if (thumbnail) {
-          // Upgrade Blogger low-res 72px thumbnail to crisp 600px
-          thumbnail = thumbnail.replace(/\/s72-c\//, '/s600/').replace(/=s72-c/, '=s600');
+        if (monthSelect) {
+          const MONTHS = [
+            { val: '01', name: 'January' },
+            { val: '02', name: 'February' },
+            { val: '03', name: 'March' },
+            { val: '04', name: 'April' },
+            { val: '05', name: 'May' },
+            { val: '06', name: 'June' },
+            { val: '07', name: 'July' },
+            { val: '08', name: 'August' },
+            { val: '09', name: 'September' },
+            { val: '10', name: 'October' },
+            { val: '11', name: 'November' },
+            { val: '12', name: 'December' }
+          ];
+          monthSelect.innerHTML = '<option value="all">All months</option>' +
+            MONTHS.map((m) => `<option value="${m.val}">${m.name}</option>`).join('');
+        }
 
-          // Map known Google Drive links (which block unauthenticated Chrome requests) to open jsDelivr CDN
-          if (thumbnail.includes('1lpgnegmqweg8a6uclg02ahi_rs22cx2y') || lowerTitle.includes('linux user namespaces')) {
-            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
-          } else if (thumbnail.includes('1zbmp_o9ba7oba2oqfezbzn_kwtt1sxt1') || lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
-            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
-          } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
-            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
-          }
+        if (categorySelect) {
+          const allCats = Array.from(new Set(allPosts.flatMap((p) => p.categories))).sort();
+          categorySelect.innerHTML = '<option value="all">All categories</option>' + allCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        }
+
+        if (onSuccess) {
+          onSuccess();
         } else {
-          // Fallback mapping for posts without media$thumbnail
-          if (lowerTitle.includes('linux user namespaces')) {
-            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/linux-user-namespaces-security-paradox/thumbnail.png';
-          } else if (lowerTitle.includes('postgresql row-level') || lowerTitle.includes('row-level security')) {
-            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/postgresql-row-level-security-threat/thumbnail.png';
-          } else if (lowerTitle.includes('xdp and ebpf') || lowerTitle.includes('xdp')) {
-            thumbnail = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
-          }
+          applyFilter();
         }
-
-        return {
-          id,
-          title,
-          url,
-          published,
-          dateStr,
-          year,
-          month,
-          categories,
-          excerpt,
-          thumbnail
-        };
+      })
+      .catch(() => {
+        isLoading = false;
       });
-
-      if (yearSelect) {
-        const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
-        yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
-      }
-
-      if (monthSelect) {
-        const MONTHS = [
-          { val: '01', name: 'January' },
-          { val: '02', name: 'February' },
-          { val: '03', name: 'March' },
-          { val: '04', name: 'April' },
-          { val: '05', name: 'May' },
-          { val: '06', name: 'June' },
-          { val: '07', name: 'July' },
-          { val: '08', name: 'August' },
-          { val: '09', name: 'September' },
-          { val: '10', name: 'October' },
-          { val: '11', name: 'November' },
-          { val: '12', name: 'December' }
-        ];
-        monthSelect.innerHTML = '<option value="all">All months</option>' +
-          MONTHS.map((m) => `<option value="${m.val}">${m.name}</option>`).join('');
-      }
-
-      if (categorySelect) {
-        const allCats = Array.from(new Set(allPosts.flatMap((p) => p.categories))).sort();
-        categorySelect.innerHTML = '<option value="all">All categories</option>' + allCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-      }
-
-      applyFilter();
-    })
-    .catch(() => {});
+  }
 
   function applyFilter(): void {
     const query = (searchInput?.value || '').toLowerCase().trim();
@@ -1399,7 +1419,7 @@ export function initHomepageCatalog(): void {
             <div class="post-card-inner ${p.thumbnail ? 'has-thumbnail' : 'no-thumbnail'}">
               ${p.thumbnail ? `
                 <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
-                  <img class="post-thumbnail" src="${p.thumbnail}" alt="" loading="${idx < 2 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" />
+                  <img class="post-thumbnail" src="${p.thumbnail}" alt="" width="640" height="360" loading="${idx < 2 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" />
                 </a>
               ` : ''}
               <div class="post-content-wrap">
@@ -1408,7 +1428,7 @@ export function initHomepageCatalog(): void {
                 </${h2Tag}>
                 <div class="post-meta-row">
                   <div class="post-author-mini">
-                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s80" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
+                    <img class="post-author-mini-avatar" src="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s40-rw" alt="Md Redwan Ahmed" width="20" height="20" loading="lazy" />
                     <span class="post-author-mini-name">Md. Redwan Ahmed</span>
                   </div>
                   <span class="post-meta-sep">·</span>
@@ -1509,14 +1529,28 @@ export function initHomepageCatalog(): void {
   }
 
   let debounceTimer: any;
+  searchInput?.addEventListener('focus', () => loadFeedAndFilter());
   searchInput?.addEventListener('input', () => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => applyFilter(), 150);
+    debounceTimer = setTimeout(() => {
+      loadFeedAndFilter(applyFilter);
+    }, 150);
   });
 
-  yearSelect?.addEventListener('change', () => applyFilter());
-  monthSelect?.addEventListener('change', () => applyFilter());
-  categorySelect?.addEventListener('change', () => applyFilter());
+  yearSelect?.addEventListener('focus', () => loadFeedAndFilter());
+  yearSelect?.addEventListener('change', () => loadFeedAndFilter(applyFilter));
+  monthSelect?.addEventListener('focus', () => loadFeedAndFilter());
+  monthSelect?.addEventListener('change', () => loadFeedAndFilter(applyFilter));
+  categorySelect?.addEventListener('focus', () => loadFeedAndFilter());
+  categorySelect?.addEventListener('change', () => loadFeedAndFilter(applyFilter));
+
+  filterBar.addEventListener('pointerenter', () => loadFeedAndFilter(), { once: true });
+
+  setTimeout(() => {
+    if (!isLoaded && !isLoading) {
+      loadFeedAndFilter();
+    }
+  }, 4000);
 
   window.addEventListener('resize', () => {
     renderPage();

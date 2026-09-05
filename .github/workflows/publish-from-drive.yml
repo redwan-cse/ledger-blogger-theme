@@ -19,8 +19,7 @@ on:
         type: string
         default: ''
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   publish-from-drive:
@@ -28,7 +27,7 @@ jobs:
     timeout-minutes: 10
     environment: blogger-live
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout Repository

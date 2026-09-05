@@ -18,11 +18,12 @@ b:includable(id='post' var='post')
     b:if(cond='not data:view.isSingleItem')
       div.post-card-inner(expr:class='data:post.featuredImage ? "has-thumbnail" : "no-thumbnail"')
         b:if(cond='data:post.featuredImage')
-          a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
-            b:if(cond='data:post.id == data:posts.first.id')
-              img.post-thumbnail(expr:src='data:post.featuredImage' fetchpriority='high' loading='eager' alt='' referrerpolicy='no-referrer')/
-            b:if(cond='data:post.id != data:posts.first.id')
-              img.post-thumbnail(expr:src='data:post.featuredImage' loading='lazy' decoding='async' alt='' referrerpolicy='no-referrer')/
+          b:with(value='resizeImage(data:post.featuredImage, 640, "16:9")' var='thumbUrl')
+            a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
+              b:if(cond='data:post.id == data:posts.first.id')
+                img.post-thumbnail(expr:src='data:thumbUrl' width='640' height='360' fetchpriority='high' loading='eager' alt='' referrerpolicy='no-referrer')/
+              b:if(cond='data:post.id != data:posts.first.id')
+                img.post-thumbnail(expr:src='data:thumbUrl' width='640' height='360' loading='lazy' decoding='async' alt='' referrerpolicy='no-referrer')/
         div.post-content-wrap
           b:include(name='postTitle' data='post')/
           b:include(name='postHeader' data='post')/
@@ -43,7 +44,7 @@ b:includable(id='postHeader' var='post')
     div.post-meta-row
       b:if(cond='data:post.author.name')
         div.post-author-mini
-          img.post-author-mini-avatar(src='https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s80' alt='Md Redwan Ahmed' width='20' height='20' loading='lazy')/
+          img.post-author-mini-avatar(src='https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s40-rw' alt='Md Redwan Ahmed' width='20' height='20' loading='lazy')/
           span.post-author-mini-name
             b:eval(expr='data:post.author.name')/
       b:if(cond='data:post.date')
