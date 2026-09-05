@@ -37,7 +37,7 @@ jobs:
           persist-credentials: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5a1 # v4.1.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: 24
           cache: 'npm'
@@ -59,6 +59,7 @@ jobs:
           DRIVE_PUBLISHED_FOLDER_ID: ${{ vars.DRIVE_PUBLISHED_FOLDER_ID || '1eyxxZCJF97Krkg49osWF_dc39x1SFmDX' }}
           DRIVE_SHEET_ID: ${{ vars.DRIVE_SHEET_ID || '19XFToal3vWSZpNSW1hKksxq1uT4N-6r2FnIXeZrTkxQ' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BLOG_ASSETS_TOKEN: ${{ secrets.BLOG_ASSETS_TOKEN || secrets.GITHUB_TOKEN }}
           REPUBLISH_LATEST: ${{ inputs.republish_latest || 'false' }}
           TARGET_TITLE: ${{ inputs.target_title || '' }}
           BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY || vars.BING_WEBMASTER_API_KEY }}

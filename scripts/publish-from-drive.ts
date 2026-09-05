@@ -1339,7 +1339,7 @@ async function main() {
         });
         if (imgRes.ok) {
           const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
-          const ghToken = process.env.GITHUB_TOKEN?.trim();
+          const ghToken = process.env.BLOG_ASSETS_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
           if (ghToken) {
             try {
               const relPath = `posts/${postSlug}/thumbnail.png`;
