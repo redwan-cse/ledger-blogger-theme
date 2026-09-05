@@ -19,11 +19,12 @@ b:includable(id='post' var='post')
       div.post-card-inner(expr:class='data:post.featuredImage ? "has-thumbnail" : "no-thumbnail"')
         b:if(cond='data:post.featuredImage')
           b:with(value='resizeImage(data:post.featuredImage, 640, "16:9")' var='thumbUrl')
-            a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
-              b:if(cond='data:post.id == data:posts.first.id')
-                img.post-thumbnail(expr:src='data:thumbUrl' width='640' height='360' fetchpriority='high' loading='eager' alt='' referrerpolicy='no-referrer')/
-              b:if(cond='data:post.id != data:posts.first.id')
-                img.post-thumbnail(expr:src='data:thumbUrl' width='640' height='360' loading='lazy' decoding='async' alt='' referrerpolicy='no-referrer')/
+            b:with(value='resizeImage(data:post.featuredImage, 384, "16:9")' var='thumbUrlSmall')
+              a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
+                b:if(cond='data:post.id == data:posts.first.id')
+                  img.post-thumbnail(expr:src='data:thumbUrl' expr:srcset='data:thumbUrlSmall + " 384w, " + data:thumbUrl + " 640w"' sizes='(max-width: 640px) 100vw, 640px' width='640' height='360' fetchpriority='high' loading='eager' alt='' referrerpolicy='no-referrer')/
+                b:if(cond='data:post.id != data:posts.first.id')
+                  img.post-thumbnail(expr:src='data:thumbUrl' expr:srcset='data:thumbUrlSmall + " 384w, " + data:thumbUrl + " 640w"' sizes='(max-width: 640px) 100vw, 640px' width='640' height='360' loading='lazy' decoding='async' alt='' referrerpolicy='no-referrer')/
         div.post-content-wrap
           b:include(name='postTitle' data='post')/
           b:include(name='postHeader' data='post')/

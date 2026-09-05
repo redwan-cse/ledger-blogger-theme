@@ -1182,19 +1182,30 @@ function init(): void {
   initThemeToggle();
   initPostHeroImage();
 
-  const defer = typeof window.requestIdleCallback === 'function'
-    ? window.requestIdleCallback
-    : (cb: () => void) => setTimeout(cb, 50);
+  const scheduleTask = (task: () => void, delay = 0) => {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(task, { timeout: Math.max(100, delay) });
+    } else {
+      setTimeout(task, delay);
+    }
+  };
 
-  defer(() => {
+  // Immediate phase: essential navigation and click delegates
+  scheduleTask(() => {
     initMobileDrawer();
-    initInlineLiveSearch();
-    initSidebarRecentPosts();
     initShareCopy();
     initBloggerFollowPopup();
+  }, 0);
+
+  // Secondary phase: search, iframes, keyboard listeners
+  scheduleTask(() => {
+    initInlineLiveSearch();
     initIframeAccessibility();
     initKeyboardShortcuts();
+  }, 60);
 
+  // Tertiary phase: content-dependent enhancers
+  scheduleTask(() => {
     const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post'));
     if (isPost) {
       initReadingProgress();
@@ -1205,11 +1216,11 @@ function init(): void {
       initReadingTime();
       initArticleAudioReader();
       initMermaidDiagrams();
-      initPostHeroImage();
     } else {
       initHomepageCatalog();
+      initSidebarRecentPosts();
     }
-  });
+  }, 120);
 }
 
 // ---------------------------------------------------------------------------
