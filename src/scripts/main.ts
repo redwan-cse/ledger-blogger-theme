@@ -1753,8 +1753,17 @@ export function initPostHeroImage(): void {
     cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@main/assets/posts/xdp-ebpf-packet-filtering/thumbnail.png';
   }
 
+  function isGoogleUserContent(urlStr: string): boolean {
+    try {
+      const parsed = new URL(urlStr, window.location.href);
+      return parsed.hostname === 'googleusercontent.com' || parsed.hostname.endsWith('.googleusercontent.com');
+    } catch {
+      return false;
+    }
+  }
+
   // Replace blocked Google Drive links or data URIs with reliable open CDN
-  if (cdnSrc && (currentSrc.includes('googleusercontent.com') || currentSrc.startsWith('data:') || currentSrc.length > 500 || currentSrc !== cdnSrc)) {
+  if (cdnSrc && (isGoogleUserContent(currentSrc) || currentSrc.startsWith('data:') || currentSrc.length > 500 || currentSrc !== cdnSrc)) {
     heroImg.src = cdnSrc;
   }
 

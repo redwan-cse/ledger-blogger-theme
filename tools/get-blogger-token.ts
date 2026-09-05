@@ -32,9 +32,9 @@ console.log('\n2. Sign in and grant Blogger permissions.');
 console.log('3. Waiting for authorization callback on localhost:3000...\n');
 
 const server = http.createServer(async (req, res) => {
-  const reqUrl = url.parse(req.url || '', true);
+  const reqUrl = new URL(req.url || '', `http://${req.headers.host || 'localhost:3000'}`);
   if (reqUrl.pathname === '/oauth2callback') {
-    const code = reqUrl.query.code as string;
+    const code = reqUrl.searchParams.get('code');
     if (!code) {
       res.writeHead(400, { 'Content-Type': 'text/plain' });
       res.end('Missing auth code.');

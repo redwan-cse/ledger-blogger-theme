@@ -64,7 +64,15 @@ async function fetchTrendingSources(): Promise<string[]> {
       if (res.ok) {
         const text = await res.text();
         const titles = text.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/gi) || [];
-        const cleaned = titles.slice(1, 4).map((t) => t.replace(/<[^>]+>|<!\[CDATA\[|\]\]>/g, '').trim());
+        const cleaned = titles.slice(1, 4).map((t) => {
+          let clean = t;
+          let prev: string;
+          do {
+            prev = clean;
+            clean = clean.replace(/<[^>]+>|<!\[CDATA\[|\]\]>/g, '');
+          } while (clean !== prev);
+          return clean.trim();
+        });
         sources.push(`[${feed.name}] ${cleaned.join(' | ')}`);
       }
     } catch {

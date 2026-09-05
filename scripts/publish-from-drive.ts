@@ -902,6 +902,8 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
 </script>\n`;
 
   return scopedStyles + htmlBody + helperScript;
+}
+
 // 3b. Idempotent Schedule Guard: Prevent duplicate runs if previous cron in same slot succeeded
 async function shouldSkipScheduledRun(): Promise<boolean> {
   if (process.env.GITHUB_EVENT_NAME !== 'schedule') {

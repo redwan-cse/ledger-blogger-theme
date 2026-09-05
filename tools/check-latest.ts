@@ -15,7 +15,13 @@ async function check() {
   const codeBlocks = text.match(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi) || [];
   console.log('Code Blocks Count:', codeBlocks.length);
   if (codeBlocks.length > 0 && codeBlocks[0]) {
-    const lines = codeBlocks[0].replace(/<[^>]+>/g, '').split('\n');
+    let cleanCode = codeBlocks[0];
+    let prevCode: string;
+    do {
+      prevCode = cleanCode;
+      cleanCode = cleanCode.replace(/<[^>]+>/g, '');
+    } while (cleanCode !== prevCode);
+    const lines = cleanCode.split('\n');
     console.log('First Code Block Lines Count:', lines.length);
     console.log('First 5 lines sample:\n' + lines.slice(0, 5).join('\n'));
     const headings = text.match(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi) || [];
