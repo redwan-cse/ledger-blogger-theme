@@ -159,7 +159,7 @@ b:includable(id='postFooter' var='post')
     b:if(cond='data:post.labels')
       .post-labels
         b:loop(values='data:post.labels' var='label')
-          a.label-link(expr:href='data:label.url' rel='tag')
+          a.label-link.post-label(expr:href='data:label.url' rel='tag')
             b:eval(expr='data:label.name')/
     b:if(cond='not data:post.labels')
       div

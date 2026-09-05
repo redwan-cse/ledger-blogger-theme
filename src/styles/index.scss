@@ -294,7 +294,10 @@
 }
 
 .post-label,
-.label-link {
+.label-link,
+a.label-link,
+.post-labels .label-link,
+.post-labels .post-label {
   display: inline-flex;
   align-items: center;
   font-family: $font-mono;
@@ -305,8 +308,10 @@
   color: $accent;
   background: $accent-wash;
   border: 1px solid oklch(54.615% 0.2152 262.881 / 0.25);
-  border-radius: 6px;
-  padding: 2px 8px;
+  border-radius: 4px;
+  padding: 2px 8px !important;
+  min-height: unset !important;
+  height: auto !important;
   text-decoration: none;
   line-height: 1.4;
   transition: background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, transform $motion-fast $ease-out-quart;

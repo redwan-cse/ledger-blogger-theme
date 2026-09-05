@@ -394,6 +394,10 @@ html[data-theme='dark'] {
     background-color: oklch(22% 0.04 260) !important;
     border-color: oklch(35% 0.06 260) !important;
     color: oklch(80% 0.14 260) !important;
+    min-height: unset !important;
+    height: auto !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
 
     &:hover {
       background-color: oklch(28% 0.08 260) !important;
