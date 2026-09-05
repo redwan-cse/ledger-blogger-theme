@@ -630,6 +630,20 @@
       </b:with>
     </b:if>
     <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-KCCCSPMFVS');
+      (function(){
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-KCCCSPMFVS';
+        var h = document.getElementsByTagName('head')[0] || document.documentElement;
+        h.appendChild(s);
+      })();
+      
+    </script>
+    <script>
       (function(c,l,a,r,i,t,y){
           c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
           t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
