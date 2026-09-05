@@ -8,7 +8,13 @@ b:includable(id='postPagination')
         button.page-nav-btn.prev-btn(type='button' disabled='disabled')
           span Previous
       div.numbered-pages#numbered-pages
-        span.page-num-btn.is-active 1
+        b:if(cond='data:newerPageUrl')
+          a.page-num-btn(expr:href='data:newerPageUrl' aria-label='Page 1') 1
+          span.page-num-btn.is-active 2
+        b:if(cond='not data:newerPageUrl')
+          span.page-num-btn.is-active 1
+          b:if(cond='data:olderPageUrl')
+            a.page-num-btn(expr:href='data:olderPageUrl' aria-label='Page 2') 2
       b:if(cond='data:olderPageUrl')
         a.older-link.blog-pager-older-link.page-nav-btn.next-btn#Blog1_blog-pager-older-link(expr:href='data:olderPageUrl')
           span Next

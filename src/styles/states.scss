@@ -182,6 +182,14 @@ input[type='submit']:active,
   gap: 10px;
   margin: $space-7 0 $space-5;
 
+  .older-link,
+  .blog-pager-older-link,
+  .newer-link,
+  .blog-pager-newer-link,
+  .page-nav-btn {
+    margin-left: 0 !important;
+  }
+
   .page-nav-btn {
     display: inline-flex;
     align-items: center;

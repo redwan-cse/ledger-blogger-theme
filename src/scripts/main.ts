@@ -385,13 +385,22 @@ export const initInlineLiveSearch = initLiveSearch;
 
 export function initSidebarRecentPosts(): void {
   const recentLists = document.querySelectorAll<HTMLElement>('.sidebar-recent-list');
-  const needsFetch = Array.from(recentLists).some((list) => {
-    const items = list.querySelectorAll('.sidebar-recent-item');
-    if (items.length < 4) return true;
-    return Array.from(items).some((item) => !item.querySelector('.sidebar-recent-tag'));
-  });
-  if (!needsFetch) return;
+  if (recentLists.length === 0) return;
 
+  // 1. Instant Cache Hydration (0ms delay from localStorage)
+  try {
+    const cachedHtml = localStorage.getItem('ledger_recent_posts_v1');
+    if (cachedHtml) {
+      recentLists.forEach((list) => {
+        const items = list.querySelectorAll('.sidebar-recent-item');
+        if (items.length < 4 || Array.from(items).some((item) => !item.querySelector('.sidebar-recent-tag'))) {
+          list.innerHTML = cachedHtml;
+        }
+      });
+    }
+  } catch {}
+
+  // 2. Fresh Background Fetch & Cache Update
   fetch('/feeds/posts/summary?alt=json&max-results=6', { headers: { Accept: 'application/json' } })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
@@ -423,8 +432,14 @@ export function initSidebarRecentPosts(): void {
         })
         .join('');
 
+      try {
+        localStorage.setItem('ledger_recent_posts_v1', html);
+      } catch {}
+
       recentLists.forEach((list) => {
-        list.innerHTML = html;
+        if (list.innerHTML !== html) {
+          list.innerHTML = html;
+        }
       });
     })
     .catch(() => {});
@@ -1272,8 +1287,9 @@ function init(): void {
     });
   }
 
-  // Immediate phase: essential navigation and click delegates
+  // Immediate phase: essential navigation, recent posts cache hydration, and click delegates
   scheduleTask(() => {
+    initSidebarRecentPosts();
     initAvatarFallbacks();
     initMobileDrawer();
     initShareCopy();
@@ -1302,7 +1318,6 @@ function init(): void {
     } else {
       initHomepageCatalog();
     }
-    initSidebarRecentPosts();
   }, 120);
 }
 
@@ -1629,13 +1644,9 @@ export function initHomepageCatalog(): void {
     }
   });
 
-  // Pre-load feed quietly in background so dropdown filters and numbered pagination are ready
+  // Pre-load feed promptly in background so dropdown filters and numbered pagination are ready
   if (typeof window !== 'undefined') {
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => loadFeedAndFilter(), { timeout: 2000 });
-    } else {
-      setTimeout(() => loadFeedAndFilter(), 800);
-    }
+    setTimeout(() => loadFeedAndFilter(), 0);
   }
 }
 
