@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Autonomous Hero Image Healing**: Client-side resolver in `main.ts` that intercepts and upgrades broken or blocked image URLs on single article views to permanent CDN assets.
 - **Code Block Enhancements**: Syntax highlighting with Prism, statement-level line spacing, language headers, and one-click copy buttons with clipboard toast feedback.
 - **Collapsible Table of Contents**: Semantic, sticky Table of Contents (TOC) with smooth scrolling navigation and active reading position tracking.
-- **Headless Publishing Automation**: GitHub Actions workflow (`.github/workflows/publish-articles.yml`) supporting automated intake folder organization, Google Drive queue monitoring, and Google Sheets publication logging.
+- **Headless Publishing Automation**: GitHub Actions workflow (`.github/workflows/publish-from-drive.yml`) supporting automated intake folder organization, Google Drive queue monitoring, and Google Sheets publication logging.
 
 ### Changed
 - **Modern Horizontal Post Cards**: Redesigned blog listing cards with a clean 16:9 framed thumbnail on the left and balanced typography stack on the right.

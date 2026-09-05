@@ -1,5 +1,7 @@
 # Ledger — Blogger Layouts V3 Theme
 
+[![Release](https://img.shields.io/badge/Release-v1.3.0-blue.svg)](https://github.com/redwan-cse/ledger-blogger-theme/releases/tag/v1.3.0)
+[![Changelog](https://img.shields.io/badge/Changelog-Keep_a_Changelog-orange.svg)](CHANGELOG.md)
 [![CI](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml)
 [![Build Theme Artifact](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml)
 [![CodeQL Analysis](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/codeql.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/codeql.yml)
@@ -25,9 +27,15 @@ Live production blog: **[blogs.redwan.work](https://blogs.redwan.work/)**
 - **100% OKLCH Color Space**: Precision perceptual color ramp with automatic dark & light theme modes and AAA/AA contrast compliance.
 - **Zero-JS Server-Side Rendering**: Core content, layout grid, typography, topic pills, and article streams render completely without JavaScript dependencies (`R-EMPTY-2`).
 - **Responsive 12-Column Grid**: Single-column layout on mobile (`< 640px`), full-width lead cards on tablet (`640px - 1023px`), and a 12-column desktop grid with a sticky sidebar (`>= 1024px`).
+- **Modern 16:9 Post Cards**: Equalized card heights, framed 16:9 thumbnail ratios, strict 2-line title/excerpt clamping, and open jsDelivr CDN image acceleration.
+- **Interactive Mermaid 11 Diagrams & Floating Toolbar**: Embedded architecture flowcharts and protocol sequence diagrams with modern transparent controls (step-by-step zoom `100% – 250%`, fit-to-screen reset, and direct standalone SVG download with embedded styling).
+- **Faceted Homepage Filter Bar**: Instantaneous, zero-latency client-side search, Year dropdown selector, Month dropdown selector, and Category pill filtering across the entire post library.
+- **Syntax Highlighting & Code Blocks**: Statement-level line spacing, Prism.js syntax coloring, language headers, and one-click copy buttons with clipboard toast feedback.
+- **Collapsible Sticky Table of Contents (TOC)**: Smooth scrolling navigation with active heading position tracking.
 - **Mobile Drawer Navigation & Search**: Smooth off-canvas drawer navigation and search modal with full keyboard accessibility (`Escape` trap, focus management).
 - **SEO & Rich Results**: Automatic Schema.org `BlogPosting` and `WebSite` JSON-LD structured data (using `.jsonEscaped`), dynamic OpenGraph, Twitter Cards, and canonical URLs.
 - **WCAG 2.2 AA Accessibility**: Strict single-`h1` heading hierarchy per view, functional `#content` skip link, 44px touch targets, and `prefers-reduced-motion` fallbacks.
+- **Headless Publishing Automation**: Zero-cost automated pipeline via GitHub Actions, Google Drive shared queue monitoring, Google Sheets planner deduplication, and automated CDN asset hosting.
 
 ---
 
@@ -54,6 +62,7 @@ ledger-blogger-theme/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                    # PR & push gate (typecheck, tests, contract, size budget)
+│       ├── publish-from-drive.yml    # Headless publishing automation from Google Drive
 │       └── release.yml               # Theme build artifact generator
 ├── docs/                             # Technical architecture & references
 │   ├── README.md                     # Documentation index
@@ -169,7 +178,7 @@ npm run test:golden
 
 ## 📦 Deployment to Blogger
 
-1. Run `npm run build` (or download `dist/theme.xml` from the latest [GitHub Release](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml)).
+1. Run `npm run build` (or download `dist/theme.xml` from the latest [GitHub Release](https://github.com/redwan-cse/ledger-blogger-theme/releases/latest)).
 2. Navigate to **Blogger Dashboard → Theme**.
 3. Click the dropdown arrow next to **Customize** → select **Restore**.
 4. Upload `dist/theme.xml`.
