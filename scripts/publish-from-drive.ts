@@ -134,6 +134,10 @@ async function syncAndCleanGoogleSheet(token: string, newRow?: (string | number)
       const cleanedDataRows = Array.from(uniqueMap.values());
       rows = [header, ...cleanedDataRows];
 
+      console.log(`\n--- Current Clean Google Sheet Entries (${cleanedDataRows.length}) ---`);
+      cleanedDataRows.forEach((r, idx) => console.log(`  Entry ${idx + 1}: ${r[0]} | ${r[2]} | "${r[3]}" | ${r[7]}`));
+      console.log(`--- End Google Sheet Entries ---\n`);
+
       if (!foundDuplicates && !newRow) {
         console.log(`[✓] Google Sheet is already clean (${cleanedDataRows.length} entries). No duplicates found.`);
         return;
@@ -1078,6 +1082,23 @@ async function main() {
         }
       } catch (e: any) {
         console.log(`Alt queue check: ${e.message}`);
+      }
+
+      // Search for any folders containing '[' anywhere visible to service account
+      try {
+        const pkgRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name+contains+'['+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,parents,modifiedTime)&orderBy=modifiedTime desc`, {
+          headers: { Authorization: `Bearer ${driveToken}` }
+        });
+        if (pkgRes.ok) {
+          const pkgData = await pkgRes.json() as { files?: any[] };
+          console.log(`\n--- All Package Folders Found Across Drive (${pkgData.files?.length}) ---`);
+          for (const p of pkgData.files || []) {
+            console.log(`[Package Folder] "${p.name}" | ID: ${p.id} | parents: ${p.parents?.join(', ')} | modified: ${p.modifiedTime}`);
+          }
+          console.log(`--- End Package Folders ---\n`);
+        }
+      } catch (e: any) {
+        console.log(`Package search check: ${e.message}`);
       }
     }
   } catch (e: any) {
