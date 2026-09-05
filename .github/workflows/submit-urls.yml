@@ -1,0 +1,61 @@
+name: Submit URLs to Search Engines (Bing & IndexNow)
+
+on:
+  workflow_dispatch:
+    inputs:
+      submit_all:
+        description: 'Submit all live blog post URLs found on the site'
+        type: boolean
+        default: true
+      target_url:
+        description: 'Specific post URL to submit (leave empty if using submit_all)'
+        type: string
+        default: ''
+      dry_run:
+        description: 'Dry Run (preview URLs without calling search engine APIs)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  submit-urls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: blogger-live
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5a1 # v4.1.0
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Execute Search Engine Submission
+        env:
+          BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY }}
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          INDEXNOW_KEY_LOCATION: ${{ secrets.INDEXNOW_KEY_LOCATION || '' }}
+          SUBMIT_ALL: ${{ inputs.submit_all }}
+          TARGET_URL: ${{ inputs.target_url }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          ARGS=""
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ -n "$TARGET_URL" ]; then
+            ARGS="$ARGS $TARGET_URL"
+          elif [ "$SUBMIT_ALL" = "true" ]; then
+            ARGS="$ARGS --all"
+          fi
+          npx tsx scripts/submit-urls.ts $ARGS

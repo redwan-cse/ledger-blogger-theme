@@ -1,3 +1,5 @@
+import { submitUrlsToSearchEngines } from './lib/search-engine-indexer.js';
+
 interface ArticlePayload {
   title: string;
   labels: string[];
@@ -178,6 +180,19 @@ async function publishToBlogger(article: ArticlePayload): Promise<void> {
   const published = await response.json() as { id: string; url: string; title: string };
   console.log(`\n🎉 SUCCESS! Published Post: "${published.title}"`);
   console.log(`🔗 Live URL: ${published.url}\n`);
+
+  if (published?.url) {
+    try {
+      await submitUrlsToSearchEngines({
+        urls: [published.url],
+        bingApiKey: process.env.BING_WEBMASTER_API_KEY?.trim(),
+        indexNowKey: process.env.INDEXNOW_KEY?.trim(),
+        indexNowKeyLocation: process.env.INDEXNOW_KEY_LOCATION?.trim()
+      });
+    } catch (e: any) {
+      console.warn(`Search engine submission warning: ${e.message}`);
+    }
+  }
 }
 
 async function main() {

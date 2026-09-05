@@ -1,5 +1,6 @@
 import * as crypto from 'node:crypto';
 import { marked } from 'marked';
+import { submitUrlsToSearchEngines } from './lib/search-engine-indexer.js';
 
 interface ServiceAccountKey {
   client_email: string;
@@ -1531,6 +1532,20 @@ async function main() {
         console.log(`Moved "${item.name}" to "${PUBLISHED_FOLDER_NAME}".`);
       } catch (e: any) {
         console.warn(`Could not move folder to Blog_Published: ${e.message}`);
+      }
+    }
+
+    // 3. Submit live post URL to Search Engines (Bing Webmaster API & IndexNow)
+    if (post?.url) {
+      try {
+        await submitUrlsToSearchEngines({
+          urls: [post.url],
+          bingApiKey: process.env.BING_WEBMASTER_API_KEY?.trim(),
+          indexNowKey: process.env.INDEXNOW_KEY?.trim(),
+          indexNowKeyLocation: process.env.INDEXNOW_KEY_LOCATION?.trim()
+        });
+      } catch (e: any) {
+        console.warn(`Search engine submission warning: ${e.message}`);
       }
     }
   }
