@@ -1,7 +1,6 @@
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { execFileSync } from 'node:child_process';
 import { marked } from 'marked';
 
 interface ServiceAccountKey {
@@ -1341,17 +1340,6 @@ async function main() {
         });
         if (imgRes.ok) {
           const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
-          const postsBaseDir = path.resolve(process.cwd(), 'assets', 'posts');
-          const assetDir = path.resolve(postsBaseDir, postSlug);
-          if (!assetDir.startsWith(postsBaseDir + path.sep)) {
-            throw new Error('Path traversal detected');
-          }
-          fs.mkdirSync(assetDir, { recursive: true });
-          const assetPath = path.resolve(assetDir, 'thumbnail.png');
-          fs.writeFileSync(assetPath, imgBuffer);
-          console.log(`Saved thumbnail to: ${assetPath}`);
-          console.log(`THUMBNAIL_BASE64_START:${imgBuffer.toString('base64')}:THUMBNAIL_BASE64_END`);
-
           const ghToken = process.env.GITHUB_TOKEN?.trim();
           if (ghToken) {
             try {
@@ -1394,20 +1382,9 @@ async function main() {
             } catch (apiErr: any) {
               console.warn(`API upload notice: ${apiErr.message}`);
             }
-          } else {
-            try {
-              execFileSync('git', ['config', 'user.name', 'github-actions[bot]'], { stdio: 'pipe' });
-              execFileSync('git', ['config', 'user.email', 'github-actions[bot]@users.noreply.github.com'], { stdio: 'pipe' });
-              execFileSync('git', ['add', path.relative(process.cwd(), assetPath)], { stdio: 'pipe' });
-              execFileSync('git', ['commit', '-m', `chore(assets): add thumbnail for ${postSlug}`], { stdio: 'pipe' });
-              execFileSync('git', ['push', 'origin', 'HEAD:assets'], { stdio: 'pipe' });
-              console.log(`Committed & pushed thumbnail to 'assets' branch.`);
-            } catch (gitErr: any) {
-              console.log(`Note: git push notice: ${gitErr.message}. Assets saved locally.`);
-            }
           }
 
-          // Point to jsDelivr CDN from assets branch (or main)
+          // Point to jsDelivr CDN from assets branch
           heroImageUrl = `https://cdn.jsdelivr.net/gh/redwan-cse/ledger-blogger-theme@assets/assets/posts/${postSlug}/thumbnail.png`;
         }
       }
