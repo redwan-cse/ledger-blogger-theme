@@ -1099,6 +1099,82 @@ export function initKeyboardShortcuts(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Module 13: Centered Native Blogger Follow Popup Dialog
+// ---------------------------------------------------------------------------
+
+/**
+ * Intercepts clicks on Google Blogger Follow links and opens a centered,
+ * clean OAuth-style modal popup window instead of navigating away.
+ * Keeps the visitor on the site while Google's compact follow dialog completes.
+ */
+export function initBloggerFollowPopup(): void {
+  document.addEventListener('click', (event: MouseEvent) => {
+    const target = event.target as Element | null;
+    if (!target) return;
+
+    const followLink = target.closest<HTMLAnchorElement>('a[href*="followers/follow"], [data-action="blogger-follow"]');
+    if (!followLink) return;
+
+    // Allow middle click or keyboard modifier clicks to open in background if explicitly desired
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const width = 540;
+    const height = 520;
+
+    // Center window relative to current monitor screen and browser window
+    const screenLeft = window.screenX !== undefined ? window.screenX : (window as any).screenLeft || 0;
+    const screenTop = window.screenY !== undefined ? window.screenY : (window as any).screenTop || 0;
+    const outerWidth = window.outerWidth || document.documentElement.clientWidth || screen.width;
+    const outerHeight = window.outerHeight || document.documentElement.clientHeight || screen.height;
+
+    const left = Math.max(0, Math.round(screenLeft + (outerWidth - width) / 2));
+    const top = Math.max(0, Math.round(screenTop + (outerHeight - height) / 2));
+
+    const popupFeatures = [
+      `width=${width}`,
+      `height=${height}`,
+      `top=${top}`,
+      `left=${left}`,
+      'resizable=yes',
+      'scrollbars=yes',
+      'status=no',
+      'location=yes',
+      'toolbar=no',
+      'menubar=no'
+    ].join(',');
+
+    try {
+      const popup = window.open(followLink.href, 'BloggerFollowPrompt', popupFeatures);
+
+      if (popup) {
+        popup.focus();
+
+        // Check for popup closure to provide feedback on the parent page
+        const checkClosed = setInterval(() => {
+          try {
+            if (popup.closed) {
+              clearInterval(checkClosed);
+              showToast('Thank you for following on Blogger!');
+            }
+          } catch {
+            clearInterval(checkClosed);
+          }
+        }, 800);
+      } else {
+        // If popup was blocked by browser, fallback gracefully to opening in a new tab
+        window.open(followLink.href, '_blank', 'noopener,noreferrer');
+      }
+    } catch {
+      window.open(followLink.href, '_blank', 'noopener,noreferrer');
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Global Initialization
 // ---------------------------------------------------------------------------
 
@@ -1115,6 +1191,7 @@ function init(): void {
     initInlineLiveSearch();
     initSidebarRecentPosts();
     initShareCopy();
+    initBloggerFollowPopup();
     initIframeAccessibility();
     initKeyboardShortcuts();
 

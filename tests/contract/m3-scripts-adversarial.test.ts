@@ -46,6 +46,11 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(scriptSource).toContain('copy-link');
       expect(scriptSource).toContain('Link copied to clipboard!');
 
+      // Module 13: Blogger Follow Centered Popup
+      expect(scriptSource).toContain('initBloggerFollowPopup');
+      expect(scriptSource).toContain('BloggerFollowPrompt');
+      expect(scriptSource).toContain('followers/follow');
+
       // Progressive Enhancement
       expect(scriptSource).toContain('classList.add(\'js\')');
     });
@@ -77,6 +82,11 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       // Share button & toast container hooks
       expect(postPug).toContain('data-action=\'copy-link\'');
       expect(themePug).toContain('#toast-container');
+
+      // Blogger Follow hooks
+      expect(themePug).toContain('followers/follow');
+      expect(postPug).toContain('followers/follow');
+      expect(scriptSource).toContain('followers/follow');
     });
   });
 
@@ -96,6 +106,7 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(xml).toContain('mobile-drawer');
       expect(xml).toContain('sidebar-search');
       expect(xml).toContain('toast-container');
+      expect(xml).toContain('BloggerFollowPrompt');
     });
 
     it('passes all 37 contract checks with zero findings', async () => {
