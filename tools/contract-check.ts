@@ -258,24 +258,24 @@ export const contractRules: readonly ContractRule[] = [
   {
     id: 'rel-canonical',
     requirementId: 'R-SEO-2 AC4',
-    message: "<head> must contain a <link rel='canonical'> element binding expr:href to data:view.url.canonical.",
+    message: "<head> must not contain manual <link rel='canonical'> elements (canonical link is managed natively by all-head-content to prevent duplicate tags).",
     check: (doc) => {
       const heads = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'head');
       if (heads.length !== 1) return false;
-      const links = descendants(heads[0]!).filter((e) => e.localName === 'link' && attr(e, 'rel') === 'canonical');
-      return links.length === 1 && attr(links[0]!, 'expr:href') === 'data:view.url.canonical';
+      const manualCanonicals = descendants(heads[0]!).filter((e) => e.localName === 'link' && attr(e, 'rel') === 'canonical');
+      return manualCanonicals.length === 0;
     }
   },
   {
     id: 'opengraph-metadata',
     requirementId: 'R-SEO-2 AC1',
-    message: "<head> must declare OpenGraph meta tags for og:title, og:type, og:url, og:image, and og:description with dynamic bindings.",
+    message: "<head> must declare OpenGraph meta tags for og:type and og:site_name while all-head-content supplies base og:title, og:url, and og:description.",
     check: (doc) => {
       const heads = doc.root.children.filter((c): c is XmlElement => c.kind === 'element' && c.localName === 'head');
       if (heads.length !== 1) return false;
       const metas = descendants(heads[0]!).filter((e) => e.localName === 'meta');
       const ogProperties = metas.map((m) => attr(m, 'property')).filter((p): p is string => p !== null && p.startsWith('og:'));
-      const required = ['og:title', 'og:type', 'og:url', 'og:image', 'og:description'];
+      const required = ['og:type', 'og:site_name'];
       return required.every((req) => ogProperties.includes(req));
     }
   },

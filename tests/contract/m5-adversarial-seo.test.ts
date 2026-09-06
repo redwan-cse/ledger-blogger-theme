@@ -143,44 +143,38 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
 
   let output = headContent;
 
-  // 1. Resolve Link Canonical
+  // 1. Resolve native all-head-content macro
   const canonicalUrl = ctx.view.url.canonical;
-  output = output.replace(/<link rel="canonical" expr:href="data:view\.url\.canonical"\/>/g, `<link rel="canonical" href="${bloggerHtmlEscape(canonicalUrl)}"/>`);
-
-  // 2. Resolve Meta Description block
   const viewDesc = ctx.view.description;
   const blogDesc = ctx.blog.metaDescription;
-  let resolvedDesc = '';
-  if (viewDesc) {
-    resolvedDesc = `<meta name="description" content="${bloggerHtmlEscape(viewDesc)}"/>`;
-  } else if (blogDesc) {
-    resolvedDesc = `<meta name="description" content="${bloggerHtmlEscape(blogDesc)}"/>`;
-  }
-  output = output.replace(/<b:if cond="data:view\.description">\s*<meta name="description"[^>]+>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta name="description"[^>]+>\s*<\/b:if>/g, resolvedDesc);
+  const effectiveDesc = viewDesc || blogDesc || '';
+  const ogDesc = viewDesc || blogDesc || ctx.view.title;
 
-  // 3. Resolve OpenGraph Site Name
+  let allHeadReplacement = `<link rel="canonical" href="${bloggerHtmlEscape(canonicalUrl)}"/>\n`;
+  if (effectiveDesc) {
+    allHeadReplacement += `<meta content="${bloggerHtmlEscape(effectiveDesc)}" name="description"/>\n`;
+  }
+  allHeadReplacement += `<meta content="${bloggerHtmlEscape(canonicalUrl)}" property="og:url"/>\n`;
+  allHeadReplacement += `<meta content="${bloggerHtmlEscape(ctx.view.title)}" property="og:title"/>\n`;
+  allHeadReplacement += `<meta content="${bloggerHtmlEscape(ogDesc)}" property="og:description"/>\n`;
+
+  let resolvedOgImgUrl = '';
+  if (ctx.view.featuredImage) {
+    resolvedOgImgUrl = ctx.view.featuredImage;
+  } else if (ctx.blog.postImageThumbnailUrl) {
+    resolvedOgImgUrl = ctx.blog.postImageThumbnailUrl;
+  }
+  if (resolvedOgImgUrl) {
+    allHeadReplacement += `<meta content="${bloggerHtmlEscape(resolvedOgImgUrl)}" property="og:image"/>\n`;
+  }
+  output = output.replace(/<b:include data="blog" name="all-head-content"\/>/g, allHeadReplacement);
+
+  // 2. Resolve OpenGraph Site Name
   output = output.replace(/<meta property="og:site_name" expr:content="data:blog\.title\.escaped"\/>/g, `<meta property="og:site_name" content="${bloggerHtmlEscape(ctx.blog.title)}"/>`);
 
-  // 4. Resolve OpenGraph Type (article on isPost, website elsewhere)
+  // 3. Resolve OpenGraph Type (article on isPost, website elsewhere)
   const ogType = ctx.view.isPost ? 'article' : 'website';
   output = output.replace(/<b:if cond="data:view\.isPost">\s*<meta property="og:type" content="article"\/>\s*<\/b:if>\s*<b:if cond="not data:view\.isPost">\s*<meta property="og:type" content="website"\/>\s*<\/b:if>/g, `<meta property="og:type" content="${ogType}"/>`);
-
-  // 5. Resolve OpenGraph Title & URL
-  output = output.replace(/<meta\b[^>]*property="og:title"[^>]*\/?>/g, `<meta property="og:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
-  output = output.replace(/<meta\b[^>]*property="og:url"[^>]*\/?>/g, `<meta property="og:url" content="${bloggerHtmlEscape(canonicalUrl)}"/>`);
-
-  // 6. Resolve OpenGraph Description
-  const ogDesc = viewDesc || blogDesc || ctx.view.title;
-  output = output.replace(/<b:if cond="data:view\.description">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta [^>]*property="og:description"[^>]*\/>\s*<\/b:if>/g, `<meta property="og:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
-
-  // 7. Resolve OpenGraph Image
-  let resolvedOgImg = '';
-  if (ctx.view.featuredImage) {
-    resolvedOgImg = `<meta property="og:image" content="${bloggerHtmlEscape(ctx.view.featuredImage)}"/>`;
-  } else if (ctx.blog.postImageThumbnailUrl) {
-    resolvedOgImg = `<meta property="og:image" content="${bloggerHtmlEscape(ctx.blog.postImageThumbnailUrl)}"/>`;
-  }
-  output = output.replace(/<b:if cond="data:view\.featuredImage">\s*<meta [^>]*property="og:image"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.featuredImage and data:blog\.postImageThumbnailUrl">\s*<meta [^>]*property="og:image"[^>]*\/>\s*<\/b:if>/g, resolvedOgImg);
 
   // 8. Resolve Twitter Card & Image
   let resolvedTwitter = '';
@@ -291,8 +285,8 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   }
 
   // Extract canonical link
-  const canonicalMatch = output.match(/<link rel="canonical"\s+href="([^"]+)"\/>/);
-  const linkCanonical = canonicalMatch ? bloggerHtmlUnescape(canonicalMatch[1] ?? '') : null;
+  const canonicalMatch = output.match(/<link\s+[^>]*?rel="canonical"\s+[^>]*?href="([^"]+)"|<link\s+[^>]*?href="([^"]+)"\s+[^>]*?rel="canonical"/i);
+  const linkCanonical = canonicalMatch ? bloggerHtmlUnescape(canonicalMatch[1] ?? canonicalMatch[2] ?? '') : null;
 
   return { html: output, jsonLdScripts, metaTags, rawMetaTags, linkCanonical };
 }

@@ -22,9 +22,9 @@ b:includable(id='post' var='post')
             b:with(value='resizeImage(data:post.featuredImage, 384, "16:9")' var='thumbUrlSmall')
               a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
                 b:if(cond='data:post.id == data:posts.first.id')
-                  img.post-thumbnail(expr:src='data:thumbUrl' expr:srcset='data:thumbUrlSmall + " 384w, " + data:thumbUrl + " 640w"' sizes='(max-width: 768px) 348px, 280px' width='640' height='360' fetchpriority='high' loading='eager' alt='' referrerpolicy='no-referrer')/
+                  img.post-thumbnail(expr:src='data:thumbUrl' expr:srcset='data:thumbUrlSmall + " 384w, " + data:thumbUrl + " 640w"' sizes='(max-width: 768px) 348px, 280px' width='640' height='360' fetchpriority='high' loading='eager' expr:alt='data:post.title' referrerpolicy='no-referrer')/
                 b:if(cond='data:post.id != data:posts.first.id')
-                  img.post-thumbnail(expr:src='data:thumbUrl' expr:srcset='data:thumbUrlSmall + " 384w, " + data:thumbUrl + " 640w"' sizes='(max-width: 768px) 348px, 280px' width='640' height='360' loading='lazy' decoding='async' alt='' referrerpolicy='no-referrer')/
+                  img.post-thumbnail(expr:src='data:thumbUrl' expr:srcset='data:thumbUrlSmall + " 384w, " + data:thumbUrl + " 640w"' sizes='(max-width: 768px) 348px, 280px' width='640' height='360' loading='lazy' decoding='async' expr:alt='data:post.title' referrerpolicy='no-referrer')/
         div.post-content-wrap
           b:include(name='postTitle' data='post')/
           b:include(name='postHeader' data='post')/
@@ -107,7 +107,7 @@ b:includable(id='postAuthorBio' var='post')
     aside.post-author-bio.author-bio-card.author-bio(aria-label='About the author')
       b:if(cond='data:post.author.authorPhoto.image')
         .author-avatar-wrap
-          img.author-avatar(expr:src='data:post.author.authorPhoto.image' alt='' loading='lazy' width='64' height='64')/
+          img.author-avatar(expr:src='data:post.author.authorPhoto.image' expr:alt='data:post.author.name ?: "Md. Redwan Ahmed"' loading='lazy' width='64' height='64')/
       b:if(cond='not data:post.author.authorPhoto.image')
         .author-avatar-wrap
           //- Static text monogram, not another external photo fetch. See

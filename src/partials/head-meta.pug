@@ -1,6 +1,3 @@
-//- Canonical URL
-link(rel='canonical' expr:href='data:view.url.canonical')/
-
 //- Robots Directives
 b:if(cond='data:view.isSearch or data:view.isArchive or (data:view.isMultipleItems and data:newerPageUrl)')
   meta(name='robots' content='noindex, follow')/
@@ -18,30 +15,12 @@ b:if(cond='data:view.isHomepage and not data:newerPageUrl and data:widgets.Blog.
 b:if(cond='data:view.isPost and data:view.featuredImage')
   link(rel='preload' as='image' expr:href='data:view.featuredImage' fetchpriority='high')/
 
-//- Meta description
-b:if(cond='data:view.description')
-  meta(name='description' expr:content='data:view.description.escaped')/
-b:if(cond='not data:view.description and data:blog.metaDescription')
-  meta(name='description' expr:content='data:blog.metaDescription.escaped')/
-
-//- OpenGraph Social Metadata
+//- OpenGraph Semantic Types (Base og:url, og:title, og:description, og:image provided by all-head-content)
 meta(property='og:site_name' expr:content='data:blog.title.escaped')/
 b:if(cond='data:view.isPost')
   meta(property='og:type' content='article')/
 b:if(cond='not data:view.isPost')
   meta(property='og:type' content='website')/
-meta(property='og:title' expr:content='data:view.title.escaped')/
-meta(property='og:url' expr:content='data:view.url.canonical')/
-b:if(cond='data:view.description')
-  meta(property='og:description' expr:content='data:view.description.escaped')/
-b:if(cond='not data:view.description and data:blog.metaDescription')
-  meta(property='og:description' expr:content='data:blog.metaDescription.escaped')/
-b:if(cond='not data:view.description and not data:blog.metaDescription')
-  meta(property='og:description' expr:content='data:view.title.escaped')/
-b:if(cond='data:view.featuredImage')
-  meta(property='og:image' expr:content='data:view.featuredImage')/
-b:if(cond='not data:view.featuredImage and data:blog.postImageThumbnailUrl')
-  meta(property='og:image' expr:content='data:blog.postImageThumbnailUrl')/
 
 //- Twitter Card Metadata
 meta(name='twitter:site' content='@redwancse')/

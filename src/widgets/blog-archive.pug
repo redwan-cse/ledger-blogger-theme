@@ -2,21 +2,21 @@ b:includable(id='postPagination')
   b:if(cond='data:newerPageUrl or data:olderPageUrl')
     nav.pagination.post-pagination#blog-pagination(aria-label='Posts navigation')
       b:if(cond='data:newerPageUrl')
-        a.newer-link.blog-pager-newer-link.page-nav-btn.prev-btn#Blog1_blog-pager-newer-link(expr:href='data:newerPageUrl')
+        a.newer-link.blog-pager-newer-link.page-nav-btn.prev-btn#Blog1_blog-pager-newer-link(expr:href='data:newerPageUrl' rel='nofollow')
           span Previous
       b:if(cond='not data:newerPageUrl')
         button.page-nav-btn.prev-btn(type='button' disabled='disabled')
           span Previous
       div.numbered-pages#numbered-pages
         b:if(cond='data:newerPageUrl')
-          a.page-num-btn(expr:href='data:newerPageUrl' aria-label='Page 1') 1
+          a.page-num-btn(expr:href='data:newerPageUrl' aria-label='Page 1' rel='nofollow') 1
           span.page-num-btn.is-active 2
         b:if(cond='not data:newerPageUrl')
           span.page-num-btn.is-active 1
           b:if(cond='data:olderPageUrl')
-            a.page-num-btn(expr:href='data:olderPageUrl' aria-label='Page 2') 2
+            a.page-num-btn(expr:href='data:olderPageUrl' aria-label='Page 2' rel='nofollow') 2
       b:if(cond='data:olderPageUrl')
-        a.older-link.blog-pager-older-link.page-nav-btn.next-btn#Blog1_blog-pager-older-link(expr:href='data:olderPageUrl')
+        a.older-link.blog-pager-older-link.page-nav-btn.next-btn#Blog1_blog-pager-older-link(expr:href='data:olderPageUrl' rel='nofollow')
           span Next
       b:if(cond='not data:olderPageUrl')
         button.page-nav-btn.next-btn(type='button' disabled='disabled')

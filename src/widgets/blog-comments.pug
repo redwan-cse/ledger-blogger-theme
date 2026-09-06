@@ -68,7 +68,7 @@ b:includable(id='commentItem' var='comment')
 
 b:includable(id='commentAuthorAvatar')
   .avatar-image-container
-    img.author-avatar(expr:src='data:comment.authorAvatarSrc' height='35' width='35')/
+    img.author-avatar(expr:src='data:comment.authorAvatarSrc' expr:alt='data:comment.author' height='35' width='35')/
 
 b:includable(id='commentDeleteIcon' var='comment')
   span(expr:class='"item-control " + data:comment.adminClass')
@@ -77,7 +77,7 @@ b:includable(id='commentDeleteIcon' var='comment')
         .goog-inline-block.comment-action-icon
     b:if(cond='not data:showCmtPopup')
       a.comment-delete(expr:href='data:comment.deleteUrl' expr:title='data:messages.deleteComment')
-        img(src='https://resources.blogblog.com/img/icon_delete13.gif')/
+        img(src='https://resources.blogblog.com/img/icon_delete13.gif' alt='Delete comment')/
 
 b:includable(id='addComments')
   a(expr:href='data:post.commentsUrl' expr:onclick='data:post.commentsUrlOnclick')

@@ -12,9 +12,10 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
   });
 
   describe('SEO Metadata in <head> (R-SEO-2, R-SEO-3)', () => {
-    it('declares canonical link bound to data:view.url.canonical (R-SEO-2 AC4)', async () => {
+    it('declares all-head-content macro providing native canonical URL without duplicates (R-SEO-2 AC4)', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      expect(xml).toMatch(/<head>[\s\S]*<link rel="canonical" expr:href="data:view\.url\.canonical"\/>[\s\S]*<\/head>/);
+      expect(xml).toMatch(/<head>[\s\S]*<b:include data="blog" name="all-head-content"\/>[\s\S]*<\/head>/);
+      expect(xml).not.toMatch(/<link rel="canonical"/);
     });
 
     it('declares robots directives for search, archive, and paginated views (R-SEO-3)', async () => {
@@ -23,15 +24,11 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
       expect(xml).toMatch(/<meta [^>]*name="robots"[^>]*content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"[^>]*\/>/);
     });
 
-    it('declares full suite of OpenGraph tags with dynamic fallback (R-SEO-2 AC1, AC2, AC3)', async () => {
+    it('declares OpenGraph semantic type and site name tags (R-SEO-2 AC1, AC2)', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
       expect(xml).toMatch(/<meta property="og:site_name" expr:content="data:blog\.title\.escaped"\/>/);
       expect(xml).toMatch(/<meta property="og:type" content="article"\/>/);
       expect(xml).toMatch(/<meta property="og:type" content="website"\/>/);
-      expect(xml).toMatch(/<meta property="og:title" expr:content="data:view\.title\.escaped"\/>/);
-      expect(xml).toMatch(/<meta property="og:url" expr:content="data:view\.url\.canonical"\/>/);
-      expect(xml).toMatch(/property="og:description"/);
-      expect(xml).toMatch(/property="og:image"/);
     });
 
     it('declares Twitter card meta tags and creator attributes (R-SEO-2 AC1)', async () => {

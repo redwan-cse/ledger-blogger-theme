@@ -380,21 +380,18 @@ describe('Adversarial Stress Test: All 39 Contract Rules', () => {
   });
 
   describe('Rule 28: rel-canonical (R-SEO-2 AC4)', () => {
-    it('catches missing or invalid rel=canonical link in head', async () => {
+    it('catches manual canonical links in head that cause duplicate canonical tags', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const noCanonical = xml.replace('<link rel="canonical" expr:href="data:view.url.canonical"/>', '');
-      expect(rules(noCanonical)).toEqual(['rel-canonical']);
-
-      const wrongHref = xml.replace('expr:href="data:view.url.canonical"', 'expr:href="data:blog.canonicalHomepageUrl"');
-      expect(rules(wrongHref)).toEqual(['rel-canonical']);
+      const withManualCanonical = xml.replace('</head>', '<link rel="canonical" href="https://example.com"/></head>');
+      expect(rules(withManualCanonical)).toEqual(['rel-canonical']);
     });
   });
 
   describe('Rule 29: opengraph-metadata (R-SEO-2 AC1)', () => {
     it('catches missing OpenGraph metadata tags in head', async () => {
       const { xml } = await generateTheme({ sha: SHA, write: false });
-      const noTitle = xml.replace('<meta property="og:title" expr:content="data:view.title.escaped"/>', '');
-      expect(rules(noTitle)).toEqual(['opengraph-metadata']);
+      const noSiteName = xml.replace('<meta property="og:site_name" expr:content="data:blog.title.escaped"/>', '');
+      expect(rules(noSiteName)).toEqual(['opengraph-metadata']);
 
       const noType = xml.replace('<meta property="og:type" content="article"/>', '').replace('<meta property="og:type" content="website"/>', '');
       expect(rules(noType)).toEqual(['opengraph-metadata']);

@@ -1367,7 +1367,7 @@ export function hydrateCardThumbnails(): void {
     thumbLink.href = url;
     thumbLink.tabIndex = -1;
     thumbLink.setAttribute('aria-hidden', 'true');
-    thumbLink.innerHTML = `<img class="post-thumbnail" src="${thumbUrl}" alt="" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+    thumbLink.innerHTML = `<img class="post-thumbnail" src="${thumbUrl}" alt="${escapeHtml(title)}" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
 
     card.insertBefore(thumbLink, wrap);
     card.classList.remove('no-thumbnail');
@@ -1438,6 +1438,7 @@ function init(): void {
       initReadingTime();
       initArticleAudioReader();
       initMermaidDiagrams();
+      enrichArticleImagesAlt();
     } else {
       initHomepageCatalog();
     }
@@ -1638,7 +1639,7 @@ export function initHomepageCatalog(): void {
             <div class="post-card-inner ${p.thumbnail ? 'has-thumbnail' : 'no-thumbnail'}">
               ${p.thumbnail ? `
                 <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
-                  <img class="post-thumbnail" src="${p.thumbnail}" alt="" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <img class="post-thumbnail" src="${p.thumbnail}" alt="${escapeHtml(p.title)}" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
                 </a>
               ` : ''}
               <div class="post-content-wrap">
@@ -2097,6 +2098,11 @@ export function initPostHeroImage(): void {
   heroImg.setAttribute('loading', 'eager');
   heroImg.setAttribute('fetchpriority', 'high');
 
+  if (!heroImg.getAttribute('alt')) {
+    const postTitle = document.querySelector('.post-title')?.textContent?.trim();
+    if (postTitle) heroImg.alt = postTitle;
+  }
+
   // Defensive fallback: If image fails to load, try cdnSrc or hide broken container
   heroImg.addEventListener('error', () => {
     if (cdnSrc && heroImg.src !== cdnSrc) {
@@ -2104,6 +2110,66 @@ export function initPostHeroImage(): void {
     } else {
       const wrap = heroImg.closest('.post-hero-wrap') as HTMLElement | null;
       if (wrap) wrap.style.display = 'none';
+    }
+  });
+}
+
+/**
+ * Auto-enriches images in the post body with descriptive alt attributes
+ * derived from figcaption, title, previous heading, or article title.
+ */
+export function enrichArticleImagesAlt(): void {
+  if (typeof document === 'undefined') return;
+  const postBody = document.querySelector<HTMLElement>('.post-body');
+  if (!postBody) return;
+
+  const articleTitle = document.querySelector('.post-title')?.textContent?.trim() || document.title || 'Article';
+  const images = postBody.querySelectorAll<HTMLImageElement>('img');
+  let figIndex = 1;
+
+  images.forEach((img) => {
+    if (
+      img.classList.contains('author-avatar') ||
+      img.classList.contains('post-author-mini-avatar') ||
+      Boolean(img.closest('.post-header')) ||
+      Boolean(img.closest('.post-meta-row')) ||
+      Boolean(img.closest('.post-author-bio'))
+    ) {
+      return;
+    }
+    const currentAlt = (img.getAttribute('alt') || '').trim();
+    if (currentAlt.length > 0) return;
+
+    const fig = img.closest('figure');
+    const figCaption = fig?.querySelector('figcaption')?.textContent?.trim();
+    if (figCaption) {
+      img.alt = figCaption;
+      return;
+    }
+
+    const titleAttr = (img.getAttribute('title') || '').trim();
+    if (titleAttr) {
+      img.alt = titleAttr;
+      return;
+    }
+
+    let prev = img.parentElement;
+    let headingText = '';
+    while (prev && prev !== postBody) {
+      const heading = prev.previousElementSibling?.matches('h2, h3, h4')
+        ? prev.previousElementSibling
+        : prev.previousElementSibling?.querySelector('h2, h3, h4');
+      if (heading?.textContent?.trim()) {
+        headingText = heading.textContent.trim();
+        break;
+      }
+      prev = prev.parentElement;
+    }
+
+    if (headingText) {
+      img.alt = `${headingText} - Figure ${figIndex++}`;
+    } else {
+      img.alt = `${articleTitle} - Figure ${figIndex++}`;
     }
   });
 }

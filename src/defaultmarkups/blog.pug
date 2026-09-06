@@ -18,7 +18,7 @@ b:defaultmarkup(type='Blog')
   b:includable(id='homePageLink')
   b:includable(id='nextPageLink')
     b:if(cond='data:olderPageUrl')
-      a.blog-pager-older-link.flat-button.ripple(expr:href='data:olderPageUrl' expr:title='data:messages.morePosts')
+      a.blog-pager-older-link.flat-button.ripple(expr:href='data:olderPageUrl' expr:title='data:messages.morePosts' rel='nofollow')
         b:eval(expr='data:messages.morePosts')/
   b:includable(id='inlineAd' var='post')
     div
