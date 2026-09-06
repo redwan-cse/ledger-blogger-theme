@@ -1385,8 +1385,10 @@ function init(): void {
   const isPost = typeof document !== 'undefined' && (document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post')));
   if (isPost) {
     initPostHeroImage();
+    initDateTimeLocalization();
   } else {
     hydrateCardThumbnails();
+    initDateTimeLocalization();
   }
 
   const scheduleTask = (task: () => void, delay = 0) => {
@@ -1774,6 +1776,53 @@ export function initHomepageCatalog(): void {
 }
 
 /**
+ * Iteratively decodes HTML entities (e.g. &amp;, &gt;, &lt;, &quot;) up to 5 passes.
+ */
+export function decodeHtmlEntities(str: string): string {
+  if (!str) return '';
+  let prev = '';
+  let curr = str;
+  for (let i = 0; i < 5 && curr !== prev; i++) {
+    prev = curr;
+    curr = curr
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#039;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&#x2F;/g, '/')
+      .replace(/&#32;/g, ' ')
+      .replace(/&nbsp;/g, ' ');
+  }
+  return curr;
+}
+
+/**
+ * Sanitizes Mermaid diagram source code, fixing HTML entity leaks, arrows, and unquoted labels.
+ */
+export function cleanMermaidSyntax(rawCode: string): string {
+  let code = decodeHtmlEntities(rawCode.trim());
+
+  // Fix lingering entity-encoded arrows and quotes
+  code = code
+    .replace(/-&gt;&gt;/g, '->>')
+    .replace(/--&gt;&gt;/g, '-->>')
+    .replace(/--&gt;/g, '-->')
+    .replace(/-&gt;/g, '->')
+    .replace(/&quot;/g, '"');
+
+  // Fix unquoted participant labels containing '&' (e.g., participant Agent as LLM Agent & MCP Client)
+  code = code.replace(
+    /^(participant\s+[\w\-]+\s+as\s+)([^"\n\r]+&[^"\n\r]+)$/gm,
+    (_m, prefix, label) => `${prefix}"${label.trim()}"`
+  );
+
+  return code;
+}
+
+/**
  * Dynamically loads and renders Mermaid.js sequence and flow diagrams if present in article.
  * Supports theme toggling by caching raw diagram source code.
  */
@@ -1812,11 +1861,26 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
         const pre = wrap.querySelector('.mermaid');
         if (pre) {
           code = pre.textContent || '';
-          wrap.dataset['mermaidCode'] = code;
         }
       }
       if (!code) return;
-      wrap.innerHTML = `<pre class="mermaid" id="mermaid-wrap-${index}">${escapeHtml(code)}</pre>`;
+
+      const cleanCode = cleanMermaidSyntax(code);
+      wrap.dataset['mermaidCode'] = cleanCode;
+
+      // Cleanly replace wrap children with a single fresh <pre class="mermaid">
+      // Setting textContent ensures raw characters (>, <, &, ") are NEVER re-escaped into HTML entities!
+      const pre = document.createElement('pre');
+      pre.className = 'mermaid';
+      pre.id = `mermaid-wrap-${index}`;
+      pre.textContent = cleanCode;
+      wrap.replaceChildren(pre);
+    });
+
+    standaloneMermaids.forEach((pre) => {
+      if (pre.closest('.mermaid-diagram-wrap')) return;
+      const cleanCode = cleanMermaidSyntax(pre.textContent || '');
+      pre.textContent = cleanCode;
     });
 
     try {
@@ -2017,6 +2081,67 @@ export function initPostHeroImage(): void {
     } else {
       const wrap = heroImg.closest('.post-hero-wrap') as HTMLElement | null;
       if (wrap) wrap.style.display = 'none';
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Module 15: Post Publication Date & Time Localization
+// ---------------------------------------------------------------------------
+
+/**
+ * Localizes publication dates and times according to the reader's local timezone.
+ * On single post views: converts <time.post-date> to display both date and exact time
+ * e.g., "September 5, 2026 at 10:00 PM".
+ * On multi-item cards and sidebars: keeps date-only format, but localized to eliminate UTC day-rollover.
+ */
+export function initDateTimeLocalization(): void {
+  if (typeof document === 'undefined') return;
+
+  const isPost =
+    document.body?.classList.contains('is-post') ||
+    Boolean(document.querySelector('article.post h1.post-title, .is-post'));
+
+  if (isPost) {
+    const singlePostTimes = document.querySelectorAll<HTMLTimeElement>(
+      'article.post header.post-header time.post-date, .post-header time.post-date, .post-meta-row time.post-date'
+    );
+    singlePostTimes.forEach((timeEl) => {
+      const isoStr = timeEl.getAttribute('datetime');
+      if (isoStr) {
+        const d = new Date(isoStr);
+        if (!isNaN(d.getTime())) {
+          const datePart = d.toLocaleDateString(undefined, {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          });
+          const timePart = d.toLocaleTimeString(undefined, {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+          timeEl.textContent = `${datePart} at ${timePart}`;
+        }
+      }
+    });
+  }
+
+  // Multi-item card and sidebar dates: format in reader's local timezone (date-only)
+  const cardTimes = document.querySelectorAll<HTMLTimeElement>(
+    '.post-card-inner time.post-date, .sidebar-recent-date'
+  );
+  cardTimes.forEach((el) => {
+    const isoStr = el.getAttribute('datetime');
+    if (isoStr) {
+      const d = new Date(isoStr);
+      if (!isNaN(d.getTime())) {
+        el.textContent = d.toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      }
     }
   });
 }

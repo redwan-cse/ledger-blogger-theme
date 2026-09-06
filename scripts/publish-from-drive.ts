@@ -217,6 +217,27 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
+function decodeHtmlEntities(str: string): string {
+  if (!str) return '';
+  let prev = '';
+  let curr = str;
+  for (let i = 0; i < 5 && curr !== prev; i++) {
+    prev = curr;
+    curr = curr
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#039;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&#x2F;/g, '/')
+      .replace(/&#32;/g, ' ')
+      .replace(/&nbsp;/g, ' ');
+  }
+  return curr;
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -257,7 +278,21 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
       (text.includes('-->') && (text.includes('[') || text.includes('(') || text.includes('{') || text.includes('|')));
 
     if (isMermaid) {
-      let mermaidCode = text.trim();
+      let mermaidCode = decodeHtmlEntities(text.trim());
+      // Normalize arrows and quotes
+      mermaidCode = mermaidCode
+        .replace(/-&gt;&gt;/g, '->>')
+        .replace(/--&gt;&gt;/g, '-->>')
+        .replace(/--&gt;/g, '-->')
+        .replace(/-&gt;/g, '->')
+        .replace(/&quot;/g, '"');
+
+      // Fix unquoted participant labels with '&'
+      mermaidCode = mermaidCode.replace(
+        /^(participant\s+[\w\-]+\s+as\s+)([^"\n\r]+&[^"\n\r]+)$/gm,
+        (_m, prefix, label) => `${prefix}"${label.trim()}"`
+      );
+
       if (mermaidCode.includes('participant') || mermaidCode.includes('actor') || mermaidCode.includes('autonumber')) {
         if (!mermaidCode.startsWith('sequenceDiagram')) {
           mermaidCode = 'sequenceDiagram\n' + mermaidCode;
@@ -267,7 +302,7 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
           mermaidCode = 'graph TD\n' + mermaidCode;
         }
       }
-      return `\n<div class="mermaid-diagram-wrap" data-mermaid-code="${escapeHtml(mermaidCode)}"><pre class="mermaid">${escapeHtml(mermaidCode)}</pre></div>\n`;
+      return `\n<div class="mermaid-diagram-wrap" data-mermaid-code="${escapeHtml(mermaidCode)}"><pre class="mermaid">${mermaidCode.replace(/</g, '&lt;')}</pre></div>\n`;
     }
 
     // Auto-detect programming language if missing

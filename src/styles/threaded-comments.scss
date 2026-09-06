@@ -1,29 +1,273 @@
 @use 'tokens' as *;
+
 #comments .comment-thread {
-  ol, ul { list-style:none; margin:0; padding:0; }
-  li { list-style:none; margin:0 0 $space-3; padding:0; }
-  .comment { position:relative; min-height:72px; padding-left:72px; }
-  .avatar-image-container { position:absolute; top:$space-4; left:$space-4; width:40px; height:40px; }
-  .avatar-image-container img { width:40px; height:40px; border-radius:50%; border:1px solid $rule; object-fit:cover; }
-  .comment-header, .comment-actions, .comment-footer { display:flex; align-items:center; flex-wrap:wrap; gap:$space-2; }
-  .comment-header { margin-bottom:$space-2; font-family:$font-sans; font-size:.8125rem; }
-  .user { font-weight:700; color:$ink; }
-  .datetime, .comment-timestamp { color:$ink-muted; font-family:$font-mono; font-size:.72rem; }
-  .comment-actions { margin-top:$space-3; }
-  .comment-actions a { min-height:36px; padding:$space-1 $space-2; border-radius: 8px; color:$accent; text-decoration:none; font-family:$font-sans; font-size:.8125rem; font-weight:600; }
-  .comment-actions a:hover { background:$accent-wash; }
-  .comment-replies, .comment-replybox-single { margin-left:48px; padding-left:$space-4; border-left:1px solid $rule; }
-  .continue, .loadmore { margin:$space-4 0; font-family:$font-sans; font-weight:600; }
-  .continue a, .loadmore a { color:$accent; }
+  ol, ul { list-style: none; margin: 0; padding: 0; }
+  li { list-style: none; margin: 0 0 $space-3; padding: 0; }
+
+  .comment {
+    position: relative;
+    min-height: 72px;
+    padding: $space-4 $space-5 $space-4 72px;
+    background: $surface;
+    border: 1px solid $rule;
+    border-radius: 12px;
+    margin-bottom: $space-4;
+    transition: border-color $motion-fast ease;
+
+    &:hover {
+      border-color: oklch(54.615% 0.2152 262.881 / 0.35);
+    }
+  }
+
+  .avatar-image-container {
+    position: absolute;
+    top: $space-4;
+    left: $space-4;
+    width: 40px;
+    height: 40px;
+
+    img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid $rule;
+      object-fit: cover;
+    }
+  }
+
+  .comment-header,
+  .comment-actions,
+  .comment-footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .comment-header {
+    margin-bottom: $space-2;
+    font-family: $font-sans;
+    font-size: 0.8125rem;
+
+    .user,
+    cite.user,
+    cite.user a {
+      font-weight: 700;
+      color: $ink;
+      text-decoration: none;
+      &:hover { color: $accent; }
+    }
+
+    span.icon.user { display: none; }
+
+    .datetime,
+    .comment-timestamp,
+    .datetime a,
+    .comment-timestamp a {
+      color: $ink-muted;
+      font-family: $font-mono;
+      font-size: 0.72rem;
+      text-decoration: none;
+      &:hover { color: $accent; }
+    }
+  }
+
+  p.comment-content,
+  .comment-body {
+    font-family: $font-sans;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: $ink;
+    margin: 0 0 $space-3;
+  }
+
+  .comment-actions {
+    margin-top: $space-3;
+
+    a,
+    .item-control.blog-admin a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 12px;
+      border-radius: 9999px;
+      border: 1px solid $rule;
+      background: $surface;
+      color: $ink;
+      text-decoration: none;
+      font-family: $font-sans;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all $motion-fast ease;
+
+      &:hover {
+        background: $accent-wash;
+        border-color: $accent;
+        color: $accent;
+      }
+    }
+
+    .item-control.blog-admin a:hover {
+      background: oklch(95% 0.04 25 / 0.15);
+      border-color: oklch(60% 0.22 25);
+      color: oklch(60% 0.22 25);
+    }
+  }
+
+  .comment-replies,
+  .comment-replybox-single {
+    margin-left: 48px;
+    padding-left: $space-4;
+    border-left: 1px solid $rule;
+
+    .comment-reply a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 12px;
+      border-radius: 9999px;
+      border: 1px solid $rule;
+      background: $surface;
+      color: $ink;
+      text-decoration: none;
+      font-family: $font-sans;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 4px;
+
+      &:hover {
+        background: $accent-wash;
+        border-color: $accent;
+        color: $accent;
+      }
+    }
+
+    .thread-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid $rule;
+      background: $surface;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $ink;
+      cursor: pointer;
+      margin-bottom: 6px;
+
+      .thread-arrow {
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg);
+      }
+
+      &.thread-expanded .thread-arrow {
+        transform: rotate(-135deg);
+      }
+
+      .thread-count a {
+        color: inherit;
+        text-decoration: none;
+      }
+    }
+  }
 }
-html[data-theme='dark'] #comments .comment-thread {
-  .user, .comment-header a { color:oklch(92% .01 260); }
-  .datetime, .comment-timestamp { color:oklch(72% .012 260); }
-  .comment-actions a, .continue a, .loadmore a { color:oklch(68% .19 250); }
-  .comment-replies, .comment-replybox-single { border-left-color:oklch(28% .018 260); }
+
+#comments {
+  #add-comment,
+  .add-comment-link,
+  #threaded-comment-form a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    background: $accent;
+    color: #fff !important;
+    font-family: $font-sans;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin: $space-4 0;
+    transition: all $motion-fast ease;
+
+    &::before { content: '+'; font-size: 1.1rem; font-weight: 700; }
+    &:hover { background: oklch(48% 0.205 263); transform: translateY(-1px); }
+  }
+
+  .continue,
+  .loadmore {
+    margin: $space-4 0;
+    font-family: $font-sans;
+    font-weight: 600;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 4px 16px;
+      border-radius: 9999px;
+      border: 1px solid $rule;
+      background: $surface;
+      color: $ink;
+      font-size: 0.78rem;
+      text-decoration: none;
+      transition: all $motion-fast ease;
+
+      &:hover {
+        background: $accent-wash;
+        border-color: $accent;
+        color: $accent;
+      }
+    }
+  }
 }
-@media(max-width:639px) {
-  #comments .comment-thread .comment { padding-left:$space-4; }
-  #comments .comment-thread .avatar-image-container { position:static; margin-bottom:$space-2; }
-  #comments .comment-thread .comment-replies, #comments .comment-thread .comment-replybox-single { margin-left:$space-3; }
+
+html[data-theme='dark'] #comments {
+  .comment-thread {
+    .user, cite.user, cite.user a { color: oklch(92% .01 260); }
+    .datetime a, .comment-timestamp a { color: oklch(72% .012 260); }
+    .comment-actions a,
+    .item-control.blog-admin a,
+    .comment-replies .comment-reply a,
+    .comment-replies .thread-toggle {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: oklch(92% .01 260);
+      &:hover { background: oklch(62.308% 0.1880 259.815 / 0.15); border-color: oklch(62.308% 0.1880 259.815); color: oklch(69.234% 0.1502 259.735); }
+    }
+    .item-control.blog-admin a:hover {
+      background: rgba(248, 81, 73, 0.15);
+      border-color: #f85149;
+      color: #ff7b72;
+    }
+    .comment-replies, .comment-replybox-single { border-left-color: oklch(28% .018 260); }
+  }
+
+  #add-comment,
+  .add-comment-link,
+  #threaded-comment-form a {
+    background: $dark-accent;
+    color: #fff !important;
+    &:hover { background: oklch(58% 0.21 260); }
+  }
+
+  .continue a, .loadmore a {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: oklch(92% .01 260);
+    &:hover { background: oklch(62.308% 0.1880 259.815 / 0.15); border-color: oklch(62.308% 0.1880 259.815); color: oklch(69.234% 0.1502 259.735); }
+  }
+}
+
+@media (max-width: 639px) {
+  #comments .comment-thread .comment { padding-left: $space-4; }
+  #comments .comment-thread .avatar-image-container { position: static; margin-bottom: $space-2; }
+  #comments .comment-thread .comment-replies,
+  #comments .comment-thread .comment-replybox-single { margin-left: $space-3; }
 }
