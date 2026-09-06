@@ -1264,6 +1264,118 @@ export function initBloggerFollowPopup(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Thumbnail Resolver & Card Hydration
+// ---------------------------------------------------------------------------
+
+export function getPostThumbnailUrl(url: string, title: string): string {
+  const cleanUrl = (url || '').toLowerCase();
+  const cleanTitle = (title || '').toLowerCase();
+
+  if (
+    cleanUrl.includes('breaking-active-directory') ||
+    cleanTitle.includes('active directory') ||
+    cleanTitle.includes('esc1') ||
+    cleanTitle.includes('pki hardening')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/breaking-active-directory-certificate-services-esc1-exploitation-mechanics-san-i/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('kernel-privilege-escalation') ||
+    cleanTitle.includes('kernel privilege escalation') ||
+    cleanTitle.includes('ebpf verifier')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/kernel-privilege-escalation-via-ebpf-verifier-bypass-and-defensive-telemetry/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('dissecting-kerberoasting') ||
+    cleanTitle.includes('kerberoasting') ||
+    cleanTitle.includes('detection engineering')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/dissecting-kerberoasting-protocol-mechanics-telemetry-blindspots-and-modern-dete/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('hardening-sonicwall') ||
+    cleanTitle.includes('hardening sonicwall') ||
+    cleanTitle.includes('waf signatures')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/hardening-sonicwall-sma1000-waf-signatures-ebpf-te/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('edge-appliance-compromise') ||
+    cleanTitle.includes('edge appliance') ||
+    cleanTitle.includes('ssrf and rce')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/edge-appliance-compromise-threat-modeling-the-soni/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('byovd-edr-evasion') ||
+    cleanTitle.includes('byovd') ||
+    cleanTitle.includes('signed drivers')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/byovd-edr-evasion-weaponizing-validly/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('linux-user-namespaces') ||
+    cleanTitle.includes('user namespaces') ||
+    cleanTitle.includes('container isolation')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/linux-user-namespaces-security-paradox/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('postgresql-row-level') ||
+    cleanTitle.includes('postgresql') ||
+    cleanTitle.includes('row-level security')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/postgresql-row-level-security-threat/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('xdp') ||
+    cleanUrl.includes('ebpf-packet-filtering') ||
+    cleanTitle.includes('xdp') ||
+    cleanTitle.includes('packet filtering')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/xdp-ebpf-packet-filtering/thumbnail.png';
+  }
+
+  // Generic fallback: extract post slug from Blogger URL pattern (.../yyyy/mm/slug_id.html)
+  const match = cleanUrl.match(/\/([^/]+?)(?:_\d+)?\.html(?:$|\?)/i);
+  if (match && match[1]) {
+    const slug = match[1].replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (slug) {
+      return `https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/${slug}/thumbnail.png`;
+    }
+  }
+
+  return '';
+}
+
+export function hydrateCardThumbnails(): void {
+  const cards = document.querySelectorAll<HTMLElement>('.post-card-inner.no-thumbnail');
+  cards.forEach((card) => {
+    const titleLink = card.querySelector<HTMLAnchorElement>('.post-title a');
+    if (!titleLink) return;
+    const url = titleLink.getAttribute('href') || '';
+    const title = titleLink.textContent || '';
+    const thumbUrl = getPostThumbnailUrl(url, title);
+    if (!thumbUrl) return;
+
+    const wrap = card.querySelector('.post-content-wrap');
+    if (!wrap) return;
+
+    const thumbLink = document.createElement('a');
+    thumbLink.className = 'post-thumbnail-link';
+    thumbLink.href = url;
+    thumbLink.tabIndex = -1;
+    thumbLink.setAttribute('aria-hidden', 'true');
+    thumbLink.innerHTML = `<img class="post-thumbnail" src="${thumbUrl}" alt="" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+
+    card.insertBefore(thumbLink, wrap);
+    card.classList.remove('no-thumbnail');
+    card.classList.add('has-thumbnail');
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Global Initialization
 // ---------------------------------------------------------------------------
 
@@ -1273,6 +1385,8 @@ function init(): void {
   const isPost = typeof document !== 'undefined' && (document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post')));
   if (isPost) {
     initPostHeroImage();
+  } else {
+    hydrateCardThumbnails();
   }
 
   const scheduleTask = (task: () => void, delay = 0) => {
@@ -1400,9 +1514,13 @@ export function initHomepageCatalog(): void {
           let thumbnail = entry.media$thumbnail?.url;
           if (!thumbnail) {
             const img = tempDiv.querySelector('img');
-            if (img && img.src) {
+            if (img && img.src && !img.src.startsWith('data:')) {
               thumbnail = img.src;
             }
+          }
+
+          if (!thumbnail || thumbnail.startsWith('data:')) {
+            thumbnail = getPostThumbnailUrl(url, title);
           }
 
           if (thumbnail) {
@@ -1872,40 +1990,7 @@ export function initPostHeroImage(): void {
   const pagePath = window.location.pathname.toLowerCase();
   const pageTitle = (document.title || '').toLowerCase();
 
-  let cdnSrc = '';
-  if (
-    pagePath.includes('edge-appliance-compromise') ||
-    pageTitle.includes('edge appliance compromise') ||
-    pageTitle.includes('sonicwall')
-  ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/edge-appliance-compromise-threat-modeling-the-soni/thumbnail.png';
-  } else if (
-    pagePath.includes('byovd-edr-evasion') ||
-    pageTitle.includes('byovd edr evasion') ||
-    pageTitle.includes('signed drivers')
-  ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/byovd-edr-evasion-weaponizing-validly/thumbnail.png';
-  } else if (
-    pagePath.includes('linux-user-namespaces') ||
-    pageTitle.includes('linux user namespaces') ||
-    currentSrc.includes('1lpgnegmqweg8a6uclg02ahi_rs22cx2y')
-  ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/linux-user-namespaces-security-paradox/thumbnail.png';
-  } else if (
-    pagePath.includes('postgresql-row-level') ||
-    pageTitle.includes('postgresql row-level') ||
-    pageTitle.includes('row-level security') ||
-    currentSrc.includes('1zbmp_o9ba7oba2oqfezbzn_kwtt1sxt1')
-  ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/postgresql-row-level-security-threat/thumbnail.png';
-  } else if (
-    pagePath.includes('xdp') ||
-    pagePath.includes('ebpf-packet-filtering') ||
-    pageTitle.includes('xdp') ||
-    pageTitle.includes('ebpf')
-  ) {
-    cdnSrc = 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/xdp-ebpf-packet-filtering/thumbnail.png';
-  }
+  const cdnSrc = getPostThumbnailUrl(pagePath, pageTitle);
 
   function isGoogleUserContent(urlStr: string): boolean {
     try {
