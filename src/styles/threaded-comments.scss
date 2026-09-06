@@ -4,14 +4,14 @@
   .hidden, .thread-collapsed { display: none !important; }
 
   .comment-thread {
-    ol, ul, li { list-style: none; margin: 0; padding: 0; }
-    li { margin-bottom: $space-3; }
+    ol, ul { list-style: none; margin: 0; padding: 0; }
+    li { list-style: none; margin-bottom: $space-3; }
   }
 
   .comment {
     position: relative;
     min-height: 72px;
-    padding: $space-4 $space-5 $space-4 72px;
+    padding: $space-4 $space-5;
     background: $surface;
     border: 1px solid $rule;
     border-radius: 12px;
@@ -29,6 +29,7 @@
     left: $space-4;
     width: 40px;
     height: 40px;
+    margin: 0;
 
     img {
       width: 40px;
@@ -36,7 +37,12 @@
       border-radius: 50%;
       border: 1px solid $rule;
       object-fit: cover;
+      display: block;
     }
+  }
+
+  .comment-block {
+    margin-left: 56px;
   }
 
   .comment-header,
@@ -120,6 +126,7 @@
     border-left: 1px solid $rule;
 
     .comment-reply a { margin-top: 4px; }
+    .continue { display: none !important; }
   }
 
   .thread-toggle {
@@ -280,13 +287,11 @@
   iframe#comment-editor {
     display: block;
     width: 100%;
-    height: 240px !important;
-    min-height: 220px;
+    min-height: 260px;
     border: 1px solid $rule;
     border-radius: 10px;
     background: $surface;
     color-scheme: light dark;
-    overflow: hidden;
     margin-top: $space-3;
   }
 
@@ -398,8 +403,15 @@ html[data-theme='dark'] #comments {
 
 @media (max-width: 639px) {
   #comments {
-    .comment { padding-left: $space-4; }
-    .avatar-image-container { position: static; margin-bottom: $space-2; }
-    .comment-replies, .comment-replybox-single { margin-left: $space-3; }
+    .comment { padding: $space-3 $space-4; }
+    .avatar-image-container {
+      top: $space-3;
+      left: $space-3;
+      width: 32px;
+      height: 32px;
+      img { width: 32px; height: 32px; }
+    }
+    .comment-block { margin-left: 44px; }
+    .comment-replies, .comment-replybox-single { margin-left: $space-3; padding-left: $space-3; }
   }
 }

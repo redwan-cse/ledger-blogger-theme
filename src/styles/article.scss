@@ -1266,9 +1266,7 @@
   margin-bottom: $space-6;
 }
 
-#comments .comment,
-.comments-list .comment,
-.comment-thread .comment {
+.comments-list .comment {
   background: $surface;
   border: 1px solid $rule;
   border-radius: 8px;

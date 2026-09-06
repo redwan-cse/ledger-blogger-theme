@@ -2388,6 +2388,11 @@ export function initCommentInteractions(): void {
     if (zeroBtn) {
       zeroBtn.style.display = 'inline-flex';
     }
+
+    const topContinue = document.getElementById('top-continue');
+    if (topContinue) {
+      topContinue.classList.remove('hidden');
+    }
   }
 
   function openTopEditor(): void {
@@ -2439,6 +2444,11 @@ export function initCommentInteractions(): void {
       zeroBtn.style.display = 'none';
     }
 
+    const topContinue = document.getElementById('top-continue');
+    if (topContinue) {
+      topContinue.classList.add('hidden');
+    }
+
     form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -2482,6 +2492,11 @@ export function initCommentInteractions(): void {
 
     targetContainer.appendChild(cancelReplyBtn);
     targetContainer.appendChild(iframe);
+
+    const topContinue = document.getElementById('top-continue');
+    if (topContinue) {
+      topContinue.classList.add('hidden');
+    }
 
     targetContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
