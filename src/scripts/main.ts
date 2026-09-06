@@ -1386,6 +1386,7 @@ function init(): void {
   if (isPost) {
     initPostHeroImage();
     initDateTimeLocalization();
+    initCommentInteractions();
   } else {
     hydrateCardThumbnails();
     initDateTimeLocalization();
@@ -1415,6 +1416,7 @@ function init(): void {
     initMobileDrawer();
     initShareCopy();
     initBloggerFollowPopup();
+    initCommentInteractions();
   }, 0);
 
   // Secondary phase: search, iframes, keyboard listeners
@@ -2165,6 +2167,159 @@ export function initDateTimeLocalization(): void {
       }
     }
   });
+}
+
+// ---------------------------------------------------------------------------
+// Module 16: Threaded Comments Interactive Enhancement & Avatar Resolution
+// ---------------------------------------------------------------------------
+
+export function initCommentInteractions(): void {
+  if (typeof document === 'undefined') return;
+
+  const commentsSection = document.getElementById('comments');
+  if (!commentsSection) return;
+
+  const defaultAuthorAvatar =
+    commentsSection.getAttribute('data-author-avatar') ||
+    'https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s96-rw';
+
+  function isGenericAvatar(src: string): boolean {
+    if (!src) return true;
+    return (
+      src.includes('blogger_logo_round') ||
+      src.includes('b16-rounded') ||
+      src.includes('blank.gif') ||
+      src.includes('anon36') ||
+      src.includes('avatar_blue_m')
+    );
+  }
+
+  function generateInitialAvatar(name: string): string {
+    const initial = (name.trim()[0] || 'U').toUpperCase();
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#2563eb"/><text x="20" y="25" text-anchor="middle" fill="#ffffff" font-family="-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif" font-size="16" font-weight="700">${initial}</text></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  }
+
+  function polishCommentAvatars(): void {
+    const comments = commentsSection ? commentsSection.querySelectorAll<HTMLElement>('.comment') : [];
+    comments.forEach((comment) => {
+      const img = comment.querySelector<HTMLImageElement>('.avatar-image-container img');
+      if (!img) return;
+
+      const isAdmin = Boolean(comment.querySelector('.item-control.blog-admin, .blog-admin'));
+      const src = img.getAttribute('src') || '';
+
+      if (isAdmin) {
+        if (isGenericAvatar(src) || src !== defaultAuthorAvatar) {
+          img.src = defaultAuthorAvatar;
+          img.alt = 'Md. Redwan Ahmed';
+        }
+      } else if (isGenericAvatar(src)) {
+        const nameEl = comment.querySelector('.comment-header .user, cite.user');
+        const name = nameEl?.textContent?.trim() || 'User';
+        img.src = generateInitialAvatar(name);
+      }
+
+      img.addEventListener(
+        'error',
+        () => {
+          if (isAdmin) {
+            img.src = defaultAuthorAvatar;
+          } else {
+            const nameEl = comment.querySelector('.comment-header .user, cite.user');
+            const name = nameEl?.textContent?.trim() || 'User';
+            img.src = generateInitialAvatar(name);
+          }
+        },
+        { once: true }
+      );
+    });
+  }
+
+  polishCommentAvatars();
+
+  function getCommentEditor(): HTMLIFrameElement | null {
+    return document.getElementById('comment-editor') as HTMLIFrameElement | null;
+  }
+
+  function ensureEditorSrc(iframe: HTMLIFrameElement): string {
+    let src = iframe.getAttribute('src') || '';
+    if (!src || src === 'about:blank') {
+      const srcLink = document.getElementById('comment-editor-src') as HTMLAnchorElement | null;
+      if (srcLink?.href) {
+        src = srcLink.href;
+        iframe.src = src;
+      }
+    }
+    return src;
+  }
+
+  function moveEditorTo(targetContainer: HTMLElement, parentId: string | null): void {
+    const iframe = getCommentEditor();
+    if (!iframe) return;
+
+    const src = ensureEditorSrc(iframe);
+
+    // Update parentID parameter
+    const [baseUrl, hash] = src.split('#');
+    let updatedUrl = (baseUrl || '').replace(/&parentID=[^&#]*/g, '');
+    if (parentId) {
+      updatedUrl += `&parentID=${encodeURIComponent(parentId)}`;
+    }
+    if (hash) {
+      updatedUrl += `#${hash}`;
+    }
+
+    if (iframe.src !== updatedUrl) {
+      iframe.src = updatedUrl;
+    }
+
+    iframe.style.display = 'block';
+    targetContainer.style.display = 'block';
+    targetContainer.appendChild(iframe);
+
+    targetContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Click delegation for Reply and Add Comment
+  commentsSection.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (!target) return;
+
+    // 1. Reply button
+    const replyBtn = target.closest<HTMLElement>('.comment-reply[data-comment-id], a.comment-reply');
+    if (replyBtn) {
+      const commentId = replyBtn.getAttribute('data-comment-id');
+      if (commentId) {
+        e.preventDefault();
+        const replyBox = document.getElementById(`c${commentId}-ce`);
+        if (replyBox) {
+          moveEditorTo(replyBox, commentId);
+        }
+        return;
+      }
+    }
+
+    // 2. Add Comment button (top-level)
+    const addCommentBtn = target.closest<HTMLElement>(
+      '#top-continue a, #top-continue .comment-reply, .add-comment-link, #add-comment, a[href*="#comment-form"]'
+    );
+    if (addCommentBtn) {
+      e.preventDefault();
+      const topCe = document.getElementById('top-ce') || document.querySelector<HTMLElement>('.comment-form') || commentsSection;
+      moveEditorTo(topCe, null);
+      return;
+    }
+  });
+
+  // Watch for dynamic comment additions
+  const holder = document.getElementById('comment-holder');
+  if (holder && typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(() => {
+      polishCommentAvatars();
+    });
+    observer.observe(holder, { childList: true, subtree: true });
+  }
 }
 
 if (typeof document !== 'undefined') {
