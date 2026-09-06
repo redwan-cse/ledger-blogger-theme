@@ -38,8 +38,13 @@ b:includable(id='comments' var='post')
           b:include(data='post' name='addComments')/
 
 b:includable(id='commentsTitle')
-  h3.comments-title
-    b:eval(expr='data:messages.comments')/
+  .comments-header-row
+    h3.comments-title
+      b:eval(expr='data:messages.comments')/
+    button.comment-trigger-btn(type='button' id='header-add-comment-btn')
+      span.btn-icon +
+      |  
+      b:eval(expr='data:messages.postAComment ?: "Add Comment"')/
 
 b:includable(id='commentList' var='comments')
   #comments-block

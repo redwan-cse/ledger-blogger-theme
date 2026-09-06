@@ -2367,6 +2367,16 @@ export function initCommentInteractions(): void {
     return document.querySelector<HTMLElement>('.comment-form');
   }
 
+  function setAddCommentButtonsVisible(visible: boolean): void {
+    const displayVal = visible ? '' : 'none';
+    const headerBtn = document.getElementById('header-add-comment-btn');
+    if (headerBtn) headerBtn.style.display = displayVal;
+    const bottomBtn = document.getElementById('bottom-add-comment-btn');
+    if (bottomBtn) bottomBtn.style.display = displayVal;
+    const zeroBtn = document.getElementById('open-comment-form-btn');
+    if (zeroBtn) zeroBtn.style.display = visible ? 'inline-flex' : 'none';
+  }
+
   function closeEditor(): void {
     const iframe = getCommentEditor();
     if (iframe) {
@@ -2384,15 +2394,7 @@ export function initCommentInteractions(): void {
       }
     }
 
-    const zeroBtn = document.getElementById('open-comment-form-btn');
-    if (zeroBtn) {
-      zeroBtn.style.display = 'inline-flex';
-    }
-
-    const topContinue = document.getElementById('top-continue');
-    if (topContinue) {
-      topContinue.classList.remove('hidden');
-    }
+    setAddCommentButtonsVisible(true);
   }
 
   function openTopEditor(): void {
@@ -2439,15 +2441,7 @@ export function initCommentInteractions(): void {
       form.insertBefore(hint, iframe);
     }
 
-    const zeroBtn = document.getElementById('open-comment-form-btn');
-    if (zeroBtn) {
-      zeroBtn.style.display = 'none';
-    }
-
-    const topContinue = document.getElementById('top-continue');
-    if (topContinue) {
-      topContinue.classList.add('hidden');
-    }
+    setAddCommentButtonsVisible(false);
 
     form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -2493,28 +2487,74 @@ export function initCommentInteractions(): void {
     targetContainer.appendChild(cancelReplyBtn);
     targetContainer.appendChild(iframe);
 
-    const topContinue = document.getElementById('top-continue');
-    if (topContinue) {
-      topContinue.classList.add('hidden');
-    }
+    setAddCommentButtonsVisible(false);
 
     targetContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  // Setup bottom Add Comment bar and polish reply folding buttons
+  function setupCommentsUI(): void {
+    const holder = document.getElementById('comment-holder');
+    if (!holder) return;
+
+    const hasComments = holder.querySelectorAll('.comment').length > 0;
+
+    // 1. Bottom Add Comment bar if comments exist
+    let bottomBar = holder.querySelector<HTMLElement>('.comments-bottom-bar');
+    if (hasComments && !bottomBar) {
+      bottomBar = document.createElement('div');
+      bottomBar.className = 'comments-bottom-bar';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'comment-trigger-btn';
+      btn.id = 'bottom-add-comment-btn';
+      btn.innerHTML = '<span class="btn-icon">+</span> Add Comment';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openTopEditor();
+      });
+      bottomBar.appendChild(btn);
+      holder.appendChild(bottomBar);
+    } else if (!hasComments && bottomBar) {
+      bottomBar.remove();
+    }
+
+    // 2. Refine thread toggles: "Hide N Replies" / "Show N Replies"
+    holder.querySelectorAll<HTMLElement>('.thread-toggle').forEach((toggle) => {
+      const thread = toggle.closest('.comment-thread');
+      const count = thread ? thread.querySelectorAll('ol.thread-chrome li.comment').length : 1;
+      const label = count === 1 ? '1 Reply' : `${count} Replies`;
+      const countLink = toggle.querySelector<HTMLElement>('.thread-count a, .thread-count');
+      if (countLink) {
+        const updateText = () => {
+          const isExpanded = toggle.classList.contains('thread-expanded');
+          countLink.textContent = isExpanded ? `Hide ${label}` : `Show ${label}`;
+        };
+        updateText();
+        if (!toggle.dataset.bound) {
+          toggle.dataset.bound = 'true';
+          toggle.addEventListener('click', () => setTimeout(updateText, 60));
+        }
+      }
+    });
+  }
+
   // Setup zero-state trigger button if post has no comments yet
   function setupZeroStateTrigger(): void {
-    const topContinue = document.getElementById('top-continue');
+    const holder = document.getElementById('comment-holder');
     const form = getCommentForm();
     if (!form) return;
 
-    // When there are no comments rendered, top-continue does not exist
-    if (!topContinue && !document.getElementById('open-comment-form-btn')) {
+    const hasComments = holder ? holder.querySelectorAll('.comment').length > 0 : false;
+    const existingZero = document.querySelector('.comment-zero-state');
+
+    if (!hasComments && !existingZero) {
       const zeroContainer = document.createElement('div');
       zeroContainer.className = 'comment-zero-state';
       zeroContainer.innerHTML = `
         <p class="comment-zero-message">No comments yet. Share your thoughts or questions!</p>
         <button type="button" class="comment-trigger-btn" id="open-comment-form-btn">
-          Post a Comment
+          <span class="btn-icon">+</span> Post a Comment
         </button>
       `;
       form.parentElement?.insertBefore(zeroContainer, form);
@@ -2522,10 +2562,13 @@ export function initCommentInteractions(): void {
         e.preventDefault();
         openTopEditor();
       });
+    } else if (hasComments && existingZero) {
+      existingZero.remove();
     }
   }
 
   setupZeroStateTrigger();
+  setupCommentsUI();
 
   // Initial visibility: only open if user explicitly navigated to comment anchor
   const currentHash = window.location.hash;
@@ -2567,9 +2610,9 @@ export function initCommentInteractions(): void {
       }
     }
 
-    // 2. Add Comment button (top-level)
+    // 2. Add Comment buttons (header, bottom, zero-state, or links)
     const addCommentBtn = target.closest<HTMLElement>(
-      '#top-continue a, #top-continue .comment-reply, .add-comment-link, #add-comment, a[href*="#comment-form"]'
+      '#header-add-comment-btn, #bottom-add-comment-btn, #open-comment-form-btn, #top-continue a, #top-continue .comment-reply, .add-comment-link, #add-comment, a[href*="#comment-form"]'
     );
     if (addCommentBtn) {
       e.preventDefault();
@@ -2584,6 +2627,7 @@ export function initCommentInteractions(): void {
     const observer = new MutationObserver(() => {
       polishCommentAvatars();
       setupZeroStateTrigger();
+      setupCommentsUI();
     });
     observer.observe(holder, { childList: true, subtree: true });
   }
