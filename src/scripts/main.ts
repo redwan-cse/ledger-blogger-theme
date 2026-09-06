@@ -2183,6 +2183,8 @@ export function initCommentInteractions(): void {
     commentsSection.getAttribute('data-author-avatar') ||
     'https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s96-rw';
 
+  const fcdLogo = 'https://fastcyberdefense.com/icon1.png';
+
   function isGenericAvatar(src: string): boolean {
     if (!src) return true;
     return (
@@ -2195,8 +2197,24 @@ export function initCommentInteractions(): void {
   }
 
   function generateInitialAvatar(name: string): string {
-    const initial = (name.trim()[0] || 'U').toUpperCase();
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#2563eb"/><text x="20" y="25" text-anchor="middle" fill="#ffffff" font-family="-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif" font-size="16" font-weight="700">${initial}</text></svg>`;
+    const cleanName = name.trim() || 'Anonymous';
+    const initial = (cleanName[0] || 'A').toUpperCase();
+    const colors = [
+      '#2563eb', // Blue
+      '#059669', // Emerald
+      '#7c3aed', // Purple
+      '#d97706', // Amber
+      '#4f46e5', // Indigo
+      '#e11d48', // Rose
+      '#0d9488', // Teal
+      '#ea580c', // Orange
+    ];
+    let hash = 0;
+    for (let i = 0; i < cleanName.length; i++) {
+      hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const color = colors[Math.abs(hash) % colors.length];
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="20" fill="${color}"/><text x="20" y="25" text-anchor="middle" fill="#ffffff" font-family="-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif" font-size="16" font-weight="700">${initial}</text></svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
@@ -2206,29 +2224,54 @@ export function initCommentInteractions(): void {
       const img = comment.querySelector<HTMLImageElement>('.avatar-image-container img');
       if (!img) return;
 
-      const isAdmin = Boolean(comment.querySelector('.item-control.blog-admin, .blog-admin'));
+      const nameEl = comment.querySelector<HTMLElement>('.comment-header .user, cite.user');
+      const authorName = nameEl?.textContent?.trim() || 'Anonymous';
+      const lowerName = authorName.toLowerCase();
+
+      // Check if commenter is the blog author (not just viewer holding delete button)
+      const isBlogAuthor =
+        Boolean(comment.querySelector('.blog-author')) ||
+        lowerName === 'md. redwan ahmed' ||
+        lowerName === 'redwan' ||
+        lowerName.includes('redwan ahmed');
+
+      const isFCD = lowerName.includes('fast cyber defense') || lowerName.includes('fcd');
       const src = img.getAttribute('src') || '';
 
-      if (isAdmin) {
-        if (isGenericAvatar(src) || src !== defaultAuthorAvatar) {
+      if (isFCD) {
+        img.src = fcdLogo;
+        img.alt = 'Fast Cyber Defense';
+      } else if (isBlogAuthor) {
+        if (!comment.querySelector('.comment-author-badge') && nameEl) {
+          const badge = document.createElement('span');
+          badge.className = 'comment-author-badge';
+          badge.textContent = 'Author';
+          nameEl.appendChild(badge);
+        }
+        if (isGenericAvatar(src) || !src) {
           img.src = defaultAuthorAvatar;
           img.alt = 'Md. Redwan Ahmed';
+        } else {
+          // Upgrade Blogger/Google avatar resolution
+          img.src = src.replace(/\/s\d+(-c)?\//, '/s96-c/');
         }
-      } else if (isGenericAvatar(src)) {
-        const nameEl = comment.querySelector('.comment-header .user, cite.user');
-        const name = nameEl?.textContent?.trim() || 'User';
-        img.src = generateInitialAvatar(name);
+      } else if (isGenericAvatar(src) || !src) {
+        img.src = generateInitialAvatar(authorName);
+        img.alt = authorName;
+      } else {
+        // Genuine commenter photo (e.g. Google/Blogger profile picture) - upgrade resolution
+        img.src = src.replace(/\/s\d+(-c)?\//, '/s96-c/');
       }
 
       img.addEventListener(
         'error',
         () => {
-          if (isAdmin) {
+          if (isFCD) {
+            img.src = 'https://fastcyberdefense.com/logo.svg';
+          } else if (isBlogAuthor) {
             img.src = defaultAuthorAvatar;
           } else {
-            const nameEl = comment.querySelector('.comment-header .user, cite.user');
-            const name = nameEl?.textContent?.trim() || 'User';
-            img.src = generateInitialAvatar(name);
+            img.src = generateInitialAvatar(authorName);
           }
         },
         { once: true }
@@ -2254,18 +2297,102 @@ export function initCommentInteractions(): void {
     return src;
   }
 
-  function moveEditorTo(targetContainer: HTMLElement, parentId: string | null): void {
+  function getCommentForm(): HTMLElement | null {
+    return document.querySelector<HTMLElement>('.comment-form');
+  }
+
+  function closeEditor(): void {
+    const iframe = getCommentEditor();
+    if (iframe) {
+      iframe.style.display = 'none';
+    }
+
+    // Clean up reply cancel buttons
+    document.querySelectorAll<HTMLElement>('.comment-cancel-reply-btn').forEach((btn) => btn.remove());
+
+    const form = getCommentForm();
+    if (form) {
+      form.classList.remove('is-active');
+      if (iframe && iframe.parentElement !== form) {
+        form.appendChild(iframe);
+      }
+    }
+
+    const zeroBtn = document.getElementById('open-comment-form-btn');
+    if (zeroBtn) {
+      zeroBtn.style.display = 'inline-flex';
+    }
+  }
+
+  function openTopEditor(): void {
+    const iframe = getCommentEditor();
+    const form = getCommentForm();
+    if (!iframe || !form) return;
+
+    // Remove any active reply cancel buttons
+    document.querySelectorAll<HTMLElement>('.comment-cancel-reply-btn').forEach((btn) => btn.remove());
+
+    form.classList.add('is-active');
+    if (iframe.parentElement !== form) {
+      form.appendChild(iframe);
+    }
+
+    const src = ensureEditorSrc(iframe);
+    const [baseUrl, hash] = src.split('#');
+    const cleanUrl = (baseUrl || '').replace(/&parentID=[^&#]*/g, '') + (hash ? `#${hash}` : '');
+    if (iframe.src !== cleanUrl) {
+      iframe.src = cleanUrl;
+    }
+
+    iframe.style.display = 'block';
+
+    // Add Cancel button in header if not present
+    const msgHeader = document.getElementById('comment-post-message');
+    if (msgHeader && !msgHeader.querySelector('.comment-cancel-btn')) {
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'comment-cancel-btn';
+      cancelBtn.textContent = '✕ Cancel';
+      cancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeEditor();
+      });
+      msgHeader.appendChild(cancelBtn);
+    }
+
+    // Add browser note for Edge/Brave if not present
+    if (!form.querySelector('.comment-signin-hint')) {
+      const hint = document.createElement('p');
+      hint.className = 'comment-signin-hint';
+      hint.innerHTML = '<span class="hint-icon">ℹ</span> Note: If signing in on Edge or Brave, allow popups & third-party cookies for Blogger.';
+      form.insertBefore(hint, iframe);
+    }
+
+    const zeroBtn = document.getElementById('open-comment-form-btn');
+    if (zeroBtn) {
+      zeroBtn.style.display = 'none';
+    }
+
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function moveEditorTo(targetContainer: HTMLElement, parentId: string): void {
     const iframe = getCommentEditor();
     if (!iframe) return;
 
-    const src = ensureEditorSrc(iframe);
+    // Deactivate bottom form to avoid empty ghost cards
+    const form = getCommentForm();
+    if (form) {
+      form.classList.remove('is-active');
+    }
 
-    // Update parentID parameter
+    // Clean up previous reply cancel buttons
+    document.querySelectorAll<HTMLElement>('.comment-cancel-reply-btn').forEach((btn) => btn.remove());
+
+    const src = ensureEditorSrc(iframe);
     const [baseUrl, hash] = src.split('#');
     let updatedUrl = (baseUrl || '').replace(/&parentID=[^&#]*/g, '');
-    if (parentId) {
-      updatedUrl += `&parentID=${encodeURIComponent(parentId)}`;
-    }
+    updatedUrl += `&parentID=${encodeURIComponent(parentId)}`;
     if (hash) {
       updatedUrl += `#${hash}`;
     }
@@ -2276,9 +2403,68 @@ export function initCommentInteractions(): void {
 
     iframe.style.display = 'block';
     targetContainer.style.display = 'block';
+
+    // Add Cancel Reply button
+    const cancelReplyBtn = document.createElement('button');
+    cancelReplyBtn.type = 'button';
+    cancelReplyBtn.className = 'comment-cancel-reply-btn';
+    cancelReplyBtn.textContent = '✕ Cancel reply';
+    cancelReplyBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeEditor();
+    });
+
+    targetContainer.appendChild(cancelReplyBtn);
     targetContainer.appendChild(iframe);
 
     targetContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Setup zero-state trigger button if post has no comments yet
+  function setupZeroStateTrigger(): void {
+    const topContinue = document.getElementById('top-continue');
+    const form = getCommentForm();
+    if (!form) return;
+
+    // When there are no comments rendered, top-continue does not exist
+    if (!topContinue && !document.getElementById('open-comment-form-btn')) {
+      const zeroContainer = document.createElement('div');
+      zeroContainer.className = 'comment-zero-state';
+      zeroContainer.innerHTML = `
+        <p class="comment-zero-message">No comments yet. Share your thoughts or questions!</p>
+        <button type="button" class="comment-trigger-btn" id="open-comment-form-btn">
+          Post a Comment
+        </button>
+      `;
+      form.parentElement?.insertBefore(zeroContainer, form);
+      zeroContainer.querySelector('#open-comment-form-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openTopEditor();
+      });
+    }
+  }
+
+  setupZeroStateTrigger();
+
+  // Initial visibility: only open if user explicitly navigated to comment anchor
+  const currentHash = window.location.hash;
+  const currentSearch = window.location.search;
+  if (
+    currentHash === '#comment-form' ||
+    currentHash === '#comments' ||
+    currentSearch.includes('showComment=')
+  ) {
+    openTopEditor();
+  } else {
+    // Keep iframe hidden by default for clean reading experience
+    const iframe = getCommentEditor();
+    if (iframe) {
+      iframe.style.display = 'none';
+    }
+    const form = getCommentForm();
+    if (form) {
+      form.classList.remove('is-active');
+    }
   }
 
   // Click delegation for Reply and Add Comment
@@ -2306,8 +2492,7 @@ export function initCommentInteractions(): void {
     );
     if (addCommentBtn) {
       e.preventDefault();
-      const topCe = document.getElementById('top-ce') || document.querySelector<HTMLElement>('.comment-form') || commentsSection;
-      moveEditorTo(topCe, null);
+      openTopEditor();
       return;
     }
   });
@@ -2317,6 +2502,7 @@ export function initCommentInteractions(): void {
   if (holder && typeof MutationObserver !== 'undefined') {
     const observer = new MutationObserver(() => {
       polishCommentAvatars();
+      setupZeroStateTrigger();
     });
     observer.observe(holder, { childList: true, subtree: true });
   }

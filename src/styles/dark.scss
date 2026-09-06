@@ -36,9 +36,7 @@ html[data-theme='dark'] {
   .hero-title,
   .cta-title,
   .footer-heading,
-  .hero-btn-tertiary,
-  .hero-btn-tertiary span,
-  .hero-btn-tertiary > span {
+  .hero-btn-tertiary {
     color: oklch(98.415% 0.0034 247.858);
   }
 
@@ -84,16 +82,13 @@ html[data-theme='dark'] {
   .post-excerpt,
   .post-summary,
   .post-snippet,
-  .post .post-excerpt,
-  article .post-excerpt,
-  body.is-home-lead .post:first-of-type .post-excerpt,
-  body.is-home-lead article .post-excerpt,
-  body .post-excerpt,
   .empty-state-desc,
   .empty-state-text,
   .toc-title,
+  .hero-standfirst,
+  .cta-desc,
   .footer-container,
-  .footer-bio,
+  .footer-container a,
   .comments-title {
     color: oklch(80% 0.015 255) !important;
   }
@@ -188,7 +183,10 @@ html[data-theme='dark'] {
     box-shadow: 0 16px 36px oklch(0% 0 0 / 0.6) !important;
   }
 
-  .drawer-nav-link {
+  .drawer-nav-link,
+  .drawer-social-btn,
+  .drawer-close,
+  .share-btn {
     background-color: oklch(22.749% 0.0288 266.273) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
     color: oklch(98.415% 0.0034 247.858) !important;
@@ -218,29 +216,6 @@ html[data-theme='dark'] {
       &:hover {
         color: oklch(75% 0.15 259.735) !important;
       }
-    }
-  }
-
-  .drawer-social-btn {
-    background-color: oklch(22.749% 0.0288 266.273) !important;
-    border-color: oklch(27.950% 0.0368 260.031) !important;
-    color: oklch(98.415% 0.0034 247.858) !important;
-
-    &:hover {
-      background-color: oklch(27.950% 0.0368 260.031) !important;
-      border-color: oklch(75% 0.15 259.735 / 0.5) !important;
-      color: oklch(75% 0.15 259.735) !important;
-    }
-  }
-
-  .drawer-close {
-    color: oklch(98.415% 0.0034 247.858) !important;
-    border-color: oklch(27.950% 0.0368 260.031) !important;
-
-    &:hover {
-      background-color: oklch(27.950% 0.0368 260.031) !important;
-      border-color: oklch(75% 0.15 259.735 / 0.5) !important;
-      color: oklch(75% 0.15 259.735) !important;
     }
   }
 
@@ -295,10 +270,7 @@ html[data-theme='dark'] {
   .sidebar-btn-primary,
   .cta-btn-primary,
   .cta-button,
-  .cta-btn,
-  .cta-container .cta-box .cta-btn,
-  .cta-container .cta-box .cta-button,
-  .cta-container .cta-box a.cta-button {
+  .cta-btn {
     background-color: oklch(50% 0.22 260) !important;
     color: #ffffff !important;
 
@@ -325,17 +297,6 @@ html[data-theme='dark'] {
 
     &:hover {
       border-color: oklch(75% 0.15 259.735 / 0.4);
-      box-shadow: none;
-    }
-  }
-
-  body.is-home-lead .post:first-of-type {
-    background-color: oklch(22.749% 0.0288 266.273);
-    border-color: oklch(27.950% 0.0368 260.031);
-    box-shadow: none;
-
-    &:hover {
-      border-color: oklch(75% 0.15 259.735 / 0.5);
       box-shadow: none;
     }
   }
@@ -388,9 +349,7 @@ html[data-theme='dark'] {
   }
 
   .post-label,
-  .label-link,
-  .post-labels .label-link,
-  .post-labels .post-label {
+  .label-link {
     background-color: oklch(22% 0.04 260) !important;
     border-color: oklch(35% 0.06 260) !important;
     color: oklch(80% 0.14 260) !important;
@@ -403,18 +362,6 @@ html[data-theme='dark'] {
       background-color: oklch(28% 0.08 260) !important;
       border-color: oklch(75% 0.15 259.735) !important;
       color: oklch(90% 0.15 260) !important;
-    }
-  }
-
-  .share-btn {
-    background-color: oklch(22.749% 0.0288 266.273);
-    border-color: oklch(27.950% 0.0368 260.031);
-    color: oklch(98.415% 0.0034 247.858);
-
-    &:hover {
-      background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(75% 0.15 259.735 / 0.5);
-      color: oklch(75% 0.15 259.735);
     }
   }
 
@@ -438,25 +385,6 @@ html[data-theme='dark'] {
     color: inherit;
   }
 
-  .hero-standfirst,
-  .cta-desc,
-  .footer-desc,
-  .footer-bio,
-  .footer-copyright,
-  .footer-attribution,
-  .footer-attribution a,
-  .widget.Attribution,
-  .widget.Attribution a,
-  .attribution-text,
-  .attribution-text a,
-  .blogger,
-  .blogger a,
-  .footer-links-list li,
-  .footer-links-list a,
-  .footer-bottom,
-  .footer-back-to-top {
-    color: oklch(80% 0.015 255) !important;
-  }
 
   .orcid-badge {
     background: oklch(20% 0.028 260) !important;
@@ -477,7 +405,8 @@ html[data-theme='dark'] {
   }
 
   .hero-btn-secondary,
-  .hero-btn-tertiary {
+  .hero-btn-tertiary,
+  .cta-btn-secondary {
     background-color: oklch(22.749% 0.0288 266.273) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
     color: oklch(98.415% 0.0034 247.858) !important;
@@ -497,18 +426,6 @@ html[data-theme='dark'] {
   .cta-cyber-card {
     background-color: oklch(22.749% 0.0288 266.273);
     border-color: oklch(27.950% 0.0368 260.031);
-  }
-
-  .cta-btn-secondary {
-    background-color: oklch(22.749% 0.0288 266.273);
-    border-color: oklch(27.950% 0.0368 260.031);
-    color: oklch(98.415% 0.0034 247.858);
-
-    &:hover {
-      background-color: oklch(27.950% 0.0368 260.031);
-      border-color: oklch(75% 0.15 259.735 / 0.5);
-      color: oklch(75% 0.15 259.735);
-    }
   }
 
   .drawer-toggle,
