@@ -1819,6 +1819,30 @@ export function cleanMermaidSyntax(rawCode: string): string {
     (_m, prefix, label) => `${prefix}"${label.trim()}"`
   );
 
+  // In sequence diagrams, replace literal semicolons in notes and message labels with Mermaid's escape code #59;
+  // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
+  if (code.includes('sequenceDiagram') || code.includes('participant') || code.includes('actor') || code.includes('autonumber')) {
+    code = code
+      .split('\n')
+      .map((line) => {
+        const trimmed = line.trim();
+        if (/^Note\s+/i.test(trimmed)) {
+          const colonIdx = line.indexOf(':');
+          if (colonIdx !== -1) {
+            const prefix = line.slice(0, colonIdx + 1);
+            const text = line.slice(colonIdx + 1).replace(/;/g, '#59;');
+            return prefix + text;
+          }
+        }
+        const arrowMatch = line.match(/^(\s*[\w\-]+(?:->>|-->>|->|-->|--x|->x|---\)|-\))[\w\-]+\s*:\s*)(.*)$/);
+        if (arrowMatch && arrowMatch[1] && arrowMatch[2]) {
+          return arrowMatch[1] + arrowMatch[2].replace(/;/g, '#59;');
+        }
+        return line;
+      })
+      .join('\n');
+  }
+
   return code;
 }
 
@@ -1856,13 +1880,10 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
     });
 
     wraps.forEach((wrap, index) => {
-      let code = wrap.dataset['mermaidCode'];
-      if (!code) {
-        const pre = wrap.querySelector('.mermaid');
-        if (pre) {
-          code = pre.textContent || '';
-        }
-      }
+      const preElem = wrap.querySelector('.mermaid');
+      const preText = preElem?.textContent?.trim() || '';
+      const datasetText = wrap.dataset['mermaidCode']?.trim() || '';
+      let code = preText.length >= datasetText.length ? preText : datasetText;
       if (!code) return;
 
       const cleanCode = cleanMermaidSyntax(code);

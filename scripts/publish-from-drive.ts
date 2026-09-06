@@ -293,6 +293,30 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
         (_m, prefix, label) => `${prefix}"${label.trim()}"`
       );
 
+      // In sequence diagrams, replace literal semicolons in notes and message labels with Mermaid's escape code #59;
+      // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
+      if (mermaidCode.includes('sequenceDiagram') || mermaidCode.includes('participant') || mermaidCode.includes('actor') || mermaidCode.includes('autonumber')) {
+        mermaidCode = mermaidCode
+          .split('\n')
+          .map((line) => {
+            const trimmed = line.trim();
+            if (/^Note\s+/i.test(trimmed)) {
+              const colonIdx = line.indexOf(':');
+              if (colonIdx !== -1) {
+                const prefix = line.slice(0, colonIdx + 1);
+                const text = line.slice(colonIdx + 1).replace(/;/g, '#59;');
+                return prefix + text;
+              }
+            }
+            const arrowMatch = line.match(/^(\s*[\w\-]+(?:->>|-->>|->|-->|--x|->x|---\)|-\))[\w\-]+\s*:\s*)(.*)$/);
+            if (arrowMatch) {
+              return arrowMatch[1] + arrowMatch[2].replace(/;/g, '#59;');
+            }
+            return line;
+          })
+          .join('\n');
+      }
+
       if (mermaidCode.includes('participant') || mermaidCode.includes('actor') || mermaidCode.includes('autonumber')) {
         if (!mermaidCode.startsWith('sequenceDiagram')) {
           mermaidCode = 'sequenceDiagram\n' + mermaidCode;

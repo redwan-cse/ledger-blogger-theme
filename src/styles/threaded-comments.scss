@@ -1,5 +1,10 @@
 @use 'tokens' as *;
 
+#comments {
+  .hidden { display: none !important; }
+  .thread-collapsed { display: none !important; }
+}
+
 #comments .comment-thread {
   ol, ul { list-style: none; margin: 0; padding: 0; }
   li { list-style: none; margin: 0 0 $space-3; padding: 0; }
@@ -81,31 +86,32 @@
     margin: 0 0 $space-3;
   }
 
+  .comment-actions a,
+  .item-control.blog-admin a,
+  .comment-replies .comment-reply a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 3px 12px;
+    border-radius: 9999px;
+    border: 1px solid $rule;
+    background: $surface;
+    color: $ink;
+    text-decoration: none;
+    font-family: $font-sans;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all $motion-fast ease;
+
+    &:hover {
+      background: $accent-wash;
+      border-color: $accent;
+      color: $accent;
+    }
+  }
+
   .comment-actions {
     margin-top: $space-3;
-
-    a,
-    .item-control.blog-admin a {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 3px 12px;
-      border-radius: 9999px;
-      border: 1px solid $rule;
-      background: $surface;
-      color: $ink;
-      text-decoration: none;
-      font-family: $font-sans;
-      font-size: 0.75rem;
-      font-weight: 600;
-      transition: all $motion-fast ease;
-
-      &:hover {
-        background: $accent-wash;
-        border-color: $accent;
-        color: $accent;
-      }
-    }
 
     .item-control.blog-admin a:hover {
       background: oklch(95% 0.04 25 / 0.15);
@@ -121,25 +127,7 @@
     border-left: 1px solid $rule;
 
     .comment-reply a {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 3px 12px;
-      border-radius: 9999px;
-      border: 1px solid $rule;
-      background: $surface;
-      color: $ink;
-      text-decoration: none;
-      font-family: $font-sans;
-      font-size: 0.75rem;
-      font-weight: 600;
       margin-top: 4px;
-
-      &:hover {
-        background: $accent-wash;
-        border-color: $accent;
-        color: $accent;
-      }
     }
 
     .thread-toggle {
@@ -230,6 +218,14 @@
 
 html[data-theme='dark'] #comments {
   .comment-thread {
+    .comment {
+      background: $dark-surface !important;
+      border-color: $dark-rule !important;
+    }
+    p.comment-content,
+    .comment-body {
+      color: $dark-ink !important;
+    }
     .user, cite.user, cite.user a { color: oklch(92% .01 260); }
     .datetime a, .comment-timestamp a { color: oklch(72% .012 260); }
     .comment-actions a,
