@@ -1329,6 +1329,20 @@ export function getPostThumbnailUrl(url: string, title: string): string {
     return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/postgresql-row-level-security-threat/thumbnail.png';
   }
   if (
+    cleanUrl.includes('model-context-protocol') ||
+    cleanTitle.includes('model context protocol') ||
+    cleanTitle.includes('mcp') ||
+    cleanTitle.includes('prompt injection')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/model-context-protocol-threat-modeling-indirect-pr/thumbnail.png';
+  }
+  if (
+    cleanUrl.includes('hardening-model-context') ||
+    cleanTitle.includes('hardening model context')
+  ) {
+    return 'https://cdn.jsdelivr.net/gh/redwan-cse/blog-assets@main/posts/hardening-model-context-protocol-deterministic-too/thumbnail.png';
+  }
+  if (
     cleanUrl.includes('xdp') ||
     cleanUrl.includes('ebpf-packet-filtering') ||
     cleanTitle.includes('xdp') ||
@@ -2059,10 +2073,37 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
 // ---------------------------------------------------------------------------
 
 export function initPostHeroImage(): void {
+  const pagePath = window.location.pathname.toLowerCase();
+  const pageTitle = (document.title || '').toLowerCase();
+  const cdnSrc = getPostThumbnailUrl(pagePath, pageTitle);
+
   // Target strictly the article's lead hero image inside .post-body, NEVER the author avatar in .post-header!
-  const heroImg = document.querySelector<HTMLImageElement>(
-    '.post-body .post-hero-image, .post-body .post-hero-wrap img, .post-body img[alt="Article Hero"], .post-body > img:first-of-type, .post-body > p:first-of-type img:first-of-type, .post-body img:first-of-type'
+  let heroImg = document.querySelector<HTMLImageElement>(
+    '.post-body .post-hero-image, .post-body .post-hero-wrap img, .post-body img[alt="Article Hero"]'
   );
+
+  // Global settings for single blog preview: If no hero image exists in post-body, and we have a valid thumbnail, auto-inject hero wrap
+  if (!heroImg && cdnSrc) {
+    const postBody = document.querySelector<HTMLElement>('.post-body');
+    if (postBody) {
+      const wrap = document.createElement('div');
+      wrap.className = 'post-hero-wrap';
+      const img = document.createElement('img');
+      img.className = 'post-hero-image';
+      img.src = cdnSrc;
+      const postTitle = document.querySelector('.post-title')?.textContent?.trim() || 'Article Hero';
+      img.alt = postTitle;
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('fetchpriority', 'high');
+      img.setAttribute('referrerpolicy', 'no-referrer');
+      img.width = 1200;
+      img.height = 675;
+      wrap.appendChild(img);
+      postBody.insertBefore(wrap, postBody.firstChild);
+      heroImg = img;
+    }
+  }
+
   if (!heroImg) return;
   if (
     heroImg.classList.contains('post-author-mini-avatar') ||
@@ -2075,10 +2116,6 @@ export function initPostHeroImage(): void {
   }
 
   const currentSrc = (heroImg.getAttribute('src') || '').trim();
-  const pagePath = window.location.pathname.toLowerCase();
-  const pageTitle = (document.title || '').toLowerCase();
-
-  const cdnSrc = getPostThumbnailUrl(pagePath, pageTitle);
 
   function isGoogleUserContent(urlStr: string): boolean {
     try {
@@ -2089,8 +2126,9 @@ export function initPostHeroImage(): void {
     }
   }
 
-  // Replace blocked Google Drive links or data URIs with reliable open CDN
-  if (cdnSrc && (isGoogleUserContent(currentSrc) || currentSrc.startsWith('data:') || currentSrc.length > 500 || currentSrc !== cdnSrc)) {
+  // Only replace blocked Google Drive links, data URIs, or empty sources with reliable open CDN
+  const isBrokenSrc = !currentSrc || isGoogleUserContent(currentSrc) || currentSrc.startsWith('data:') || currentSrc.length > 500;
+  if (isBrokenSrc && cdnSrc) {
     heroImg.src = cdnSrc;
   }
 

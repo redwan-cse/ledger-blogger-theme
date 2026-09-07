@@ -123,19 +123,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
     gap: $space-3;
     margin-bottom: $space-5;
 
-    .comments-title {
-      margin: 0;
-    }
+    .comments-title { margin: 0; }
   }
 
   .comments-bottom-bar {
     margin-top: $space-5;
     display: flex;
-    justify-content: flex-start;
   }
 
   .comment-replies,
