@@ -1817,17 +1817,26 @@ export function decodeHtmlEntities(str: string): string {
 }
 
 /**
- * Sanitizes Mermaid diagram source code, fixing HTML entity leaks, arrows, and unquoted labels.
+ * Sanitizes Mermaid diagram source code, fixing HTML entity leaks, arrows, unquoted labels,
+ * and duplicate diagram header declarations.
  */
 export function cleanMermaidSyntax(rawCode: string): string {
   let code = decodeHtmlEntities(rawCode.trim());
 
   // Fix lingering entity-encoded arrows and quotes
   code = code
-    .replace(/-&gt;&gt;/g, '->>')
+    .replace(/&lt;--&gt;/g, '<-->')
+    .replace(/&lt;-->/g, '<-->')
+    .replace(/&lt;==&gt;/g, '<==>')
+    .replace(/&lt;==>/g, '<==>')
     .replace(/--&gt;&gt;/g, '-->>')
+    .replace(/-&gt;&gt;/g, '->>')
     .replace(/--&gt;/g, '-->')
     .replace(/-&gt;/g, '->')
+    .replace(/==&gt;/g, '==>')
+    .replace(/=&gt;/g, '=>')
+    .replace(/&lt;(?=[-=\.])/g, '<')
+    .replace(/([-=\.])&gt;/g, '$1>')
     .replace(/&quot;/g, '"');
 
   // Fix unquoted participant labels containing '&' (e.g., participant Agent as LLM Agent & MCP Client)
@@ -1836,9 +1845,16 @@ export function cleanMermaidSyntax(rawCode: string): string {
     (_m, prefix, label) => `${prefix}"${label.trim()}"`
   );
 
+  // Heal duplicate diagram headers (e.g. sequenceDiagram prepended erroneously to flowchart, graph, etc.)
+  code = code.replace(
+    /^\s*sequenceDiagram\s*\r?\n(\s*(?:%%[^\n]*\r?\n)?)*(flowchart|graph|classDiagram(?:-v2)?|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|quadrantChart|requirementDiagram|gitGraph|C4\w+|mindmap|timeline|zenuml|sankey(?:-beta)?|xychart(?:-beta)?|block(?:-beta)?|packet(?:-beta)?|kanban|architecture(?:-beta)?)\b/i,
+    '$2'
+  );
+
   // In sequence diagrams, replace literal semicolons in notes and message labels with Mermaid's escape code #59;
   // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
-  if (code.includes('sequenceDiagram') || code.includes('participant') || code.includes('actor') || code.includes('autonumber')) {
+  const isSequence = /^\s*(?:%%[^\n]*\r?\n\s*)*sequenceDiagram\b/im.test(code);
+  if (isSequence) {
     code = code
       .split('\n')
       .map((line) => {

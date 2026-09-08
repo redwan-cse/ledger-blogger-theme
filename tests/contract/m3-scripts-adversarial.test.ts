@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { generateTheme } from '../../tools/generate.js';
 import { checkThemeContract } from '../../tools/contract-check.js';
 
+import { cleanMermaidSyntax } from '../../src/scripts/main.js';
+import { compileMarkdownToHtml } from '../../scripts/publish-from-drive.js';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SHA = '0123456789abcdef0123456789abcdef01234567';
 
@@ -120,6 +123,33 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       // Theme should not declare hardcoded external script dependencies (CDN, external frameworks)
       const externalScripts = xml.match(/<script\b[^>]*\bsrc=['"]https?:\/\/[^'"]+['"]/gi) ?? [];
       expect(externalScripts).toEqual([]);
+    });
+  });
+
+  describe('Mermaid Syntax Sanitization & Client-Side Healing', () => {
+    it('heals duplicate diagram headers (e.g. sequenceDiagram prepended to flowchart)', () => {
+      const input = `sequenceDiagram\nflowchart TD\n    DevUser["Compromised CI/CD Runner / Contractor"] --> LocalPolicy`;
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned.startsWith('flowchart TD')).toBe(true);
+      expect(cleaned).not.toContain('sequenceDiagram');
+    });
+
+    it('normalizes entity-escaped arrow variants without corrupting labels', () => {
+      const input = `STSEngine &lt;--&gt;|Verify Trust Policy| TargetIAMRole\nNodeA &lt;--> NodeB\nNodeC --&gt;&gt; NodeD\nNodeE &lt;-- NodeF\nNodeG["Label with &lt;tag&gt; inside"]`;
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('STSEngine <-->|Verify Trust Policy| TargetIAMRole');
+      expect(cleaned).toContain('NodeA <--> NodeB');
+      expect(cleaned).toContain('NodeC -->> NodeD');
+      expect(cleaned).toContain('NodeE <-- NodeF');
+      expect(cleaned).toContain('NodeG["Label with <tag> inside"]');
+    });
+
+    it('prevents substring keyword collision in markdown compiler (e.g. Contractor not matching actor)', () => {
+      const markdown = '```mermaid\nflowchart TD\n    DevUser["Compromised CI/CD Runner / Contractor"] --> LocalPolicy\n```';
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).toContain('data-mermaid-code=');
+      expect(compiled).not.toContain('sequenceDiagram');
+      expect(compiled).toContain('flowchart TD');
     });
   });
 });

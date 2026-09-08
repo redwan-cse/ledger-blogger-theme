@@ -1,10 +1,10 @@
 export interface SubmitUrlsOptions {
   urls: string[];
-  bingApiKey?: string;
-  indexNowKey?: string;
-  indexNowKeyLocation?: string;
-  siteUrl?: string;
-  dryRun?: boolean;
+  bingApiKey?: string | undefined;
+  indexNowKey?: string | undefined;
+  indexNowKeyLocation?: string | undefined;
+  siteUrl?: string | undefined;
+  dryRun?: boolean | undefined;
 }
 
 export interface SubmissionResult {

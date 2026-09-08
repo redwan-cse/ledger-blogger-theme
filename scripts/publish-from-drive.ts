@@ -1,4 +1,6 @@
 import * as crypto from 'node:crypto';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import { submitUrlsToSearchEngines } from './lib/search-engine-indexer.js';
 
@@ -262,29 +264,28 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
     const isMermaid = rawLang === 'mermaid' ||
       rawLang === 'flowchart' ||
       rawLang === 'graph' ||
-      text.trim().startsWith('flowchart') ||
-      text.trim().startsWith('graph') ||
-      text.trim().startsWith('sequenceDiagram') ||
-      text.trim().startsWith('classDiagram') ||
-      text.trim().startsWith('stateDiagram') ||
-      text.trim().startsWith('erDiagram') ||
-      text.trim().startsWith('gantt') ||
-      text.trim().startsWith('pie') ||
-      text.trim().startsWith('gitGraph') ||
+      /^\s*(?:%%[^\n]*\r?\n\s*|---[\s\S]*?---\s*)*(flowchart|graph|sequenceDiagram|classDiagram(?:-v2)?|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|quadrantChart|requirementDiagram|gitGraph|C4\w+|mindmap|timeline|zenuml|sankey(?:-beta)?|xychart(?:-beta)?|block(?:-beta)?|packet(?:-beta)?|kanban|architecture(?:-beta)?)\b/i.test(text) ||
       text.includes('sequenceDiagram') ||
-      text.includes('autonumber') ||
-      text.includes('participant ') ||
-      text.includes('actor ') ||
+      /\b(autonumber|participant)\b/i.test(text) ||
+      /\bactor\s+[\w\-]+/i.test(text) ||
       (text.includes('-->') && (text.includes('[') || text.includes('(') || text.includes('{') || text.includes('|')));
 
     if (isMermaid) {
       let mermaidCode = decodeHtmlEntities(text.trim());
       // Normalize arrows and quotes
       mermaidCode = mermaidCode
-        .replace(/-&gt;&gt;/g, '->>')
+        .replace(/&lt;--&gt;/g, '<-->')
+        .replace(/&lt;-->/g, '<-->')
+        .replace(/&lt;==&gt;/g, '<==>')
+        .replace(/&lt;==>/g, '<==>')
         .replace(/--&gt;&gt;/g, '-->>')
+        .replace(/-&gt;&gt;/g, '->>')
         .replace(/--&gt;/g, '-->')
         .replace(/-&gt;/g, '->')
+        .replace(/==&gt;/g, '==>')
+        .replace(/=&gt;/g, '=>')
+        .replace(/&lt;(?=[-=\.])/g, '<')
+        .replace(/([-=\.])&gt;/g, '$1>')
         .replace(/&quot;/g, '"');
 
       // Fix unquoted participant labels with '&'
@@ -293,9 +294,22 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
         (_m, prefix, label) => `${prefix}"${label.trim()}"`
       );
 
+      // Check if code already declares a valid diagram header
+      const hasDiagramHeader = /^\s*(?:%%[^\n]*\r?\n\s*|---[\s\S]*?---\s*)*(flowchart|graph|sequenceDiagram|classDiagram(?:-v2)?|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|quadrantChart|requirementDiagram|gitGraph|C4\w+|mindmap|timeline|zenuml|sankey(?:-beta)?|xychart(?:-beta)?|block(?:-beta)?|packet(?:-beta)?|kanban|architecture(?:-beta)?)\b/i.test(mermaidCode);
+
+      // Auto-prepend header ONLY if not already present
+      if (!hasDiagramHeader) {
+        if (/\b(participant|autonumber)\b/i.test(mermaidCode) || /\bactor\s+[\w\-]+/i.test(mermaidCode)) {
+          mermaidCode = 'sequenceDiagram\n' + mermaidCode;
+        } else if (mermaidCode.includes('-->') || mermaidCode.includes('---') || mermaidCode.includes('==>')) {
+          mermaidCode = 'graph TD\n' + mermaidCode;
+        }
+      }
+
       // In sequence diagrams, replace literal semicolons in notes and message labels with Mermaid's escape code #59;
       // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
-      if (mermaidCode.includes('sequenceDiagram') || mermaidCode.includes('participant') || mermaidCode.includes('actor') || mermaidCode.includes('autonumber')) {
+      const isSequence = /^\s*(?:%%[^\n]*\r?\n\s*)*sequenceDiagram\b/im.test(mermaidCode);
+      if (isSequence) {
         mermaidCode = mermaidCode
           .split('\n')
           .map((line) => {
@@ -309,7 +323,7 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
               }
             }
             const arrowMatch = line.match(/^(\s*[\w\-]+(?:->>|-->>|->|-->|--x|->x|---\)|-\))[\w\-]+\s*:\s*)(.*)$/);
-            if (arrowMatch) {
+            if (arrowMatch && arrowMatch[1] !== undefined && arrowMatch[2] !== undefined) {
               return arrowMatch[1] + arrowMatch[2].replace(/;/g, '#59;');
             }
             return line;
@@ -317,15 +331,6 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
           .join('\n');
       }
 
-      if (mermaidCode.includes('participant') || mermaidCode.includes('actor') || mermaidCode.includes('autonumber')) {
-        if (!mermaidCode.startsWith('sequenceDiagram')) {
-          mermaidCode = 'sequenceDiagram\n' + mermaidCode;
-        }
-      } else if (mermaidCode.includes('-->')) {
-        if (!mermaidCode.startsWith('graph') && !mermaidCode.startsWith('flowchart')) {
-          mermaidCode = 'graph TD\n' + mermaidCode;
-        }
-      }
       return `\n<div class="mermaid-diagram-wrap" data-mermaid-code="${escapeHtml(mermaidCode)}"><pre class="mermaid">${mermaidCode.replace(/</g, '&lt;')}</pre></div>\n`;
     }
 
@@ -1043,7 +1048,7 @@ async function main() {
   await syncAndCleanGoogleSheet(driveToken);
 
   // Find Blog_Published folder ID (either via env, default ID, inside root, or directly by name)
-  let publishedFolderId = process.env.DRIVE_PUBLISHED_FOLDER_ID?.trim() || DEFAULT_PUBLISHED_FOLDER_ID;
+  let publishedFolderId: string | null = process.env.DRIVE_PUBLISHED_FOLDER_ID?.trim() || DEFAULT_PUBLISHED_FOLDER_ID;
   if (!publishedFolderId) {
     try {
       const pubQuery = `'${ROOT_FOLDER_ID}' in parents and name='${PUBLISHED_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
@@ -1104,9 +1109,9 @@ async function main() {
 
         // Detect title & category
         const titleMatch = rawContent.match(/^#\s+(.+)$/m) || rawContent.match(/^##\s+(.+)$/m);
-        let detectedTitle = titleMatch ? titleMatch[1].replace(/[#*`_]/g, '').trim() : articleItem.name.replace(/\.[^/.]+$/, '');
+        let detectedTitle = titleMatch && titleMatch[1] ? titleMatch[1].replace(/[#*`_]/g, '').trim() : articleItem.name.replace(/\.[^/.]+$/, '');
         const catMatch = rawContent.match(/\[(AI Security|Cloud Security|DevSecOps|Penetration Testing|Linux Hardening|OSINT & Threat Intel|Digital Forensics)\]/i) || detectedTitle.match(/\[(.*?)\]/);
-        const detectedCat = catMatch ? `[${catMatch[1]}]` : '[Cybersecurity]';
+        const detectedCat = catMatch && catMatch[1] ? `[${catMatch[1]}]` : '[Cybersecurity]';
 
         if (!detectedTitle.includes('[')) {
           detectedTitle = `${detectedCat} ${detectedTitle}`;
@@ -1345,7 +1350,7 @@ async function main() {
     let label = 'Cybersecurity';
     let cleanTitle = item.name;
     const match = item.name.match(/^\[(.*?)\]\s*(.*)$/);
-    if (match) {
+    if (match && match[1] && match[2]) {
       label = match[1].trim();
       cleanTitle = match[2].trim();
     }
@@ -1560,7 +1565,7 @@ async function main() {
     // 1. Log to Content_Planner_and_History Google Sheet
     const todayStr = new Date().toISOString().slice(0, 10);
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const weekdayStr = days[new Date().getUTCDay()];
+    const weekdayStr = days[new Date().getUTCDay()] ?? 'Monday';
     const cveMatch = markdownContent.match(/\b(CVE-\d{4}-\d+|RFC\s*\d+|AD\s*CS\s*ESC\d+|NIST\s*[\w\.\-]+)\b/i);
     const focusCve = cveMatch ? cveMatch[0] : label;
 
@@ -1612,7 +1617,9 @@ async function main() {
   console.log('\n=== All Documents Processed Successfully ===');
 }
 
-main().catch((err) => {
-  console.error('Fatal Auto-Publisher Error:', err);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error('Fatal Auto-Publisher Error:', err);
+    process.exit(1);
+  });
+}
