@@ -197,6 +197,13 @@ async function publishToBlogger(article: ArticlePayload): Promise<void> {
 
 async function main() {
   console.log('=== Daily Cybersecurity Auto-Publisher ===');
+
+  if (!GEMINI_API_KEY) {
+    console.log('ℹ️ GEMINI_API_KEY is not configured in environment secrets. Skipping automated article generation.');
+    console.log('=== Auto-Publisher Finished Cleanly ===');
+    return;
+  }
+
   console.log('1. Fetching trending security research signals...');
   const trending = await fetchTrendingSources();
   console.log(`Collected ${trending.length} trending sources.`);
