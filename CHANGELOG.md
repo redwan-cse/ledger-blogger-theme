@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.1] - 2026-09-11
+
+### Added
+- **Prominent Add-Comment Triggers**: Primary and contextual "Add Comment" action buttons on single post views, guiding readers directly into the discussion thread.
+- **Modern Reply Folding & Thread Counter**: Replaced native disclosure with modern chevron toggle buttons, reply count badge indicators, and smooth reply container transitions.
+- **Global Single Post Hero Image Auto-Injection**: Intelligent fallback engine in `main.ts` ensuring posts lacking manual inline hero images automatically receive a styled lead hero banner matching the CDN thumbnail.
+- **Decoupled Asset CDN Architecture**: High-resolution thumbnails and media assets migrated to a dedicated repository (`redwan-cse/blog-assets`), keeping the theme repository lean and decoupled from content blobs.
+
+### Changed
+- **Refined Comment Thread Layout & Modern Sign-in Form**: Restored Blogger's native `threadedCommentForm` iframe container without layout shifts, eliminated awkward default iframe sizing constraints, styled sign-in prompts, and cleaned redundant reply buttons.
+- **High-Contrast Dark Mode Comments**: Enhanced comment text, timestamp bylines, author names, and thread dividers in dark mode with high contrast ratios.
+- **Theme Size Budget Rebalancing**: Realigned SCSS skin size tests with the 500 KB theme budget while keeping the generated theme under 298 KB.
+- **Automated Publishing Workflow Decoupling**: Updated GitHub Actions publisher to push generated thumbnails and article assets directly to `redwan-cse/blog-assets`.
+
+### Fixed
+- **Mermaid Diagram Substring Collision & Dual Header Bug**: Replaced naive `actor` substring matching in `publish-from-drive.ts` with word-boundary checks (`/\b(autonumber|participant)\b/i`, `/\bactor\s+[\w\-]+/i`), permanently preventing diagrams containing words like `"Contractor"` from having conflicting `sequenceDiagram\nflowchart TD` declarations prepended.
+- **Client-Side Mermaid Healing**: Added defensive header normalization and entity-encoded arrow healing (`&lt;-->`, `&lt;--&gt;`, `&lt;--`, `&lt;-`, `--&gt;&gt;`, `-&gt;&gt;`, etc.) directly into `cleanMermaidSyntax()`, ensuring existing live posts automatically render cleanly in the browser.
+- **Sequence Diagram Semicolon Escaping**: Restricted literal semicolon replacement (`#59;`) strictly to sequence diagram scopes, preventing syntax corruption in non-sequence diagrams.
+- **Comment Avatar Overlap & FCD Logo Fallback**: Resolved avatar overlapping issues in nested threaded comments, upgraded low-resolution avatar endpoints to crisp resolutions, and replaced broken placeholder logos with high-fidelity profile avatars.
+- **SEO & Crawl Friction Elimination**: Eliminated duplicate canonical link tags, deduplicated meta descriptions, added descriptive `alt` tags to post cards and thumbnails, and removed robots crawl friction.
+- **Single Post Preview Restoration**: Fixed missing lead image previews across single blog views and restored consistent card thumbnail rendering.
+
+---
+
 ## [1.4.0] - 2026-09-05
 
 ### Added
