@@ -1,6 +1,6 @@
 # Ledger — Blogger Layouts V3 Theme
 
-[![Release](https://img.shields.io/badge/Release-v1.4.1-blue.svg)](https://github.com/redwan-cse/ledger-blogger-theme/releases/tag/v1.4.1)
+[![Release](https://img.shields.io/badge/Release-v1.5.0-blue.svg)](https://github.com/redwan-cse/ledger-blogger-theme/releases/tag/v1.5.0)
 [![Changelog](https://img.shields.io/badge/Changelog-Keep_a_Changelog-orange.svg)](CHANGELOG.md)
 [![CI](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml)
 [![Build Theme Artifact](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml)
@@ -41,7 +41,8 @@ Live production blog: **[blogs.redwan.work](https://blogs.redwan.work/)**
 - **Autonomous Author Avatar Protection**: Global selector guarding preventing article diagrams and thumbnails from replacing author profile photos across older and newer posts.
 - **SEO & Rich Results**: Automatic Schema.org `BlogPosting` and `WebSite` JSON-LD structured data (using `.jsonEscaped`), dynamic OpenGraph, Twitter Cards, image alt attributes, and canonical URLs.
 - **WCAG 2.2 AA Accessibility**: Strict single-`h1` heading hierarchy per view, functional `#content` skip link, accessible touch targets, and `prefers-reduced-motion` fallbacks.
-- **Headless Publishing Automation**: Zero-cost automated pipeline via GitHub Actions, Google Drive shared queue monitoring, Google Sheets planner deduplication, and automated CDN asset hosting in dedicated repository (`redwan-cse/blog-assets`).
+- **Headless Publishing Automation & Batch Processing**: Zero-cost automated pipeline via GitHub Actions, Google Drive shared queue monitoring, batch publishing on manual dispatch, Google Sheets planner deduplication, and automated CDN asset hosting in dedicated repository (`redwan-cse/blog-assets`).
+- **Zero Vulnerability Security Posture**: 100% clean CodeQL code scanning (0 open alerts across ReDoS, XSS, and double-escaping) and Dependabot compliance (0 open alerts).
 
 ---
 

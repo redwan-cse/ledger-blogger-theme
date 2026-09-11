@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] - 2026-09-11
+
+### Added
+- **Drive Queue Batch Publishing**: Added `publish_all` input to `.github/workflows/publish-from-drive.yml` and enhanced `scripts/publish-from-drive.ts` so manual workflow runs process all pending Google Docs in the queue in sequence, while scheduled cron runs continue to pace publication.
+- **Enhanced Blogger OAuth CLI Tooling**: Added native support for `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in `scripts/get-blogger-token.ts` for streamlined credential provisioning.
+
+### Changed
+- **Gemini API Decoupling**: Removed legacy `GEMINI_API_KEY` requirement and deprecated `daily-publisher` workflow, establishing Google Drive as the single, cost-free content pipeline.
+- **Dependency Upgrades**: Upgraded `vitest` to `4.1.11` to remediate supply-chain vulnerability CVE-2026-33989 / GHSA-4w53-29w4-5699.
+
+### Fixed
+- **CodeQL Polynomial ReDoS Remediation**: Replaced vulnerable nested quantifier regexes in `scripts/publish-from-drive.ts` with linear string and state scanning (`getFirstDiagramHeader`, `healDuplicateSequenceHeader`), eliminating 8 alerts (`js/polynomial-redos`).
+- **CodeQL Double-Escaping Sanitization**: Refactored entity replacements into a single-pass `HTML_ENTITY_MAP` regular expression in `scripts/publish-from-drive.ts`, resolving 2 alerts (`js/double-escaping`).
+- **Client-Side DOM XSS Hardening**: Added strict `sanitizeHttpUrl()` URL protocol whitelist enforcement in `src/scripts/main.ts`, eliminating 2 DOM redirection alerts (`js/client-side-unvalidated-url-redirection`).
+- **100% Security Alert Resolution**: Achieved 0 open Dependabot alerts and 0 open CodeQL Code Scanning alerts across the entire repository.
+- **Blogger Live Deployment Restoration**: Restored GitHub Actions `blogger-live` deployment status to active/green with permanent production OAuth credentials.
+
+---
+
 ## [1.4.1] - 2026-09-11
 
 ### Added

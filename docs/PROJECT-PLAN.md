@@ -4,7 +4,7 @@
 |---|---|
 | **Repository** | `redwan-cse/ledger-blogger-theme` |
 | **Format** | Blogger **Layouts V3** (`b:layoutsVersion='3'`) with **widget version 2** |
-| **Production blog** | [blogs.redwan.work](https://blogs.redwan.work) · Blogger ID `5972841034338492159` · 16 posts |
+| **Production blog** | [blogs.redwan.work](https://blogs.redwan.work) · Blogger ID `5972841034338492159` · 18 posts |
 | **Staging blog** | `staging-ledger-theme.blogspot.com` (created in M0) |
 | **Brand parent** | [redwan.work](https://redwan.work) — Fast Cyber Defense |
 | **Estimate** | ~10 working days, 8 milestones |
@@ -31,7 +31,7 @@ Build one excellent Blogger theme, from scratch, for a working blog with real
 readers.
 
 Not a template for sale. Not a 10,000-line marketplace product. A theme whose
-homepage renders sixteen posts with JavaScript disabled, every single time, and
+homepage renders all published posts with JavaScript disabled, every single time, and
 which cannot silently stop doing that.
 
 ### Goals
