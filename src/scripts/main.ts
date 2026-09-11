@@ -1792,28 +1792,139 @@ export function initHomepageCatalog(): void {
   }
 }
 
+const HTML_ENTITY_MAP: Record<string, string> = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&#039;': "'",
+  '&#x27;': "'",
+  '&#x2F;': '/',
+  '&#32;': ' ',
+  '&nbsp;': ' ',
+};
+
 /**
- * Iteratively decodes HTML entities (e.g. &amp;, &gt;, &lt;, &quot;) up to 5 passes.
+ * Decodes common HTML entities in a single linear pass to prevent double-escaping hazards.
  */
 export function decodeHtmlEntities(str: string): string {
   if (!str) return '';
-  let prev = '';
-  let curr = str;
-  for (let i = 0; i < 5 && curr !== prev; i++) {
-    prev = curr;
-    curr = curr
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&#039;/g, "'")
-      .replace(/&#x27;/g, "'")
-      .replace(/&#x2F;/g, '/')
-      .replace(/&#32;/g, ' ')
-      .replace(/&nbsp;/g, ' ');
+  return str.replace(/&(?:amp|lt|gt|quot|#39|#039|#x27|#x2F|#32|nbsp);/g, (match) => HTML_ENTITY_MAP[match] ?? match);
+}
+
+/**
+ * Determines the first Mermaid diagram type declared in the code after skipping frontmatter and comments.
+ * Performs a linear line-by-line scan with O(N) complexity to avoid regular expression backtracking (ReDoS).
+ */
+export function getFirstDiagramHeader(code: string): string | null {
+  if (!code) return null;
+  const lines = code.split('\n');
+  let inFrontmatter = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (trimmed === '---') {
+      inFrontmatter = !inFrontmatter;
+      continue;
+    }
+    if (inFrontmatter) continue;
+    if (trimmed.startsWith('%%')) continue;
+
+    const match = trimmed.match(/^([A-Za-z0-9_-]+)/);
+    if (match && match[1]) {
+      const token = match[1].toLowerCase();
+      if (
+        token === 'flowchart' ||
+        token === 'graph' ||
+        token === 'sequencediagram' ||
+        token.startsWith('classdiagram') ||
+        token.startsWith('statediagram') ||
+        token === 'erdiagram' ||
+        token === 'journey' ||
+        token === 'gantt' ||
+        token === 'pie' ||
+        token === 'quadrantchart' ||
+        token === 'requirementdiagram' ||
+        token === 'gitgraph' ||
+        token.startsWith('c4') ||
+        token === 'mindmap' ||
+        token === 'timeline' ||
+        token === 'zenuml' ||
+        token.startsWith('sankey') ||
+        token.startsWith('xychart') ||
+        token.startsWith('block') ||
+        token.startsWith('packet') ||
+        token === 'kanban' ||
+        token.startsWith('architecture')
+      ) {
+        return token;
+      }
+    }
+    return null;
   }
-  return curr;
+  return null;
+}
+
+/**
+ * Heals duplicate diagram headers (e.g. sequenceDiagram prepended erroneously to flowchart, graph, etc.)
+ * using linear line examination rather than nested multiline regexes.
+ */
+export function healDuplicateSequenceHeader(code: string): string {
+  const lines = code.split('\n');
+  let firstHeaderIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('%%')) continue;
+    if (trimmed.toLowerCase().startsWith('sequencediagram')) {
+      firstHeaderIdx = i;
+    }
+    break;
+  }
+  if (firstHeaderIdx === -1) return code;
+
+  for (let j = firstHeaderIdx + 1; j < lines.length; j++) {
+    const line = lines[j];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('%%')) continue;
+    const match = trimmed.match(/^([A-Za-z0-9_-]+)/);
+    if (match && match[1]) {
+      const token = match[1].toLowerCase();
+      if (
+        token === 'flowchart' ||
+        token === 'graph' ||
+        token.startsWith('classdiagram') ||
+        token.startsWith('statediagram') ||
+        token === 'erdiagram' ||
+        token === 'journey' ||
+        token === 'gantt' ||
+        token === 'pie' ||
+        token === 'quadrantchart' ||
+        token === 'requirementdiagram' ||
+        token === 'gitgraph' ||
+        token.startsWith('c4') ||
+        token === 'mindmap' ||
+        token === 'timeline' ||
+        token === 'zenuml' ||
+        token.startsWith('sankey') ||
+        token.startsWith('xychart') ||
+        token.startsWith('block') ||
+        token.startsWith('packet') ||
+        token === 'kanban' ||
+        token.startsWith('architecture')
+      ) {
+        lines.splice(firstHeaderIdx, 1);
+        return lines.join('\n');
+      }
+    }
+    break;
+  }
+  return code;
 }
 
 /**
@@ -1846,14 +1957,11 @@ export function cleanMermaidSyntax(rawCode: string): string {
   );
 
   // Heal duplicate diagram headers (e.g. sequenceDiagram prepended erroneously to flowchart, graph, etc.)
-  code = code.replace(
-    /^\s*sequenceDiagram\s*\r?\n(\s*(?:%%[^\n]*\r?\n)?)*(flowchart|graph|classDiagram(?:-v2)?|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|quadrantChart|requirementDiagram|gitGraph|C4\w+|mindmap|timeline|zenuml|sankey(?:-beta)?|xychart(?:-beta)?|block(?:-beta)?|packet(?:-beta)?|kanban|architecture(?:-beta)?)\b/i,
-    '$2'
-  );
+  code = healDuplicateSequenceHeader(code);
 
   // In sequence diagrams, replace literal semicolons in notes and message labels with Mermaid's escape code #59;
   // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
-  const isSequence = /^\s*(?:%%[^\n]*\r?\n\s*)*sequenceDiagram\b/im.test(code);
+  const isSequence = getFirstDiagramHeader(code) === 'sequencediagram';
   if (isSequence) {
     code = code
       .split('\n')
@@ -2299,9 +2407,26 @@ export function initCommentInteractions(): void {
   const commentsSection = document.getElementById('comments');
   if (!commentsSection) return;
 
-  const defaultAuthorAvatar =
-    commentsSection.getAttribute('data-author-avatar') ||
+  const FALLBACK_AUTHOR_AVATAR =
     'https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s96-rw';
+
+  function sanitizeHttpUrl(rawUrl: string | null | undefined): string | null {
+    if (!rawUrl) return null;
+    const trimmed = rawUrl.trim();
+    if (!/^https?:\/\//i.test(trimmed)) return null;
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.href;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  const defaultAuthorAvatar =
+    sanitizeHttpUrl(commentsSection.getAttribute('data-author-avatar')) || FALLBACK_AUTHOR_AVATAR;
 
   const fcdLogo = 'https://fastcyberdefense.com/icon1.png';
 
@@ -2373,14 +2498,16 @@ export function initCommentInteractions(): void {
           img.alt = 'Md. Redwan Ahmed';
         } else {
           // Upgrade Blogger/Google avatar resolution
-          img.src = src.replace(/\/s\d+(-c)?\//, '/s96-c/');
+          const upgraded = sanitizeHttpUrl(src.replace(/\/s\d+(-c)?\//, '/s96-c/'));
+          img.src = upgraded || defaultAuthorAvatar;
         }
       } else if (isGenericAvatar(src) || !src) {
         img.src = generateInitialAvatar(authorName);
         img.alt = authorName;
       } else {
         // Genuine commenter photo (e.g. Google/Blogger profile picture) - upgrade resolution
-        img.src = src.replace(/\/s\d+(-c)?\//, '/s96-c/');
+        const upgraded = sanitizeHttpUrl(src.replace(/\/s\d+(-c)?\//, '/s96-c/'));
+        img.src = upgraded || generateInitialAvatar(authorName);
       }
 
       img.addEventListener(
