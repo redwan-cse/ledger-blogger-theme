@@ -1386,8 +1386,12 @@ async function main() {
   console.log(`Found ${items.length} item(s) in Blog_Queue.`);
 
   // Limit to 1 post per scheduled execution (leaves subsequent queued posts for next scheduled window)
+  // On manual dispatch, process all pending posts unless MAX_POSTS_PER_RUN is explicitly restricted
   const isScheduledRun = process.env.GITHUB_EVENT_NAME === 'schedule';
-  const processLimit = isScheduledRun ? 1 : Number(process.env.MAX_POSTS_PER_RUN || 1);
+  const maxPostsEnv = process.env.MAX_POSTS_PER_RUN?.trim();
+  const processLimit = isScheduledRun
+    ? (maxPostsEnv ? Number(maxPostsEnv) : 1)
+    : (maxPostsEnv ? Number(maxPostsEnv) : 99);
   const itemsToProcess = items.slice(0, processLimit);
 
   if (items.length > itemsToProcess.length) {
