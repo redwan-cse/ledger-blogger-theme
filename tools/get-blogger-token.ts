@@ -1,7 +1,7 @@
 import * as http from 'node:http';
 
-const CLIENT_ID = process.env.BLOGGER_CLIENT_ID?.trim();
-const CLIENT_SECRET = process.env.BLOGGER_CLIENT_SECRET?.trim();
+const CLIENT_ID = (process.env.BLOGGER_CLIENT_ID || process.env.GOOGLE_OAUTH_CLIENT_ID)?.trim();
+const CLIENT_SECRET = (process.env.BLOGGER_CLIENT_SECRET || process.env.GOOGLE_OAUTH_CLIENT_SECRET)?.trim();
 const PORT = 3000;
 const REDIRECT_URI = `http://localhost:${PORT}/oauth2callback`;
 
@@ -10,6 +10,11 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
 Usage:
   $env:BLOGGER_CLIENT_ID="your_client_id.apps.googleusercontent.com"
   $env:BLOGGER_CLIENT_SECRET="your_client_secret"
+  npx tsx tools/get-blogger-token.ts
+
+Or with GOOGLE_OAUTH_CLIENT_ID:
+  $env:GOOGLE_OAUTH_CLIENT_ID="your_client_id.apps.googleusercontent.com"
+  $env:GOOGLE_OAUTH_CLIENT_SECRET="your_client_secret"
   npx tsx tools/get-blogger-token.ts
 `);
   process.exit(1);
