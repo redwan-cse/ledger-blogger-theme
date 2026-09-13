@@ -301,8 +301,39 @@ function slugify(text: string): string {
     .slice(0, 50);
 }
 
+export function extractSearchDescription(markdown: string): string {
+  if (!markdown) return '';
+  // Strip frontmatter if present
+  let clean = markdown.replace(/^---[\s\S]*?---\s*/, '');
+  // Strip code blocks
+  clean = clean.replace(/```[\s\S]*?```/g, '');
+  // Strip inline code
+  clean = clean.replace(/`([^`]+)`/g, '$1');
+  // Strip image tags: ![alt](url)
+  clean = clean.replace(/!\[.*?\]\(.*?\)/g, '');
+  // Strip link markup but keep text: [text](url)
+  clean = clean.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+  // Strip bold and italics: **text**, *text*, __text__, _text_
+  clean = clean.replace(/(\*\*|__)(.*?)\1/g, '$2');
+  clean = clean.replace(/(\*|_)(.*?)\1/g, '$2');
+  // Strip strikethrough: ~~text~~
+  clean = clean.replace(/~~(.*?)~~/g, '$1');
+  // Strip markdown headings: # Heading
+  clean = clean.replace(/^#{1,6}\s+.*$/gm, '');
+  // Strip HTML tags
+  clean = clean.replace(/<[^>]+>/g, '');
+  // Normalize whitespace
+  clean = clean.replace(/\s+/g, ' ').trim();
+
+  if (clean.length <= 155) return clean;
+  // Truncate at word boundary
+  const truncated = clean.slice(0, 155);
+  const lastSpace = truncated.lastIndexOf(' ');
+  return (lastSpace > 100 ? truncated.slice(0, lastSpace) : truncated).trim() + '...';
+}
+
 // 3. Configure Marked Markdown Compiler with Code Window & Mermaid Support
-export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): string {
+export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, articleTitle?: string): string {
   const renderer = new marked.Renderer();
 
   renderer.code = function({ text, lang }: { text: string; lang?: string }) {
@@ -1000,8 +1031,9 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
 
   // Prepend Hero Image if available
   if (heroImageUrl) {
+    const heroAlt = escapeHtml(articleTitle || 'Article Hero');
     const heroBlock = `<div class="post-hero-wrap" style="margin-bottom:2.2rem;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
-  <img src="${heroImageUrl}" alt="Article Hero" class="post-hero-image" style="width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;display:block;" loading="eager" fetchpriority="high" width="1200" height="675" referrerpolicy="no-referrer"/>
+  <img src="${heroImageUrl}" alt="${heroAlt}" class="post-hero-image" style="width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;display:block;" loading="eager" fetchpriority="high" width="1200" height="675" referrerpolicy="no-referrer"/>
 </div>\n`;
     htmlBody = heroBlock + htmlBody;
   }
@@ -1551,7 +1583,11 @@ async function main() {
 
     // Compile Markdown to Semantic HTML
     console.log(`Compiling GFM markdown (with Mermaid diagrams and unified code windows)...`);
-    const compiledHtml = compileMarkdownToHtml(markdownContent, heroImageUrl);
+    const compiledHtml = compileMarkdownToHtml(markdownContent, heroImageUrl, cleanTitle);
+    const searchDescription = extractSearchDescription(markdownContent);
+    if (searchDescription) {
+      console.log(`Extracted Search Description (${searchDescription.length} chars): "${searchDescription}"`);
+    }
 
     // Check if post already exists on Blogger to update in-place (avoids duplicate URLs)
     console.log(`Checking if post "${cleanTitle}" already exists on Blogger...`);
@@ -1609,7 +1645,8 @@ async function main() {
           id: existingPost.id,
           title: cleanTitle,
           content: compiledHtml,
-          labels: [label]
+          labels: [label],
+          ...(searchDescription ? { customMetaData: searchDescription } : {})
         })
       });
       if (!updateRes.ok) {
@@ -1632,7 +1669,8 @@ async function main() {
           kind: 'blogger#post',
           title: cleanTitle,
           content: compiledHtml,
-          labels: [label]
+          labels: [label],
+          ...(searchDescription ? { customMetaData: searchDescription } : {})
         })
       });
 

@@ -6,7 +6,7 @@ import { generateTheme } from '../../tools/generate.js';
 import { checkThemeContract } from '../../tools/contract-check.js';
 
 import { cleanMermaidSyntax } from '../../src/scripts/main.js';
-import { compileMarkdownToHtml } from '../../scripts/publish-from-drive.js';
+import { compileMarkdownToHtml, extractSearchDescription } from '../../scripts/publish-from-drive.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SHA = '0123456789abcdef0123456789abcdef01234567';
@@ -179,6 +179,40 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       // Pre-quoted labels should remain single-quoted
       expect(cleaned).toContain('DropBadCookie["Deny: Path Traversal / Shell Metacharacters Detected"]');
       expect(cleaned).not.toContain('DropBadCookie[""');
+    });
+
+    it('extracts clean 155-char search description stripping markdown artifacts', () => {
+      const markdown = `---
+title: Test Article
+date: 2026-09-13
+---
+
+# Main Heading
+
+![Diagram](https://example.com/diag.png)
+
+This is the **primary** introduction paragraph explaining a critical vulnerability in PAN-OS GlobalProtect that allows remote unauthenticated attackers to execute commands via buffer overflow.
+
+\`\`\`bash
+curl -X POST https://target/api
+\`\`\`
+
+Secondary conclusion paragraph.`;
+
+      const desc = extractSearchDescription(markdown);
+      expect(desc.length).toBeLessThanOrEqual(158);
+      expect(desc).toContain('This is the primary introduction paragraph');
+      expect(desc).not.toContain('#');
+      expect(desc).not.toContain('curl');
+      expect(desc).not.toContain('Diagram');
+      expect(desc).not.toContain('title:');
+    });
+
+    it('sets article title as hero image alt attribute when provided', () => {
+      const markdown = '# Sample Article\n\nContent here.';
+      const compiled = compileMarkdownToHtml(markdown, 'https://example.com/hero.png', 'Hardening PAN-OS GlobalProtect');
+      expect(compiled).toContain('alt="Hardening PAN-OS GlobalProtect"');
+      expect(compiled).not.toContain('alt="Article Hero"');
     });
   });
 });

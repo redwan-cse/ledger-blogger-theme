@@ -745,8 +745,9 @@ export function initSyntaxHighlighting(): void {
 // ---------------------------------------------------------------------------
 
 export function initTableOfContents(): void {
-  const postBody = document.querySelector<HTMLElement>('.is-post .post-body');
+  const postBody = document.querySelector<HTMLElement>('.is-post .post-body, article.post .post-body, .post-body');
   if (!postBody) return;
+  if (postBody.querySelector('.table-of-contents') || document.querySelector('.table-of-contents')) return;
 
   const headings = Array.from(postBody.querySelectorAll<HTMLHeadingElement>('h2, h3'));
   if (headings.length < 2) return;
@@ -1496,7 +1497,7 @@ export function initHomepageCatalog(): void {
   let isLoaded = false;
   let isLoading = false;
 
-  function loadFeedAndFilter(onSuccess?: () => void): void {
+  async function loadFeedAndFilter(onSuccess?: () => void): Promise<void> {
     if (isLoaded) {
       if (onSuccess) onSuccess();
       return;
@@ -1504,103 +1505,126 @@ export function initHomepageCatalog(): void {
     if (isLoading) return;
     isLoading = true;
 
-    fetch('/feeds/posts/default?alt=json&max-results=50', { headers: { Accept: 'application/json' } })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        isLoaded = true;
-        isLoading = false;
-        const entries = data?.feed?.entry || [];
-        if (entries.length === 0) return;
+    try {
+      const pageSize = 50;
+      let startIndex = 1;
+      let entries: any[] = [];
 
-        allPosts = entries.map((entry: any) => {
-          const id = entry.id?.$t || '';
-          const title = entry.title?.$t || 'Untitled';
-          const url = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
-          const published = entry.published?.$t || '';
-          const dateObj = published ? new Date(published) : new Date();
-          const year = String(dateObj.getFullYear());
-          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
-
-          let contentHtml = entry.content?.$t || entry.summary?.$t || '';
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = contentHtml;
-          tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, pre, code, style, script, .table-of-contents, .heading-anchor').forEach((el) => el.remove());
-          const rawExcerpt = (tempDiv.textContent || '').replace(/^#+.*?[#\n]/, '').replace(/\s+/g, ' ').trim();
-          const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
-
-          let thumbnail = entry.media$thumbnail?.url;
-          if (!thumbnail) {
-            const img = tempDiv.querySelector('img');
-            if (img && img.src && !img.src.startsWith('data:')) {
-              thumbnail = img.src;
-            }
-          }
-
-          if (!thumbnail || thumbnail.startsWith('data:')) {
-            thumbnail = getPostThumbnailUrl(url, title);
-          }
-
-          if (thumbnail) {
-            // Upgrade Blogger low-res thumbnail to crisp WebP
-            thumbnail = thumbnail.replace(/\/s72-c\//, '/w384-rw/').replace(/=s72-c/, '=w384-rw');
-          }
-
-          return {
-            id,
-            title,
-            url,
-            published,
-            dateStr,
-            year,
-            month,
-            categories,
-            excerpt,
-            thumbnail
-          };
-        });
-
-        filteredPosts = allPosts;
-
-        if (yearSelect) {
-          const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
-          yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
-        }
-
-        if (monthSelect) {
-          const MONTHS = [
-            { val: '01', name: 'January' },
-            { val: '02', name: 'February' },
-            { val: '03', name: 'March' },
-            { val: '04', name: 'April' },
-            { val: '05', name: 'May' },
-            { val: '06', name: 'June' },
-            { val: '07', name: 'July' },
-            { val: '08', name: 'August' },
-            { val: '09', name: 'September' },
-            { val: '10', name: 'October' },
-            { val: '11', name: 'November' },
-            { val: '12', name: 'December' }
-          ];
-          monthSelect.innerHTML = '<option value="all">All months</option>' +
-            MONTHS.map((m) => `<option value="${m.val}">${m.name}</option>`).join('');
-        }
-
-        if (categorySelect) {
-          const allCats = Array.from(new Set(allPosts.flatMap((p) => p.categories))).sort();
-          categorySelect.innerHTML = '<option value="all">All categories</option>' + allCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-        }
-
-        if (onSuccess) {
-          onSuccess();
-        } else if (allPosts.length > 0) {
-          renderPagination(Math.ceil(allPosts.length / getPageSize()));
-        }
-      })
-      .catch(() => {
-        isLoading = false;
+      const firstRes = await fetch(`/feeds/posts/default?alt=json&start-index=${startIndex}&max-results=${pageSize}`, {
+        headers: { Accept: 'application/json' }
       });
+
+      if (firstRes.ok) {
+        const firstData = await firstRes.json();
+        const batch = firstData?.feed?.entry || [];
+        entries = entries.concat(batch);
+        const totalResults = Number(firstData?.feed?.openSearch$totalResults?.$t) || entries.length;
+
+        while (entries.length < totalResults) {
+          startIndex += pageSize;
+          const nextRes = await fetch(`/feeds/posts/default?alt=json&start-index=${startIndex}&max-results=${pageSize}`, {
+            headers: { Accept: 'application/json' }
+          });
+          if (!nextRes.ok) break;
+          const nextData = await nextRes.json();
+          const nextBatch = nextData?.feed?.entry || [];
+          if (nextBatch.length === 0) break;
+          entries = entries.concat(nextBatch);
+        }
+      }
+
+      isLoaded = true;
+      isLoading = false;
+      if (entries.length === 0) return;
+
+      allPosts = entries.map((entry: any) => {
+        const id = entry.id?.$t || '';
+        const title = entry.title?.$t || 'Untitled';
+        const url = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
+        const published = entry.published?.$t || '';
+        const dateObj = published ? new Date(published) : new Date();
+        const year = String(dateObj.getFullYear());
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
+
+        let contentHtml = entry.content?.$t || entry.summary?.$t || '';
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentHtml;
+        tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, pre, code, style, script, .table-of-contents, .heading-anchor').forEach((el) => el.remove());
+        const rawExcerpt = (tempDiv.textContent || '').replace(/^#+.*?[#\n]/, '').replace(/\s+/g, ' ').trim();
+        const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
+
+        let thumbnail = entry.media$thumbnail?.url;
+        if (!thumbnail) {
+          const img = tempDiv.querySelector('img');
+          if (img && img.src && !img.src.startsWith('data:')) {
+            thumbnail = img.src;
+          }
+        }
+
+        if (!thumbnail || thumbnail.startsWith('data:')) {
+          thumbnail = getPostThumbnailUrl(url, title);
+        }
+
+        if (thumbnail) {
+          // Upgrade Blogger low-res thumbnail to crisp WebP
+          thumbnail = thumbnail.replace(/\/s72-c\//, '/w384-rw/').replace(/=s72-c/, '=w384-rw');
+        }
+
+        return {
+          id,
+          title,
+          url,
+          published,
+          dateStr,
+          year,
+          month,
+          categories,
+          excerpt,
+          thumbnail
+        };
+      });
+
+      filteredPosts = allPosts;
+
+      if (yearSelect) {
+        const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
+        yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
+      }
+
+      if (monthSelect) {
+        const MONTHS = [
+          { val: '01', name: 'January' },
+          { val: '02', name: 'February' },
+          { val: '03', name: 'March' },
+          { val: '04', name: 'April' },
+          { val: '05', name: 'May' },
+          { val: '06', name: 'June' },
+          { val: '07', name: 'July' },
+          { val: '08', name: 'August' },
+          { val: '09', name: 'September' },
+          { val: '10', name: 'October' },
+          { val: '11', name: 'November' },
+          { val: '12', name: 'December' }
+        ];
+        monthSelect.innerHTML = '<option value="all">All months</option>' +
+          MONTHS.map((m) => `<option value="${m.val}">${m.name}</option>`).join('');
+      }
+
+      if (categorySelect) {
+        const allCats = Array.from(new Set(allPosts.flatMap((p) => p.categories))).sort();
+        categorySelect.innerHTML = '<option value="all">All categories</option>' + allCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      } else if (allPosts.length > 0) {
+        renderPagination(Math.ceil(allPosts.length / getPageSize()));
+      }
+    } catch {
+      isLoading = false;
+    }
   }
 
   function applyFilter(): void {
