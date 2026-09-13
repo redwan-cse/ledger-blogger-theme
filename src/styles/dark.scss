@@ -161,6 +161,17 @@ html[data-theme='dark'] {
     border-color: oklch(35% 0.06 260) !important;
   }
 
+  .sidebar-recent-fallback-btn {
+    color: oklch(80% 0.14 260) !important;
+    background-color: oklch(22% 0.04 260) !important;
+    border-color: oklch(35% 0.06 260) !important;
+
+    &:hover {
+      background-color: oklch(28% 0.06 260) !important;
+      border-color: oklch(75% 0.15 259.735) !important;
+    }
+  }
+
   .sidebar-search-input,
   .drawer-search-input {
     background-color: oklch(16% 0.025 260) !important;
@@ -615,6 +626,51 @@ html[data-theme='dark'] {
     color: oklch(98.415% 0.0034 247.858);
   }
 
+  .breadcrumb-nav {
+    .breadcrumb-sep {
+      color: oklch(35% 0.03 260);
+    }
+    .breadcrumb-link {
+      color: oklch(75% 0.015 255);
+      &:hover {
+        color: oklch(75% 0.15 259.735);
+      }
+    }
+    .breadcrumb-current {
+      color: oklch(85% 0.01 255);
+    }
+  }
+
+  .post-related-wrap {
+    border-top-color: oklch(27.950% 0.0368 260.031);
+
+    .related-heading {
+      color: oklch(75% 0.015 255);
+    }
+
+    .related-card {
+      background-color: oklch(22.749% 0.0288 266.273);
+      border-color: oklch(27.950% 0.0368 260.031);
+
+      &:hover {
+        border-color: oklch(75% 0.15 259.735 / 0.5);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    .related-card-thumb-wrap {
+      background-color: oklch(18% 0.025 266);
+    }
+
+    .related-card-title {
+      color: oklch(98.415% 0.0034 247.858);
+    }
+
+    .related-card-date {
+      color: oklch(70% 0.015 255);
+    }
+  }
+
   .listen-btn,
   .listen-speed-btn {
     background-color: oklch(22.749% 0.0288 266.273);
@@ -940,6 +996,25 @@ html[data-theme='dark'] {
         color: #f0f6fc;
       }
     }
+
+    .filter-clear-btn {
+      border-color: oklch(27.950% 0.0368 260.031) !important;
+      color: oklch(75% 0.015 255) !important;
+
+      &:hover {
+        background: oklch(22% 0.025 266) !important;
+        color: oklch(98.415% 0.0034 247.858) !important;
+        border-color: oklch(40% 0.04 260) !important;
+      }
+    }
+
+    .filter-results-summary {
+      color: oklch(65% 0.015 255) !important;
+    }
+  }
+
+  .post-updated-label {
+    color: oklch(65% 0.015 255) !important;
   }
 
   .pagination {

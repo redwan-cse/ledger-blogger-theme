@@ -65,7 +65,7 @@ html&attributes(rootAttributes)
       include defaultmarkups/contact-form.pug
       include defaultmarkups/attribution.pug
     include partials/head-meta.pug
-  body
+  body#top
     b:class(cond='data:view.isHomepage and not data:newerPageUrl' name='is-home-lead')/
     b:class(cond='data:view.isPost' name='is-post')/
     b:class(cond='data:view.isPage' name='is-page')/
@@ -139,8 +139,12 @@ html&attributes(rootAttributes)
                           b:if(cond='data:post.date')
                             time.sidebar-recent-date(expr:datetime='data:post.date.iso8601')
                               b:eval(expr='data:post.date')/
+              b:if(cond='data:view.isSingleItem')
+                div.sidebar-recent-fallback
+                  a.sidebar-recent-fallback-btn(expr:href='data:blog.homepageUrl path "search"')
+                    span Browse all publications →
             script.
-              (function(){try{var c=localStorage.getItem('ledger_recent_posts_v1');if(c){var el=document.currentScript.previousElementSibling;if(el)el.innerHTML=c;}}catch(e){}})();
+              (function(){try{var c=localStorage.getItem('ledger_recent_posts_v2')||localStorage.getItem('ledger_recent_posts_v1');if(c){var el=document.currentScript.previousElementSibling;if(el)el.innerHTML=c;}}catch(e){}})();
     div.cta-container
       include widgets/cta.pug
     footer.footer-container(role='contentinfo')
@@ -210,8 +214,12 @@ html&attributes(rootAttributes)
                       b:if(cond='data:post.date')
                         time.sidebar-recent-date(expr:datetime='data:post.date.iso8601')
                           b:eval(expr='data:post.date')/
+          b:if(cond='data:view.isSingleItem')
+            div.sidebar-recent-fallback
+              a.sidebar-recent-fallback-btn(expr:href='data:blog.homepageUrl path "search"')
+                span Browse all publications →
         script.
-          (function(){try{var c=localStorage.getItem('ledger_recent_posts_v1');if(c){var el=document.currentScript.previousElementSibling;if(el)el.innerHTML=c;}}catch(e){}})();
+          (function(){try{var c=localStorage.getItem('ledger_recent_posts_v2')||localStorage.getItem('ledger_recent_posts_v1');if(c){var el=document.currentScript.previousElementSibling;if(el)el.innerHTML=c;}}catch(e){}})();
       div.drawer-section.drawer-social-section
         div.drawer-section-title Connect
         div.drawer-social-grid

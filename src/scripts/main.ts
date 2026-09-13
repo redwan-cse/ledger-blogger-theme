@@ -389,7 +389,7 @@ export function initSidebarRecentPosts(): void {
 
   // 1. Instant Cache Hydration (0ms delay from localStorage)
   try {
-    const cachedHtml = localStorage.getItem('ledger_recent_posts_v1');
+    const cachedHtml = localStorage.getItem('ledger_recent_posts_v2') || localStorage.getItem('ledger_recent_posts_v1');
     if (cachedHtml) {
       recentLists.forEach((list) => {
         const items = list.querySelectorAll('.sidebar-recent-item');
@@ -401,39 +401,46 @@ export function initSidebarRecentPosts(): void {
   } catch {}
 
   // 2. Fresh Background Fetch & Cache Update
-  fetch('/feeds/posts/summary?alt=json&max-results=6', { headers: { Accept: 'application/json' } })
+  fetch('/feeds/posts/summary?alt=json&max-results=8', { headers: { Accept: 'application/json' } })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       const entries = data?.feed?.entry || [];
       if (entries.length === 0) return;
 
-      const items = entries.slice(0, 4);
-
-      const html = items
+      const validItems = entries
         .map((entry: any) => {
           const title = entry.title?.$t || 'Untitled';
-          const link = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
+          const link = entry.link?.find((l: any) => l.rel === 'alternate')?.href;
+          if (!link || link === '#' || link.includes('<>') || (!link.startsWith('/') && !link.startsWith('http'))) {
+            return null;
+          }
           const date = entry.published?.$t
             ? new Date(entry.published.$t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : '';
           const label = entry.category?.[0]?.term || '';
+          return { title, link, date, label };
+        })
+        .filter(Boolean)
+        .slice(0, 4);
 
-          return `
+      if (validItems.length === 0) return;
+
+      const html = validItems
+        .map((item: any) => `
           <article class="sidebar-recent-item">
-            <a class="sidebar-recent-link" href="${link}">
-              <span class="sidebar-recent-title">${escapeHtml(title)}</span>
+            <a class="sidebar-recent-link" href="${escapeHtml(item.link)}">
+              <span class="sidebar-recent-title">${escapeHtml(item.title)}</span>
               <div class="sidebar-recent-meta">
-                ${label ? `<span class="sidebar-recent-tag">${escapeHtml(label)}</span>` : ''}
-                ${date ? `<time class="sidebar-recent-date">${escapeHtml(date)}</time>` : ''}
+                ${item.label ? `<span class="sidebar-recent-tag">${escapeHtml(item.label)}</span>` : ''}
+                ${item.date ? `<time class="sidebar-recent-date">${escapeHtml(item.date)}</time>` : ''}
               </div>
             </a>
           </article>
-        `;
-        })
+        `)
         .join('');
 
       try {
-        localStorage.setItem('ledger_recent_posts_v1', html);
+        localStorage.setItem('ledger_recent_posts_v2', html);
       } catch {}
 
       recentLists.forEach((list) => {
@@ -442,7 +449,20 @@ export function initSidebarRecentPosts(): void {
         }
       });
     })
-    .catch(() => {});
+    .catch(() => {
+      // If feed fails and list is empty, show browse fallback
+      recentLists.forEach((list) => {
+        if (!list.querySelector('.sidebar-recent-item') && !list.querySelector('.sidebar-recent-fallback-btn')) {
+          list.innerHTML = `
+            <div class="sidebar-recent-fallback">
+              <a class="sidebar-recent-fallback-btn" href="/search">
+                <span>Browse all publications &rarr;</span>
+              </a>
+            </div>
+          `;
+        }
+      });
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -571,12 +591,31 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 /**
- * Initializes the delegated click listener for copy-link buttons.
+ * Initializes share interactions: native Web Share API when supported, and copy-link fallback.
  */
 export function initShareCopy(): void {
+  if (typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+    document.querySelectorAll<HTMLElement>('[data-action="native-share"]').forEach((btn) => {
+      btn.style.display = 'inline-flex';
+    });
+  }
+
   document.addEventListener('click', async (event: MouseEvent) => {
     const target = event.target as Element | null;
     if (!target) return;
+
+    const nativeShareBtn = target.closest<HTMLElement>('[data-action="native-share"]');
+    if (nativeShareBtn) {
+      event.preventDefault();
+      const url = getShareUrl(nativeShareBtn);
+      const title = document.querySelector('.post-title')?.textContent?.trim() || document.title;
+      try {
+        await (navigator as any).share({ title, url });
+      } catch {
+        // User cancelled or share aborted
+      }
+      return;
+    }
 
     const copyBtn = target.closest<HTMLElement>('[data-action="copy-link"]');
     if (!copyBtn) return;
@@ -745,8 +784,9 @@ export function initSyntaxHighlighting(): void {
 // ---------------------------------------------------------------------------
 
 export function initTableOfContents(): void {
-  const postBody = document.querySelector<HTMLElement>('.is-post .post-body');
+  const postBody = document.querySelector<HTMLElement>('.is-post .post-body, article.post .post-body, .post-body');
   if (!postBody) return;
+  if (postBody.querySelector('.table-of-contents') || document.querySelector('.table-of-contents')) return;
 
   const headings = Array.from(postBody.querySelectorAll<HTMLHeadingElement>('h2, h3'));
   if (headings.length < 2) return;
@@ -894,6 +934,104 @@ export function initTableOfContents(): void {
 
     headings.forEach((h) => observer.observe(h));
   }
+}
+
+// ---------------------------------------------------------------------------
+// Module 7b: Related Publications Hydration
+// ---------------------------------------------------------------------------
+
+export function initRelatedPosts(): void {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+
+  const container = document.getElementById('post-related-posts');
+  if (!container) return;
+
+  const label = container.getAttribute('data-label');
+  const currentUrl = container.getAttribute('data-current-url') || window.location.pathname;
+  if (!label) return;
+
+  const grid = document.getElementById('related-posts-grid');
+  if (!grid) return;
+
+  const feedUrl = `/feeds/posts/summary/-/${encodeURIComponent(label)}?alt=json&max-results=5`;
+
+  fetch(feedUrl)
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then((data) => {
+      const entries = data?.feed?.entry || [];
+      if (!Array.isArray(entries) || entries.length === 0) return;
+
+      const currentPath = currentUrl.replace(/^https?:\/\/[^/]+/, '').split('?')[0];
+
+      interface RelatedItem {
+        href: string;
+        title: string;
+        published: string;
+        thumb: string;
+      }
+
+      const related: RelatedItem[] = entries
+        .map((entry: any) => {
+          const links = entry.link || [];
+          const alternate = links.find((l: any) => l.rel === 'alternate');
+          const href = alternate ? alternate.href : '';
+          const title = entry.title?.$t || '';
+          const published = entry.published?.$t || '';
+          const thumb = entry.media$thumbnail?.url || '';
+          return { href, title, published, thumb };
+        })
+        .filter((item: RelatedItem) => {
+          if (!item.href || !item.title) return false;
+          const itemPath = item.href.replace(/^https?:\/\/[^/]+/, '').split('?')[0];
+          return itemPath !== currentPath;
+        })
+        .slice(0, 3);
+
+      if (related.length === 0) return;
+
+      grid.innerHTML = '';
+      related.forEach((post) => {
+        const card = document.createElement('a');
+        card.className = 'related-card';
+        card.href = post.href;
+
+        let thumbSrc = post.thumb;
+        if (thumbSrc) {
+          thumbSrc = thumbSrc.replace(/\/s\d+(-c)?\//, '/w640-h360-p-k-no-nu/');
+        }
+
+        const dateStr = post.published
+          ? new Date(post.published).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : '';
+
+        card.innerHTML = `
+          ${
+            thumbSrc
+              ? `<div class="related-card-thumb-wrap">
+                  <img class="related-card-thumb" src="${escapeHtml(thumbSrc)}" alt="" loading="lazy" width="320" height="180" />
+                </div>`
+              : ''
+          }
+          <div class="related-card-body">
+            ${dateStr ? `<span class="related-card-date">${escapeHtml(dateStr)}</span>` : ''}
+            <h4 class="related-card-title">${escapeHtml(post.title)}</h4>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      container.style.display = 'block';
+    })
+    .catch(() => {
+      // Graceful failure: container stays hidden
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -1396,11 +1534,15 @@ export function hydrateCardThumbnails(): void {
 function init(): void {
   initThemeToggle();
 
-  const isPost = typeof document !== 'undefined' && (document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post')));
+  const isPost = typeof document !== 'undefined' && (
+    document.body?.classList.contains('is-post') ||
+    Boolean(document.querySelector('article.post, .is-post, .post-body, .post-title'))
+  );
   if (isPost) {
     initPostHeroImage();
     initDateTimeLocalization();
     initCommentInteractions();
+    initTableOfContents();
   } else {
     hydrateCardThumbnails();
     initDateTimeLocalization();
@@ -1423,8 +1565,30 @@ function init(): void {
     });
   }
 
+  function initNavigationActive(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const loc = window.location;
+    if (!loc || typeof loc.pathname !== 'string') return;
+    const currentPath = loc.pathname.replace(/\/+$/, '') || '/';
+    const origin = loc.origin || 'https://blogs.redwan.work';
+    document.querySelectorAll<HTMLAnchorElement>('.nav-link, .drawer-nav-link').forEach((link) => {
+      try {
+        if (!link || !link.href) return;
+        const linkUrl = new URL(link.href, origin);
+        const linkPath = (linkUrl.pathname || '').replace(/\/+$/, '') || '/';
+        if (linkPath === currentPath && (currentPath !== '/' || link.href === loc.href)) {
+          link.setAttribute('aria-current', 'page');
+          link.classList.add('is-active');
+        }
+      } catch {
+        // ignore
+      }
+    });
+  }
+
   // Immediate phase: essential navigation, recent posts cache hydration, and click delegates
   scheduleTask(() => {
+    initNavigationActive();
     initSidebarRecentPosts();
     initAvatarFallbacks();
     initMobileDrawer();
@@ -1442,7 +1606,7 @@ function init(): void {
 
   // Tertiary phase: content-dependent enhancers
   scheduleTask(() => {
-    const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post'));
+    const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('article.post, .is-post, .post-body, .post-title'));
     if (isPost) {
       initReadingProgress();
       initCodeBlockEnhancements();
@@ -1453,6 +1617,7 @@ function init(): void {
       initArticleAudioReader();
       initMermaidDiagrams();
       enrichArticleImagesAlt();
+      initRelatedPosts();
     } else {
       initHomepageCatalog();
     }
@@ -1484,6 +1649,8 @@ export function initHomepageCatalog(): void {
   const yearSelect = document.getElementById('catalog-year') as HTMLSelectElement | null;
   const monthSelect = document.getElementById('catalog-month') as HTMLSelectElement | null;
   const categorySelect = document.getElementById('catalog-category') as HTMLSelectElement | null;
+  const clearBtn = document.getElementById('filter-clear-btn') as HTMLButtonElement | null;
+  const summaryEl = document.getElementById('filter-results-summary');
   const postsContainer = document.querySelector<HTMLElement>('.blog-posts, #page_body .blog-posts, .main-content .blog-posts');
 
   if (!postsContainer) return;
@@ -1496,7 +1663,120 @@ export function initHomepageCatalog(): void {
   let isLoaded = false;
   let isLoading = false;
 
-  function loadFeedAndFilter(onSuccess?: () => void): void {
+  function parseEntries(entries: any[]): CatalogPost[] {
+    return entries.map((entry: any) => {
+      const id = entry.id?.$t || '';
+      const title = entry.title?.$t || 'Untitled';
+      const url = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
+      const published = entry.published?.$t || '';
+      const dateObj = published ? new Date(published) : new Date();
+      const year = String(dateObj.getFullYear());
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
+
+      let contentHtml = entry.content?.$t || entry.summary?.$t || '';
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = contentHtml;
+      tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, pre, code, style, script, .table-of-contents, .heading-anchor').forEach((el) => el.remove());
+      const rawExcerpt = (tempDiv.textContent || '').replace(/^#+.*?[#\n]/, '').replace(/\s+/g, ' ').trim();
+      const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
+
+      let thumbnail = entry.media$thumbnail?.url;
+      if (!thumbnail) {
+        const img = tempDiv.querySelector('img');
+        if (img && img.src && !img.src.startsWith('data:')) {
+          thumbnail = img.src;
+        }
+      }
+
+      if (!thumbnail || thumbnail.startsWith('data:')) {
+        thumbnail = getPostThumbnailUrl(url, title);
+      }
+
+      if (thumbnail) {
+        // Upgrade Blogger low-res thumbnail to crisp WebP
+        thumbnail = thumbnail.replace(/\/s72-c\//, '/w384-rw/').replace(/=s72-c/, '=w384-rw');
+      }
+
+      return {
+        id,
+        title,
+        url,
+        published,
+        dateStr,
+        year,
+        month,
+        categories,
+        excerpt,
+        thumbnail
+      };
+    });
+  }
+
+  function updateDropdowns(): void {
+    if (yearSelect) {
+      const currentVal = yearSelect.value;
+      const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
+      yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
+      if (years.includes(currentVal)) yearSelect.value = currentVal;
+    }
+
+    if (monthSelect) {
+      const currentVal = monthSelect.value;
+      const MONTHS = [
+        { val: '01', name: 'January' },
+        { val: '02', name: 'February' },
+        { val: '03', name: 'March' },
+        { val: '04', name: 'April' },
+        { val: '05', name: 'May' },
+        { val: '06', name: 'June' },
+        { val: '07', name: 'July' },
+        { val: '08', name: 'August' },
+        { val: '09', name: 'September' },
+        { val: '10', name: 'October' },
+        { val: '11', name: 'November' },
+        { val: '12', name: 'December' }
+      ];
+      monthSelect.innerHTML = '<option value="all">All months</option>' +
+        MONTHS.map((m) => `<option value="${m.val}">${m.name}</option>`).join('');
+      if (currentVal !== 'all') monthSelect.value = currentVal;
+    }
+
+    if (categorySelect) {
+      const currentVal = categorySelect.value;
+      const allCats = Array.from(new Set(allPosts.flatMap((p) => p.categories))).sort();
+      categorySelect.innerHTML = '<option value="all">All categories</option>' + allCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      if (allCats.includes(currentVal)) categorySelect.value = currentVal;
+    }
+  }
+
+  function updateSummary(): void {
+    const query = (searchInput?.value || '').trim();
+    const isFiltered = query.length > 0 || (yearSelect && yearSelect.value !== 'all') || (monthSelect && monthSelect.value !== 'all') || (categorySelect && categorySelect.value !== 'all');
+
+    if (clearBtn) {
+      clearBtn.style.display = isFiltered ? 'inline-flex' : 'none';
+    }
+
+    if (!summaryEl) return;
+    if (allPosts.length === 0) {
+      summaryEl.textContent = '';
+      return;
+    }
+
+    if (isFiltered) {
+      if (filteredPosts.length === 0) {
+        summaryEl.textContent = 'No matching publications found';
+      } else {
+        summaryEl.textContent = `Showing ${filteredPosts.length} of ${allPosts.length} publications`;
+      }
+    } else {
+      summaryEl.textContent = `Showing ${allPosts.length} publications`;
+    }
+  }
+
+  async function loadFeedAndFilter(onSuccess?: () => void): Promise<void> {
     if (isLoaded) {
       if (onSuccess) onSuccess();
       return;
@@ -1504,103 +1784,65 @@ export function initHomepageCatalog(): void {
     if (isLoading) return;
     isLoading = true;
 
-    fetch('/feeds/posts/default?alt=json&max-results=50', { headers: { Accept: 'application/json' } })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        isLoaded = true;
-        isLoading = false;
-        const entries = data?.feed?.entry || [];
-        if (entries.length === 0) return;
+    try {
+      const batchSize = 50;
+      let startIndex = 1;
+      let totalResults = 0;
+      const postMap = new Map<string, CatalogPost>();
 
-        allPosts = entries.map((entry: any) => {
-          const id = entry.id?.$t || '';
-          const title = entry.title?.$t || 'Untitled';
-          const url = entry.link?.find((l: any) => l.rel === 'alternate')?.href || '#';
-          const published = entry.published?.$t || '';
-          const dateObj = published ? new Date(published) : new Date();
-          const year = String(dateObj.getFullYear());
-          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          const categories = (entry.category || []).map((c: any) => c.term).filter(Boolean);
-
-          let contentHtml = entry.content?.$t || entry.summary?.$t || '';
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = contentHtml;
-          tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, pre, code, style, script, .table-of-contents, .heading-anchor').forEach((el) => el.remove());
-          const rawExcerpt = (tempDiv.textContent || '').replace(/^#+.*?[#\n]/, '').replace(/\s+/g, ' ').trim();
-          const excerpt = rawExcerpt.length > 180 ? rawExcerpt.slice(0, 177) + '...' : rawExcerpt;
-
-          let thumbnail = entry.media$thumbnail?.url;
-          if (!thumbnail) {
-            const img = tempDiv.querySelector('img');
-            if (img && img.src && !img.src.startsWith('data:')) {
-              thumbnail = img.src;
-            }
-          }
-
-          if (!thumbnail || thumbnail.startsWith('data:')) {
-            thumbnail = getPostThumbnailUrl(url, title);
-          }
-
-          if (thumbnail) {
-            // Upgrade Blogger low-res thumbnail to crisp WebP
-            thumbnail = thumbnail.replace(/\/s72-c\//, '/w384-rw/').replace(/=s72-c/, '=w384-rw');
-          }
-
-          return {
-            id,
-            title,
-            url,
-            published,
-            dateStr,
-            year,
-            month,
-            categories,
-            excerpt,
-            thumbnail
-          };
-        });
-
-        filteredPosts = allPosts;
-
-        if (yearSelect) {
-          const years = Array.from(new Set(allPosts.map((p) => p.year))).sort((a, b) => Number(b) - Number(a));
-          yearSelect.innerHTML = '<option value="all">All years</option>' + years.map((y) => `<option value="${y}">${y}</option>`).join('');
-        }
-
-        if (monthSelect) {
-          const MONTHS = [
-            { val: '01', name: 'January' },
-            { val: '02', name: 'February' },
-            { val: '03', name: 'March' },
-            { val: '04', name: 'April' },
-            { val: '05', name: 'May' },
-            { val: '06', name: 'June' },
-            { val: '07', name: 'July' },
-            { val: '08', name: 'August' },
-            { val: '09', name: 'September' },
-            { val: '10', name: 'October' },
-            { val: '11', name: 'November' },
-            { val: '12', name: 'December' }
-          ];
-          monthSelect.innerHTML = '<option value="all">All months</option>' +
-            MONTHS.map((m) => `<option value="${m.val}">${m.name}</option>`).join('');
-        }
-
-        if (categorySelect) {
-          const allCats = Array.from(new Set(allPosts.flatMap((p) => p.categories))).sort();
-          categorySelect.innerHTML = '<option value="all">All categories</option>' + allCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-        }
-
-        if (onSuccess) {
-          onSuccess();
-        } else if (allPosts.length > 0) {
-          renderPagination(Math.ceil(allPosts.length / getPageSize()));
-        }
-      })
-      .catch(() => {
-        isLoading = false;
+      // Fetch first batch
+      const res = await fetch(`/feeds/posts/default?alt=json&start-index=${startIndex}&max-results=${batchSize}`, {
+        headers: { Accept: 'application/json' }
       });
+      if (!res.ok) throw new Error('Feed fetch failed');
+      const data = await res.json();
+      totalResults = Number(data?.feed?.openSearch$totalResults?.$t) || 0;
+      const firstEntries = data?.feed?.entry || [];
+      parseEntries(firstEntries).forEach((p) => {
+        if (p.url && !postMap.has(p.url)) postMap.set(p.url, p);
+      });
+
+      allPosts = Array.from(postMap.values());
+      filteredPosts = allPosts;
+      isLoaded = true;
+      updateDropdowns();
+
+      if (onSuccess) {
+        onSuccess();
+      } else if (allPosts.length > 0) {
+        renderPagination(Math.ceil(allPosts.length / getPageSize()));
+        updateSummary();
+      }
+
+      // If blog has >50 posts, progressively fetch all remaining pages in the background
+      if (totalResults > batchSize) {
+        let nextIndex = startIndex + batchSize;
+        while (nextIndex <= totalResults && nextIndex <= 500) {
+          try {
+            const nextRes = await fetch(`/feeds/posts/default?alt=json&start-index=${nextIndex}&max-results=${batchSize}`, {
+              headers: { Accept: 'application/json' }
+            });
+            if (!nextRes.ok) break;
+            const nextData = await nextRes.json();
+            const nextEntries = nextData?.feed?.entry || [];
+            if (nextEntries.length === 0) break;
+            parseEntries(nextEntries).forEach((p) => {
+              if (p.url && !postMap.has(p.url)) postMap.set(p.url, p);
+            });
+            allPosts = Array.from(postMap.values());
+            updateDropdowns();
+            applyFilter();
+            nextIndex += batchSize;
+          } catch {
+            break;
+          }
+        }
+      }
+    } catch {
+      // Graceful fallback
+    } finally {
+      isLoading = false;
+    }
   }
 
   function applyFilter(): void {
@@ -1624,6 +1866,7 @@ export function initHomepageCatalog(): void {
 
     currentPage = 1;
     renderPage();
+    updateSummary();
   }
 
   function renderPage(): void {
@@ -1721,7 +1964,7 @@ export function initHomepageCatalog(): void {
         }
       }
       const isActive = i === currentPage;
-      html += `<button class="page-num-btn${isActive ? ' is-active' : ''}" type="button" data-page="${i}" aria-label="Page ${i}">${i}</button>`;
+      html += `<button class="page-num-btn${isActive ? ' is-active' : ''}" type="button" data-page="${i}" aria-label="Page ${i}"${isActive ? ' aria-current="page"' : ''}>${i}</button>`;
     }
     html += '</div>';
 
@@ -1761,6 +2004,15 @@ export function initHomepageCatalog(): void {
   function scrollToTop(): void {
     filterBar?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  clearBtn?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    if (yearSelect) yearSelect.value = 'all';
+    if (monthSelect) monthSelect.value = 'all';
+    if (categorySelect) categorySelect.value = 'all';
+    if (clearBtn) clearBtn.style.display = 'none';
+    applyFilter();
+  });
 
   let debounceTimer: any;
   searchInput?.addEventListener('focus', () => loadFeedAndFilter());
@@ -2289,8 +2541,9 @@ export function initPostHeroImage(): void {
   heroImg.setAttribute('loading', 'eager');
   heroImg.setAttribute('fetchpriority', 'high');
 
-  if (!heroImg.getAttribute('alt')) {
-    const postTitle = document.querySelector('.post-title')?.textContent?.trim();
+  const rawAlt = (heroImg.getAttribute('alt') || '').trim();
+  if (!rawAlt || rawAlt === 'Article Hero') {
+    const postTitle = document.querySelector('.post-title')?.textContent?.trim() || (document.title.split('—')[0] || '').trim();
     if (postTitle) heroImg.alt = postTitle;
   }
 

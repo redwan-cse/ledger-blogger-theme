@@ -215,5 +215,62 @@ describe('Milestone M5: SEO & Accessibility Verification Suite', () => {
       expect(attribution, 'Footer must declare the Attribution widget').not.toBeNull();
       expect(attribution![0]).toContain('version="2"');
     });
+
+    it('declares Privacy Policy link in footer navigation (R-SEO-1 AC4)', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toContain('expr:href="data:blog.homepageUrl path &quot;p/privacy.html&quot;">Privacy Policy</a>');
+    });
+
+    it('declares filterBar with comprehensive search placeholder and reset button', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toContain('placeholder="Search by title, topic, category, technique, CVE, or keyword"');
+      expect(xml).toContain('id="filter-clear-btn"');
+      expect(xml).toContain('id="filter-results-summary"');
+    });
+
+    it('declares accessible pagination with aria-current="page"', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toMatch(/<span [^>]*class="page-num-btn is-active"[^>]*aria-current="page"/);
+    });
+
+    it('declares lastUpdated post modification date and removes role="toolbar" from share bar', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toContain('itemprop="dateModified"');
+      expect(xml).toMatch(/class="post-share-bar share-bar"\s+aria-label="Share this article"/);
+      expect(xml).not.toMatch(/class="post-share-bar share-bar"\s+role="toolbar"/);
+    });
+
+    it('demotes hero headline to h2 on homepage for clean single-h1 hierarchy', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toContain('<h2 class="hero-title">Security engineering notes, research &amp; field observations.</h2>');
+      expect(xml).not.toContain('<div class="hero-title">');
+    });
+
+    it('declares semantic article breadcrumbs with native Blogger URL bindings', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toContain('<nav class="breadcrumb-nav" aria-label="Breadcrumbs">');
+      expect(xml).toContain('expr:href="data:blog.homepageUrl">Home</a>');
+      expect(xml).toContain('expr:href="data:post.labels.first.url"');
+      expect(xml).toContain('class="breadcrumb-item is-current" aria-current="page"');
+    });
+
+    it('declares related posts container with label and current URL data bindings', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toContain('id="post-related-posts"');
+      expect(xml).toContain('expr:data-label="data:post.labels.first.name"');
+      expect(xml).toContain('expr:data-current-url="data:post.url"');
+      expect(xml).toContain('style="display: none;"');
+    });
+
+    it('renders above-the-fold header avatar eagerly with high fetchpriority', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toMatch(/<img [^>]*class="header-avatar"[^>]*loading="eager"[^>]*fetchpriority="high"/);
+    });
+
+    it('declares hero reader CTA pointing to #posts-filter-bar and footer back-to-top to #top', async () => {
+      const { xml } = await generateTheme({ sha: SHA, write: false });
+      expect(xml).toContain('class="hero-btn hero-btn-explore" href="#posts-filter-bar"');
+      expect(xml).toContain('class="footer-back-to-top" href="#top"');
+    });
   });
 });
