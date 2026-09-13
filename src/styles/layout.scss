@@ -652,32 +652,6 @@ html[data-theme='dark'] .theme-icon-moon {
       font-size: 0.75rem;
       white-space: nowrap;
     }
-
-    .sidebar-recent-fallback {
-      padding: $space-2 0;
-      text-align: center;
-    }
-
-    .sidebar-recent-fallback-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 8px 12px;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: $accent;
-      background: $accent-wash;
-      border: 1px solid oklch(54.615% 0.2152 262.881 / 0.25);
-      border-radius: 6px;
-      text-decoration: none;
-      transition: all 0.15s ease;
-
-      &:hover {
-        background: oklch(54.615% 0.2152 262.881 / 0.15);
-        border-color: $accent;
-      }
-    }
   }
 
   .drawer-social-section {
@@ -1148,8 +1122,7 @@ html[data-theme='dark'] .theme-icon-moon {
       }
     }
 
-    &.hero-btn-tertiary,
-    &.hero-btn-explore {
+    &.hero-btn-tertiary {
       background: $surface;
       color: $ink;
       border: 1px solid $rule;

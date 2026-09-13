@@ -10,9 +10,9 @@ b:includable(id='postPagination')
       div.numbered-pages#numbered-pages
         b:if(cond='data:newerPageUrl')
           a.page-num-btn(expr:href='data:newerPageUrl' aria-label='Page 1' rel='nofollow') 1
-          span.page-num-btn.is-active(aria-current='page') 2
+          span.page-num-btn.is-active 2
         b:if(cond='not data:newerPageUrl')
-          span.page-num-btn.is-active(aria-current='page') 1
+          span.page-num-btn.is-active 1
           b:if(cond='data:olderPageUrl')
             a.page-num-btn(expr:href='data:olderPageUrl' aria-label='Page 2' rel='nofollow') 2
       b:if(cond='data:olderPageUrl')
