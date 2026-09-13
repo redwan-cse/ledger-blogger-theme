@@ -1725,36 +1725,40 @@ export function initHomepageCatalog(): void {
       postsContainer!.parentNode?.insertBefore(paginationEl, postsContainer!.nextSibling);
     }
 
+    if (totalPages <= 1) {
+      paginationEl.style.display = 'none';
+      return;
+    }
+
     paginationEl.style.display = 'flex';
 
     let html = '';
 
     const prevDisabled = currentPage === 1;
-    html += `<button class="page-nav-btn prev-btn" type="button"${prevDisabled ? ' disabled="disabled"' : ''}>Previous</button>`;
+    html += `<button class="page-nav-btn prev-btn" type="button"${prevDisabled ? ' disabled="disabled"' : ''} aria-label="Previous page">Previous</button>`;
 
     html += '<div class="numbered-pages">';
-    for (let i = 1; i <= totalPages; i++) {
-      if (totalPages > 8) {
-        if (i > 1 && i < currentPage - 2) {
-          if (i === 2) html += '<span class="page-num-btn page-ellipsis">…</span>';
-          continue;
-        }
-        if (i < totalPages && i > currentPage + 2) {
-          if (i === totalPages - 1) html += '<span class="page-num-btn page-ellipsis">…</span>';
-          continue;
-        }
-      }
+    const maxVisiblePages = 3;
+    let startPage = Math.max(1, currentPage - 1);
+    let endPage = startPage + maxVisiblePages - 1;
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
       const isActive = i === currentPage;
-      html += `<button class="page-num-btn${isActive ? ' is-active' : ''}" type="button" data-page="${i}" aria-label="Page ${i}">${i}</button>`;
+      html += `<button class="page-num-btn${isActive ? ' is-active' : ''}" type="button" data-page="${i}" aria-label="Page ${i}"${isActive ? ' aria-current="page"' : ''}>${i}</button>`;
     }
     html += '</div>';
 
     const nextDisabled = currentPage === totalPages;
-    html += `<button class="page-nav-btn next-btn" type="button"${nextDisabled ? ' disabled="disabled"' : ''}>Next</button>`;
+    html += `<button class="page-nav-btn next-btn" type="button"${nextDisabled ? ' disabled="disabled"' : ''} aria-label="Next page">Next</button>`;
 
     paginationEl.innerHTML = html;
 
-    paginationEl.querySelector('.prev-btn')?.addEventListener('click', () => {
+    paginationEl.querySelector('.prev-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       if (currentPage > 1) {
         currentPage--;
         scrollToTop();
@@ -1762,7 +1766,8 @@ export function initHomepageCatalog(): void {
       }
     });
 
-    paginationEl.querySelector('.next-btn')?.addEventListener('click', () => {
+    paginationEl.querySelector('.next-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
       if (currentPage < totalPages) {
         currentPage++;
         scrollToTop();
@@ -1771,7 +1776,8 @@ export function initHomepageCatalog(): void {
     });
 
     paginationEl.querySelectorAll<HTMLButtonElement>('.page-num-btn[data-page]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
         const page = Number(btn.getAttribute('data-page'));
         if (page && page !== currentPage) {
           currentPage = page;
@@ -1783,7 +1789,10 @@ export function initHomepageCatalog(): void {
   }
 
   function scrollToTop(): void {
-    filterBar?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const target = filterBar || postsContainer;
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   let debounceTimer: any;
