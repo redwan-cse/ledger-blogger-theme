@@ -55,14 +55,14 @@ b:includable(id='postHeader' var='post')
         span.post-meta-sep ·
         time.post-date(expr:datetime='data:post.date.iso8601' itemprop='datePublished')
           b:eval(expr='data:post.date')/
-      b:if(cond='data:view.isSingleItem')
+      b:if(cond='data:view.isPost')
         span.post-meta-sep.reading-time-sep(style='display:none;') ·
         span.post-reading-time#reading-time-mount(style='display:none;')
           svg.reading-time-icon(viewBox='0 0 24 24' width='13' height='13' aria-hidden='true')
             circle(cx='12' cy='13' r='8' fill='none' stroke='currentColor' stroke-width='2')
             path(d='M12 9v4l2.5 2.5M10 2h4M12 2v3' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round')
           span.reading-time-text
-    b:if(cond='data:view.isSingleItem')
+    b:if(cond='data:view.isPost')
       div.post-listen-bar
         button.listen-btn(type='button' data-action='listen-article' aria-label='Listen to this article')
           svg.listen-icon-play(viewBox='0 0 24 24' width='12' height='12' aria-hidden='true')

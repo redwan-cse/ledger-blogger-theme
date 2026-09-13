@@ -59,7 +59,7 @@ b:section(class='main' id='page_body' name='Page Body' showaddelement='false')
       b:include(name='status-message')/
     b:includable(id='postCommentsAndAd' var='post')
       b:include(data='post' name='post')/
-      b:if(cond='data:view.isSingleItem')
+      b:if(cond='data:view.isPost')
         b:include(data='post' name='commentPicker')/
     include blog-post.pug
     include blog-comments.pug

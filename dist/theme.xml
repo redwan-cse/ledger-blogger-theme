@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+521d9b00f6cbb424bf80bd815f02ae4beadce4a0" name="theme-build"/>
+    <meta content="0.0.0+2c5475b67fa4658582bc1c020664c118b3cb3977" name="theme-build"/>
     <meta name="color-scheme" content="dark light"/>
     <link rel="alternate" type="application/rss+xml" expr:title="data:blog.title.escaped" expr:href="data:blog.canonicalHomepageUrl path &quot;feeds/posts/default&quot;"/>
     <link rel="me" href="https://redwan.work"/>
@@ -856,7 +856,7 @@
           </b:includable>
           <b:includable id="postCommentsAndAd" var="post">
             <b:include data="post" name="post"/>
-            <b:if cond="data:view.isSingleItem">
+            <b:if cond="data:view.isPost">
               <b:include data="post" name="commentPicker"/>
             </b:if>
           </b:includable>
@@ -922,13 +922,13 @@
                     <b:eval expr="data:post.date"/>
                   </time>
                 </b:if>
-                <b:if cond="data:view.isSingleItem"><span class="post-meta-sep reading-time-sep" style="display:none;">·</span><span class="post-reading-time" id="reading-time-mount" style="display:none;">
+                <b:if cond="data:view.isPost"><span class="post-meta-sep reading-time-sep" style="display:none;">·</span><span class="post-reading-time" id="reading-time-mount" style="display:none;">
                     <svg class="reading-time-icon" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
                       <circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2"></circle>
                       <path d="M12 9v4l2.5 2.5M10 2h4M12 2v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
                     </svg><span class="reading-time-text"></span></span></b:if>
               </div>
-              <b:if cond="data:view.isSingleItem">
+              <b:if cond="data:view.isPost">
                 <div class="post-listen-bar">
                   <button class="listen-btn" type="button" data-action="listen-article" aria-label="Listen to this article">
                     <svg class="listen-icon-play" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
@@ -1406,7 +1406,6 @@
                 <div class="footer-col footer-col-nav">
                   <h3 class="footer-heading">Publications &amp; Policies</h3>
                   <ul class="footer-links-list">
-                    <li><a href="https://fastcyberdefense.com/" target="_blank" rel="noopener noreferrer">Fast Cyber Defense</a></li>
                     <li><a expr:href="data:blog.homepageUrl path &quot;search&quot;">All Publications</a></li>
                     <li><a expr:href="data:blog.homepageUrl path &quot;p/privacy.html&quot;">Privacy Policy</a></li>
                     <li><a expr:href="data:blog.homepageUrl path &quot;p/terms.html&quot;">Terms of Service</a></li>
