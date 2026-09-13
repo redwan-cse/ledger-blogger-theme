@@ -1959,6 +1959,35 @@ export function cleanMermaidSyntax(rawCode: string): string {
   // Heal duplicate diagram headers (e.g. sequenceDiagram prepended erroneously to flowchart, graph, etc.)
   code = healDuplicateSequenceHeader(code);
 
+  // Heal unquoted subgraph titles containing special characters or parentheses:
+  // e.g. subgraph TelemetrySubsystem [Appliance Operating System (Root)] -> ["Appliance Operating System (Root)"]
+  code = code.replace(
+    /^(\s*subgraph\s+[\w\-]+\s*\[)([^"\n\r\]]+)(\])/gm,
+    (_m, prefix, label, suffix) => `${prefix}"${label.trim()}"${suffix}`
+  );
+  // e.g. subgraph Appliance Operating System (Root) -> subgraph "Appliance Operating System (Root)"
+  code = code.replace(
+    /^(\s*subgraph\s+)([^"\[\n\r]*[\(\)\{\}][^"\n\r]*)$/gm,
+    (_m, prefix, title) => `${prefix}"${title.trim()}"`
+  );
+
+  // Heal unquoted flowchart node shapes containing parentheses, brackets, or nested tokens:
+  // e.g. NodeId[Text (with parens)] -> NodeId["Text (with parens)"]
+  code = code.replace(
+    /\b([\w\-]+)\s*\[([^"\[\]\n\r]*[\(\)][^"\[\]\n\r]*)\]/g,
+    (_m, id, label) => `${id}["${label.trim()}"]`
+  );
+  // e.g. NodeId{Decision (with parens)} -> NodeId{"Decision (with parens)"}
+  code = code.replace(
+    /\b([\w\-]+)\s*\{([^"\{\}\n\r]*[\(\)][^"\{\}\n\r]*)\}/g,
+    (_m, id, label) => `${id}{"${label.trim()}"}`
+  );
+  // e.g. NodeId(Process [with brackets]) -> NodeId("Process [with brackets]")
+  code = code.replace(
+    /\b([\w\-]+)\s*\(([^"\(\)\n\r]*[\[\]][^"\(\)\n\r]*)\)/g,
+    (_m, id, label) => `${id}("${label.trim()}")`
+  );
+
   // In sequence diagrams, replace literal semicolons in notes and message labels with Mermaid's escape code #59;
   // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
   const isSequence = getFirstDiagramHeader(code) === 'sequencediagram';

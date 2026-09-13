@@ -151,5 +151,34 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(compiled).not.toContain('sequenceDiagram');
       expect(compiled).toContain('flowchart TD');
     });
+
+    it('heals unquoted subgraph titles and node labels containing parentheses/special characters', () => {
+      const input = `flowchart TD
+    subgraph IngressPerimeter [External Untrusted Boundary]
+        WANClient[Remote Client (Port 443 / WAN)]
+        EdgeWAF{Edge WAF (Cloudflare Gate)}
+        DropBadCookie["Deny: Path Traversal / Shell Metacharacters Detected"]
+    end
+
+    subgraph TelemetrySubsystem [Appliance Operating System (Root)]
+        TelemetryWorker["Telemetry Daemon: Disabled via Policy"]
+    end
+
+    subgraph Appliance Operating System (Root)
+        A --> B
+    end
+
+    WANClient --> EdgeWAF`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('subgraph IngressPerimeter ["External Untrusted Boundary"]');
+      expect(cleaned).toContain('subgraph TelemetrySubsystem ["Appliance Operating System (Root)"]');
+      expect(cleaned).toContain('subgraph "Appliance Operating System (Root)"');
+      expect(cleaned).toContain('WANClient["Remote Client (Port 443 / WAN)"]');
+      expect(cleaned).toContain('EdgeWAF{"Edge WAF (Cloudflare Gate)"}');
+      // Pre-quoted labels should remain single-quoted
+      expect(cleaned).toContain('DropBadCookie["Deny: Path Traversal / Shell Metacharacters Detected"]');
+      expect(cleaned).not.toContain('DropBadCookie[""');
+    });
   });
 });

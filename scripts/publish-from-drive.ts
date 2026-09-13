@@ -346,6 +346,35 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string): 
         (_m, prefix, label) => `${prefix}"${label.trim()}"`
       );
 
+      // Heal unquoted subgraph titles containing special characters or parentheses:
+      // e.g. subgraph TelemetrySubsystem [Appliance Operating System (Root)] -> ["Appliance Operating System (Root)"]
+      mermaidCode = mermaidCode.replace(
+        /^(\s*subgraph\s+[\w\-]+\s*\[)([^"\n\r\]]+)(\])/gm,
+        (_m, prefix, label, suffix) => `${prefix}"${label.trim()}"${suffix}`
+      );
+      // e.g. subgraph Appliance Operating System (Root) -> subgraph "Appliance Operating System (Root)"
+      mermaidCode = mermaidCode.replace(
+        /^(\s*subgraph\s+)([^"\[\n\r]*[\(\)\{\}][^"\n\r]*)$/gm,
+        (_m, prefix, title) => `${prefix}"${title.trim()}"`
+      );
+
+      // Heal unquoted flowchart node shapes containing parentheses, brackets, or nested tokens:
+      // e.g. NodeId[Text (with parens)] -> NodeId["Text (with parens)"]
+      mermaidCode = mermaidCode.replace(
+        /\b([\w\-]+)\s*\[([^"\[\]\n\r]*[\(\)][^"\[\]\n\r]*)\]/g,
+        (_m, id, label) => `${id}["${label.trim()}"]`
+      );
+      // e.g. NodeId{Decision (with parens)} -> NodeId{"Decision (with parens)"}
+      mermaidCode = mermaidCode.replace(
+        /\b([\w\-]+)\s*\{([^"\{\}\n\r]*[\(\)][^"\{\}\n\r]*)\}/g,
+        (_m, id, label) => `${id}{"${label.trim()}"}`
+      );
+      // e.g. NodeId(Process [with brackets]) -> NodeId("Process [with brackets]")
+      mermaidCode = mermaidCode.replace(
+        /\b([\w\-]+)\s*\(([^"\(\)\n\r]*[\[\]][^"\(\)\n\r]*)\)/g,
+        (_m, id, label) => `${id}("${label.trim()}")`
+      );
+
       // Check if code already declares a valid diagram header
       const hasDiagramHeader = Boolean(getFirstDiagramHeader(mermaidCode));
 
