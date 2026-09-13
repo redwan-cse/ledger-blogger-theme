@@ -47,7 +47,7 @@ try {
             '--quiet',
             '--output=json',
             `--output-path=${output}`,
-            '--only-categories=performance,accessibility',
+            '--only-categories=performance,accessibility,best-practices,seo',
             '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
           ], { stdio: 'inherit' });
           break;
@@ -65,6 +65,8 @@ try {
       const report = JSON.parse(await readFile(output, 'utf8'));
       const performance = report.categories.performance.score;
       const accessibility = report.categories.accessibility.score;
+      const bestPractices = report.categories['best-practices']?.score ?? 1;
+      const seo = report.categories.seo?.score ?? 1;
       const cls = report.audits['cumulative-layout-shift']?.numericValue ?? 0;
       const lcp = report.audits['largest-contentful-paint']?.numericValue ?? 0;
       const fcp = report.audits['first-contentful-paint']?.numericValue ?? 0;
@@ -72,9 +74,9 @@ try {
       const tbt = report.audits['total-blocking-time']?.numericValue ?? 0;
       const ttfb = report.audits['server-response-time']?.numericValue ?? 0;
 
-      console.log(`METRICS ${name} (mobile, run ${run}): perf=${performance.toFixed(2)}, a11y=${accessibility.toFixed(2)}, LCP=${lcp.toFixed(1)}ms, FCP=${fcp.toFixed(1)}ms, SI=${si.toFixed(1)}ms, TBT=${tbt.toFixed(1)}ms, CLS=${cls.toFixed(3)}, TTFB=${ttfb.toFixed(1)}ms`);
+      console.log(`METRICS ${name} (mobile, run ${run}): perf=${performance.toFixed(2)}, a11y=${accessibility.toFixed(2)}, bp=${bestPractices.toFixed(2)}, seo=${seo.toFixed(2)}, LCP=${lcp.toFixed(1)}ms, FCP=${fcp.toFixed(1)}ms, SI=${si.toFixed(1)}ms, TBT=${tbt.toFixed(1)}ms, CLS=${cls.toFixed(3)}, TTFB=${ttfb.toFixed(1)}ms`);
 
-      if (performance >= 0.9 && accessibility >= 0.95 && cls <= 0.05 && lcp <= 2600) {
+      if (performance >= 0.9 && accessibility >= 0.95 && bestPractices >= 0.9 && seo >= 0.9 && cls <= 0.05 && lcp <= 2600) {
         passed = true;
         console.log(`PASS ${name} (mobile): meets all budgets.`);
         break;
@@ -83,6 +85,8 @@ try {
       const failures = [
         performance < 0.9 ? `performance ${performance} < 0.90` : '',
         accessibility < 0.95 ? `accessibility ${accessibility} < 0.95` : '',
+        bestPractices < 0.9 ? `best-practices ${bestPractices} < 0.90` : '',
+        seo < 0.9 ? `SEO ${seo} < 0.90` : '',
         cls > 0.05 ? `CLS ${cls} > 0.05` : '',
         lcp > 2600 ? `LCP ${lcp.toFixed(1)}ms > 2600ms` : ''
       ].filter(Boolean).join(', ');
