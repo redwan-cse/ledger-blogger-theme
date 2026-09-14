@@ -92,6 +92,13 @@
   line-height: $line-height-body;
   max-width: $measure;
 
+  .lead {
+    font-size: 1.125rem;
+    line-height: 1.75;
+    font-weight: 450;
+    margin-bottom: $space-5;
+  }
+
   h1 {
     font-family: $font-sans;
     font-size: $font-size-h1;
@@ -568,6 +575,19 @@
     max-width: 100%;
     height: auto;
     margin: $space-5 0;
+  }
+}
+
+// Static pages (Privacy Policy, Terms of Service) match modern sans-serif typography
+.is-page .post-body {
+  font-family: $font-sans;
+
+  p,
+  ul,
+  ol,
+  li,
+  blockquote {
+    font-family: $font-sans;
   }
 }
 

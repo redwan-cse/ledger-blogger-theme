@@ -105,6 +105,21 @@ html[data-theme='dark'] {
     box-shadow: none;
   }
 
+  .post-body blockquote,
+  blockquote {
+    background-color: oklch(22.749% 0.0288 266.273) !important;
+    border-left-color: oklch(62.308% 0.1880 259.815) !important;
+    color: oklch(98.415% 0.0034 247.858) !important;
+
+    strong {
+      color: oklch(98.415% 0.0034 247.858) !important;
+    }
+  }
+
+  .lead {
+    color: oklch(98.415% 0.0034 247.858) !important;
+  }
+
   .post-thumbnail-link {
     background-color: oklch(18% 0.025 260) !important;
   }
