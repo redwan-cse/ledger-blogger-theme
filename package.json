@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
-    "@playwright/test": "^1.54.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.0.0",
     "esbuild": "^0.25.0",
     "fast-check": "^4.9.0",
