@@ -578,19 +578,6 @@
   }
 }
 
-// Static pages (Privacy Policy, Terms of Service) match modern sans-serif typography
-.is-page .post-body {
-  font-family: $font-sans;
-
-  p,
-  ul,
-  ol,
-  li,
-  blockquote {
-    font-family: $font-sans;
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Table of Contents (TOC) Component
 // ---------------------------------------------------------------------------
