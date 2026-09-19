@@ -2314,13 +2314,19 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       const cleanCode = cleanMermaidSyntax(code);
       wrap.dataset['mermaidCode'] = cleanCode;
 
-      // Cleanly replace wrap children with a single fresh <pre class="mermaid">
-      // Setting textContent ensures raw characters (>, <, &, ") are NEVER re-escaped into HTML entities!
+      // Cleanly prepare wrap structure with an inner scrolling stage:
+      // Outer wrap is the viewport with pinned toolbar.
+      // Inner stage handles the 2D pan and overflow.
       const pre = document.createElement('pre');
       pre.className = 'mermaid';
       pre.id = `mermaid-wrap-${index}`;
       pre.textContent = cleanCode;
-      wrap.replaceChildren(pre);
+
+      const stage = document.createElement('div');
+      stage.className = 'mermaid-stage';
+      stage.appendChild(pre);
+
+      wrap.replaceChildren(stage);
     });
 
     standaloneMermaids.forEach((pre) => {
@@ -2361,6 +2367,9 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       const diagramSvg = getDiagramSvg(wrap);
       if (!diagramSvg) return;
 
+      const stage = wrap.querySelector<HTMLElement>('.mermaid-stage');
+      if (!stage) return;
+
       let zoomScale = 1.0;
 
       const toolbar = document.createElement('div');
@@ -2384,21 +2393,57 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       const zoomOutBtn = toolbar.querySelector<HTMLButtonElement>('.mm-btn-out');
       const dlBtn = toolbar.querySelector<HTMLButtonElement>('.mm-btn-dl');
 
+      // Extract viewBox aspect ratio and base width
+      const getSvgMetrics = () => {
+        const currentSvg = getDiagramSvg(wrap);
+        if (!currentSvg) return { aspect: 0.6, baseWidth: 800 };
+        const viewBox = currentSvg.getAttribute('viewBox') || '';
+        const parts = viewBox.split(/[\s,]+/).map(Number);
+        let vbW = 0, vbH = 0;
+        if (parts.length === 4 && parts.every((n) => !isNaN(n))) {
+          vbW = parts[2]!;
+          vbH = parts[3]!;
+        }
+        const aspect = (vbW > 0 && vbH > 0) ? vbH / vbW : (currentSvg.clientHeight / currentSvg.clientWidth || 0.6);
+        const baseWidth = Math.min(Math.max(wrap.clientWidth - 56, 320), vbW > 0 ? vbW : 800);
+        return { aspect, baseWidth };
+      };
+
       const updateZoom = (newScale: number) => {
         zoomScale = Math.min(2.5, Math.max(1.0, Math.round(newScale * 100) / 100));
         const currentSvg = getDiagramSvg(wrap);
         if (currentSvg) {
           if (zoomScale === 1.0) {
+            currentSvg.style.width = '';
+            currentSvg.style.height = '';
+            currentSvg.style.maxWidth = '';
             currentSvg.style.transform = '';
             currentSvg.style.transformOrigin = '';
             currentSvg.style.margin = '';
-            wrap.classList.remove('is-zoomed');
+            stage.classList.remove('is-zoomed');
+            stage.style.touchAction = '';
+            stage.scrollLeft = 0;
+            stage.scrollTop = 0;
           } else {
-            currentSvg.style.transform = `scale(${zoomScale})`;
-            currentSvg.style.transformOrigin = 'top center';
-            currentSvg.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
-            currentSvg.style.margin = `${Math.round((zoomScale - 1) * 35)}px 0`;
-            wrap.classList.add('is-zoomed');
+            const { aspect, baseWidth } = getSvgMetrics();
+            const targetW = Math.round(baseWidth * zoomScale);
+            const targetH = Math.round(targetW * aspect);
+
+            currentSvg.style.maxWidth = 'none';
+            currentSvg.style.width = `${targetW}px`;
+            currentSvg.style.height = `${targetH}px`;
+            currentSvg.style.transform = '';
+            currentSvg.style.transformOrigin = '';
+            currentSvg.style.margin = '0 auto';
+
+            stage.classList.add('is-zoomed');
+            stage.style.touchAction = 'none';
+
+            // Center scroll on zoom change so focal point stays in view
+            setTimeout(() => {
+              stage.scrollLeft = Math.max(0, (stage.scrollWidth - stage.clientWidth) / 2);
+              stage.scrollTop = Math.max(0, (stage.scrollHeight - stage.clientHeight) / 2);
+            }, 10);
           }
         }
         if (levelBtn) {
@@ -2411,6 +2456,48 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
           zoomInBtn.disabled = (zoomScale >= 2.5);
         }
       };
+
+      // 2D Touch & Mouse Drag-to-Pan on stage
+      let isPointerDown = false;
+      let startX = 0;
+      let startY = 0;
+      let startScrollLeft = 0;
+      let startScrollTop = 0;
+
+      stage.addEventListener('pointerdown', (e: PointerEvent) => {
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
+        if ((e.target as HTMLElement).closest('.mermaid-modern-toolbar')) return;
+        if (stage.scrollWidth <= stage.clientWidth && stage.scrollHeight <= stage.clientHeight) return;
+
+        isPointerDown = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startScrollLeft = stage.scrollLeft;
+        startScrollTop = stage.scrollTop;
+
+        stage.setPointerCapture(e.pointerId);
+        stage.classList.add('is-dragging');
+      });
+
+      stage.addEventListener('pointermove', (e: PointerEvent) => {
+        if (!isPointerDown) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        stage.scrollLeft = startScrollLeft - dx;
+        stage.scrollTop = startScrollTop - dy;
+      });
+
+      const endDrag = (e: PointerEvent) => {
+        if (!isPointerDown) return;
+        isPointerDown = false;
+        stage.classList.remove('is-dragging');
+        try {
+          stage.releasePointerCapture(e.pointerId);
+        } catch {}
+      };
+
+      stage.addEventListener('pointerup', endDrag);
+      stage.addEventListener('pointercancel', endDrag);
 
       if (zoomInBtn) {
         zoomInBtn.addEventListener('click', () => updateZoom(zoomScale + 0.25));
@@ -2444,10 +2531,13 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
           svgClone.setAttribute('width', String(vbWidth));
           svgClone.setAttribute('height', String(vbHeight));
 
-          // Clean inline scale transform if currently zoomed
+          // Clean inline scale transform and dimensions so downloaded SVG is clean and scalable
           svgClone.style.transform = '';
           svgClone.style.transformOrigin = '';
           svgClone.style.margin = '';
+          svgClone.style.maxWidth = '';
+          svgClone.style.width = String(vbWidth);
+          svgClone.style.height = String(vbHeight);
 
           // Add clean background rect so SVG renders cleanly in standalone viewer
           const isDarkNow = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.classList.contains('dark-theme');
@@ -2472,6 +2562,7 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
         });
       }
 
+      // Prepend toolbar to wrap (outside stage so it stays pinned at top right)
       wrap.insertBefore(toolbar, wrap.firstChild);
     });
   }

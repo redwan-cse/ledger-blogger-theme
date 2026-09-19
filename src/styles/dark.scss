@@ -843,6 +843,18 @@ html[data-theme='dark'] {
     background: oklch(16% 0.028 266) !important;
     border-color: oklch(27.950% 0.0368 260.031) !important;
 
+    .mermaid-stage {
+      scrollbar-color: oklch(35% 0.02 260) transparent;
+
+      &::-webkit-scrollbar-thumb {
+        background: oklch(35% 0.02 260);
+
+        &:hover {
+          background: oklch(45% 0.03 260);
+        }
+      }
+    }
+
     .mermaid-modern-toolbar {
       background: transparent !important;
       border-color: oklch(35% 0.02 260 / 0.6) !important;

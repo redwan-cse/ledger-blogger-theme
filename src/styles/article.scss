@@ -382,27 +382,67 @@
   }
 
   .mermaid-diagram-wrap {
-    overflow-x: auto;
+    position: relative;
+    overflow: hidden;
     background: #ffffff;
-    padding: $space-4 $space-5;
     border-radius: 8px;
     margin: $space-6 0;
     border: 1px solid oklch(92.876% 0.0126 255.508);
-    text-align: center;
     box-shadow: $shadow-sm;
-    position: relative;
-    padding: $space-5;
+    padding: 0;
 
-    svg {
-      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
-      transform-origin: top center;
+    .mermaid-stage {
+      overflow: auto;
+      width: 100%;
+      max-height: min(75vh, 650px);
+      padding: 46px 28px 28px 28px;
+      box-sizing: border-box;
+      text-align: center;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: oklch(80% 0.01 255) transparent;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: oklch(80% 0.01 255);
+        border-radius: 3px;
+
+        &:hover {
+          background: oklch(70% 0.02 255);
+        }
+      }
+
+      &.is-zoomed {
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+
+        &.is-dragging {
+          cursor: grabbing;
+        }
+      }
+
+      svg {
+        margin: 0 auto;
+        display: block;
+        transition: width 0.2s cubic-bezier(0.2, 0, 0, 1), height 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
     }
 
     .mermaid-modern-toolbar {
       position: absolute;
       top: 10px;
       right: 12px;
-      z-index: 10;
+      z-index: 20;
       display: inline-flex;
       align-items: center;
       gap: 1px;
