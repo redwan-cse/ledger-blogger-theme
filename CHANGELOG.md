@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] - 2026-09-20
+
+### Added
+- **Pinned Floating Mermaid Controls**: Designed and implemented an isolated viewport and scrolling stage architecture (`.mermaid-diagram-wrap` with `.mermaid-stage`). The interactive zoom and download toolbar (`[- 100% + | download]`) remains permanently anchored and floating at `top: 10px; right: 12px` with a frosted glass backdrop across all horizontal and vertical scroll offsets.
+- **2D Touch & Mouse Drag-to-Pan**: Integrated native Pointer Events (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`) with `setPointerCapture` and `touch-action: none` directly on the diagram canvas, allowing touch screen readers to pan smoothly in both dimensions (Left-Right and Up-Down) without depending on border scrollbars.
+- **Aspect-Ratio Dimension Scaling (Zero Edge Clipping)**: Replaced CSS visual `transform: scale()` with layout-dimension scaling derived from the SVG `viewBox` aspect ratio. Content expands exclusively into positive coordinate space ($x \ge 0, y \ge 0$), eliminating negative coordinate clipping and providing full 360-degree edge visibility with 28px breathing margin.
+- **Defensive Mermaid Syntax Healing**: Added `healAsciiHandshakeDiagram` to automatically translate ASCII ladder diagrams (`|--->`, `|<---`, lone pipes, bare bracket labels) into standard, numbered `sequenceDiagram` syntax, and `healBareBracketNodes` to heal bracketed flowchart shapes.
+- **Fault-Isolated Async Error Boundaries**: Converted Mermaid client-side rendering to individually awaited blocks with `try...catch` boundaries, isolating syntax errors to an elegant fallback card (`.mermaid-fallback-card`) with source view and copy-to-clipboard without blocking other diagrams.
+
+### Changed
+- **Typography & Static Page Unification**: Synchronized static page typography (`isPage`) to use `font-sans`, standard body font sizes, leading, and spacing to match published blog posts.
+- **Footer & Navigation Streamlining**: Cleaned external links from the footer layout and aligned policy page presentations.
+- **Supply Chain Dependency Upgrades**: Upgraded `marked` to `18.0.12`, `@playwright/test` to `1.63.0`, and `@types/node` to `26.5.1`.
+
+### Fixed
+- **CodeQL Alert #134 Remediation**: Eliminated `js/incomplete-multi-character-sanitization` vulnerability in `scripts/publish-from-drive.ts` by replacing single-pass HTML tag removal with an iterative convergence loop (`do ... while`) and character-level bracket stripping.
+- **Dark Mode Blockquote & Label Polish**: Refined dark mode blockquote background styling and hardened accessibility labels.
+
+---
+
 ## [1.5.0] - 2026-09-11
 
 ### Added

@@ -1,6 +1,6 @@
 # Ledger — Blogger Layouts V3 Theme
 
-[![Release](https://img.shields.io/badge/Release-v1.5.0-blue.svg)](https://github.com/redwan-cse/ledger-blogger-theme/releases/tag/v1.5.0)
+[![Release](https://img.shields.io/badge/Release-v1.6.0-blue.svg)](https://github.com/redwan-cse/ledger-blogger-theme/releases/tag/v1.6.0)
 [![Changelog](https://img.shields.io/badge/Changelog-Keep_a_Changelog-orange.svg)](CHANGELOG.md)
 [![CI](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/ci.yml)
 [![Build Theme Artifact](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml/badge.svg)](https://github.com/redwan-cse/ledger-blogger-theme/actions/workflows/release.yml)

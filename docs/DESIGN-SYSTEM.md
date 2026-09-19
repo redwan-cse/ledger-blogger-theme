@@ -1,4 +1,4 @@
-# Ledger Design System Specification (v1.5.0)
+# Ledger Design System Specification (v1.6.0)
 
 This document provides the complete, authoritative specification for the **Ledger** design system implemented in `src/styles/`.
 
