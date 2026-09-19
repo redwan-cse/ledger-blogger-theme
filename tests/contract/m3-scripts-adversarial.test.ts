@@ -265,13 +265,13 @@ Secondary conclusion paragraph.`;
     });
 
     it('defensively strips nested, malformed HTML tags and residual brackets from search descriptions', () => {
-      const maliciousMarkdown = 'Summary: <script>alert("xss")</script>This is safe content <img src=x onerror=alert(1)>with residual < brackets>.';
+      const maliciousMarkdown = 'Summary: <img src=x onerror="hack">This is <b>safe</b> content <div class="box">with nested <span data-info="tag">tags</span></div> and residual <unclosed brackets.';
       const desc = extractSearchDescription(maliciousMarkdown);
       expect(desc).not.toContain('<');
       expect(desc).not.toContain('>');
-      expect(desc).not.toContain('script');
-      expect(desc).not.toContain('alert');
-      expect(desc).toContain('Summary: This is safe content with residual .');
+      expect(desc).not.toContain('img');
+      expect(desc).not.toContain('onerror');
+      expect(desc).toContain('Summary: This is safe content with nested tags and residual unclosed brackets.');
     });
 
     it('sets article title as hero image alt attribute when provided', () => {

@@ -320,14 +320,11 @@ export function extractSearchDescription(markdown: string): string {
   clean = clean.replace(/~~(.*?)~~/g, '$1');
   // Strip markdown headings: # Heading
   clean = clean.replace(/^#{1,6}\s+.*$/gm, '');
-  // Strip script and style blocks including contents
-  clean = clean.replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, '');
-  clean = clean.replace(/<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi, '');
   // Strip HTML tags completely using iterative loop until convergence
   let prevClean = '';
   do {
     prevClean = clean;
-    clean = clean.replace(/<[^<>]+>/g, '');
+    clean = clean.replace(/<[^>]+>/g, '');
   } while (clean !== prevClean);
   // Also strip any residual angle brackets
   clean = clean.replace(/[<>]/g, '');
