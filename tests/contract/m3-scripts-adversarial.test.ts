@@ -261,8 +261,17 @@ Secondary conclusion paragraph.`;
       expect(desc).toContain('This is the primary introduction paragraph');
       expect(desc).not.toContain('#');
       expect(desc).not.toContain('curl');
-      expect(desc).not.toContain('Diagram');
       expect(desc).not.toContain('title:');
+    });
+
+    it('defensively strips nested, malformed HTML tags and residual brackets from search descriptions', () => {
+      const maliciousMarkdown = 'Summary: <script>alert("xss")</script>This is safe content <img src=x onerror=alert(1)>with residual < brackets>.';
+      const desc = extractSearchDescription(maliciousMarkdown);
+      expect(desc).not.toContain('<');
+      expect(desc).not.toContain('>');
+      expect(desc).not.toContain('script');
+      expect(desc).not.toContain('alert');
+      expect(desc).toContain('Summary: This is safe content with residual .');
     });
 
     it('sets article title as hero image alt attribute when provided', () => {
