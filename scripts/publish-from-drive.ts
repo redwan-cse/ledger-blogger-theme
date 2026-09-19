@@ -332,6 +332,128 @@ export function extractSearchDescription(markdown: string): string {
   return (lastSpace > 100 ? truncated.slice(0, lastSpace) : truncated).trim() + '...';
 }
 
+/**
+ * Heals ASCII protocol ladder / handshake diagrams (e.g. |--->, |<---, bare bracket labels, lone pipes)
+ * into a valid, standard Mermaid sequenceDiagram with actors, numbered steps, messages, and notes.
+ */
+export function healAsciiHandshakeDiagram(rawCode: string): string {
+  const hasLadderArrows =
+    /(?:^\s*\|[-=]+>|^\s*\|<[-=]+|^\s*<[-=]+\||^\s*[-=]+>\|)/m.test(rawCode) ||
+    (/^\s*\|\s*$/m.test(rawCode) && /^\s*(?:[-=]+>|<[-=]+)\s+/m.test(rawCode));
+  if (!hasLadderArrows) return rawCode;
+
+  const lines = rawCode.split('\n');
+  let clientLabel = '';
+  let serverLabel = '';
+  const messageLines: { type: 'out' | 'in' | 'note'; text: string }[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    if (rawLine === undefined) continue;
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (/^(?:graph|flowchart)\s+[A-Za-z0-9_-]+/i.test(line)) continue;
+    if (line === '---' || line.startsWith('%%')) continue;
+
+    const bracketMatch = line.match(/^\[([^\]]+)\]$/);
+    if (bracketMatch && bracketMatch[1]) {
+      if (!clientLabel) {
+        clientLabel = bracketMatch[1].trim();
+      } else {
+        messageLines.push({ type: 'note', text: bracketMatch[1].trim() });
+      }
+      continue;
+    }
+
+    if (/^\|+$/.test(line)) continue;
+
+    const outMatch = line.match(/^\|?\s*[-=]+>\s*(.+)$/);
+    if (outMatch && outMatch[1]) {
+      const text = outMatch[1].trim();
+      messageLines.push({ type: 'out', text });
+
+      if (!serverLabel) {
+        const fullMatch = text.match(/\bto\s+([A-Za-z0-9][\w\s\(\)\.\-]+)/i);
+        if (fullMatch && fullMatch[1]) {
+          serverLabel = fullMatch[1].trim();
+        }
+      }
+      continue;
+    }
+
+    const inMatch = line.match(/^(?:\|?\s*<[-=]+|<[-=]+\|?)\s*(.+)$/);
+    if (inMatch && inMatch[1]) {
+      const text = inMatch[1].trim();
+      messageLines.push({ type: 'in', text });
+      continue;
+    }
+
+    if (!clientLabel && !line.includes('|')) {
+      clientLabel = line;
+      continue;
+    }
+
+    if (!line.startsWith('|')) {
+      messageLines.push({ type: 'note', text: line });
+    }
+  }
+
+  if (messageLines.length === 0) return rawCode;
+
+  const clientName = clientLabel || 'Client';
+  const serverName = serverLabel || 'Server';
+
+  const output: string[] = ['sequenceDiagram', '    autonumber'];
+  output.push(`    actor Client as ${clientName}`);
+  output.push(`    participant Server as ${serverName}`);
+
+  for (const item of messageLines) {
+    const cleanText = item.text.replace(/;/g, '#59;').replace(/"/g, '#34;');
+    if (item.type === 'out') {
+      output.push(`    Client->>Server: ${cleanText}`);
+    } else if (item.type === 'in') {
+      output.push(`    Server-->>Client: ${cleanText}`);
+    } else if (item.type === 'note') {
+      output.push(`    Note over Client,Server: ${cleanText}`);
+    }
+  }
+
+  return output.join('\n');
+}
+
+/**
+ * Heals bare bracket nodes without IDs in flowcharts/graphs and strips stray vertical pipe spacer lines.
+ */
+export function healBareBracketNodes(code: string): string {
+  const header = getFirstDiagramHeader(code);
+  if (header !== 'flowchart' && header !== 'graph') return code;
+
+  code = code.replace(/^\s*\|\s*$/gm, '');
+
+  let counter = 1;
+  const labelToId = new Map<string, string>();
+  const getIdForLabel = (label: string): string => {
+    const trimmed = label.trim();
+    if (!labelToId.has(trimmed)) {
+      labelToId.set(trimmed, `node_${counter++}`);
+    }
+    return labelToId.get(trimmed)!;
+  };
+
+  code = code.replace(/^(\s*)\[([^\]\n\r]+)\]/gm, (_m, indent, label) => {
+    const id = getIdForLabel(label);
+    return `${indent}${id}["${label.trim()}"]`;
+  });
+
+  code = code.replace(/((?:-->|---\s*|==>\s*|-\.->\s*))\s*\[([^\]\n\r]+)\]/g, (_m, arrow, label) => {
+    const id = getIdForLabel(label);
+    return `${arrow} ${id}["${label.trim()}"]`;
+  });
+
+  return code;
+}
+
 // 3. Configure Marked Markdown Compiler with Code Window & Mermaid Support
 export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, articleTitle?: string): string {
   const renderer = new marked.Renderer();
@@ -376,6 +498,12 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
         /^(participant\s+[\w\-]+\s+as\s+)([^"\n\r]+&[^"\n\r]+)$/gm,
         (_m, prefix, label) => `${prefix}"${label.trim()}"`
       );
+
+      // Heal ASCII protocol ladder / handshake diagrams into sequenceDiagram
+      mermaidCode = healAsciiHandshakeDiagram(mermaidCode);
+
+      // Heal bare bracket nodes without IDs in flowcharts/graphs
+      mermaidCode = healBareBracketNodes(mermaidCode);
 
       // Heal unquoted subgraph titles containing special characters or parentheses:
       // e.g. subgraph TelemetrySubsystem [Appliance Operating System (Root)] -> ["Appliance Operating System (Root)"]

@@ -181,6 +181,63 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).not.toContain('DropBadCookie[""');
     });
 
+    it('heals ASCII protocol handshake ladder diagrams into valid sequenceDiagram', () => {
+      const input = `graph TD
+[Attacker Client with Extracted Factory Cert] 
+       |
+       |---> TCP SYN to Port 541 (FGFM)
+       |<--- TCP SYN/ACK
+       |---> TLS ClientHello
+       |<--- TLS ServerHello + CertificateRequest
+       |---> TLS Certificate (Extracted Fortinet Factory Cert) + ClientKeyExchange
+       |<--- TLS Finished
+       |
+[mTLS Handshake Accepted: Trust Established Without Identity Verification]`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('sequenceDiagram');
+      expect(cleaned).toContain('autonumber');
+      expect(cleaned).toContain('actor Client as Attacker Client with Extracted Factory Cert');
+      expect(cleaned).toContain('participant Server as Port 541 (FGFM)');
+      expect(cleaned).toContain('Client->>Server: TCP SYN to Port 541 (FGFM)');
+      expect(cleaned).toContain('Server-->>Client: TCP SYN/ACK');
+      expect(cleaned).toContain('Client->>Server: TLS ClientHello');
+      expect(cleaned).toContain('Server-->>Client: TLS ServerHello + CertificateRequest');
+      expect(cleaned).toContain('Client->>Server: TLS Certificate (Extracted Fortinet Factory Cert) + ClientKeyExchange');
+      expect(cleaned).toContain('Server-->>Client: TLS Finished');
+      expect(cleaned).toContain('Note over Client,Server: mTLS Handshake Accepted: Trust Established Without Identity Verification');
+      expect(cleaned).not.toContain('graph TD');
+      expect(cleaned).not.toContain('|--->');
+    });
+
+    it('heals bare bracket flowchart nodes without IDs and strips lone pipe lines', () => {
+      const input = `flowchart TD
+    [Start Request] --> [Validate Auth]
+    |
+    [Validate Auth] --> [Commit DB]`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('node_1["Start Request"] --> node_2["Validate Auth"]');
+      expect(cleaned).toContain('node_2["Validate Auth"] --> node_3["Commit DB"]');
+      expect(cleaned).not.toMatch(/^\s*\|\s*$/m);
+    });
+
+    it('compiles ASCII handshake ladder in markdown directly to sequenceDiagram', () => {
+      const markdown = `\`\`\`mermaid
+[Attacker Client]
+|---> Handshake SYN to Port 541
+|<--- Handshake ACK
+[Handshake Complete]
+\`\`\``;
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).toContain('sequenceDiagram');
+      expect(compiled).toContain('actor Client as Attacker Client');
+      expect(compiled).toContain('participant Server as Port 541');
+      expect(compiled).toContain('Client->>Server: Handshake SYN to Port 541');
+      expect(compiled).toContain('Server-->>Client: Handshake ACK');
+      expect(compiled).not.toContain('graph TD');
+    });
+
     it('extracts clean 155-char search description stripping markdown artifacts', () => {
       const markdown = `---
 title: Test Article

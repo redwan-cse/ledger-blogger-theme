@@ -1961,6 +1961,143 @@ export function healDuplicateSequenceHeader(code: string): string {
 }
 
 /**
+ * Heals ASCII protocol ladder / handshake diagrams (e.g. |--->, |<---, bare bracket labels, lone pipes)
+ * into a valid, standard Mermaid sequenceDiagram with actors, numbered steps, messages, and notes.
+ */
+export function healAsciiHandshakeDiagram(rawCode: string): string {
+  // Check if this matches an ASCII handshake ladder pattern
+  // Matches lines starting with |--->, |<---, or lone pipes combined with directional arrows
+  const hasLadderArrows =
+    /(?:^\s*\|[-=]+>|^\s*\|<[-=]+|^\s*<[-=]+\||^\s*[-=]+>\|)/m.test(rawCode) ||
+    (/^\s*\|\s*$/m.test(rawCode) && /^\s*(?:[-=]+>|<[-=]+)\s+/m.test(rawCode));
+  if (!hasLadderArrows) return rawCode;
+
+  const lines = rawCode.split('\n');
+  let clientLabel = '';
+  let serverLabel = '';
+  const messageLines: { type: 'out' | 'in' | 'note'; text: string }[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    if (rawLine === undefined) continue;
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    // Skip diagram headers like "graph TD", "flowchart TD"
+    if (/^(?:graph|flowchart)\s+[A-Za-z0-9_-]+/i.test(line)) continue;
+    if (line === '---' || line.startsWith('%%')) continue;
+
+    // Detect bare bracket node at top: e.g. [Attacker Client with Extracted Factory Cert]
+    const bracketMatch = line.match(/^\[([^\]]+)\]$/);
+    if (bracketMatch && bracketMatch[1]) {
+      if (!clientLabel) {
+        clientLabel = bracketMatch[1].trim();
+      } else {
+        // Subsequent bracket nodes are notes / outcome states
+        messageLines.push({ type: 'note', text: bracketMatch[1].trim() });
+      }
+      continue;
+    }
+
+    // Ignore lone pipe lines
+    if (/^\|+$/.test(line)) continue;
+
+    // Check for outgoing arrow: |--->, |--> or --->
+    const outMatch = line.match(/^\|?\s*[-=]+>\s*(.+)$/);
+    if (outMatch && outMatch[1]) {
+      const text = outMatch[1].trim();
+      messageLines.push({ type: 'out', text });
+
+      // Scan for server / target hint in message: e.g. "to Port 541 (FGFM)", "to Server"
+      if (!serverLabel) {
+        const fullMatch = text.match(/\bto\s+([A-Za-z0-9][\w\s\(\)\.\-]+)/i);
+        if (fullMatch && fullMatch[1]) {
+          serverLabel = fullMatch[1].trim();
+        }
+      }
+      continue;
+    }
+
+    // Check for incoming arrow: |<---, |<-- or <---
+    const inMatch = line.match(/^(?:\|?\s*<[-=]+|<[-=]+\|?)\s*(.+)$/);
+    if (inMatch && inMatch[1]) {
+      const text = inMatch[1].trim();
+      messageLines.push({ type: 'in', text });
+      continue;
+    }
+
+    // If it's a non-empty text line without arrows and we have no client yet, use it
+    if (!clientLabel && !line.includes('|')) {
+      clientLabel = line;
+      continue;
+    }
+
+    // Any other text line can be treated as a note if it's descriptive
+    if (!line.startsWith('|')) {
+      messageLines.push({ type: 'note', text: line });
+    }
+  }
+
+  if (messageLines.length === 0) return rawCode;
+
+  const clientName = clientLabel || 'Client';
+  const serverName = serverLabel || 'Server';
+
+  const output: string[] = ['sequenceDiagram', '    autonumber'];
+  output.push(`    actor Client as ${clientName}`);
+  output.push(`    participant Server as ${serverName}`);
+
+  for (const item of messageLines) {
+    const cleanText = item.text.replace(/;/g, '#59;').replace(/"/g, '#34;');
+    if (item.type === 'out') {
+      output.push(`    Client->>Server: ${cleanText}`);
+    } else if (item.type === 'in') {
+      output.push(`    Server-->>Client: ${cleanText}`);
+    } else if (item.type === 'note') {
+      output.push(`    Note over Client,Server: ${cleanText}`);
+    }
+  }
+
+  return output.join('\n');
+}
+
+/**
+ * Heals bare bracket nodes without IDs in flowcharts/graphs and strips stray vertical pipe spacer lines.
+ * e.g. [Start Process] --> [End Process] => node_1["Start Process"] --> node_2["End Process"]
+ */
+export function healBareBracketNodes(code: string): string {
+  const header = getFirstDiagramHeader(code);
+  if (header !== 'flowchart' && header !== 'graph') return code;
+
+  // Strip lone pipe lines in flowcharts
+  code = code.replace(/^\s*\|\s*$/gm, '');
+
+  let counter = 1;
+  const labelToId = new Map<string, string>();
+  const getIdForLabel = (label: string): string => {
+    const trimmed = label.trim();
+    if (!labelToId.has(trimmed)) {
+      labelToId.set(trimmed, `node_${counter++}`);
+    }
+    return labelToId.get(trimmed)!;
+  };
+
+  // Replace bare bracket at line start: e.g. "  [Start Process] -->" -> "  node_1["Start Process"] -->"
+  code = code.replace(/^(\s*)\[([^\]\n\r]+)\]/gm, (_m, indent, label) => {
+    const id = getIdForLabel(label);
+    return `${indent}${id}["${label.trim()}"]`;
+  });
+
+  // Replace bare bracket after arrow: e.g. "--> [End Process]" -> "--> node_2["End Process"]"
+  code = code.replace(/((?:-->|---\s*|==>\s*|-\.->\s*))\s*\[([^\]\n\r]+)\]/g, (_m, arrow, label) => {
+    const id = getIdForLabel(label);
+    return `${arrow} ${id}["${label.trim()}"]`;
+  });
+
+  return code;
+}
+
+/**
  * Sanitizes Mermaid diagram source code, fixing HTML entity leaks, arrows, unquoted labels,
  * and duplicate diagram header declarations.
  */
@@ -1989,8 +2126,14 @@ export function cleanMermaidSyntax(rawCode: string): string {
     (_m, prefix, label) => `${prefix}"${label.trim()}"`
   );
 
+  // Heal ASCII handshake / ladder protocol diagrams into sequenceDiagram
+  code = healAsciiHandshakeDiagram(code);
+
   // Heal duplicate diagram headers (e.g. sequenceDiagram prepended erroneously to flowchart, graph, etc.)
   code = healDuplicateSequenceHeader(code);
+
+  // Heal bare bracket nodes and lone pipes in flowcharts/graphs
+  code = healBareBracketNodes(code);
 
   // Heal unquoted subgraph titles containing special characters or parentheses:
   // e.g. subgraph TelemetrySubsystem [Appliance Operating System (Root)] -> ["Appliance Operating System (Root)"]
@@ -2061,7 +2204,7 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
   const currentTheme = targetTheme || (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default');
   const isDark = currentTheme === 'dark';
 
-  function renderMermaid(mermaidApi: any): void {
+  async function renderMermaid(mermaidApi: any): Promise<void> {
     mermaidApi.initialize({
       startOnLoad: false,
       theme: currentTheme,
@@ -2081,6 +2224,85 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       },
       securityLevel: 'loose'
     });
+
+    const getDiagramSvg = (wrap: HTMLElement): SVGElement | null => {
+      const allSvgs = Array.from(wrap.querySelectorAll<SVGElement>('svg'));
+      return (
+        allSvgs.find(
+          (s) =>
+            !s.closest('.mermaid-modern-toolbar') &&
+            !s.closest('.mermaid-fallback-card') &&
+            s.getAttribute('aria-roledescription') !== 'error' &&
+            s.id !== 'dmermaid-error' &&
+            !s.classList.contains('error-icon')
+        ) || null
+      );
+    };
+
+    function renderFallbackCard(wrap: HTMLElement, code: string): void {
+      wrap.classList.add('is-fallback');
+      const card = document.createElement('div');
+      card.className = 'mermaid-fallback-card';
+
+      const header = document.createElement('div');
+      header.className = 'mermaid-fallback-header';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'mermaid-fallback-title';
+      titleDiv.innerHTML = `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+        <span>Architecture Diagram</span>
+        <span class="mermaid-fallback-badge">Source View</span>
+      `;
+
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'fallback-copy-btn';
+      copyBtn.setAttribute('aria-label', 'Copy diagram source');
+      copyBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span>Copy Source</span>
+      `;
+
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(code);
+          const span = copyBtn.querySelector('span');
+          if (span) {
+            const originalText = span.textContent;
+            span.textContent = 'Copied!';
+            copyBtn.classList.add('is-copied');
+            setTimeout(() => {
+              span.textContent = originalText;
+              copyBtn.classList.remove('is-copied');
+            }, 2000);
+          }
+        } catch {
+          // Clipboard fallback or permissions ignored
+        }
+      });
+
+      header.appendChild(titleDiv);
+      header.appendChild(copyBtn);
+
+      const pre = document.createElement('pre');
+      pre.className = 'mermaid-fallback-code';
+      const codeElem = document.createElement('code');
+      codeElem.textContent = code;
+      pre.appendChild(codeElem);
+
+      card.appendChild(header);
+      card.appendChild(pre);
+
+      wrap.replaceChildren(card);
+    }
 
     wraps.forEach((wrap, index) => {
       const preElem = wrap.querySelector('.mermaid');
@@ -2107,16 +2329,37 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       pre.textContent = cleanCode;
     });
 
-    try {
-      mermaidApi.run({
-        nodes: document.querySelectorAll('.mermaid-diagram-wrap .mermaid, .post-body pre.mermaid')
-      });
-    } catch (e) {
-      console.warn('Mermaid rendering notice:', e);
+    // Render each diagram individually with isolated async error handling
+    const allNodes = Array.from(document.querySelectorAll<HTMLElement>('.mermaid-diagram-wrap .mermaid, .post-body pre.mermaid'));
+    for (const node of allNodes) {
+      const wrap = node.closest<HTMLElement>('.mermaid-diagram-wrap');
+      const rawCode = wrap?.dataset['mermaidCode'] || node.textContent || '';
+      try {
+        await mermaidApi.run({
+          nodes: [node],
+          suppressErrors: true
+        });
+        if (wrap) {
+          const svg = getDiagramSvg(wrap);
+          if (!svg) {
+            renderFallbackCard(wrap, rawCode);
+          }
+        }
+      } catch (e) {
+        console.warn('Mermaid rendering notice:', e);
+        if (wrap) {
+          renderFallbackCard(wrap, rawCode);
+        } else {
+          node.classList.add('mermaid-error-fallback');
+        }
+      }
     }
 
     wraps.forEach((wrap, index) => {
-      if (wrap.querySelector('.mermaid-modern-toolbar')) return;
+      if (wrap.classList.contains('is-fallback') || wrap.querySelector('.mermaid-modern-toolbar')) return;
+
+      const diagramSvg = getDiagramSvg(wrap);
+      if (!diagramSvg) return;
 
       let zoomScale = 1.0;
 
@@ -2141,25 +2384,20 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       const zoomOutBtn = toolbar.querySelector<HTMLButtonElement>('.mm-btn-out');
       const dlBtn = toolbar.querySelector<HTMLButtonElement>('.mm-btn-dl');
 
-      const getDiagramSvg = (): SVGElement | null => {
-        const allSvgs = Array.from(wrap.querySelectorAll<SVGElement>('svg'));
-        return allSvgs.find((s) => !s.closest('.mermaid-modern-toolbar')) || null;
-      };
-
       const updateZoom = (newScale: number) => {
         zoomScale = Math.min(2.5, Math.max(1.0, Math.round(newScale * 100) / 100));
-        const diagramSvg = getDiagramSvg();
-        if (diagramSvg) {
+        const currentSvg = getDiagramSvg(wrap);
+        if (currentSvg) {
           if (zoomScale === 1.0) {
-            diagramSvg.style.transform = '';
-            diagramSvg.style.transformOrigin = '';
-            diagramSvg.style.margin = '';
+            currentSvg.style.transform = '';
+            currentSvg.style.transformOrigin = '';
+            currentSvg.style.margin = '';
             wrap.classList.remove('is-zoomed');
           } else {
-            diagramSvg.style.transform = `scale(${zoomScale})`;
-            diagramSvg.style.transformOrigin = 'top center';
-            diagramSvg.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
-            diagramSvg.style.margin = `${Math.round((zoomScale - 1) * 35)}px 0`;
+            currentSvg.style.transform = `scale(${zoomScale})`;
+            currentSvg.style.transformOrigin = 'top center';
+            currentSvg.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
+            currentSvg.style.margin = `${Math.round((zoomScale - 1) * 35)}px 0`;
             wrap.classList.add('is-zoomed');
           }
         }
@@ -2188,10 +2426,10 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
 
       if (dlBtn) {
         dlBtn.addEventListener('click', () => {
-          const diagramSvg = getDiagramSvg();
-          if (!diagramSvg) return;
+          const currentSvg = getDiagramSvg(wrap);
+          if (!currentSvg) return;
 
-          const svgClone = diagramSvg.cloneNode(true) as SVGElement;
+          const svgClone = currentSvg.cloneNode(true) as SVGElement;
           const viewBox = svgClone.getAttribute('viewBox') || '';
           const parts = viewBox.split(/[\s,]+/).map(Number);
           let minX = 0, minY = 0, vbWidth = 1200, vbHeight = 800;
@@ -2212,13 +2450,13 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
           svgClone.style.margin = '';
 
           // Add clean background rect so SVG renders cleanly in standalone viewer
-          const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.classList.contains('dark-theme');
+          const isDarkNow = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.classList.contains('dark-theme');
           const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
           bg.setAttribute('x', String(minX));
           bg.setAttribute('y', String(minY));
           bg.setAttribute('width', String(vbWidth));
           bg.setAttribute('height', String(vbHeight));
-          bg.setAttribute('fill', isDark ? '#161b22' : '#ffffff');
+          bg.setAttribute('fill', isDarkNow ? '#161b22' : '#ffffff');
           svgClone.insertBefore(bg, svgClone.firstChild);
 
           const svgData = new XMLSerializer().serializeToString(svgClone);
@@ -2240,14 +2478,14 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
 
   const win = window as any;
   if (win.mermaid) {
-    renderMermaid(win.mermaid);
+    renderMermaid(win.mermaid).catch((e) => console.warn('[Mermaid] Top-level render notice:', e));
   } else {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
     script.async = true;
     script.onload = () => {
       if (win.mermaid) {
-        renderMermaid(win.mermaid);
+        renderMermaid(win.mermaid).catch((e) => console.warn('[Mermaid] Top-level render notice:', e));
       }
     };
     document.head.appendChild(script);

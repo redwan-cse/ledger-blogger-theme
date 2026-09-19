@@ -886,6 +886,52 @@ html[data-theme='dark'] {
     pre.mermaid {
       color: oklch(98.415% 0.0034 247.858) !important;
     }
+
+    &.is-fallback {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .mermaid-fallback-card {
+      background: oklch(18% 0.025 260) !important;
+      border-color: oklch(27.950% 0.0368 260.031) !important;
+
+      .mermaid-fallback-header {
+        background: oklch(15% 0.025 260) !important;
+        border-bottom-color: oklch(27.950% 0.0368 260.031) !important;
+      }
+
+      .mermaid-fallback-title {
+        color: oklch(98.415% 0.0034 247.858) !important;
+
+        .mermaid-fallback-badge {
+          background: oklch(25% 0.03 260) !important;
+          color: oklch(80% 0.015 255) !important;
+        }
+      }
+
+      .fallback-copy-btn {
+        background: oklch(20% 0.028 266) !important;
+        border-color: oklch(32% 0.03 260) !important;
+        color: oklch(80% 0.015 255) !important;
+
+        &:hover {
+          background: oklch(25% 0.04 260) !important;
+          color: oklch(75% 0.15 259.735) !important;
+          border-color: oklch(75% 0.15 259.735) !important;
+        }
+
+        &.is-copied {
+          color: oklch(70% 0.2 145) !important;
+          border-color: oklch(70% 0.2 145) !important;
+        }
+      }
+
+      pre.mermaid-fallback-code {
+        color: oklch(92% 0.01 255) !important;
+      }
+    }
   }
 
   .table-container {

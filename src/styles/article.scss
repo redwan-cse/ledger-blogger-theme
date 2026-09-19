@@ -486,6 +486,101 @@
       color: $ink !important;
       overflow: visible;
     }
+
+    &.is-fallback {
+      text-align: left;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      border: none;
+    }
+
+    .mermaid-fallback-card {
+      background: oklch(98.5% 0.003 255);
+      border: 1px solid oklch(88% 0.012 255);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 0;
+      text-align: left;
+
+      .mermaid-fallback-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: $space-2 $space-4;
+        background: oklch(96% 0.005 255);
+        border-bottom: 1px solid oklch(88% 0.012 255);
+      }
+
+      .mermaid-fallback-title {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-2;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: $ink;
+
+        svg {
+          color: $ink-muted;
+          flex-shrink: 0;
+        }
+
+        .mermaid-fallback-badge {
+          display: inline-block;
+          font-size: 0.7rem;
+          font-weight: 500;
+          padding: 1px 6px;
+          border-radius: 4px;
+          background: oklch(90% 0.01 255);
+          color: $ink-muted;
+        }
+      }
+
+      .fallback-copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid oklch(85% 0.01 255);
+        background: #ffffff;
+        color: $ink-muted;
+        font-size: 0.75rem;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: $accent-wash;
+          color: $accent;
+          border-color: $accent;
+        }
+
+        &.is-copied {
+          color: oklch(45% 0.18 145);
+          border-color: oklch(45% 0.18 145);
+        }
+      }
+
+      pre.mermaid-fallback-code {
+        margin: 0;
+        padding: $space-4;
+        background: transparent !important;
+        border: none !important;
+        overflow-x: auto;
+        font-family: var(--font-mono, monospace);
+        font-size: 0.84rem;
+        line-height: 1.5;
+        color: $ink;
+        white-space: pre;
+
+        code {
+          background: transparent !important;
+          padding: 0 !important;
+          color: inherit;
+        }
+      }
+    }
   }
 
   .table-container {
