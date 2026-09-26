@@ -739,8 +739,11 @@ html[data-theme='dark'] {
     }
 
     pre {
+      margin: 0 !important;
       background: transparent !important;
       border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
     }
   }
 

@@ -280,5 +280,158 @@ Secondary conclusion paragraph.`;
       expect(compiled).toContain('alt="Hardening PAN-OS GlobalProtect"');
       expect(compiled).not.toContain('alt="Article Hero"');
     });
+
+    it('defensively strips stray markdown fences and deduplicates sequenceDiagram in cleanMermaidSyntax', () => {
+      const corrupted = `sequenceDiagram
+\`\`\`mermaid
+sequenceDiagram
+    autonumber
+    actor Attacker as Threat Actor
+    participant SSHD as OpenSSH Daemon (sshd)
+    SSHD->>Attacker: Handshake
+\`\`\``;
+
+      const cleaned = cleanMermaidSyntax(corrupted);
+      expect(cleaned).not.toContain('```');
+      expect(cleaned.match(/sequenceDiagram/g)?.length).toBe(1);
+      expect(cleaned).toContain('actor Attacker as Threat Actor');
+      expect(cleaned).toContain('SSHD->>Attacker: Handshake');
+    });
+
+    it('truncates unclosed diagram swallow of markdown prose in cleanMermaidSyntax', () => {
+      const corrupted = `sequenceDiagram
+    autonumber
+    A->>B: Ping
+    B-->>A: Pong
+
+## Attack Path Step-by-Step
+
+This is markdown prose that should not crash the diagram parser.`;
+
+      const cleaned = cleanMermaidSyntax(corrupted);
+      expect(cleaned).toContain('A->>B: Ping');
+      expect(cleaned).not.toContain('## Attack Path');
+      expect(cleaned).not.toContain('markdown prose');
+    });
+
+    it('compiles code blocks stripping nested fences and escapes C/C++ header includes in compileMarkdownToHtml', () => {
+      const markdown = `\`\`\`\`c
+// Header comment
+\`\`\`c
+#include <vmlinux.h>
+#include <bpf/bpf_helpers.h>
+
+struct event_t { int id; };
+\`\`\`
+\`\`\`\``;
+
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).not.toContain('```');
+      expect(compiled).toContain('&lt;vmlinux.h&gt;');
+      expect(compiled).toContain('&lt;bpf/bpf_helpers.h&gt;');
+      expect(compiled).toContain('struct event_t');
+      expect(compiled).toContain('class="code-block-wrap"');
+    });
+
+    it('never produces nested double-frame code-block-wrap containers', () => {
+      const markdown = `
+### Step 1
+<pre><code class="language-c">
+int test_func(void) { return 0; }
+</code></pre>
+
+\`\`\`bash
+echo "hello world"
+\`\`\`
+`;
+
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).not.toMatch(/<div class="code-block-header">(?:(?!<\/div>)[\s\S])*<\/div>\s*<div class="code-block-wrap">/i);
+      const wraps = compiled.match(/<div class="code-block-wrap">/g) || [];
+      expect(wraps.length).toBe(2);
+      expect(compiled).toContain('int test_func');
+      expect(compiled).toContain('echo &quot;hello world&quot;');
+    });
+
+    it('strips task-list checkboxes so list items never render double bullet points', () => {
+      const markdown = `## Verification Checklist
+
+- [ ] **Verify sysctl lockdown**: Ensure \`kernel.unprivileged_bpf_disabled = 2\`.
+- [x] **Confirm auditd rules**: Ensure BPF syscall monitoring is active.`;
+
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).not.toContain('<input');
+      expect(compiled).not.toContain('type="checkbox"');
+      expect(compiled).toContain('<li><strong>Verify sysctl lockdown</strong>');
+    });
+
+    it('preserves single-# comments inside fenced code blocks and never swallows article sections after Mermaid', () => {
+      const markdown = `## Exploit Architecture
+
+\`\`\`mermaid
+sequenceDiagram
+    autonumber
+    actor Attacker as Threat Actor
+    participant Verifier as eBPF Verifier
+    Note over Verifier: Tracks register bounds<br>(smin/smax)
+    Attacker->>Verifier: Submit bytecode
+\`\`\`
+
+---
+
+## Attack Path Step-by-Step
+
+<pre><code class="language-bash"># Monitor 64-bit bpf syscall invocations
+-a always,exit -F arch=b64 -S bpf
+</code></pre>
+
+<pre><code class="language-c">struct task_struct {
+    const struct cred *cred;
+};
+</code></pre>
+
+Final conclusion paragraph.`;
+
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).toContain('<h2 id="attack-path-step-by-step">Attack Path Step-by-Step');
+      expect(compiled).toContain('# Monitor 64-bit bpf syscall invocations');
+      expect(compiled).not.toContain('## Monitor 64-bit bpf syscall invocations');
+      expect(compiled).toContain('<p>Final conclusion paragraph.</p>');
+      // Ensure .post-body .code-block-wrap pre comes after .post-body pre in scopedStyles
+      const postBodyPreIdx = compiled.indexOf('.post-body pre {');
+      const codeWrapPreIdx = compiled.indexOf('.post-body .code-block-wrap pre,');
+      expect(postBodyPreIdx).toBeGreaterThan(-1);
+      expect(codeWrapPreIdx).toBeGreaterThan(postBodyPreIdx);
+    });
+
+    it('converts raw <pre class="mermaid"> without swallowing subsequent sections and preserves spaces between inline code spans', () => {
+      const markdown = `### The Flaw in \`downloadBlob\`
+
+In Go, \`filepath.Join\` calls \`filepath.Clean\` on the path.
+
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Attacker as Threat Actor
+    participant Victim as Ollama Server
+    Attacker->>Victim: POST /api/pull
+</pre>
+
+---
+
+## Attack Path Step-by-Step
+
+Step 1 prose after mermaid diagram.`;
+
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).toContain('<h3 id="the-flaw-in-downloadblob">The Flaw in <code>downloadBlob</code>');
+      expect(compiled).toContain('<code>filepath.Join</code> calls <code>filepath.Clean</code>');
+      expect(compiled).toContain('<h2 id="attack-path-step-by-step">Attack Path Step-by-Step');
+      expect(compiled).toContain('<p>Step 1 prose after mermaid diagram.</p>');
+      expect(compiled).not.toContain('```mermaid');
+    });
   });
 });
+
+
+

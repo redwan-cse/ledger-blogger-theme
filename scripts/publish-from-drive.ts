@@ -469,21 +469,48 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       return ''; // NEVER EMIT EMPTY CODE BLOCKS
     }
 
+    // Strip accidental nested markdown fences inside code blocks (e.g. ```c or ```)
+    const cleanText = text
+      .replace(/^`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+      .replace(/^\s*`{3,}\s*$/gm, '')
+      .trim();
+
+    if (!cleanText || cleanText === '[ ]' || cleanText === '[]') {
+      return '';
+    }
+
     const rawLang = (lang || '').trim().toLowerCase();
 
     // Auto-detect Mermaid sequence diagrams, flowcharts, graphs, and state diagrams
-    const isMermaid = rawLang === 'mermaid' ||
+    const hasHeadings = /\n\s*##\s+/.test(cleanText);
+    const hasDiagramHeader = Boolean(getFirstDiagramHeader(cleanText));
+    const isMermaid = (rawLang === 'mermaid' ||
       rawLang === 'flowchart' ||
       rawLang === 'graph' ||
-      Boolean(getFirstDiagramHeader(text)) ||
-      text.includes('sequenceDiagram') ||
-      /\b(autonumber|participant)\b/i.test(text) ||
-      /\bactor\s+[\w\-]+/i.test(text) ||
-      (text.includes('-->') && (text.includes('[') || text.includes('(') || text.includes('{') || text.includes('|')));
+      hasDiagramHeader ||
+      cleanText.includes('sequenceDiagram') ||
+      /\b(autonumber|participant)\b/i.test(cleanText) ||
+      /\bactor\s+[\w\-]+/i.test(cleanText) ||
+      (cleanText.includes('-->') && (cleanText.includes('[') || cleanText.includes('(') || cleanText.includes('{') || cleanText.includes('|'))))
+      && !(hasHeadings && !hasDiagramHeader && !/\b(participant|autonumber|-->|==>)\b/.test(cleanText));
 
     if (isMermaid) {
-      let mermaidCode = decodeHtmlEntities(text.trim());
-      // Normalize arrows and quotes
+      let mermaidCode = decodeHtmlEntities(cleanText);
+
+      // Strip stray markdown code fences inside Mermaid blocks (e.g. ```mermaid or ```)
+      mermaidCode = mermaidCode
+        .replace(/^`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+        .replace(/^\s*`{3,}\s*$/gm, '');
+
+      // Deduplicate consecutive identical sequenceDiagram headers
+      mermaidCode = mermaidCode.replace(/^(sequenceDiagram\s*\n)+sequenceDiagram/gim, 'sequenceDiagram');
+
+      // If diagram swallowed markdown headings from an unclosed fence, truncate before heading
+      const headingIdx = mermaidCode.search(/\n\s*##\s+/);
+      if (headingIdx !== -1) {
+        mermaidCode = mermaidCode.slice(0, headingIdx).trim();
+      }
+      // Normalize arrows, quotes, and escaped <br> tags
       mermaidCode = mermaidCode
         .replace(/&lt;--&gt;/g, '<-->')
         .replace(/&lt;-->/g, '<-->')
@@ -497,7 +524,15 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
         .replace(/=&gt;/g, '=>')
         .replace(/&lt;(?=[-=\.])/g, '<')
         .replace(/([-=\.])&gt;/g, '$1>')
-        .replace(/&quot;/g, '"');
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;lt;br\/&amp;gt;/gi, '<br/>')
+        .replace(/&amp;lt;br&amp;gt;/gi, '<br/>')
+        .replace(/&amp;lt;br\/>/gi, '<br/>')
+        .replace(/&amp;lt;br>/gi, '<br/>')
+        .replace(/&lt;br\/&gt;/gi, '<br/>')
+        .replace(/&lt;br&gt;/gi, '<br/>')
+        .replace(/&lt;br\/>/gi, '<br/>')
+        .replace(/&lt;br>/gi, '<br/>');
 
       // Fix unquoted participant labels with '&'
       mermaidCode = mermaidCode.replace(
@@ -507,6 +542,29 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
 
       // Heal ASCII protocol ladder / handshake diagrams into sequenceDiagram
       mermaidCode = healAsciiHandshakeDiagram(mermaidCode);
+
+      // Heal duplicate diagram headers (e.g. sequenceDiagram followed by flowchart TD or sequenceDiagram)
+      const lines = mermaidCode.split('\n');
+      let firstHeaderIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = (lines[i] || '').trim();
+        if (!trimmed || trimmed.startsWith('%%')) continue;
+        if (trimmed.toLowerCase().startsWith('sequencediagram')) {
+          firstHeaderIdx = i;
+        }
+        break;
+      }
+      if (firstHeaderIdx !== -1) {
+        for (let j = firstHeaderIdx + 1; j < lines.length; j++) {
+          const trimmed = (lines[j] || '').trim();
+          if (!trimmed || trimmed.startsWith('%%')) continue;
+          if (getFirstDiagramHeader(trimmed)) {
+            lines.splice(firstHeaderIdx, 1);
+            mermaidCode = lines.join('\n');
+          }
+          break;
+        }
+      }
 
       // Heal bare bracket nodes without IDs in flowcharts/graphs
       mermaidCode = healBareBracketNodes(mermaidCode);
@@ -583,15 +641,15 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     // Auto-detect programming language if missing
     let displayLang = rawLang;
     if (!displayLang || displayLang === 'code' || displayLang === 'text') {
-      if (text.includes('$') || text.includes('Get-AD') || text.includes('param (') || text.includes('Write-Host')) {
+      if (cleanText.includes('$') || cleanText.includes('Get-AD') || cleanText.includes('param (') || cleanText.includes('Write-Host')) {
         displayLang = 'powershell';
-      } else if (text.includes('def ') || text.includes('import ') || text.includes('from collections')) {
+      } else if (cleanText.includes('def ') || cleanText.includes('import ') || cleanText.includes('from collections')) {
         displayLang = 'python';
-      } else if (text.includes('SELECT ') || text.includes('CREATE TABLE') || text.includes('ALTER TABLE') || text.includes('DO $$') || text.includes('SET LOCAL')) {
+      } else if (cleanText.includes('SELECT ') || cleanText.includes('CREATE TABLE') || cleanText.includes('ALTER TABLE') || cleanText.includes('DO $$') || cleanText.includes('SET LOCAL')) {
         displayLang = 'sql';
-      } else if (text.includes('title:') || text.includes('logsource:') || text.includes('detection:')) {
+      } else if (cleanText.includes('title:') || cleanText.includes('logsource:') || cleanText.includes('detection:')) {
         displayLang = 'yaml';
-      } else if (text.includes('curl ') || text.includes('chmod ') || text.includes('sudo ') || text.includes('#!/bin')) {
+      } else if (cleanText.includes('curl ') || cleanText.includes('chmod ') || cleanText.includes('sudo ') || cleanText.includes('#!/bin')) {
         displayLang = 'bash';
       } else {
         displayLang = 'plaintext';
@@ -606,23 +664,27 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copy</span>
     </button>
   </div>
-  <pre><code class="language-${displayLang}">${escapeHtml(text.trim())}</code></pre>
+  <pre><code class="language-${displayLang}">${escapeHtml(cleanText)}</code></pre>
 </div>\n`;
   };
 
-  renderer.heading = function({ text, depth }: { text: string; depth: number }) {
+  renderer.heading = function({ text, depth, tokens }: { text: string; depth: number; tokens?: any[] }) {
+    const renderedText =
+      tokens && (this as any)?.parser?.parseInline
+        ? (this as any).parser.parseInline(tokens)
+        : text.replace(/`([^`]+)`/g, '<code>$1</code>');
     if (depth === 2 || depth === 3) {
-      let plainText = text;
+      let plainText = renderedText;
       let prevText = '';
       do {
         prevText = plainText;
         plainText = plainText.replace(/<[^>]+>/g, '');
       } while (plainText !== prevText);
-      plainText = plainText.trim();
+      plainText = plainText.replace(/`/g, '').trim();
       const id = slugify(plainText);
-      return `<h${depth} id="${id}">${text}<a href="#${id}" class="heading-anchor" aria-label="Direct link to ${escapeHtml(plainText)}">#</a></h${depth}>\n`;
+      return `<h${depth} id="${id}">${renderedText}<a href="#${id}" class="heading-anchor" aria-label="Direct link to ${escapeHtml(plainText)}">#</a></h${depth}>\n`;
     }
-    return `<h${depth}>${text}</h${depth}>\n`;
+    return `<h${depth}>${renderedText}</h${depth}>\n`;
   };
 
   // Strip manual bylines if present in markdown
@@ -631,25 +693,30 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     .replace(/^Publication:.*$/gim, '')
     .replace(/^Date:.*$/gim, '')
     .replace(/^ORCID:.*$/gim, '')
-    .replace(/\\([*_`~[\]()#+\-.!])/g, '$1') // Unescape markdown backslashes
     .replace(/\r\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
+  // Convert any raw HTML <pre><code class="..."> blocks into standard markdown code fences
+  cleanedMarkdown = cleanedMarkdown.replace(/<pre[^>]*>\s*<code(?:\s+class=["'](?:language-)?([a-zA-Z0-9_-]+)["'])?[^>]*>([\s\S]*?)<\/code>\s*<\/pre>/gi, (_m, lang, code) => {
+    const inner = decodeHtmlEntities(code.trim())
+      .replace(/^\s*`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+      .trim();
+    return `\n\`\`\`${lang || 'plaintext'}\n${inner}\n\`\`\`\n`;
+  });
+
+  // Convert any raw HTML <pre class="mermaid"> blocks into standard ```mermaid fences
+  cleanedMarkdown = cleanedMarkdown.replace(/(?:<div[^>]*class=["'][^"']*mermaid-diagram-wrap[^"']*["'][^>]*>\s*)?<pre[^>]*class=["'][^"']*mermaid[^"']*["'][^>]*>([\s\S]*?)<\/pre>(?:\s*<\/div>)?/gi, (_m, code) => {
+    const inner = decodeHtmlEntities(code.trim())
+      .replace(/^\s*`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+      .trim();
+    return `\n\`\`\`mermaid\n${inner}\n\`\`\`\n`;
+  });
+
   // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
-  cleanedMarkdown = cleanedMarkdown.replace(/```[a-z0-9_-]*\s*```/gi, '');
+  cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)```[a-z0-9_-]*[ \t]*(?:\r?\n)[ \t]*```[ \t]*(?=\r?\n|$)/gi, '');
 
-  // 2. Clean Google Docs plain-text export quirks (apostrophes, backtick spaces, and punctuation)
-  cleanedMarkdown = cleanedMarkdown
-    .replace(/(\w)'''(\w)/g, "$1'$2")
-    .replace(/(\w)'''/g, "$1'")
-    .replace(/`\s+([a-zA-Z0-9_\-./]+)\s+`/g, '`$1`')
-    .replace(/`\s+([a-zA-Z0-9_\-./]+)`/g, '`$1`')
-    .replace(/`([a-zA-Z0-9_\-./]+)\s+`/g, '`$1`')
-    .replace(/`\s+([,.:;!?\)\]])/g, '`$1')
-    .replace(/([\(\[])\s+`/g, '$1`');
-
-  // 3. Fix glued code fences (Google Docs / AppScript export artifacts)
+  // 2. Fix glued code fences (Google Docs / AppScript export artifacts) before splitting by fences
   // A. Opening fence glued to preceding text or punctuation (e.g. plan.```mermaid or view:```sql or word```c)
   cleanedMarkdown = cleanedMarkdown.replace(/([^\n])\s*```+([a-zA-Z0-9_-]*)/g, '$1\n\n```$2');
 
@@ -663,39 +730,58 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
   cleanedMarkdown = cleanedMarkdown.replace(/```+([ \t]*[A-Z#\-\*][^\n\r`]+)/g, '```\n\n$1');
   cleanedMarkdown = cleanedMarkdown.replace(/```+([ \t]*[a-z]+[ \t]+[^\n\r`]+)/g, '```\n\n$1');
 
-  // 4. Ensure tables have blank line before the header row and after the last row
-  cleanedMarkdown = cleanedMarkdown.replace(/([^\n])\n(\s*\|[^\n]+\|\n\s*\|[\s:\-|]+\|)/g, '$1\n\n$2');
-  cleanedMarkdown = cleanedMarkdown.replace(/(\|[^\n]+\|)\n([^\n|# -<])/g, '$1\n\n$2');
+  // Helper to apply prose transformations strictly outside fenced code blocks
+  const transformOutsideCodeFences = (md: string, fn: (prose: string) => string): string => {
+    const parts = md.split(/(`{3,}[^\n]*\n[\s\S]*?\n[ \t]*`{3,}[ \t]*)/g);
+    return parts.map((part, idx) => (idx % 2 === 1 ? part : fn(part))).join('');
+  };
 
-  // 5. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences)
+  // 3. Clean prose-only quirks (backslash escapes, task-list checkboxes, tables)
+  cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
+    return prose
+      .replace(/\\([*_`~[\]()#+\-.!])/g, '$1') // Unescape markdown backslashes in prose only
+      .replace(/^(\s*[-*+]\s+)\[[ xX]\]\s+/gm, '$1') // Strip task list checkboxes so they don't render double bullets
+      .replace(/(\w)'''(\w)/g, "$1'$2")
+      .replace(/(\w)'''/g, "$1'")
+      .replace(/([^\n])\n(\s*\|[^\n]+\|\n\s*\|[\s:\-|]+\|)/g, '$1\n\n$2')
+      .replace(/(\|[^\n]+\|)\n([^\n|# -<])/g, '$1\n\n$2');
+  });
+
+  // 4. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences, and ONLY outside existing fences)
   const existingFences = (cleanedMarkdown.match(/```/g) || []).length;
-  const isWellFormedMarkdown = existingFences >= 4; // Already has 2+ fenced blocks
+  const isWellFormedMarkdown = existingFences >= 2; // Already has at least 1 fenced block
 
   if (!isWellFormedMarkdown) {
-    // A. Mermaid sequence diagrams & flowcharts
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(sequenceDiagram[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:flowchart|graph)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
+    cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
+      let out = prose;
+      // A. Mermaid sequence diagrams & flowcharts
+      out = out.replace(/(?:^|\n)(sequenceDiagram[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
+      out = out.replace(/(?:^|\n)((?:flowchart|graph)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
 
-    // B. C Structures (struct cred, etc.)
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(struct\s+\w+\s*\{[\s\S]*?\};)/g, '\n\n```c\n$1\n```\n\n');
+      // B. C Structures (struct cred, etc.)
+      out = out.replace(/(?:^|\n)(struct\s+\w+\s*\{[\s\S]*?\};)/g, '\n\n```c\n$1\n```\n\n');
 
-    // C. Bash runbooks and scripts (with shebang or shell comments)
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:#!.*bash|# Fast Cyber.*|set -euo pipefail)[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```bash\n$1\n```\n\n');
+      // C. Bash runbooks and scripts (with shebang or shell comments)
+      out = out.replace(/(?:^|\n)((?:#!.*bash|# Fast Cyber.*|set -euo pipefail)[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```bash\n$1\n```\n\n');
 
-    // D. Sigma Detection Rules (YAML)
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(title:\s*[\s\S]*?tags:[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+)|$)/g, '\n\n```yaml\n$1\n```\n\n');
+      // D. Sigma Detection Rules (YAML)
+      out = out.replace(/(?:^|\n)(title:\s*[\s\S]*?tags:[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+)|$)/g, '\n\n```yaml\n$1\n```\n\n');
 
-    // E. Python Monitoring Scripts
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)((?:#!.*python3?|import sys|import subprocess|import json|from typing import|class \w+Auditor)[\s\S]*?)(?=\n\n(?:\d+\.|\##|Fast Cyber Defense)|$)/g, '\n\n```python\n$1\n```\n\n');
+      // E. Python Monitoring Scripts
+      out = out.replace(/(?:^|\n)((?:#!.*python3?|import sys|import subprocess|import json|from typing import|class \w+Auditor)[\s\S]*?)(?=\n\n(?:\d+\.|\##|Fast Cyber Defense)|$)/g, '\n\n```python\n$1\n```\n\n');
 
-    // F. PowerShell Audit Modules
-    cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)(\[CmdletBinding\(\)\][\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```powershell\n$1\n```\n\n');
+      // F. PowerShell Audit Modules
+      out = out.replace(/(?:^|\n)(\[CmdletBinding\(\)\][\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```powershell\n$1\n```\n\n');
+      return out;
+    });
   }
 
-  // 6. Demote any accidental '# ' headings in body to '## ' (prevents shell comments from becoming H1)
-  cleanedMarkdown = cleanedMarkdown.replace(/^# (?!#)/gm, '## ');
+  // 5. Demote any accidental '# ' headings in prose body to '## ' (never touches # comments inside fenced code blocks)
+  cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
+    return prose.replace(/^# (?!#)/gm, '## ');
+  });
 
-  // 7. Safely merge consecutive code blocks of identical language separated only by whitespace
+  // 6. Safely merge consecutive code blocks of identical language separated only by whitespace
   for (let i = 0; i < 10; i++) {
     const before = cleanedMarkdown;
     cleanedMarkdown = cleanedMarkdown.replace(/```([a-z0-9_-]+)\n([\s\S]*?)\n```[ \t]*\n+[ \t]*```\1\n/gi, (match, lang, code) => {
@@ -723,10 +809,43 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     }
   }
 
+  // Strip any residual task-list checkbox inputs so list items never show double bullets
+  htmlBody = htmlBody.replace(/<input[^>]*type=["']checkbox["'][^>]*>\s*/gi, '');
+
   // Wrap all Markdown tables in responsive scrolling container (eliminates [object Object] bug)
   htmlBody = htmlBody.replace(/<table(?:\s[^>]*)?>[\s\S]*?<\/table>/gi, (match) => {
     return `\n<div class="table-container">\n${match}\n</div>\n`;
   });
+
+  // Escape unescaped C/C++ header includes inside code blocks
+  htmlBody = htmlBody.replace(/#include\s*<([^>\r\n]+)>/g, '#include &lt;$1&gt;');
+
+  // Upgrade any bare <pre><code class="language-..."> blocks that bypassed fenced parsing into .code-block-wrap
+  htmlBody = htmlBody.replace(
+    /(?<!<\/div>\s*)<pre><code(?:\s+class=["'](?:language-)?([a-zA-Z0-9_-]+)["'])?>([\s\S]*?)<\/code><\/pre>/gi,
+    (_m, lang, codeContent) => {
+      const displayLang = (lang || 'plaintext').trim().toLowerCase();
+      return `\n<div class="code-block-wrap">
+  <div class="code-block-header">
+    <span class="code-block-lang">${escapeHtml(displayLang.toUpperCase())}</span>
+    <button type="button" class="code-copy-btn" aria-label="Copy code to clipboard">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copy</span>
+    </button>
+  </div>
+  <pre><code class="language-${displayLang}">${codeContent.trim()}</code></pre>
+</div>\n`;
+    }
+  );
+
+  // Defensively flatten any accidental double-wrapped code blocks
+  for (let i = 0; i < 5; i++) {
+    const prev = htmlBody;
+    htmlBody = htmlBody.replace(
+      /<div class="code-block-wrap">\s*<div class="code-block-header">[\s\S]*?<\/div>\s*(<div class="code-block-wrap">[\s\S]*?<\/div>)\s*<\/div>/gi,
+      '$1'
+    );
+    if (prev === htmlBody) break;
+  }
 
   // Compact excessive whitespace inside <pre><code> blocks (preserve standard blank lines, cap 3+ consecutive newlines)
   htmlBody = htmlBody.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match) => {
@@ -781,18 +900,6 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     color: #1a7f37 !important;
     border-color: #1a7f37 !important;
   }
-  .code-block-wrap pre {
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    padding: 18px !important;
-    background: transparent !important;
-    color: #1f2328 !important;
-    overflow-x: auto !important;
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
-    font-size: 0.875rem !important;
-    line-height: 1.65 !important;
-  }
   .post-body pre {
     background-color: #f6f8fa !important;
     border: 1px solid #d0d7de !important;
@@ -804,6 +911,23 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     color: #1f2328 !important;
     margin: 20px 0 !important;
     overflow-x: auto !important;
+  }
+  .post-body .code-block-wrap pre,
+  .code-block-wrap pre {
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 18px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #1f2328 !important;
+    overflow-x: auto !important;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.65 !important;
+  }
+  .post-body li:has(> input[type='checkbox']) {
+    list-style: none !important;
   }
   .post-body pre code,
   [data-theme='dark'] .post-body pre code,
@@ -990,12 +1114,20 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     border-color: #58a6ff !important;
     color: #58a6ff !important;
   }
-  [data-theme='dark'] .code-block-wrap pre, html[data-theme='dark'] .code-block-wrap pre {
-    color: #e6edf3 !important;
-  }
   [data-theme='dark'] .post-body pre, html[data-theme='dark'] .post-body pre {
     background-color: #161b22 !important;
     border-color: #30363d !important;
+    color: #e6edf3 !important;
+  }
+  [data-theme='dark'] .post-body .code-block-wrap pre,
+  html[data-theme='dark'] .post-body .code-block-wrap pre,
+  [data-theme='dark'] .code-block-wrap pre,
+  html[data-theme='dark'] .code-block-wrap pre {
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: #e6edf3 !important;
   }
   [data-theme='dark'] .post-body code, html[data-theme='dark'] .post-body code {
@@ -1121,12 +1253,18 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       border-color: #30363d !important;
       color: #c9d1d9 !important;
     }
-    :root:not([data-theme='light']) .code-block-wrap pre {
-      color: #e6edf3 !important;
-    }
     :root:not([data-theme='light']) .post-body pre {
       background-color: #161b22 !important;
       border-color: #30363d !important;
+      color: #e6edf3 !important;
+    }
+    :root:not([data-theme='light']) .post-body .code-block-wrap pre,
+    :root:not([data-theme='light']) .code-block-wrap pre {
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
       color: #e6edf3 !important;
     }
     :root:not([data-theme='light']) .post-body code {

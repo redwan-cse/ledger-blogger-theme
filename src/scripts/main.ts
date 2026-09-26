@@ -638,7 +638,38 @@ export function initThemeToggle(): void {
 // Module 6: Code Block Copy & Terminal Header
 // ---------------------------------------------------------------------------
 
+/**
+ * Defensively cleans nested markdown code fences (e.g. ```c or ```) that were
+ * accidentally preserved inside <pre><code> blocks during markdown conversion.
+ */
+export function cleanCodeSnippetFences(): void {
+  const codeBlocks = document.querySelectorAll<HTMLElement>('.post-body pre code');
+  codeBlocks.forEach((code) => {
+    // Ignore Mermaid diagrams
+    if (code.closest('.mermaid') || code.closest('.mermaid-diagram-wrap')) return;
+    const raw = code.textContent || '';
+    if (raw.includes('```')) {
+      const cleaned = raw
+        .replace(/^`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+        .replace(/^\s*`{3,}\s*$/gm, '')
+        .trim();
+      code.textContent = cleaned;
+    }
+  });
+}
+
 export function initCodeBlockEnhancements(): void {
+  // 0a. Defensively flatten any accidental nested .code-block-wrap containers
+  document.querySelectorAll<HTMLElement>('.code-block-wrap .code-block-wrap').forEach((innerWrap) => {
+    const outerWrap = innerWrap.closest('.code-block-wrap');
+    if (outerWrap && outerWrap !== innerWrap) {
+      outerWrap.replaceWith(innerWrap);
+    }
+  });
+
+  // 0b. Clean stray fence artifacts from code snippets before initializing
+  cleanCodeSnippetFences();
+
   // 1. Header-based or existing copy buttons
   document.querySelectorAll<HTMLButtonElement>('.code-copy-btn').forEach((btn) => {
     if (btn.dataset['initialized']) return;
@@ -1929,6 +1960,7 @@ export function healDuplicateSequenceHeader(code: string): string {
     if (match && match[1]) {
       const token = match[1].toLowerCase();
       if (
+        token === 'sequencediagram' ||
         token === 'flowchart' ||
         token === 'graph' ||
         token.startsWith('classdiagram') ||
@@ -2104,6 +2136,11 @@ export function healBareBracketNodes(code: string): string {
 export function cleanMermaidSyntax(rawCode: string): string {
   let code = decodeHtmlEntities(rawCode.trim());
 
+  // Strip stray markdown code fences inside Mermaid blocks (e.g. ```mermaid, ````c, or ```)
+  code = code
+    .replace(/^`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+    .replace(/^\s*`{3,}\s*$/gm, '');
+
   // Fix lingering entity-encoded arrows and quotes
   code = code
     .replace(/&lt;--&gt;/g, '<-->')
@@ -2118,7 +2155,15 @@ export function cleanMermaidSyntax(rawCode: string): string {
     .replace(/=&gt;/g, '=>')
     .replace(/&lt;(?=[-=\.])/g, '<')
     .replace(/([-=\.])&gt;/g, '$1>')
-    .replace(/&quot;/g, '"');
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;lt;br\/&amp;gt;/gi, '<br/>')
+    .replace(/&amp;lt;br&amp;gt;/gi, '<br/>')
+    .replace(/&amp;lt;br\/>/gi, '<br/>')
+    .replace(/&amp;lt;br>/gi, '<br/>')
+    .replace(/&lt;br\/&gt;/gi, '<br/>')
+    .replace(/&lt;br&gt;/gi, '<br/>')
+    .replace(/&lt;br\/>/gi, '<br/>')
+    .replace(/&lt;br>/gi, '<br/>');
 
   // Fix unquoted participant labels containing '&' (e.g., participant Agent as LLM Agent & MCP Client)
   code = code.replace(
@@ -2129,8 +2174,18 @@ export function cleanMermaidSyntax(rawCode: string): string {
   // Heal ASCII handshake / ladder protocol diagrams into sequenceDiagram
   code = healAsciiHandshakeDiagram(code);
 
-  // Heal duplicate diagram headers (e.g. sequenceDiagram prepended erroneously to flowchart, graph, etc.)
+  // Heal duplicate diagram headers (e.g. sequenceDiagram prepended erroneously to flowchart, graph, or duplicate sequenceDiagram)
   code = healDuplicateSequenceHeader(code);
+
+  // Deduplicate consecutive identical diagram headers (e.g. sequenceDiagram\nsequenceDiagram)
+  code = code.replace(/^(sequenceDiagram\s*\n)+sequenceDiagram/gim, 'sequenceDiagram');
+
+  // If diagram contains markdown headings (## Heading) from an unclosed fence swallow,
+  // slice before the heading so preceding diagram code renders cleanly instead of crashing Mermaid parser
+  const headingIdx = code.search(/\n\s*##\s+/);
+  if (headingIdx !== -1) {
+    code = code.slice(0, headingIdx).trim();
+  }
 
   // Heal bare bracket nodes and lone pipes in flowcharts/graphs
   code = healBareBracketNodes(code);

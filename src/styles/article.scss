@@ -237,11 +237,12 @@
     }
 
     pre {
-      margin: 0;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      padding: $space-4 $space-5;
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: $space-4 $space-5 !important;
     }
   }
 
@@ -673,6 +674,10 @@
     li {
       margin-bottom: $space-1;
       line-height: 1.55;
+
+      &:has(> input[type="checkbox"]) {
+        list-style: none !important;
+      }
     }
   }
 
