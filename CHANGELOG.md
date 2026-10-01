@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-10-01
+
+### Added
+- **Pre-Compilation HTML Fence Normalizer**: Added automatic conversion of raw HTML `<pre class="mermaid">` and `<pre><code>` blocks into standard Markdown code fences prior to compilation, eliminating Auto-Fencer fence-closure hazards that previously caused CommonMark to swallow subsequent article sections.
+- **Protected Code Block Boundaries**: Implemented `transformOutsideCodeFences` in `scripts/publish-from-drive.ts` to strictly isolate Markdown prose transformations (backslash unescaping, heading demotion, task-list parsing, and table formatting) so code blocks and Mermaid definitions remain untouched.
+- **Task List Double-Bullet Suppression**: Implemented dual-layer task-list normalization by stripping Markdown checkbox markers (`- [ ]` / `- [x]`) and `<input type="checkbox">` elements during compilation, coupled with `li:has(> input[type="checkbox"]) { list-style: none !important; }` in `src/styles/article.scss` to guarantee single clean bullet points across all browser rendering engines.
+- **Heading Inline Code Support**: Enhanced `renderer.heading` in `publish-from-drive.ts` to parse inline code spans (`<code>...</code>`) while stripping backticks from clean anchor IDs and `aria-label` attributes.
+
+### Changed
+- **Single-Frame Code Window Architecture**: Reordered and scoped `.code-block-wrap pre` CSS rules across Light Mode, Dark Mode (`[data-theme='dark']`), and System Dark Mode (`@media (prefers-color-scheme: dark)`), enforcing `margin: 0 !important; border: none !important; border-radius: 0 !important; background: transparent !important;` to eliminate nested borders and double preview frames.
+- **Preserved Adjacent Inline Code Spacing**: Replaced aggressive backtick regexes with specification-compliant CommonMark inline code trimming, preventing accidental space collapse between consecutive inline `<code>` elements.
+- **Modernized Toolchain & Core Dependencies**:
+  - Upgraded test harness to `vitest` 5.0.1, `esbuild` 0.28.2, and `vite` 8.3.1.
+  - Upgraded Markdown parser to `marked` 18.0.14.
+  - Upgraded CSS compiler to `sass` 1.105.0.
+  - Upgraded runtime execution engine to `tsx` 4.23.15.
+  - Upgraded type definitions to `@types/node` 26.6.2.
+  - Upgraded property testing to `fast-check` 4.10.2.
+  - Upgraded auditing engine to `lighthouse` 13.5.0.
+- **Supply Chain Security**: Maintained 0 open CodeQL code scanning alerts, 0 Dependabot alerts, and 0 `npm audit` vulnerabilities.
+
+### Fixed
+- **Swallowed Article Sections Restored**: Repaired live Blogger posts where unclosed fences swallowed technical walkthroughs, restoring Steps 1–4, detection engineering rules, and technical reference appendices across all affected articles.
+- **Mermaid Sequence Diagram Syntax Healing**: Enhanced `cleanMermaidSyntax` to normalize entity-encoded linebreaks (`&lt;br>`, `&lt;br/>`, `&amp;lt;br>`), deduplicate consecutive `sequenceDiagram` declarations, and strip spurious sequence headers prepended to flowcharts.
+- **Blog-Wide Live Article Modernization**: Programmatically re-compiled and patched all 48 published articles on `https://blogs.redwan.work/` via Blogger API v3, resolving double bullets, repairing Mermaid diagrams, upgrading bare `<pre><code>` blocks to `.code-block-wrap`, and eliminating double-frame code boxes.
+
+---
+
 ## [1.6.0] - 2026-09-20
 
 ### Added
