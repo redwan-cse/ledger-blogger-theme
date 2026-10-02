@@ -2104,6 +2104,12 @@ export function healBareBracketNodes(code: string): string {
   // Strip lone pipe lines in flowcharts
   code = code.replace(/^\s*\|\s*$/gm, '');
 
+  // Heal parenthesized or bracketed arrow labels in flowcharts/graphs:
+  // e.g. ---(SMB NTLM Auth)---> or --(label)--> or -(label)-> or ===(label)===> or <---(label)--->
+  code = code.replace(/<[-=]+(?:\(([^)\n\r]+)\)|\[([^\]\n\r]+)\])[-=]*>/g, '<-->|"$1$2"|');
+  code = code.replace(/[-=]+(?:\(([^)\n\r]+)\)|\[([^\]\n\r]+)\])[-=]*>/g, '-->|"$1$2"|');
+  code = code.replace(/-\.-+(?:\(([^)\n\r]+)\)|\[([^\]\n\r]+)\])[-\.]*>/g, '-.->|"$1$2"|');
+
   let counter = 1;
   const labelToId = new Map<string, string>();
   const getIdForLabel = (label: string): string => {
@@ -2120,10 +2126,12 @@ export function healBareBracketNodes(code: string): string {
     return `${indent}${id}["${label.trim()}"]`;
   });
 
-  // Replace bare bracket after arrow: e.g. "--> [End Process]" -> "--> node_2["End Process"]"
-  code = code.replace(/((?:-->|---\s*|==>\s*|-\.->\s*))\s*\[([^\]\n\r]+)\]/g, (_m, arrow, label) => {
+  // Replace bare bracket after arrow (with or without label):
+  // e.g. "--> [End Process]" -> "--> node_2["End Process"]"
+  // or "-->|"label"| [End Process]" -> "-->|"label"| node_2["End Process"]"
+  code = code.replace(/((?:<-->|-->|==>|-\.->|---\s*)\s*(?:\|[^|\n\r]+\|\s*)?|--\s*(?:"[^"]*"|'[^']*'|[^-\n\r>]+)\s*-->\s*)\s*\[([^\]\n\r]+)\]/g, (_m, arrow, label) => {
     const id = getIdForLabel(label);
-    return `${arrow} ${id}["${label.trim()}"]`;
+    return `${arrow.trimEnd()} ${id}["${label.trim()}"]`;
   });
 
   return code;
@@ -2223,6 +2231,13 @@ export function cleanMermaidSyntax(rawCode: string): string {
   // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
   const isSequence = getFirstDiagramHeader(code) === 'sequencediagram';
   if (isSequence) {
+    // Collapse multiline strings within double quotes across newlines (e.g. write("payload\n"))
+    for (let i = 0; i < 5; i++) {
+      const prev = code;
+      code = code.replace(/("[^"\n\r]*)\r?\n([^"\n\r]*")/g, '$1\\n$2');
+      if (prev === code) break;
+    }
+
     code = code
       .split('\n')
       .map((line) => {

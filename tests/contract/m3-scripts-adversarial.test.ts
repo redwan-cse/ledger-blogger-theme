@@ -222,6 +222,30 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).not.toMatch(/^\s*\|\s*$/m);
     });
 
+    it('heals non-standard parenthesized arrow labels and subsequent bare bracket nodes in flowcharts', () => {
+      const input = `graph TD
+[Coerced DC01$]  ---(SMB NTLM Auth)--->  [Attacker Relay]  ---(HTTP NTLM Auth)--->  [AD CS Web Enrollment]`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('node_1["Coerced DC01$"]');
+      expect(cleaned).toContain('-->|"SMB NTLM Auth"|');
+      expect(cleaned).toContain('node_2["Attacker Relay"]');
+      expect(cleaned).toContain('-->|"HTTP NTLM Auth"|');
+      expect(cleaned).toContain('node_3["AD CS Web Enrollment"]');
+    });
+
+    it('collapses multiline double-quoted strings across newlines in sequence diagrams', () => {
+      const input = `sequenceDiagram
+    autonumber
+    Attacker->>Pipe: write("root::0:0:root:/root:/bin/sh
+")
+    Pipe->>PageCache: memcpy(buf->page + 1, payload)`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('Attacker->>Pipe: write("root::0:0:root:/root:/bin/sh\\n")');
+      expect(cleaned).not.toMatch(/write\("root[^\n\r]*\r?\n"\)/);
+    });
+
     it('compiles ASCII handshake ladder in markdown directly to sequenceDiagram', () => {
       const markdown = `\`\`\`mermaid
 [Attacker Client]

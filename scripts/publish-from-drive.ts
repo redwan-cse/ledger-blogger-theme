@@ -437,6 +437,12 @@ export function healBareBracketNodes(code: string): string {
 
   code = code.replace(/^\s*\|\s*$/gm, '');
 
+  // Heal parenthesized or bracketed arrow labels in flowcharts/graphs:
+  // e.g. ---(SMB NTLM Auth)---> or --(label)--> or -(label)-> or ===(label)===> or <---(label)--->
+  code = code.replace(/<[-=]+(?:\(([^)\n\r]+)\)|\[([^\]\n\r]+)\])[-=]*>/g, '<-->|"$1$2"|');
+  code = code.replace(/[-=]+(?:\(([^)\n\r]+)\)|\[([^\]\n\r]+)\])[-=]*>/g, '-->|"$1$2"|');
+  code = code.replace(/-\.-+(?:\(([^)\n\r]+)\)|\[([^\]\n\r]+)\])[-\.]*>/g, '-.->|"$1$2"|');
+
   let counter = 1;
   const labelToId = new Map<string, string>();
   const getIdForLabel = (label: string): string => {
@@ -452,9 +458,9 @@ export function healBareBracketNodes(code: string): string {
     return `${indent}${id}["${label.trim()}"]`;
   });
 
-  code = code.replace(/((?:-->|---\s*|==>\s*|-\.->\s*))\s*\[([^\]\n\r]+)\]/g, (_m, arrow, label) => {
+  code = code.replace(/((?:<-->|-->|==>|-\.->|---\s*)\s*(?:\|[^|\n\r]+\|\s*)?|--\s*(?:"[^"]*"|'[^']*'|[^-\n\r>]+)\s*-->\s*)\s*\[([^\]\n\r]+)\]/g, (_m, arrow, label) => {
     const id = getIdForLabel(label);
-    return `${arrow} ${id}["${label.trim()}"]`;
+    return `${arrow.trimEnd()} ${id}["${label.trim()}"]`;
   });
 
   return code;
@@ -614,6 +620,13 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       // Because Mermaid's sequence diagram lexer treats ';' as a statement terminator even inside double quotes!
       const isSequence = getFirstDiagramHeader(mermaidCode) === 'sequencediagram';
       if (isSequence) {
+        // Collapse multiline strings within double quotes across newlines (e.g. write("payload\n"))
+        for (let i = 0; i < 5; i++) {
+          const prev = mermaidCode;
+          mermaidCode = mermaidCode.replace(/("[^"\n\r]*)\r?\n([^"\n\r]*")/g, '$1\\n$2');
+          if (prev === mermaidCode) break;
+        }
+
         mermaidCode = mermaidCode
           .split('\n')
           .map((line) => {
