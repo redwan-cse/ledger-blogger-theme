@@ -246,6 +246,76 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).not.toMatch(/write\("root[^\n\r]*\r?\n"\)/);
     });
 
+    it('heals ASCII box comparison diagrams into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+       |                  THE CRYPTOGRAPHIC TRUST INVERSION                      |
+       +-------------------------------------------------------------------------+
+       |  Legitimate SAML:   Identity Validation  --->  Cryptographic Signing    |
+       |  Golden SAML:       Stolen Private Key   --->  Identity Fabrication    |
+       +-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "THE CRYPTOGRAPHIC TRUST INVERSION"');
+      expect(cleaned).toContain('c_1_a["Legitimate SAML:   Identity Validation"] --> c_1_b["Cryptographic Signing"]');
+      expect(cleaned).toContain('c_2_a["Golden SAML:       Stolen Private Key"] --> c_2_b["Identity Fabrication"]');
+    });
+
+    it('heals ASCII box lifecycle stage diagrams into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+       |                     GOLDEN SAML 5-STAGE LIFECYCLE                       |
+       +-------------------------------------------------------------------------+
+       |  [1. Discovery]   --> Enumerate Federation Settings & Token-Signing Cert|
+       |  [2. Extraction]  --> Harvest DKM Symmetric Key & Decrypt EncryptedPfx  |
+       |  [3. Claim Craft] --> Forge NameID (ImmutableID), Roles & MFA Claims    |
+       |  [4. XMLDSIG]     --> Canonicalize XML & Sign Assertion with Private Key|
+       |  [5. Ingestion]   --> HTTP POST to Cloud ACS & Harvest Cloud Session    |
+       +-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "GOLDEN SAML 5-STAGE LIFECYCLE"');
+      expect(cleaned).toContain('node_1["<b>1. Discovery</b><br/>Enumerate Federation Settings & Token-Signing Cert"]');
+      expect(cleaned).toContain('node_1 --> node_2');
+      expect(cleaned).toContain('node_4 --> node_5');
+    });
+
+    it('heals ASCII box vertical numbered pipeline diagrams into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+       |                     XMLDSIG COMPUTATION PIPELINE                        |
+       +-------------------------------------------------------------------------+
+       |  1. Raw Assertion XML (without Signature block)                        |
+       |                            |                                            |
+       |                            v                                            |
+       |  2. Apply Exclusive XML Canonicalization (C14N: whitespace/namespaces)  |
+       |                            |                                            |
+       |                            v                                            |
+       |  3. Compute SHA-256 Digest of Canonicalized XML ---> DigestValue       |
+       +-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "XMLDSIG COMPUTATION PIPELINE"');
+      expect(cleaned).toContain('step_1["1. Raw Assertion XML (without Signature block)"]');
+      expect(cleaned).toContain('step_1 --> step_2');
+      expect(cleaned).toContain('step_2 --> step_3');
+    });
+
+    it('discriminates XML code blocks with HTML comments and brackets from Mermaid diagrams', () => {
+      const xmlMarkdown = `\`\`\`
+<saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" ID="_123">
+  <!-- Enveloped XML Digital Signature -->
+  <ds:SignatureValue>A7f9...[RSA-SHA256 Encrypted Hash]...==</ds:SignatureValue>
+</saml2:Assertion>
+\`\`\``;
+
+      const compiled = compileMarkdownToHtml(xmlMarkdown);
+      expect(compiled).not.toContain('class="mermaid-diagram-wrap"');
+      expect(compiled).toContain('class="code-block-wrap"');
+      expect(compiled).toContain('<span class="code-block-lang">XML</span>');
+      expect(compiled).toContain('&lt;saml2:Assertion');
+    });
+
     it('compiles ASCII handshake ladder in markdown directly to sequenceDiagram', () => {
       const markdown = `\`\`\`mermaid
 [Attacker Client]

@@ -2094,6 +2094,133 @@ export function healAsciiHandshakeDiagram(rawCode: string): string {
 }
 
 /**
+ * Heals ASCII box diagrams (e.g. bordered with +---+ and |) into valid Mermaid flowcharts.
+ * Handles vertical numbered pipelines, staged lifecycles, and comparison/inversion diagrams.
+ */
+export function healAsciiBoxDiagram(code: string): string {
+  const isBox = /^\s*\+[-=+]+\+\s*$/m.test(code) && /^\s*\|/m.test(code);
+  if (!isBox) return code;
+
+  const lines = code.split(/\r?\n/);
+  let title = '';
+  const contentLines: string[] = [];
+  let inHeader = false;
+  let borderCount = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i] || '';
+    const trimmed = rawLine.trim();
+    if (/^\+[-=+]+\+$/.test(trimmed)) {
+      borderCount++;
+      if (borderCount === 1) {
+        inHeader = true;
+      } else if (borderCount === 2) {
+        inHeader = false;
+      }
+      continue;
+    }
+
+    const boxMatch = trimmed.match(/^\|\s*(.*?)\s*\|$/);
+    if (!boxMatch || !boxMatch[1]) continue;
+    const text = boxMatch[1].trim();
+    if (!text) continue;
+
+    if (inHeader && !title) {
+      title = text;
+    } else {
+      contentLines.push(text);
+    }
+  }
+
+  // Type 1: Vertical numbered pipeline (1. ... | v 2. ... | v 3. ...)
+  const isVerticalPipeline =
+    contentLines.some((l) => /^\d+\.\s+/.test(l)) &&
+    contentLines.some((l) => /^[|vV]$/.test(l));
+  if (isVerticalPipeline) {
+    const steps: string[] = [];
+    for (const l of contentLines) {
+      if (/^[|vV]$/.test(l)) continue;
+      const stepMatch = l.match(/^(\d+\.\s+.*)$/);
+      if (stepMatch && stepMatch[1]) {
+        steps.push(stepMatch[1]);
+      }
+    }
+
+    if (steps.length >= 2) {
+      const out: string[] = ['graph TD'];
+      const cleanTitle = (title || 'PIPELINE').replace(/"/g, "'");
+      out.push(`    subgraph "${cleanTitle}"`);
+      out.push('        direction TB');
+      for (let i = 0; i < steps.length; i++) {
+        const stepText = (steps[i] || '')
+          .replace(/"/g, "'")
+          .replace(/<([^>]+)>/g, '&lt;$1&gt;')
+          .replace(/[-=]+>/g, ' ➔ ');
+        out.push(`        step_${i + 1}["${stepText}"]`);
+      }
+      for (let i = 0; i < steps.length - 1; i++) {
+        out.push(`        step_${i + 1} --> step_${i + 2}`);
+      }
+      out.push('    end');
+      return out.join('\n');
+    }
+  }
+
+  // Type 2: Staged flow with bracketed stages or colons (e.g. [1. Discovery] --> Details)
+  const isStageList = contentLines.every(
+    (l) => /(?:\[[^\]]+\]|[\w\s\.\d]+:)\s*[-=]+>\s*.+/.test(l) || !l
+  );
+  if (isStageList && contentLines.length >= 2) {
+    const out: string[] = ['graph TD'];
+    const cleanTitle = (title || 'WORKFLOW').replace(/"/g, "'");
+    out.push(`    subgraph "${cleanTitle}"`);
+    out.push('        direction TB');
+    const nodeIds: string[] = [];
+
+    contentLines.forEach((l, idx) => {
+      const arrowMatch = l.match(/^(?:\[([^\]]+)\]|([^:]+):)\s*[-=]+>\s*(.+)$/);
+      if (arrowMatch) {
+        const stage = (arrowMatch[1] || arrowMatch[2] || `Stage ${idx + 1}`).trim().replace(/"/g, "'");
+        const desc = (arrowMatch[3] || '').trim().replace(/"/g, "'");
+        const id = `node_${idx + 1}`;
+        nodeIds.push(id);
+        out.push(`        ${id}["<b>${stage}</b><br/>${desc}"]`);
+      }
+    });
+
+    for (let i = 0; i < nodeIds.length - 1; i++) {
+      out.push(`        ${nodeIds[i]} --> ${nodeIds[i + 1]}`);
+    }
+    out.push('    end');
+    return out.join('\n');
+  }
+
+  // Type 3: Comparison / Inversion flow (Legitimate SAML: ... ---> ..., Golden SAML: ... ---> ...)
+  const isComparison = contentLines.some((l) => /:\s*.*[-=]+>/i.test(l));
+  if (isComparison) {
+    const out: string[] = ['graph TD'];
+    const cleanTitle = (title || 'COMPARISON').replace(/"/g, "'");
+    out.push(`    subgraph "${cleanTitle}"`);
+    out.push('        direction TB');
+
+    contentLines.forEach((l, idx) => {
+      const parts = l.split(/[-=]+>/);
+      if (parts.length === 2 && parts[0] !== undefined && parts[1] !== undefined) {
+        const left = parts[0].trim().replace(/"/g, "'");
+        const right = parts[1].trim().replace(/"/g, "'");
+        const idL = `c_${idx + 1}_a`;
+        const idR = `c_${idx + 1}_b`;
+        out.push(`        ${idL}["${left}"] --> ${idR}["${right}"]`);
+      }
+    });
+    out.push('    end');
+    return out.join('\n');
+  }
+
+  return code;
+}
+
+/**
  * Heals bare bracket nodes without IDs in flowcharts/graphs and strips stray vertical pipe spacer lines.
  * e.g. [Start Process] --> [End Process] => node_1["Start Process"] --> node_2["End Process"]
  */
@@ -2178,6 +2305,9 @@ export function cleanMermaidSyntax(rawCode: string): string {
     /^(participant\s+[\w\-]+\s+as\s+)([^"\n\r]+&[^"\n\r]+)$/gm,
     (_m, prefix, label) => `${prefix}"${label.trim()}"`
   );
+
+  // Heal ASCII box diagrams (+----+ and |) into flowchart
+  code = healAsciiBoxDiagram(code);
 
   // Heal ASCII handshake / ladder protocol diagrams into sequenceDiagram
   code = healAsciiHandshakeDiagram(code);
@@ -2380,6 +2510,25 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       const datasetText = wrap.dataset['mermaidCode']?.trim() || '';
       let code = preText.length >= datasetText.length ? preText : datasetText;
       if (!code) return;
+
+      // Demote accidental XML/HTML snippet wrappers to code-block-wrap
+      const isXmlSnippet = /^\s*(?:(?:graph|flowchart)\s+[A-Za-z0-9_-]+\s*\n)?\s*<(?:\?xml|[a-zA-Z0-9_\-:]+[\s>]|!DOCTYPE)/i.test(code);
+      if (isXmlSnippet) {
+        const cleanXml = code.replace(/^\s*(?:graph|flowchart)\s+[A-Za-z0-9_-]+\s*\n/i, '').trim();
+        const codeBlock = document.createElement('div');
+        codeBlock.className = 'code-block-wrap';
+        codeBlock.innerHTML = `
+  <div class="code-block-header">
+    <span class="code-block-lang">XML</span>
+    <button type="button" class="code-copy-btn" aria-label="Copy code to clipboard">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copy</span>
+    </button>
+  </div>
+  <pre><code class="language-xml"></code></pre>`;
+        codeBlock.querySelector('code')!.textContent = cleanXml;
+        wrap.replaceWith(codeBlock);
+        return;
+      }
 
       const cleanCode = cleanMermaidSyntax(code);
       wrap.dataset['mermaidCode'] = cleanCode;
