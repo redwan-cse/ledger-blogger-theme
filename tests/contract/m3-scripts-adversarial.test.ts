@@ -385,7 +385,7 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).toContain('subgraph "GATEWAY PROCESS EXECUTION TRACE"');
       expect(cleaned).toContain('proc_parent["PID 1240: python3 -m litellm --config /etc/litellm/config.yaml"]');
       expect(cleaned).toContain('proc_child["PID 1582: python3 -c \'import socket,subprocess,os;...\'"]');
-      expect(cleaned).toContain('proc_parent -->|Fork &amp; Execute Subprocess| proc_child');
+      expect(cleaned).toContain('proc_parent -->|"Fork &amp; Execute Subprocess"| proc_child');
     });
 
     it('heals ASCII box nested sub-boxes with transition connectors into valid Mermaid flowcharts', () => {
@@ -421,8 +421,8 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).toContain('graph TD');
       expect(cleaned).toContain('subgraph "AD FS DISTRIBUTED KEY MANAGEMENT (DKM) CHAIN"');
       expect(cleaned).toContain('stage_1["<b>Active Directory DIT (Domain Controllers)</b><br/>Container: CN=ADFS,CN=Microsoft,CN=Program Data,DC=domain,DC=...<br/>Attribute: thumbnailPhoto (Stores DKM Master Symmetric Key)"]');
-      expect(cleaned).toContain('stage_1 -->|Protected by Domain DPAPI| stage_2');
-      expect(cleaned).toContain('stage_2 -->|Decrypted via DkmHelper.Unprotect()| stage_3');
+      expect(cleaned).toContain('stage_1 -->|"Protected by Domain DPAPI"| stage_2');
+      expect(cleaned).toContain('stage_2 -->|"Decrypted via DkmHelper.Unprotect()"| stage_3');
     });
 
     it('heals ASCII box key-value architectural overview cards into valid Mermaid flowcharts', () => {

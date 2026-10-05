@@ -553,7 +553,9 @@ export function healAsciiBoxDiagram(code: string): string {
       });
 
       for (let i = 0; i < stages.length - 1; i++) {
-        const trans = transitions[i] ? `|${sanitize(transitions[i]!)}|` : '';
+        const trans = transitions[i]
+          ? `|"${sanitize(transitions[i]!).replace(/"/g, "'")}"|`
+          : '';
         out.push(`        ${nodeIds[i]} -->${trans} ${nodeIds[i + 1]}`);
       }
       out.push('    end');
@@ -873,6 +875,11 @@ export function healBareBracketNodes(code: string): string {
   code = code.replace(/((?:<-->|-->|==>|-\.->|---\s*)\s*(?:\|[^|\n\r]+\|\s*)?|--\s*(?:"[^"]*"|'[^']*'|[^-\n\r>]+)\s*-->\s*)\s*\[([^\]\n\r]+)\]/g, (_m, arrow, label) => {
     const id = getIdForLabel(label);
     return `${arrow.trimEnd()} ${id}["${label.trim()}"]`;
+  });
+
+  // Ensure unquoted pipe edge labels are quoted so parentheses/brackets inside them do not break Mermaid
+  code = code.replace(/((?:<-->|<==>|-->|==>|-\.->|---\s*)\s*)\|([^"|\n\r]+)\|/g, (_m, arrow, label) => {
+    return `${arrow}|"${label.trim().replace(/"/g, "'")}"|`;
   });
 
   return code;
