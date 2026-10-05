@@ -486,6 +486,82 @@ export function healAsciiBoxDiagram(code: string): string {
   };
 
   // ---------------------------------------------------------------------------
+  // Priority 0: Nested Sub-Boxes with Transition Connectors
+  // ---------------------------------------------------------------------------
+  const hasInnerBoxes = rawContentLines.some(l => /\+[-=+]+\+/.test(l));
+  if (hasInnerBoxes) {
+    const stages: string[][] = [];
+    const transitions: string[] = [];
+    let currentBoxLines: string[] = [];
+    let inInnerBox = false;
+    let currentTransitionLines: string[] = [];
+
+    for (const rawLine of rawContentLines) {
+      const trimmed = rawLine.trim();
+
+      // Check for inner box border
+      if (/\+[-=+]+\+/.test(trimmed)) {
+        if (!inInnerBox) {
+          // Opening an inner box
+          inInnerBox = true;
+          currentBoxLines = [];
+          if (stages.length > 0) {
+            transitions.push(currentTransitionLines.join(' ').trim());
+            currentTransitionLines = [];
+          }
+        } else {
+          // Closing an inner box
+          inInnerBox = false;
+          if (currentBoxLines.length > 0) {
+            stages.push([...currentBoxLines]);
+            currentBoxLines = [];
+          }
+        }
+        continue;
+      }
+
+      if (inInnerBox) {
+        // Content inside the inner box: strip outer box pipes and inner box pipes
+        const innerMatch = trimmed.match(/^\|?\s*\|(.*)\|\s*\|?$/) || trimmed.match(/^\|(.*)\|$/);
+        const text = innerMatch ? innerMatch[1]?.trim() : trimmed.replace(/^\|+|\|+$/g, '').trim();
+        if (text && !/^\+[-=+]+\+$/.test(text)) {
+          currentBoxLines.push(text);
+        }
+      } else {
+        // Transition between boxes: e.g. "Protected by Domain DPAPI" or "|" or "v"
+        const clean = trimmed.replace(/^\|+|\|+$/g, '').trim();
+        if (clean && !/^[vV|]+$/.test(clean)) {
+          currentTransitionLines.push(clean);
+        }
+      }
+    }
+
+    if (stages.length >= 2) {
+      const out: string[] = ['graph TD'];
+      const cleanTitle = (title || 'ARCHITECTURE FLOW').replace(/"/g, "'");
+      out.push(`    subgraph "${cleanTitle}"`);
+      out.push('        direction TB');
+
+      const nodeIds: string[] = [];
+      stages.forEach((stage, idx) => {
+        const header = sanitize(stage[0] || `Stage ${idx + 1}`);
+        const details = stage.slice(1).map(sanitize).join('<br/>');
+        const label = details ? `<b>${header}</b><br/>${details}` : header;
+        const id = `stage_${idx + 1}`;
+        nodeIds.push(id);
+        out.push(`        ${id}["${label}"]`);
+      });
+
+      for (let i = 0; i < stages.length - 1; i++) {
+        const trans = transitions[i] ? `|${sanitize(transitions[i]!)}|` : '';
+        out.push(`        ${nodeIds[i]} -->${trans} ${nodeIds[i + 1]}`);
+      }
+      out.push('    end');
+      return out.join('\n');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Priority 1: Process Execution Tree (PID 1240 ... | +---> PID 1582 ...)
   // ---------------------------------------------------------------------------
   const hasProcessFork = rawContentLines.some(l => /\+[-=]+>\s*PID/i.test(l) || /\|\s*\+[-=]+>/i.test(l));
@@ -619,7 +695,36 @@ export function healAsciiBoxDiagram(code: string): string {
   }
 
   // ---------------------------------------------------------------------------
-  // Priority 5: Horizontal Pipeline (Col 1 ---> Col 2 ---> Col 3)
+  // Priority 5: Key-Value / Architectural Overview Card (Attack Vector: ...)
+  // ---------------------------------------------------------------------------
+  const isKeyValueList =
+    contentLines.length >= 2 &&
+    contentLines.every((l) => /^[^:]+:\s*.+$/.test(l) && !/[-=]+>/.test(l));
+  if (isKeyValueList) {
+    const out: string[] = ['graph TD'];
+    const cleanTitle = (title || 'OVERVIEW').replace(/"/g, "'");
+    out.push(`    subgraph "${cleanTitle}"`);
+    out.push('        direction TB');
+
+    const nodeIds: string[] = [];
+    contentLines.forEach((l, idx) => {
+      const colonIdx = l.indexOf(':');
+      const key = sanitize(l.slice(0, colonIdx).trim());
+      const val = sanitize(l.slice(colonIdx + 1).trim());
+      const id = `item_${idx + 1}`;
+      nodeIds.push(id);
+      out.push(`        ${id}["<b>${key}</b><br/>${val}"]`);
+    });
+
+    for (let i = 0; i < nodeIds.length - 1; i++) {
+      out.push(`        ${nodeIds[i]} --> ${nodeIds[i + 1]}`);
+    }
+    out.push('    end');
+    return out.join('\n');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Priority 6: Horizontal Pipeline (Col 1 ---> Col 2 ---> Col 3)
   // ---------------------------------------------------------------------------
   const firstLine = rawContentLines[0] || '';
   const arrowRegex = /[-=]{2,}>/g;
@@ -685,7 +790,7 @@ export function healAsciiBoxDiagram(code: string): string {
   }
 
   // ---------------------------------------------------------------------------
-  // Priority 6: Vertical Pipeline with connectors (| and v/V)
+  // Priority 7: Vertical Pipeline with connectors (| and v/V)
   // ---------------------------------------------------------------------------
   const hasVerticalConnectors = rawContentLines.some(l => /^\s*[vV]\s*$/.test(l));
   if (hasVerticalConnectors) {

@@ -388,6 +388,62 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).toContain('proc_parent -->|Fork &amp; Execute Subprocess| proc_child');
     });
 
+    it('heals ASCII box nested sub-boxes with transition connectors into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+|             AD FS DISTRIBUTED KEY MANAGEMENT (DKM) CHAIN                |
++-------------------------------------------------------------------------+
+|                                                                         |
+|   +-----------------------------------------------------------------+   |
+|   | Active Directory DIT (Domain Controllers)                       |   |
+|   | Container: CN=ADFS,CN=Microsoft,CN=Program Data,DC=domain,DC=... |   |
+|   | Attribute: thumbnailPhoto (Stores DKM Master Symmetric Key)     |   |
+|   +---------------------------------+-------------------------------+   |
+|                                     |                                   |
+|                      Protected by Domain DPAPI                          |
+|                                     |                                   |
+|                                     v                                   |
+|   +-----------------------------------------------------------------+   |
+|   | AD FS Database (WID / SQL Server)                               |   |
+|   | Table: IdentityServerPolicy.ServiceSettings                     |   |
+|   | XML Column: SecurityTokenService -> <EncryptedPfx>              |   |
+|   +---------------------------------+-------------------------------+   |
+|                                     |                                   |
+|                      Decrypted via DkmHelper.Unprotect()                |
+|                                     |                                   |
+|                                     v                                   |
+|   +-----------------------------------------------------------------+   |
+|   | In-Memory Private Key (RSA 2048-bit Private Signing Key)       |   |
+|   | Used by Microsoft.IdentityServer.Service to mint SAML tokens    |   |
+|   +-----------------------------------------------------------------+   |
++-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "AD FS DISTRIBUTED KEY MANAGEMENT (DKM) CHAIN"');
+      expect(cleaned).toContain('stage_1["<b>Active Directory DIT (Domain Controllers)</b><br/>Container: CN=ADFS,CN=Microsoft,CN=Program Data,DC=domain,DC=...<br/>Attribute: thumbnailPhoto (Stores DKM Master Symmetric Key)"]');
+      expect(cleaned).toContain('stage_1 -->|Protected by Domain DPAPI| stage_2');
+      expect(cleaned).toContain('stage_2 -->|Decrypted via DkmHelper.Unprotect()| stage_3');
+    });
+
+    it('heals ASCII box key-value architectural overview cards into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+|                  THE GOLDEN SAML DEFENSIVE DILEMMA                      |
++-------------------------------------------------------------------------+
+|  Attack Vector:       Offline Cryptographic SAML Token Forgery          |
+|  On-Premise Visibility: ZERO (No DC Kerberos traffic, No AD FS logs)    |
+|  Cloud Visibility:    VALID Sign-In (Signature matches trusted cert)   |
+|  Defensive Trap:      Standard password resets DO NOT stop the attack   |
++-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "THE GOLDEN SAML DEFENSIVE DILEMMA"');
+      expect(cleaned).toContain('item_1["<b>Attack Vector</b><br/>Offline Cryptographic SAML Token Forgery"]');
+      expect(cleaned).toContain('item_1 --> item_2');
+      expect(cleaned).toContain('item_2 --> item_3');
+      expect(cleaned).toContain('item_3 --> item_4');
+    });
+
     it('discriminates XML code blocks with HTML comments and brackets from Mermaid diagrams', () => {
       const xmlMarkdown = `\`\`\`
 <saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" ID="_123">
