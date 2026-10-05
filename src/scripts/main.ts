@@ -102,6 +102,56 @@ export function initReadingProgress(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Module 1b: Floating Action Button (Back to Top)
+// ---------------------------------------------------------------------------
+
+/**
+ * Initializes the floating action button (Back to Top).
+ * Shows button when viewport scrolls past 350px.
+ * Smoothly scrolls to top on click while respecting prefers-reduced-motion.
+ */
+export function initBackToTop(): void {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+
+  let ticking = false;
+  const threshold = 350;
+
+  function update(): void {
+    const doc = document.documentElement;
+    const scrollTop = window.scrollY || doc.scrollTop || 0;
+    if (scrollTop > threshold) {
+      btn!.classList.add('is-visible');
+    } else {
+      btn!.classList.remove('is-visible');
+    }
+  }
+
+  function onScrollOrResize(): void {
+    if (!ticking) {
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        update();
+        ticking = false;
+      });
+    }
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+  });
+
+  update();
+  window.addEventListener('scroll', onScrollOrResize, { passive: true });
+  window.addEventListener('resize', onScrollOrResize, { passive: true });
+}
+
+// ---------------------------------------------------------------------------
 // Module 2: Mobile Navigation Drawer
 // ---------------------------------------------------------------------------
 
@@ -1463,6 +1513,7 @@ function init(): void {
     initShareCopy();
     initBloggerFollowPopup();
     initCommentInteractions();
+    initBackToTop();
   }, 0);
 
   // Secondary phase: search, iframes, keyboard listeners

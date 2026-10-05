@@ -2645,3 +2645,105 @@ pre {
     margin: 0;
   }
 }
+
+// Floating Action Button (Back to Top)
+// ---------------------------------------------------------------------------
+
+.back-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: $z-fab;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  background-color: $glass-bg;
+  backdrop-filter: $glass-blur;
+  -webkit-backdrop-filter: $glass-blur;
+  border: 1px solid $rule;
+  color: $ink;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 4px 14px oklch(14.479% 0 0 / 0.08);
+  opacity: 0;
+  transform: translateY(12px) scale(0.9);
+  pointer-events: none;
+  transition: opacity $motion-base $ease-out-quart, transform $motion-base $ease-spring, background-color $motion-fast $ease-out-quart, border-color $motion-fast $ease-out-quart, color $motion-fast $ease-out-quart, box-shadow $motion-fast $ease-out-quart;
+
+  @media (max-width: 1023px) {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    min-height: 46px;
+    bottom: 24px;
+    right: 24px;
+  }
+
+  @media (max-width: 639px) {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+  }
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  &:hover {
+    background-color: $page;
+    border-color: $accent;
+    color: $accent;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 20px oklch(14.479% 0 0 / 0.12);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent;
+    outline-offset: 2px;
+  }
+
+  .back-to-top-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform $motion-fast $ease-out-quart;
+  }
+
+  &:hover .back-to-top-icon {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: opacity $motion-fast linear;
+    transform: none !important;
+
+    &:hover {
+      transform: none !important;
+    }
+
+    &:active {
+      transform: none !important;
+    }
+
+    .back-to-top-icon {
+      transition: none;
+      transform: none !important;
+    }
+  }
+}
+

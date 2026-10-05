@@ -107,7 +107,7 @@
 
 .toast-container {
   position: fixed;
-  bottom: $space-5;
+  bottom: 84px;
   right: $space-5;
   z-index: $z-toast;
   display: flex;
@@ -116,7 +116,7 @@
   pointer-events: none;
 
   @media (max-width: 639px) {
-    bottom: $space-4;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
     left: $space-4;
     right: $space-4;
     align-items: center;

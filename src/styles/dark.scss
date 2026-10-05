@@ -467,6 +467,24 @@ html[data-theme='dark'] {
     }
   }
 
+  .back-to-top {
+    background-color: oklch(22.749% 0.0288 266.273 / 0.88);
+    border-color: oklch(27.950% 0.0368 260.031);
+    color: oklch(98.415% 0.0034 247.858);
+    box-shadow: 0 4px 20px oklch(0% 0 0 / 0.4);
+
+    &:hover {
+      background-color: oklch(27.950% 0.0368 260.031);
+      border-color: oklch(62.308% 0.1880 259.815);
+      color: oklch(69.234% 0.1502 259.735);
+      box-shadow: 0 8px 24px oklch(0% 0 0 / 0.5);
+    }
+
+    &:focus-visible {
+      outline-color: oklch(62.308% 0.1880 259.815);
+    }
+  }
+
   .header-brand:hover .site-title,
   .header-brand:hover .site-tagline {
     color: oklch(75% 0.15 259.735);

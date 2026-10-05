@@ -32,7 +32,8 @@ html&attributes(rootAttributes)
       body#layout .mobile-nav-drawer,
       body#layout .search-modal,
       body#layout .search-results-dropdown,
-      body#layout .toast-container {
+      body#layout .toast-container,
+      body#layout .back-to-top {
         display: none;
       }
       body#layout .header-outer,
@@ -221,6 +222,10 @@ html&attributes(rootAttributes)
             span GitHub
           a.drawer-social-btn(href='https://linkedin.com/in/redwancse' target='_blank' rel='noopener noreferrer' aria-label='LinkedIn')
             span LinkedIn
+    button#back-to-top.back-to-top(aria-label='Back to top' title='Back to top' type='button')
+      svg.back-to-top-icon(aria-hidden='true' fill='none' height='20' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' viewBox='0 0 24 24' width='20')
+        line(x1='12' x2='12' y1='19' y2='5')
+        polyline(points='5 12 12 5 19 12')
     div#toast-container.toast-container(aria-live='polite')
     if script
       script.

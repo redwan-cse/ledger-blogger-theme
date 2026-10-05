@@ -49,6 +49,11 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(scriptSource).toContain('copy-link');
       expect(scriptSource).toContain('Link copied to clipboard!');
 
+      // Module 1b: Floating Action Button (Back to Top)
+      expect(scriptSource).toContain('initBackToTop');
+      expect(scriptSource).toContain('back-to-top');
+      expect(scriptSource).toContain('is-visible');
+
       // Module 13: Blogger Follow Centered Popup
       expect(scriptSource).toContain('initBloggerFollowPopup');
       expect(scriptSource).toContain('BloggerFollowPrompt');
@@ -82,6 +87,12 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(themePug).toContain('.drawer-search-wrap');
       expect(themePug).toContain('.search-results-dropdown');
 
+      // Back to top floating action button hooks
+      expect(themePug).toContain('#back-to-top');
+      expect(themePug).toContain('.back-to-top');
+      expect(themePug).toContain('.back-to-top-icon');
+      expect(scriptSource).toContain('back-to-top');
+
       // Share button & toast container hooks
       expect(postPug).toContain('data-action=\'copy-link\'');
       expect(themePug).toContain('#toast-container');
@@ -90,6 +101,23 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(themePug).toContain('followers/follow');
       expect(postPug).toContain('followers/follow');
       expect(scriptSource).toContain('followers/follow');
+    });
+
+    it('verifies back-to-top floating action button contract in generated theme', async () => {
+      const themeXml = await readFile(path.join(ROOT, 'dist/theme.xml'), 'utf8');
+
+      // Button markup with accessible label and inline SVG
+      expect(themeXml).toContain('id="back-to-top"');
+      expect(themeXml).toContain('class="back-to-top"');
+      expect(themeXml).toContain('aria-label="Back to top"');
+      expect(themeXml).toContain('title="Back to top"');
+      expect(themeXml).toContain('back-to-top-icon');
+
+      // Layout suppression in Blogger GUI
+      expect(themeXml).toContain('body#layout .back-to-top');
+
+      // Preserves existing footer text link for full fallback redundancy
+      expect(themeXml).toContain('footer-back-to-top');
     });
   });
 
