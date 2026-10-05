@@ -2154,7 +2154,7 @@ export function healAsciiBoxDiagram(code: string): string {
 
   const lines = code.split(/\r?\n/);
   let title = '';
-  const contentLines: string[] = [];
+  const rawContentLines: string[] = [];
   let inHeader = false;
   let borderCount = 0;
 
@@ -2171,19 +2171,80 @@ export function healAsciiBoxDiagram(code: string): string {
       continue;
     }
 
-    const boxMatch = trimmed.match(/^\|\s*(.*?)\s*\|$/);
-    if (!boxMatch || !boxMatch[1]) continue;
-    const text = boxMatch[1].trim();
-    if (!text) continue;
+    // Capture text inside box without trimming leading/trailing whitespace
+    const boxMatch = trimmed.match(/^\|(.*)\|$/);
+    if (!boxMatch || boxMatch[1] === undefined) continue;
+    const text = boxMatch[1];
 
     if (inHeader && !title) {
-      title = text;
+      if (text.trim()) title = text.trim();
     } else {
-      contentLines.push(text);
+      rawContentLines.push(text);
     }
   }
 
-  // Type 1: Vertical numbered pipeline (1. ... | v 2. ... | v 3. ...)
+  // Filter out leading/trailing whitespace lines
+  while (rawContentLines.length > 0 && !rawContentLines[0]?.trim()) {
+    rawContentLines.shift();
+  }
+  while (rawContentLines.length > 0 && !rawContentLines[rawContentLines.length - 1]?.trim()) {
+    rawContentLines.pop();
+  }
+
+  if (rawContentLines.length === 0) return code;
+
+  // Escape helper for Mermaid labels
+  const sanitize = (s: string): string => {
+    return s
+      .replace(/"/g, "'")
+      .replace(/<([^>]+)>/g, '&lt;$1&gt;')
+      .replace(/[-=]+>/g, ' ➔ ');
+  };
+
+  // ---------------------------------------------------------------------------
+  // Priority 1: Process Execution Tree (PID 1240 ... | +---> PID 1582 ...)
+  // ---------------------------------------------------------------------------
+  const hasProcessFork = rawContentLines.some(l => /\+[-=]+>\s*PID/i.test(l) || /\|\s*\+[-=]+>/i.test(l));
+  if (hasProcessFork) {
+    const parentLines: string[] = [];
+    const childLines: string[] = [];
+    let seenFork = false;
+
+    for (const l of rawContentLines) {
+      const trimmed = l.trim();
+      if (!trimmed || trimmed === '|') continue;
+      if (/\+[-=]+>/.test(trimmed)) {
+        seenFork = true;
+        childLines.push(trimmed.replace(/^\+[-=]+>\s*/, ''));
+      } else if (seenFork) {
+        childLines.push(trimmed);
+      } else {
+        parentLines.push(trimmed);
+      }
+    }
+
+    if (parentLines.length > 0 && childLines.length > 0) {
+      const out: string[] = ['graph TD'];
+      const cleanTitle = (title || 'PROCESS EXECUTION TRACE').replace(/"/g, "'");
+      out.push(`    subgraph "${cleanTitle}"`);
+      out.push('        direction TB');
+
+      const parentText = parentLines.map(sanitize).join('<br/>');
+      const childText = childLines.map(sanitize).join('<br/>');
+
+      out.push(`        proc_parent["${parentText}"]`);
+      out.push(`        proc_child["${childText}"]`);
+      out.push('        proc_parent -->|Fork &amp; Execute Subprocess| proc_child');
+      out.push('    end');
+      return out.join('\n');
+    }
+  }
+
+  const contentLines = rawContentLines.map(l => l.trim()).filter(Boolean);
+
+  // ---------------------------------------------------------------------------
+  // Priority 2: Vertical Numbered Pipeline (1. ... | v 2. ...)
+  // ---------------------------------------------------------------------------
   const isVerticalPipeline =
     contentLines.some((l) => /^\d+\.\s+/.test(l)) &&
     contentLines.some((l) => /^[|vV]$/.test(l));
@@ -2203,10 +2264,7 @@ export function healAsciiBoxDiagram(code: string): string {
       out.push(`    subgraph "${cleanTitle}"`);
       out.push('        direction TB');
       for (let i = 0; i < steps.length; i++) {
-        const stepText = (steps[i] || '')
-          .replace(/"/g, "'")
-          .replace(/<([^>]+)>/g, '&lt;$1&gt;')
-          .replace(/[-=]+>/g, ' ➔ ');
+        const stepText = sanitize(steps[i] || '');
         out.push(`        step_${i + 1}["${stepText}"]`);
       }
       for (let i = 0; i < steps.length - 1; i++) {
@@ -2217,11 +2275,15 @@ export function healAsciiBoxDiagram(code: string): string {
     }
   }
 
-  // Type 2: Staged flow with bracketed stages or colons (e.g. [1. Discovery] --> Details)
-  const isStageList = contentLines.every(
-    (l) => /(?:\[[^\]]+\]|[\w\s\.\d]+:)\s*[-=]+>\s*.+/.test(l) || !l
-  );
-  if (isStageList && contentLines.length >= 2) {
+  // ---------------------------------------------------------------------------
+  // Priority 3: Staged flow with bracketed stages or colons ([1. Discovery] --> ...)
+  // ---------------------------------------------------------------------------
+  const isStageList =
+    contentLines.length >= 2 &&
+    contentLines.every(
+      (l) => /(?:\[[^\]]+\]|[\w\s\.\d]+:)\s*[-=]+>\s*.+/.test(l) || !l
+    );
+  if (isStageList) {
     const out: string[] = ['graph TD'];
     const cleanTitle = (title || 'WORKFLOW').replace(/"/g, "'");
     out.push(`    subgraph "${cleanTitle}"`);
@@ -2231,8 +2293,8 @@ export function healAsciiBoxDiagram(code: string): string {
     contentLines.forEach((l, idx) => {
       const arrowMatch = l.match(/^(?:\[([^\]]+)\]|([^:]+):)\s*[-=]+>\s*(.+)$/);
       if (arrowMatch) {
-        const stage = (arrowMatch[1] || arrowMatch[2] || `Stage ${idx + 1}`).trim().replace(/"/g, "'");
-        const desc = (arrowMatch[3] || '').trim().replace(/"/g, "'");
+        const stage = sanitize(arrowMatch[1] || arrowMatch[2] || `Stage ${idx + 1}`);
+        const desc = sanitize(arrowMatch[3] || '');
         const id = `node_${idx + 1}`;
         nodeIds.push(id);
         out.push(`        ${id}["<b>${stage}</b><br/>${desc}"]`);
@@ -2246,8 +2308,12 @@ export function healAsciiBoxDiagram(code: string): string {
     return out.join('\n');
   }
 
-  // Type 3: Comparison / Inversion flow (Legitimate SAML: ... ---> ..., Golden SAML: ... ---> ...)
-  const isComparison = contentLines.some((l) => /:\s*.*[-=]+>/i.test(l));
+  // ---------------------------------------------------------------------------
+  // Priority 4: Comparison / Inversion flow (Legitimate SAML: ... ---> ...)
+  // ---------------------------------------------------------------------------
+  const isComparison =
+    contentLines.length >= 2 &&
+    contentLines.every((l) => /:\s*.*[-=]+>/i.test(l) || !l);
   if (isComparison) {
     const out: string[] = ['graph TD'];
     const cleanTitle = (title || 'COMPARISON').replace(/"/g, "'");
@@ -2257,15 +2323,129 @@ export function healAsciiBoxDiagram(code: string): string {
     contentLines.forEach((l, idx) => {
       const parts = l.split(/[-=]+>/);
       if (parts.length === 2 && parts[0] !== undefined && parts[1] !== undefined) {
-        const left = parts[0].trim().replace(/"/g, "'");
-        const right = parts[1].trim().replace(/"/g, "'");
+        const left = parts[0].trim();
+        const right = parts[1].trim();
         const idL = `c_${idx + 1}_a`;
         const idR = `c_${idx + 1}_b`;
-        out.push(`        ${idL}["${left}"] --> ${idR}["${right}"]`);
+        out.push(`        ${idL}["${sanitize(left)}"] --> ${idR}["${sanitize(right)}"]`);
       }
     });
     out.push('    end');
     return out.join('\n');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Priority 5: Horizontal Pipeline (Col 1 ---> Col 2 ---> Col 3)
+  // ---------------------------------------------------------------------------
+  const firstLine = rawContentLines[0] || '';
+  const arrowRegex = /[-=]{2,}>/g;
+  const arrowMatches: { start: number; end: number }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = arrowRegex.exec(firstLine)) !== null) {
+    arrowMatches.push({ start: m.index, end: m.index + m[0].length });
+  }
+
+  if (arrowMatches.length >= 1 && arrowMatches[0] !== undefined) {
+    // Determine column intervals based on arrow endpoints
+    const colIntervals: { start: number; end: number }[] = [];
+    colIntervals.push({ start: 0, end: arrowMatches[0].end });
+
+    for (let k = 0; k < arrowMatches.length - 1; k++) {
+      const curr = arrowMatches[k];
+      const next = arrowMatches[k + 1];
+      if (curr && next) {
+        colIntervals.push({ start: curr.end, end: next.end });
+      }
+    }
+    const lastArrow = arrowMatches[arrowMatches.length - 1];
+    if (lastArrow) {
+      colIntervals.push({ start: lastArrow.end, end: 9999 });
+    }
+
+    const columns: string[][] = colIntervals.map(() => []);
+
+    for (const l of rawContentLines) {
+      if (/^\s*[|vV\s]+\s*$/.test(l)) continue;
+      colIntervals.forEach((interval, colIdx) => {
+        const chunk = l.slice(interval.start, interval.end).trim();
+        const cleanChunk = chunk.replace(/[-=]{2,}>/g, '').trim();
+        if (cleanChunk && columns[colIdx]) {
+          columns[colIdx].push(cleanChunk);
+        }
+      });
+    }
+
+    const validCols = columns.filter(col => col.length > 0);
+    if (validCols.length >= 2) {
+      const out: string[] = ['graph LR'];
+      const cleanTitle = (title || 'SYSTEM PIPELINE').replace(/"/g, "'");
+      out.push(`    subgraph "${cleanTitle}"`);
+      out.push('        direction LR');
+
+      const nodeIds: string[] = [];
+      validCols.forEach((col, idx) => {
+        const header = sanitize(col[0] || `Node ${idx + 1}`);
+        const details = col.slice(1).map(sanitize).join('<br/>');
+        const label = details ? `<b>${header}</b><br/>${details}` : header;
+        const id = `node_${idx + 1}`;
+        nodeIds.push(id);
+        out.push(`        ${id}["${label}"]`);
+      });
+
+      for (let i = 0; i < nodeIds.length - 1; i++) {
+        out.push(`        ${nodeIds[i]} --> ${nodeIds[i + 1]}`);
+      }
+      out.push('    end');
+      return out.join('\n');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Priority 6: Vertical Pipeline with connectors (| and v/V)
+  // ---------------------------------------------------------------------------
+  const hasVerticalConnectors = rawContentLines.some(l => /^\s*[vV]\s*$/.test(l));
+  if (hasVerticalConnectors) {
+    const stages: string[][] = [];
+    let currentStage: string[] = [];
+
+    for (const l of rawContentLines) {
+      const trimmed = l.trim();
+      if (/^[|vV\s]+$/.test(trimmed) && /[vV]/.test(trimmed)) {
+        if (currentStage.length > 0) {
+          stages.push([...currentStage]);
+          currentStage = [];
+        }
+        continue;
+      }
+      if (trimmed === '|' || !trimmed) continue;
+      currentStage.push(trimmed);
+    }
+    if (currentStage.length > 0) {
+      stages.push([...currentStage]);
+    }
+
+    if (stages.length >= 2) {
+      const out: string[] = ['graph TD'];
+      const cleanTitle = (title || 'EXECUTION CHAIN').replace(/"/g, "'");
+      out.push(`    subgraph "${cleanTitle}"`);
+      out.push('        direction TB');
+
+      const stageIds: string[] = [];
+      stages.forEach((stage, idx) => {
+        const header = sanitize(stage[0] || `Stage ${idx + 1}`);
+        const details = stage.slice(1).map(sanitize).join('<br/>');
+        const label = details ? `<b>${header}</b><br/>${details}` : header;
+        const id = `stage_${idx + 1}`;
+        stageIds.push(id);
+        out.push(`        ${id}["${label}"]`);
+      });
+
+      for (let i = 0; i < stageIds.length - 1; i++) {
+        out.push(`        ${stageIds[i]} --> ${stageIds[i + 1]}`);
+      }
+      out.push('    end');
+      return out.join('\n');
+    }
   }
 
   return code;
@@ -2582,6 +2762,26 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       }
 
       const cleanCode = cleanMermaidSyntax(code);
+
+      // Demote unhealed ASCII box diagrams to code-block-wrap instead of crashing Mermaid
+      const hasUnhealedAsciiBox = /(?:^|\n)\s*\+[-=+]+\+\s*(?:\n|$)/.test(cleanCode);
+      if (hasUnhealedAsciiBox) {
+        const rawAscii = cleanCode.replace(/^\s*(?:graph|flowchart)\s+[A-Za-z0-9_-]+\s*\n/i, '').trim();
+        const codeBlock = document.createElement('div');
+        codeBlock.className = 'code-block-wrap';
+        codeBlock.innerHTML = `
+  <div class="code-block-header">
+    <span class="code-block-lang">ASCII</span>
+    <button type="button" class="code-copy-btn" aria-label="Copy code to clipboard">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg><span>Copy</span>
+    </button>
+  </div>
+  <pre><code class="language-plaintext"></code></pre>`;
+        codeBlock.querySelector('code')!.textContent = rawAscii;
+        wrap.replaceWith(codeBlock);
+        return;
+      }
+
       wrap.dataset['mermaidCode'] = cleanCode;
 
       // Cleanly prepare wrap structure with an inner scrolling stage:

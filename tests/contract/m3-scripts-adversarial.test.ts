@@ -329,6 +329,65 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).toContain('step_2 --> step_3');
     });
 
+    it('heals ASCII box horizontal multi-column pipeline diagrams into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+|               THE ENTERPRISE AI GATEWAY CONTROL PLANE                   |
++-------------------------------------------------------------------------+
+|  Internal Apps / Agents  --->  LiteLLM AI Gateway  --->  Upstream LLMs  |
+|  (Employees, Chatbots)         * Master API Keys         (OpenAI, Bedrock|
+|                                * System Prompts & RAG     Anthropic, etc)|
+|                                * MCP Tool Endpoints                     |
++-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph LR');
+      expect(cleaned).toContain('subgraph "THE ENTERPRISE AI GATEWAY CONTROL PLANE"');
+      expect(cleaned).toContain('node_1["<b>Internal Apps / Agents</b><br/>(Employees, Chatbots)"]');
+      expect(cleaned).toContain('node_1 --> node_2');
+      expect(cleaned).toContain('node_2 --> node_3');
+    });
+
+    it('heals ASCII box unnumbered vertical execution chain diagrams into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+|              STARLETTE "BADHOST" MIDDLEWARE BYPASS CHAIN                |
++-------------------------------------------------------------------------+
+|  Attacker HTTP Request                                                  |
+|  Host: badhost:8000, X-Forwarded-Host: evil.internal                    |
+|                            |                                            |
+|                            v                                            |
+|  Starlette ASGI Engine                                                  |
+|  Evaluates: request.headers.get("host") == "badhost:8000"               |
+|                            |                                            |
+|                            v                                            |
+|  FastAPI Engine (LiteLLM Gateway Core)                                  |
+|  Evaluates: request.url.hostname == "evil.internal"                     |
++-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "STARLETTE \'BADHOST\' MIDDLEWARE BYPASS CHAIN"');
+      expect(cleaned).toContain('stage_1["<b>Attacker HTTP Request</b><br/>Host: badhost:8000, X-Forwarded-Host: evil.internal"]');
+      expect(cleaned).toContain('stage_1 --> stage_2');
+      expect(cleaned).toContain('stage_2 --> stage_3');
+    });
+
+    it('heals ASCII box process execution tree diagrams into valid Mermaid flowcharts', () => {
+      const input = `+-------------------------------------------------------------------------+
+|                     GATEWAY PROCESS EXECUTION TRACE                     |
++-------------------------------------------------------------------------+
+|  PID 1240: python3 -m litellm --config /etc/litellm/config.yaml         |
+|    |                                                                    |
+|    +---> PID 1582: python3 -c "import socket,subprocess,os;..."         |
++-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "GATEWAY PROCESS EXECUTION TRACE"');
+      expect(cleaned).toContain('proc_parent["PID 1240: python3 -m litellm --config /etc/litellm/config.yaml"]');
+      expect(cleaned).toContain('proc_child["PID 1582: python3 -c \'import socket,subprocess,os;...\'"]');
+      expect(cleaned).toContain('proc_parent -->|Fork &amp; Execute Subprocess| proc_child');
+    });
+
     it('discriminates XML code blocks with HTML comments and brackets from Mermaid diagrams', () => {
       const xmlMarkdown = `\`\`\`
 <saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" ID="_123">
