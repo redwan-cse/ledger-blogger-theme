@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+399bda4a030cccba1ea7ccf2b245065900e86ee5" name="theme-build"/>
+    <meta content="0.0.0+f3647ef7e80fad2c86d65b595923541eb5f8e0ee" name="theme-build"/>
     <meta name="color-scheme" content="dark light"/>
     <link rel="alternate" type="application/rss+xml" expr:title="data:blog.title.escaped" expr:href="data:blog.canonicalHomepageUrl path &quot;feeds/posts/default&quot;"/>
     <link rel="me" href="https://redwan.work"/>
@@ -554,7 +554,15 @@
               "@id": "<data:view.url.canonical.jsonEscaped/>"
             },
             "headline": "<data:view.title.jsonEscaped/>",
-            "description": "<b:eval expr='snippet(data:post.snippets.long ?: (data:view.description ?: data:view.title), {length: 250, links: false, linebreaks: false, ellipsis: true}).jsonEscaped'/>",
+            <b:if cond='data:post.snippets.short'>
+            "description": "<data:post.snippets.short.jsonEscaped/>",
+            </b:if>
+            <b:if cond='not data:post.snippets.short and data:view.description'>
+            "description": "<data:view.description.jsonEscaped/>",
+            </b:if>
+            <b:if cond='not data:post.snippets.short and not data:view.description'>
+            "description": "<data:view.title.jsonEscaped/>",
+            </b:if>
             "datePublished": "<data:post.date.iso8601.jsonEscaped/>"
             <b:if cond='data:post.lastUpdated'>
             , "dateModified": "<data:post.lastUpdated.iso8601.jsonEscaped/>"
