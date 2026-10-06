@@ -3534,7 +3534,7 @@ export function initImageLightbox(): void {
       const target = e.target as HTMLElement;
       if (!target) return;
 
-      if (target === dialog || target.closest('[data-action="close-lightbox"]')) {
+      if (target.closest('[data-action="close-lightbox"]')) {
         closeLightbox();
         return;
       }
@@ -3546,7 +3546,14 @@ export function initImageLightbox(): void {
         toggleZoom();
         return;
       }
-      if (target === img || target.closest('.image-lightbox-img-wrap')) {
+
+      // Preserve clicks on header controls and footer
+      if (target.closest('.image-lightbox-header') || target.closest('.image-lightbox-footer')) {
+        return;
+      }
+
+      // Clicking directly on the image toggles zoom (unless dragging to pan)
+      if (target === img) {
         if (dragDistance > 6) {
           dragDistance = 0;
           return;
@@ -3554,6 +3561,13 @@ export function initImageLightbox(): void {
         toggleZoom();
         return;
       }
+
+      // Clicking anywhere outside the image (background, stage, backdrop, padding) closes the lightbox
+      if (dragDistance > 6) {
+        dragDistance = 0;
+        return;
+      }
+      closeLightbox();
     });
 
     dialog.addEventListener('cancel', (e) => {
