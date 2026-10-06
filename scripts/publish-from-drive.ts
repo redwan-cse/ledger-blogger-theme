@@ -926,7 +926,12 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     const asciiHealedToMermaid = hasAsciiBox && healedAscii !== cleanText && Boolean(getFirstDiagramHeader(healedAscii));
 
     // Strip HTML comments before detecting flowchart arrows so <!-- ... --> doesn't trigger Mermaid
-    const textWithoutHtmlComments = cleanText.replace(/<!--[\s\S]*?-->/g, '');
+    let textWithoutHtmlComments = cleanText;
+    let prevComments = '';
+    while (prevComments !== textWithoutHtmlComments) {
+      prevComments = textWithoutHtmlComments;
+      textWithoutHtmlComments = textWithoutHtmlComments.replace(/<!--[\s\S]*?-->/g, '');
+    }
     const hasFlowchartArrow = !hasAsciiBox && textWithoutHtmlComments.includes('-->') && (
       textWithoutHtmlComments.includes('[') ||
       textWithoutHtmlComments.includes('(') ||

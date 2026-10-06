@@ -3457,8 +3457,13 @@ export function initImageLightbox(): void {
     lastFocusedElement = triggerEl || (document.activeElement as HTMLElement);
 
     let highResSrc = rawSrc;
-    if (rawSrc.includes('.googleusercontent.com/')) {
-      highResSrc = rawSrc.replace(/=[swh]\d+[^/]*$/, '=s2560').replace(/\/s\d+(-c)?\//, '/s2560/');
+    try {
+      const parsedUrl = new URL(rawSrc, window.location.href);
+      if (parsedUrl.hostname === 'googleusercontent.com' || parsedUrl.hostname.endsWith('.googleusercontent.com')) {
+        highResSrc = rawSrc.replace(/=[swh]\d+[^/]*$/, '=s2560').replace(/\/s\d+(-c)?\//, '/s2560/');
+      }
+    } catch {
+      // Keep original src if URL parsing fails
     }
 
     img.src = highResSrc;
@@ -3652,10 +3657,18 @@ export function initImageLightbox(): void {
       const parentLink = cImg.closest('a');
       if (parentLink) {
         const href = parentLink.getAttribute('href') || '';
-        const isImgLink =
-          /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(href) ||
-          href.includes('googleusercontent.com') ||
-          href.includes('cdn.jsdelivr.net');
+        let isImgLink = /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(href);
+        if (!isImgLink && href) {
+          try {
+            const parsed = new URL(href, window.location.href);
+            const host = parsed.hostname;
+            if (host === 'googleusercontent.com' || host.endsWith('.googleusercontent.com') || host === 'cdn.jsdelivr.net') {
+              isImgLink = true;
+            }
+          } catch {
+            // Ignore URL parsing errors
+          }
+        }
         if (isImgLink) {
           e.preventDefault();
           openLightbox(href || cImg.currentSrc || cImg.src, imgAlt, cImg);
