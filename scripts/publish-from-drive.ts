@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import { submitUrlsToSearchEngines } from './lib/search-engine-indexer.js';
+import { syncPostToGitHubBacklinkRepos } from './lib/github-research-syncer.js';
 
 interface ServiceAccountKey {
   client_email: string;
@@ -2467,6 +2468,22 @@ async function main() {
         });
       } catch (e: any) {
         console.warn(`Search engine submission warning: ${e.message}`);
+      }
+    }
+
+    // 4. Synchronize GitHub Backlink Repositories (Profile README & cybersecurity-research)
+    if (post?.url) {
+      try {
+        const ghToken = process.env.BLOG_ASSETS_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
+        await syncPostToGitHubBacklinkRepos({
+          title: cleanTitle,
+          url: post.url,
+          category: label,
+          date: todayStr,
+          token: ghToken
+        });
+      } catch (e: any) {
+        console.warn(`GitHub research sync warning: ${e.message}`);
       }
     }
   }
