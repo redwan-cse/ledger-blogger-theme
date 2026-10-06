@@ -8,7 +8,7 @@
  *   npx tsx scripts/submit-urls.ts --dry-run --all
  */
 
-import { submitUrlsToSearchEngines, normalizeUrls, submitSitemapsToBing } from './lib/search-engine-indexer.js';
+import { submitUrlsToSearchEngines, normalizeUrls, submitSitemapsToBing, generateIndexNowKey } from './lib/search-engine-indexer.js';
 
 interface FeedEntry {
   link?: Array<{
@@ -68,6 +68,26 @@ async function fetchAllLiveUrls(siteUrl: string): Promise<string[]> {
 async function main() {
   const args = process.argv.slice(2);
 
+  if (args.includes('--generate-key')) {
+    const generated = generateIndexNowKey();
+    console.log(`\n======================================================`);
+    console.log(`🔑 Generated IndexNow Key: ${generated}`);
+    console.log(`======================================================\n`);
+    console.log(`Verification File Details:`);
+    console.log(`  File Name:    ${generated}.txt`);
+    console.log(`  File Content: ${generated}\n`);
+    console.log(`GitHub Repository / Environment Secrets:`);
+    console.log(`  1. INDEXNOW_KEY = ${generated}`);
+    console.log(`  2. INDEXNOW_KEY_LOCATION (optional):`);
+    console.log(`     - If hosted on https://redwan.work/${generated}.txt, set:`);
+    console.log(`       INDEXNOW_KEY_LOCATION = https://redwan.work/${generated}.txt`);
+    console.log(`     - If hosted on https://blogs.redwan.work/${generated}.txt (via Cloudflare), omit or leave empty.\n`);
+    console.log(`Direct Bing Webmaster Alternative (Zero-File Requirement):`);
+    console.log(`  Bing Webmaster Tools -> Settings -> API Access -> API Key`);
+    console.log(`  Set secret: BING_WEBMASTER_API_KEY = <your-api-key>\n`);
+    process.exit(0);
+  }
+
   const dryRun = args.includes('--dry-run');
   const submitAll = args.includes('--all');
   const submitSitemaps = args.includes('--sitemaps');
@@ -117,11 +137,13 @@ Usage:
   npx tsx scripts/submit-urls.ts <url1> [url2] ...
   npx tsx scripts/submit-urls.ts --all
   npx tsx scripts/submit-urls.ts --sitemaps
+  npx tsx scripts/submit-urls.ts --generate-key
   npx tsx scripts/submit-urls.ts --dry-run --all
 
 Flags:
   --all                 Submit all published blog posts found on the live site
   --sitemaps            Submit XML sitemaps to Bing Webmaster Tools
+  --generate-key        Generate a new 32-character IndexNow key and instructions
   --dry-run             Preview URLs without submitting to search engines
   --bing-key=<key>      Bing Webmaster API Key (or env BING_WEBMASTER_API_KEY)
   --indexnow-key=<key>  IndexNow Key (or env INDEXNOW_KEY)

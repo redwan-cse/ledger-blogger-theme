@@ -3,12 +3,27 @@ import {
   normalizeUrls,
   submitToBingWebmaster,
   submitToIndexNow,
-  submitUrlsToSearchEngines
+  submitUrlsToSearchEngines,
+  generateIndexNowKey
 } from '../../scripts/lib/search-engine-indexer.js';
 
 describe('search-engine-indexer', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('generateIndexNowKey', () => {
+    it('generates a 32-character hexadecimal key', () => {
+      const key = generateIndexNowKey();
+      expect(key).toHaveLength(32);
+      expect(key).toMatch(/^[a-f0-9]{32}$/);
+    });
+
+    it('generates unique keys across consecutive invocations', () => {
+      const key1 = generateIndexNowKey();
+      const key2 = generateIndexNowKey();
+      expect(key1).not.toBe(key2);
+    });
   });
 
   describe('normalizeUrls', () => {

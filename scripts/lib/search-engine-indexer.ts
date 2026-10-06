@@ -1,3 +1,5 @@
+import * as crypto from 'node:crypto';
+
 export interface SubmitUrlsOptions {
   urls: string[];
   bingApiKey?: string | undefined;
@@ -16,6 +18,13 @@ export interface SubmissionResult {
 }
 
 const DEFAULT_SITE_URL = 'https://blogs.redwan.work/';
+
+/**
+ * Generates a cryptographically secure 32-character hexadecimal IndexNow key.
+ */
+export function generateIndexNowKey(): string {
+  return crypto.randomBytes(16).toString('hex');
+}
 
 /**
  * Normalizes, validates and deduplicates an array of URLs.
