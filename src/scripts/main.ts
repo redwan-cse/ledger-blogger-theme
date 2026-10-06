@@ -1483,6 +1483,7 @@ function init(): void {
     initPostHeroImage();
     initDateTimeLocalization();
     initCommentInteractions();
+    initImageLightbox();
   } else {
     hydrateCardThumbnails();
     initDateTimeLocalization();
@@ -1536,6 +1537,7 @@ function init(): void {
       initArticleAudioReader();
       initMermaidDiagrams();
       enrichArticleImagesAlt();
+      initImageLightbox();
     } else {
       initHomepageCatalog();
     }
@@ -3306,6 +3308,268 @@ export function enrichArticleImagesAlt(): void {
     } else {
       img.alt = `${articleTitle} - Figure ${figIndex++}`;
     }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Module 14b: Article Image Lightbox & Zoom Preview
+// ---------------------------------------------------------------------------
+
+/**
+ * Initializes the accessible lightbox modal for single blog image preview & zoom.
+ * Allows readers to click thumbnail/hero diagrams or article images to inspect full-res details
+ * and smoothly close with Esc, click outside, or close button to continue reading.
+ */
+export function initImageLightbox(): void {
+  if (typeof document === 'undefined') return;
+
+  let dialog = document.getElementById('image-lightbox') as HTMLDialogElement | null;
+  if (!dialog) {
+    dialog = document.createElement('dialog');
+    dialog.id = 'image-lightbox';
+    dialog.className = 'image-lightbox';
+    dialog.setAttribute('aria-label', 'Image preview');
+    dialog.setAttribute('closedby', 'any');
+    dialog.innerHTML = `
+      <div class="image-lightbox-backdrop" data-action="close-lightbox" aria-hidden="true"></div>
+      <div class="image-lightbox-wrapper" role="document">
+        <div class="image-lightbox-header">
+          <div class="image-lightbox-title" id="lightbox-title">Image Preview</div>
+          <div class="image-lightbox-controls">
+            <a class="image-lightbox-btn image-lightbox-btn-newtab" href="#" target="_blank" rel="noopener noreferrer" aria-label="Open original image in new tab" title="Open original in new tab">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              <span class="lightbox-btn-label">Open Original</span>
+            </a>
+            <button type="button" class="image-lightbox-btn image-lightbox-btn-zoom" data-action="toggle-zoom" aria-label="Toggle full size" title="Toggle zoom (100% / Fit)">
+              <svg class="zoom-in-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+              <svg class="zoom-out-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+              <span class="lightbox-btn-label">Zoom</span>
+            </button>
+            <button type="button" class="image-lightbox-btn image-lightbox-btn-close" data-action="close-lightbox" aria-label="Close image preview (Esc)" title="Close (Esc)">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span class="lightbox-btn-label">Close</span>
+            </button>
+          </div>
+        </div>
+        <div class="image-lightbox-stage">
+          <div class="image-lightbox-img-wrap">
+            <img class="image-lightbox-img" src="" alt="" loading="lazy"/>
+          </div>
+        </div>
+        <div class="image-lightbox-footer">
+          <div class="image-lightbox-caption"></div>
+          <div class="image-lightbox-hint">Click image to zoom • Click outside or press Esc to close</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+  }
+
+  const img = dialog.querySelector<HTMLImageElement>('.image-lightbox-img');
+  const title = dialog.querySelector<HTMLElement>('#lightbox-title');
+  const caption = dialog.querySelector<HTMLElement>('.image-lightbox-caption');
+  const newTabBtn = dialog.querySelector<HTMLAnchorElement>('.image-lightbox-btn-newtab');
+  const zoomWrap = dialog.querySelector<HTMLElement>('.image-lightbox-img-wrap');
+  const zoomInIcon = dialog.querySelector<SVGElement>('.zoom-in-icon');
+  const zoomOutIcon = dialog.querySelector<SVGElement>('.zoom-out-icon');
+
+  let lastFocusedElement: HTMLElement | null = null;
+
+  function setZoom(zoomed: boolean): void {
+    if (!zoomWrap) return;
+    if (zoomed) {
+      zoomWrap.classList.add('is-zoomed');
+      if (zoomInIcon) zoomInIcon.style.display = 'none';
+      if (zoomOutIcon) zoomOutIcon.style.display = 'inline-block';
+    } else {
+      zoomWrap.classList.remove('is-zoomed');
+      if (zoomInIcon) zoomInIcon.style.display = 'inline-block';
+      if (zoomOutIcon) zoomOutIcon.style.display = 'none';
+    }
+  }
+
+  function toggleZoom(): void {
+    if (!zoomWrap) return;
+    setZoom(!zoomWrap.classList.contains('is-zoomed'));
+  }
+
+  function openLightbox(rawSrc: string, altText: string, triggerEl?: HTMLElement): void {
+    if (!dialog || !img || !rawSrc) return;
+
+    lastFocusedElement = triggerEl || (document.activeElement as HTMLElement);
+
+    let highResSrc = rawSrc;
+    if (rawSrc.includes('.googleusercontent.com/')) {
+      highResSrc = rawSrc.replace(/=[swh]\d+[^/]*$/, '=s2560').replace(/\/s\d+(-c)?\//, '/s2560/');
+    }
+
+    img.src = highResSrc;
+    img.alt = altText || 'Image Preview';
+    if (title) title.textContent = altText || 'Image Preview';
+    if (caption) caption.textContent = altText || '';
+    if (newTabBtn) newTabBtn.href = highResSrc;
+
+    setZoom(false);
+    document.body.classList.add('lightbox-open');
+
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', '');
+    }
+
+    const closeBtn = dialog.querySelector<HTMLButtonElement>('.image-lightbox-btn-close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeLightbox(): void {
+    if (!dialog) return;
+
+    setZoom(false);
+    document.body.classList.remove('lightbox-open');
+
+    if (typeof dialog.close === 'function') {
+      dialog.close();
+    } else {
+      dialog.removeAttribute('open');
+    }
+
+    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+      lastFocusedElement.focus();
+    }
+  }
+
+  // Bind dialog click events once
+  if (!dialog.dataset['bound']) {
+    dialog.dataset['bound'] = 'true';
+
+    dialog.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+
+      if (target === dialog || target.closest('[data-action="close-lightbox"]')) {
+        closeLightbox();
+        return;
+      }
+      if (target.closest('[data-action="toggle-zoom"]')) {
+        toggleZoom();
+        return;
+      }
+      if (target === img) {
+        toggleZoom();
+        return;
+      }
+    });
+
+    dialog.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      closeLightbox();
+    });
+
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeLightbox();
+      }
+    });
+  }
+
+  // 1. Post Hero Image & Wrap
+  const heroWraps = document.querySelectorAll<HTMLElement>('.post-hero-wrap');
+  heroWraps.forEach((wrap) => {
+    const heroImg = wrap.querySelector<HTMLImageElement>('img');
+    if (!heroImg) return;
+
+    if (!wrap.querySelector('.post-hero-zoom-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'post-hero-zoom-badge';
+      badge.setAttribute('aria-hidden', 'true');
+      badge.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Preview Image</span>`;
+      wrap.appendChild(badge);
+    }
+
+    wrap.setAttribute('tabindex', '0');
+    wrap.setAttribute('role', 'button');
+    wrap.setAttribute('aria-haspopup', 'dialog');
+    const heroAlt = heroImg.alt || document.querySelector('.post-title')?.textContent?.trim() || 'Article Hero';
+    wrap.setAttribute('aria-label', `Enlarge image: ${heroAlt}`);
+
+    const handleOpen = (e: Event) => {
+      e.preventDefault();
+      openLightbox(heroImg.currentSrc || heroImg.src, heroAlt, wrap);
+    };
+
+    wrap.addEventListener('click', handleOpen);
+    wrap.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        handleOpen(e);
+      }
+    });
+  });
+
+  // 2. Content Images inside .post-body
+  const contentImages = document.querySelectorAll<HTMLImageElement>(
+    '.post-body img:not(.post-author-mini-avatar):not(.author-avatar):not(.reading-time-icon):not(.post-hero-image)'
+  );
+  contentImages.forEach((cImg) => {
+    if (
+      cImg.closest('.post-author-bio') ||
+      cImg.closest('.post-header') ||
+      cImg.closest('.post-meta-row') ||
+      cImg.closest('.share-bar') ||
+      cImg.closest('.post-hero-wrap')
+    ) {
+      return;
+    }
+
+    cImg.setAttribute('tabindex', '0');
+    cImg.setAttribute('role', 'button');
+    cImg.setAttribute('aria-haspopup', 'dialog');
+    const imgAlt = cImg.alt || cImg.title || 'Article Image';
+    cImg.setAttribute('aria-label', `Enlarge image: ${imgAlt}`);
+
+    const handleImgOpen = (e: Event) => {
+      const parentLink = cImg.closest('a');
+      if (parentLink) {
+        const href = parentLink.getAttribute('href') || '';
+        const isImgLink =
+          /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(href) ||
+          href.includes('googleusercontent.com') ||
+          href.includes('cdn.jsdelivr.net');
+        if (isImgLink) {
+          e.preventDefault();
+          openLightbox(href || cImg.currentSrc || cImg.src, imgAlt, cImg);
+          return;
+        }
+        return;
+      }
+
+      e.preventDefault();
+      openLightbox(cImg.currentSrc || cImg.src, imgAlt, cImg);
+    };
+
+    cImg.addEventListener('click', handleImgOpen);
+    cImg.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        handleImgOpen(e);
+      }
+    });
   });
 }
 

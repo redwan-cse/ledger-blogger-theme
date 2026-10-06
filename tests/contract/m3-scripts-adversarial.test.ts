@@ -59,6 +59,13 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(scriptSource).toContain('BloggerFollowPrompt');
       expect(scriptSource).toContain('followers/follow');
 
+      // Module 14b: Article Image Lightbox & Zoom Preview
+      expect(scriptSource).toContain('initImageLightbox');
+      expect(scriptSource).toContain('image-lightbox');
+      expect(scriptSource).toContain('image-lightbox-img');
+      expect(scriptSource).toContain('image-lightbox-btn-close');
+      expect(scriptSource).toContain('toggle-zoom');
+
       // Progressive Enhancement
       expect(scriptSource).toContain('classList.add(\'js\')');
     });
@@ -101,6 +108,11 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(themePug).toContain('followers/follow');
       expect(postPug).toContain('followers/follow');
       expect(scriptSource).toContain('followers/follow');
+
+      // Image lightbox hooks
+      expect(themePug).toContain('#image-lightbox');
+      expect(themePug).toContain('.image-lightbox');
+      expect(scriptSource).toContain('image-lightbox');
     });
 
     it('verifies back-to-top floating action button contract in generated theme', async () => {
@@ -118,6 +130,17 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
 
       // Preserves existing footer text link for full fallback redundancy
       expect(themeXml).toContain('footer-back-to-top');
+    });
+
+    it('verifies image lightbox modal contract and accessibility bindings', async () => {
+      const themeXml = await readFile(path.join(ROOT, 'dist/theme.xml'), 'utf8');
+
+      expect(themeXml).toContain('id="image-lightbox"');
+      expect(themeXml).toContain('class="image-lightbox"');
+      expect(themeXml).toContain('image-lightbox-btn-close');
+      expect(themeXml).toContain('data-action="close-lightbox"');
+      expect(themeXml).toContain('data-action="toggle-zoom"');
+      expect(themeXml).toContain('body#layout .image-lightbox');
     });
   });
 

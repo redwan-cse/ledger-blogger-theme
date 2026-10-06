@@ -33,7 +33,8 @@ html&attributes(rootAttributes)
       body#layout .search-modal,
       body#layout .search-results-dropdown,
       body#layout .toast-container,
-      body#layout .back-to-top {
+      body#layout .back-to-top,
+      body#layout .image-lightbox {
         display: none;
       }
       body#layout .header-outer,
@@ -227,6 +228,40 @@ html&attributes(rootAttributes)
         line(x1='12' x2='12' y1='19' y2='5')
         polyline(points='5 12 12 5 19 12')
     div#toast-container.toast-container(aria-live='polite')
+    dialog#image-lightbox.image-lightbox(aria-label='Image preview' closedby='any')
+      div.image-lightbox-backdrop(data-action='close-lightbox' aria-hidden='true')
+      div.image-lightbox-wrapper(role='document')
+        div.image-lightbox-header
+          div.image-lightbox-title#lightbox-title Image Preview
+          div.image-lightbox-controls
+            a.image-lightbox-btn.image-lightbox-btn-newtab(href='#' target='_blank' rel='noopener noreferrer' aria-label='Open original image in new tab' title='Open original in new tab')
+              svg(viewBox='0 0 24 24' width='16' height='16' aria-hidden='true' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round')
+                path(d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6')
+                polyline(points='15 3 21 3 21 9')
+                line(x1='10' y1='14' x2='21' y2='3')
+              span.lightbox-btn-label Open Original
+            button.image-lightbox-btn.image-lightbox-btn-zoom(type='button' data-action='toggle-zoom' aria-label='Toggle full size' title='Toggle zoom (100% / Fit)')
+              svg.zoom-in-icon(viewBox='0 0 24 24' width='16' height='16' aria-hidden='true' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round')
+                circle(cx='11' cy='11' r='8')
+                line(x1='21' y1='21' x2='16.65' y2='16.65')
+                line(x1='11' y1='8' x2='11' y2='14')
+                line(x1='8' y1='11' x2='14' y2='11')
+              svg.zoom-out-icon(viewBox='0 0 24 24' width='16' height='16' aria-hidden='true' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:none;')
+                circle(cx='11' cy='11' r='8')
+                line(x1='21' y1='21' x2='16.65' y2='16.65')
+                line(x1='8' y1='11' x2='14' y2='11')
+              span.lightbox-btn-label Zoom
+            button.image-lightbox-btn.image-lightbox-btn-close(type='button' data-action='close-lightbox' aria-label='Close image preview (Esc)' title='Close (Esc)')
+              svg(viewBox='0 0 24 24' width='18' height='18' aria-hidden='true' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round')
+                line(x1='18' y1='6' x2='6' y2='18')
+                line(x1='6' y1='6' x2='18' y2='18')
+              span.lightbox-btn-label Close
+        div.image-lightbox-stage
+          div.image-lightbox-img-wrap
+            img.image-lightbox-img(src='' alt='' loading='lazy')/
+        div.image-lightbox-footer
+          div.image-lightbox-caption
+          div.image-lightbox-hint Click image to zoom • Click outside or press Esc to close
     if script
       script.
         //<![CDATA[
