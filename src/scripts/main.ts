@@ -3336,34 +3336,31 @@ export function initImageLightbox(): void {
         <div class="image-lightbox-header">
           <div class="image-lightbox-title" id="lightbox-title">Image Preview</div>
           <div class="image-lightbox-controls">
-            <a class="image-lightbox-btn image-lightbox-btn-newtab" href="#" target="_blank" rel="noopener noreferrer" aria-label="Open original image in new tab" title="Open original in new tab">
-              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
+            <button type="button" class="image-lightbox-btn image-lightbox-btn-download" data-action="download-image" aria-label="Download image" title="Download image">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              <span class="lightbox-btn-label">Open Original</span>
-            </a>
-            <button type="button" class="image-lightbox-btn image-lightbox-btn-zoom" data-action="toggle-zoom" aria-label="Toggle full size" title="Toggle zoom (100% / Fit)">
-              <svg class="zoom-in-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            </button>
+            <button type="button" class="image-lightbox-btn image-lightbox-btn-zoom" data-action="toggle-zoom" aria-label="Toggle zoom" title="Toggle zoom (Fit / 100%)">
+              <svg class="zoom-in-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 <line x1="11" y1="8" x2="11" y2="14"></line>
                 <line x1="8" y1="11" x2="14" y2="11"></line>
               </svg>
-              <svg class="zoom-out-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+              <svg class="zoom-out-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 <line x1="8" y1="11" x2="14" y2="11"></line>
               </svg>
-              <span class="lightbox-btn-label">Zoom</span>
             </button>
-            <button type="button" class="image-lightbox-btn image-lightbox-btn-close" data-action="close-lightbox" aria-label="Close image preview (Esc)" title="Close (Esc)">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" class="image-lightbox-btn image-lightbox-btn-close" data-action="close-lightbox" aria-label="Close preview (Esc)" title="Close (Esc)">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-              <span class="lightbox-btn-label">Close</span>
             </button>
           </div>
         </div>
@@ -3374,7 +3371,7 @@ export function initImageLightbox(): void {
         </div>
         <div class="image-lightbox-footer">
           <div class="image-lightbox-caption"></div>
-          <div class="image-lightbox-hint">Click image to zoom • Click outside or press Esc to close</div>
+          <div class="image-lightbox-hint">Drag or use arrow keys to pan • Click outside or press Esc to close</div>
         </div>
       </div>
     `;
@@ -3384,21 +3381,35 @@ export function initImageLightbox(): void {
   const img = dialog.querySelector<HTMLImageElement>('.image-lightbox-img');
   const title = dialog.querySelector<HTMLElement>('#lightbox-title');
   const caption = dialog.querySelector<HTMLElement>('.image-lightbox-caption');
-  const newTabBtn = dialog.querySelector<HTMLAnchorElement>('.image-lightbox-btn-newtab');
+  const stage = dialog.querySelector<HTMLElement>('.image-lightbox-stage');
   const zoomWrap = dialog.querySelector<HTMLElement>('.image-lightbox-img-wrap');
   const zoomInIcon = dialog.querySelector<SVGElement>('.zoom-in-icon');
   const zoomOutIcon = dialog.querySelector<SVGElement>('.zoom-out-icon');
 
   let lastFocusedElement: HTMLElement | null = null;
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let scrollStartLeft = 0;
+  let scrollStartTop = 0;
+  let dragDistance = 0;
 
   function setZoom(zoomed: boolean): void {
-    if (!zoomWrap) return;
+    if (!zoomWrap || !stage) return;
     if (zoomed) {
       zoomWrap.classList.add('is-zoomed');
+      stage.classList.add('is-zoomed');
       if (zoomInIcon) zoomInIcon.style.display = 'none';
       if (zoomOutIcon) zoomOutIcon.style.display = 'inline-block';
+      requestAnimationFrame(() => {
+        stage.scrollLeft = Math.max(0, (stage.scrollWidth - stage.clientWidth) / 2);
+        stage.scrollTop = Math.max(0, (stage.scrollHeight - stage.clientHeight) / 2);
+      });
     } else {
       zoomWrap.classList.remove('is-zoomed');
+      stage.classList.remove('is-zoomed');
+      stage.scrollLeft = 0;
+      stage.scrollTop = 0;
       if (zoomInIcon) zoomInIcon.style.display = 'inline-block';
       if (zoomOutIcon) zoomOutIcon.style.display = 'none';
     }
@@ -3407,6 +3418,37 @@ export function initImageLightbox(): void {
   function toggleZoom(): void {
     if (!zoomWrap) return;
     setZoom(!zoomWrap.classList.contains('is-zoomed'));
+  }
+
+  async function downloadCurrentImage(): Promise<void> {
+    if (!img || !img.src) return;
+    const src = img.src;
+    try {
+      const filename = src.split('/').pop()?.split('?')[0] || 'article-image.png';
+      const cleanName = filename.includes('.') ? filename : `${filename}.png`;
+      const res = await fetch(src, { mode: 'cors' });
+      if (!res.ok) throw new Error('Fetch failed');
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = cleanName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+      showToast('Image downloaded!');
+    } catch {
+      // Fallback for CORS-restricted hosts: direct anchor click
+      const a = document.createElement('a');
+      a.href = src;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.download = '';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
   }
 
   function openLightbox(rawSrc: string, altText: string, triggerEl?: HTMLElement): void {
@@ -3423,7 +3465,6 @@ export function initImageLightbox(): void {
     img.alt = altText || 'Image Preview';
     if (title) title.textContent = altText || 'Image Preview';
     if (caption) caption.textContent = altText || '';
-    if (newTabBtn) newTabBtn.href = highResSrc;
 
     setZoom(false);
     document.body.classList.add('lightbox-open');
@@ -3455,6 +3496,36 @@ export function initImageLightbox(): void {
     }
   }
 
+  // Bind mouse drag-to-pan on stage
+  if (stage && !stage.dataset['dragBound']) {
+    stage.dataset['dragBound'] = 'true';
+
+    stage.addEventListener('mousedown', (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (!stage.classList.contains('is-zoomed')) return;
+      isDragging = true;
+      dragDistance = 0;
+      startX = e.pageX;
+      startY = e.pageY;
+      scrollStartLeft = stage.scrollLeft;
+      scrollStartTop = stage.scrollTop;
+    });
+
+    window.addEventListener('mousemove', (e: MouseEvent) => {
+      if (!isDragging || !stage) return;
+      const dx = e.pageX - startX;
+      const dy = e.pageY - startY;
+      dragDistance += Math.abs(dx) + Math.abs(dy);
+      stage.scrollLeft = scrollStartLeft - dx;
+      stage.scrollTop = scrollStartTop - dy;
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+    });
+  }
+
   // Bind dialog click events once
   if (!dialog.dataset['bound']) {
     dialog.dataset['bound'] = 'true';
@@ -3467,11 +3538,19 @@ export function initImageLightbox(): void {
         closeLightbox();
         return;
       }
+      if (target.closest('[data-action="download-image"]')) {
+        void downloadCurrentImage();
+        return;
+      }
       if (target.closest('[data-action="toggle-zoom"]')) {
         toggleZoom();
         return;
       }
-      if (target === img) {
+      if (target === img || target.closest('.image-lightbox-img-wrap')) {
+        if (dragDistance > 6) {
+          dragDistance = 0;
+          return;
+        }
         toggleZoom();
         return;
       }
@@ -3486,23 +3565,34 @@ export function initImageLightbox(): void {
       if (e.key === 'Escape') {
         e.preventDefault();
         closeLightbox();
+        return;
+      }
+      if (stage && stage.classList.contains('is-zoomed')) {
+        const step = 80;
+        if (e.key === 'ArrowLeft') {
+          stage.scrollLeft -= step;
+          e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+          stage.scrollLeft += step;
+          e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+          stage.scrollTop -= step;
+          e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+          stage.scrollTop += step;
+          e.preventDefault();
+        }
       }
     });
   }
 
-  // 1. Post Hero Image & Wrap
+  // 1. Post Hero Image & Wrap (Clean cover, no badge overlay)
   const heroWraps = document.querySelectorAll<HTMLElement>('.post-hero-wrap');
   heroWraps.forEach((wrap) => {
     const heroImg = wrap.querySelector<HTMLImageElement>('img');
     if (!heroImg) return;
 
-    if (!wrap.querySelector('.post-hero-zoom-badge')) {
-      const badge = document.createElement('span');
-      badge.className = 'post-hero-zoom-badge';
-      badge.setAttribute('aria-hidden', 'true');
-      badge.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg><span>Preview Image</span>`;
-      wrap.appendChild(badge);
-    }
+    wrap.querySelector('.post-hero-zoom-badge')?.remove();
 
     wrap.setAttribute('tabindex', '0');
     wrap.setAttribute('role', 'button');

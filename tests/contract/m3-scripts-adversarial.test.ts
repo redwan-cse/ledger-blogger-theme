@@ -140,6 +140,7 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(themeXml).toContain('image-lightbox-btn-close');
       expect(themeXml).toContain('data-action="close-lightbox"');
       expect(themeXml).toContain('data-action="toggle-zoom"');
+      expect(themeXml).toContain('data-action="download-image"');
       expect(themeXml).toContain('body#layout .image-lightbox');
     });
   });
