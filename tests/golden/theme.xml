@@ -554,7 +554,15 @@
               "@id": "<data:view.url.canonical.jsonEscaped/>"
             },
             "headline": "<data:view.title.jsonEscaped/>",
-            "description": "<b:eval expr='snippet(data:post.snippets.long ?: (data:view.description ?: data:view.title), {length: 250, links: false, linebreaks: false, ellipsis: true}).jsonEscaped'/>",
+            <b:if cond='data:post.snippets.short'>
+            "description": "<data:post.snippets.short.jsonEscaped/>",
+            </b:if>
+            <b:if cond='not data:post.snippets.short and data:view.description'>
+            "description": "<data:view.description.jsonEscaped/>",
+            </b:if>
+            <b:if cond='not data:post.snippets.short and not data:view.description'>
+            "description": "<data:view.title.jsonEscaped/>",
+            </b:if>
             "datePublished": "<data:post.date.iso8601.jsonEscaped/>"
             <b:if cond='data:post.lastUpdated'>
             , "dateModified": "<data:post.lastUpdated.iso8601.jsonEscaped/>"
