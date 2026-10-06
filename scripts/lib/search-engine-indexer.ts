@@ -217,8 +217,12 @@ export async function submitToIndexNow(
       urlList: urls
     };
 
-    if (keyLocation?.trim()) {
-      payload.keyLocation = keyLocation.trim();
+    const effectiveKeyLocation =
+      keyLocation?.trim() ||
+      (host === 'blogs.redwan.work' ? `https://redwan.work/${trimmedKey}.txt` : undefined);
+
+    if (effectiveKeyLocation) {
+      payload.keyLocation = effectiveKeyLocation;
     }
 
     const response = await fetch('https://api.indexnow.org/indexnow', {

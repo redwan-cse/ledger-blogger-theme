@@ -180,6 +180,23 @@ describe('search-engine-indexer', () => {
       expect(res.statusCode).toBe(202);
     });
 
+    it('defaults keyLocation to apex domain https://redwan.work/{key}.txt for blogs.redwan.work when omitted', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => 'OK'
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const urls = ['https://blogs.redwan.work/2026/09/sample.html'];
+      await submitToIndexNow(urls, '3c95b44b65e340d38d44a48e7764e868');
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [, init] = fetchMock.mock.calls[0]!;
+      const body = JSON.parse(init.body);
+      expect(body.keyLocation).toBe('https://redwan.work/3c95b44b65e340d38d44a48e7764e868.txt');
+    });
+
     it('handles HTTP 403 error gracefully', async () => {
       const fetchMock = vi.fn().mockResolvedValue({
         ok: false,
