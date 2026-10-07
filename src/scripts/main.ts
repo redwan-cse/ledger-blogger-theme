@@ -1010,6 +1010,80 @@ export function initArticleAudioReader(): void {
   let isPaused = false;
   let sentences: string[] = [];
   let currentSentenceIndex = 0;
+  let selectedVoice: SpeechSynthesisVoice | null = null;
+
+  // Curated list of high-clarity female / natural voices across Edge, Chrome, Safari, Firefox, and Windows
+  const PREFERRED_VOICE_KEYS = [
+    // Edge / Windows 11 Online Neural Voices (Pristine studio articulation)
+    'natural',
+    'neural',
+    'jenny',
+    'aria',
+    'sonia',
+    'libby',
+    'maisie',
+    'michelle',
+    'clara',
+    // Chrome / Android high-definition voices
+    'google us english',
+    'google uk english female',
+    // Safari / macOS / iOS crystal-clear voices
+    'samantha',
+    'ava',
+    'serena',
+    'victoria',
+    'karen',
+    'moira',
+    'fiona',
+    'tessa',
+    // Windows built-in clear female voice
+    'zira',
+  ];
+
+  const MALE_VOICE_REGEX = /\b(male|guy|david|mark|george|richard|james|brian|christopher|eric|alex|steffan|oliver)\b/i;
+
+  function pickBestClearVoice(): SpeechSynthesisVoice | null {
+    if (!('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    // Filter for English voices first for international clarity
+    const enVoices = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith('en'));
+    const pool = enVoices.length > 0 ? enVoices : voices;
+
+    // Tier 1: Look for explicit crystal-clear female / neural voice keys
+    for (const key of PREFERRED_VOICE_KEYS) {
+      const match = pool.find((v) => {
+        const lower = v.name.toLowerCase();
+        return lower.includes(key) && !MALE_VOICE_REGEX.test(lower);
+      });
+      if (match) return match;
+    }
+
+    // Tier 2: Any voice explicitly tagged female or not matching male indicators
+    const femaleFallback = pool.find((v) => {
+      const lower = v.name.toLowerCase();
+      return lower.includes('female') || !MALE_VOICE_REGEX.test(lower);
+    });
+    if (femaleFallback) return femaleFallback;
+
+    return pool[0] ?? null;
+  }
+
+  function updateVoice(): void {
+    const voice = pickBestClearVoice();
+    if (voice) {
+      selectedVoice = voice;
+    }
+  }
+
+  // Pre-fetch voices and register event listener for asynchronous browser voice loading
+  updateVoice();
+  if (typeof window.speechSynthesis.addEventListener === 'function') {
+    window.speechSynthesis.addEventListener('voiceschanged', updateVoice);
+  } else if ('onvoiceschanged' in window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = updateVoice;
+  }
 
   function updateSpeedButton(): void {
     if (speedLabel) {
@@ -1036,7 +1110,9 @@ export function initArticleAudioReader(): void {
 
   function getCleanArticleText(): string {
     const clone = postBody!.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll('pre, code, script, style, .table-of-contents').forEach((el) => el.remove());
+    // Strip multiline code blocks, scripts, styles, TOC, svgs, and noscript
+    // Retain inline <code> so technical terms, flags, and CLI names are articulated in context
+    clone.querySelectorAll('pre, script, style, .table-of-contents, svg, noscript').forEach((el) => el.remove());
     const title = document.querySelector<HTMLElement>('.post-title')?.textContent || '';
     return `${title}. ${clone.textContent || ''}`.replace(/\s+/g, ' ').trim();
   }
@@ -1064,8 +1140,13 @@ export function initArticleAudioReader(): void {
 
     currentSentenceIndex = index;
     const utterance = new SpeechSynthesisUtterance(sentences[index]);
+    if (!selectedVoice) updateVoice();
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang || 'en-US';
+    }
     utterance.rate = playbackRate;
-    utterance.pitch = 1.0;
+    utterance.pitch = 1.02; // Pristine, slightly brighter pitch for crystalline articulation
 
     utterance.onend = () => {
       if (isPlaying && !isPaused) {
