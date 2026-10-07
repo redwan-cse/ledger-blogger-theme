@@ -591,7 +591,7 @@ export function healAsciiBoxDiagram(code: string): string {
     return s
       .replace(/"/g, "'")
       .replace(/<([^>]+)>/g, '&lt;$1&gt;')
-      .replace(/[-=]+>/g, ' ➔ ');
+      .replace(/\s*[-=]+>\s*/g, ' ➔ ');
   };
 
   // ---------------------------------------------------------------------------
@@ -714,19 +714,32 @@ export function healAsciiBoxDiagram(code: string): string {
   const contentLines = rawContentLines.map(l => l.trim()).filter(Boolean);
 
   // ---------------------------------------------------------------------------
-  // Priority 2: Vertical Numbered Pipeline (1. ... | v 2. ...)
+  // Priority 2: Vertical Numbered Pipeline (1. ... or 1) ... with or without connectors)
   // ---------------------------------------------------------------------------
-  const isVerticalPipeline =
-    contentLines.some((l) => /^\d+\.\s+/.test(l)) &&
-    contentLines.some((l) => /^[|vV]$/.test(l));
-  if (isVerticalPipeline) {
+  const numberedLinesCount = contentLines.filter((l) => /^(?:(?:Step|Phase)\s+)?\d+[\.\):]\s+/i.test(l)).length;
+  const isNumberedPipeline =
+    numberedLinesCount >= 2 ||
+    (numberedLinesCount >= 1 && contentLines.some((l) => /^[|vV]$/.test(l)));
+
+  if (isNumberedPipeline) {
     const steps: string[] = [];
+    let currentStep = '';
     for (const l of contentLines) {
       if (/^[|vV]$/.test(l)) continue;
-      const stepMatch = l.match(/^(\d+\.\s+.*)$/);
-      if (stepMatch && stepMatch[1]) {
-        steps.push(stepMatch[1]);
+      const stepMatch = l.match(/^(?:(?:Step|Phase)\s+)?\d+[\.\):]\s+(.*)$/i);
+      if (stepMatch && stepMatch[1] !== undefined) {
+        if (currentStep) {
+          steps.push(currentStep);
+        }
+        currentStep = l;
+      } else if (currentStep) {
+        currentStep += ' ' + l;
+      } else {
+        steps.push(l);
       }
+    }
+    if (currentStep) {
+      steps.push(currentStep);
     }
 
     if (steps.length >= 2) {
@@ -946,6 +959,28 @@ export function healAsciiBoxDiagram(code: string): string {
       out.push('    end');
       return out.join('\n');
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Priority 8: General Titled Box / Sequential Fallback
+  // ---------------------------------------------------------------------------
+  if (contentLines.length >= 2 && title) {
+    const out: string[] = ['graph TD'];
+    const cleanTitle = title.replace(/"/g, "'");
+    out.push(`    subgraph "${cleanTitle}"`);
+    out.push('        direction TB');
+    const nodeIds: string[] = [];
+    contentLines.forEach((l, idx) => {
+      const cleanLine = sanitize(l.replace(/^[-*•]\s+/, ''));
+      const id = `item_${idx + 1}`;
+      nodeIds.push(id);
+      out.push(`        ${id}["${cleanLine}"]`);
+    });
+    for (let i = 0; i < nodeIds.length - 1; i++) {
+      out.push(`        ${nodeIds[i]} --> ${nodeIds[i + 1]}`);
+    }
+    out.push('    end');
+    return out.join('\n');
   }
 
   return code;

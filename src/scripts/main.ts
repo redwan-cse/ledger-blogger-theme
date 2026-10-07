@@ -1610,13 +1610,13 @@ function init(): void {
     const isPost = document.body?.classList.contains('is-post') || Boolean(document.querySelector('.is-post'));
     if (isPost) {
       initReadingProgress();
+      initMermaidDiagrams();
       initCodeBlockEnhancements();
       initSyntaxHighlighting();
       initTableOfContents();
       initAlertCallouts();
       initReadingTime();
       initArticleAudioReader();
-      initMermaidDiagrams();
       enrichArticleImagesAlt();
       initImageLightbox();
     } else {
@@ -2281,7 +2281,7 @@ export function healAsciiBoxDiagram(code: string): string {
     return s
       .replace(/"/g, "'")
       .replace(/<([^>]+)>/g, '&lt;$1&gt;')
-      .replace(/[-=]+>/g, ' ➔ ');
+      .replace(/\s*[-=]+>\s*/g, ' ➔ ');
   };
 
   // ---------------------------------------------------------------------------
@@ -2404,19 +2404,32 @@ export function healAsciiBoxDiagram(code: string): string {
   const contentLines = rawContentLines.map(l => l.trim()).filter(Boolean);
 
   // ---------------------------------------------------------------------------
-  // Priority 2: Vertical Numbered Pipeline (1. ... | v 2. ...)
+  // Priority 2: Vertical Numbered Pipeline (1. ... or 1) ... with or without connectors)
   // ---------------------------------------------------------------------------
-  const isVerticalPipeline =
-    contentLines.some((l) => /^\d+\.\s+/.test(l)) &&
-    contentLines.some((l) => /^[|vV]$/.test(l));
-  if (isVerticalPipeline) {
+  const numberedLinesCount = contentLines.filter((l) => /^(?:(?:Step|Phase)\s+)?\d+[\.\):]\s+/i.test(l)).length;
+  const isNumberedPipeline =
+    numberedLinesCount >= 2 ||
+    (numberedLinesCount >= 1 && contentLines.some((l) => /^[|vV]$/.test(l)));
+
+  if (isNumberedPipeline) {
     const steps: string[] = [];
+    let currentStep = '';
     for (const l of contentLines) {
       if (/^[|vV]$/.test(l)) continue;
-      const stepMatch = l.match(/^(\d+\.\s+.*)$/);
-      if (stepMatch && stepMatch[1]) {
-        steps.push(stepMatch[1]);
+      const stepMatch = l.match(/^(?:(?:Step|Phase)\s+)?\d+[\.\):]\s+(.*)$/i);
+      if (stepMatch && stepMatch[1] !== undefined) {
+        if (currentStep) {
+          steps.push(currentStep);
+        }
+        currentStep = l;
+      } else if (currentStep) {
+        currentStep += ' ' + l;
+      } else {
+        steps.push(l);
       }
+    }
+    if (currentStep) {
+      steps.push(currentStep);
     }
 
     if (steps.length >= 2) {
@@ -2638,6 +2651,28 @@ export function healAsciiBoxDiagram(code: string): string {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Priority 8: General Titled Box / Sequential Fallback
+  // ---------------------------------------------------------------------------
+  if (contentLines.length >= 2 && title) {
+    const out: string[] = ['graph TD'];
+    const cleanTitle = title.replace(/"/g, "'");
+    out.push(`    subgraph "${cleanTitle}"`);
+    out.push('        direction TB');
+    const nodeIds: string[] = [];
+    contentLines.forEach((l, idx) => {
+      const cleanLine = sanitize(l.replace(/^[-*•]\s+/, ''));
+      const id = `item_${idx + 1}`;
+      nodeIds.push(id);
+      out.push(`        ${id}["${cleanLine}"]`);
+    });
+    for (let i = 0; i < nodeIds.length - 1; i++) {
+      out.push(`        ${nodeIds[i]} --> ${nodeIds[i + 1]}`);
+    }
+    out.push('    end');
+    return out.join('\n');
+  }
+
   return code;
 }
 
@@ -2823,6 +2858,70 @@ export function cleanMermaidSyntax(rawCode: string): string {
  * Supports theme toggling by caching raw diagram source code.
  */
 export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
+  // Pre-scan: Auto-promote code blocks containing Mermaid diagrams or ASCII box/handshake diagrams
+  const candidateBlocks = Array.from(
+    document.querySelectorAll<HTMLElement>(
+      '.post-body .code-block-wrap, .post-body pre:not(.mermaid)'
+    )
+  );
+
+  for (const block of candidateBlocks) {
+    if (!block.isConnected) continue;
+    if (block.classList.contains('mermaid-diagram-wrap') || block.querySelector('.mermaid')) continue;
+
+    // Check lang header or class if present
+    const langSpan = block.querySelector<HTMLElement>('.code-block-lang');
+    const codeEl = block.querySelector<HTMLElement>('code');
+    const lang = (langSpan?.textContent || codeEl?.className || '').trim().toLowerCase();
+
+    // Skip blocks that are explicitly identified as non-diagram code
+    const isExplicitNonDiagramCode =
+      lang.includes('python') ||
+      lang.includes('csharp') ||
+      lang.includes('ruby') ||
+      lang.includes('powershell') ||
+      lang.includes('sql') ||
+      lang.includes('bash') ||
+      lang.includes('shell') ||
+      lang.includes('json') ||
+      lang.includes('yaml') ||
+      lang.includes('html') ||
+      lang.includes('xml') ||
+      lang.includes('css') ||
+      lang.includes('javascript') ||
+      lang.includes('typescript') ||
+      lang.includes('rust') ||
+      lang.includes('golang') ||
+      lang.includes('diff');
+
+    if (isExplicitNonDiagramCode) continue;
+
+    const rawText = (codeEl?.textContent || block.textContent || '').trim();
+    if (!rawText) continue;
+
+    // Check if it's an ASCII box diagram, handshake diagram, or starts with a Mermaid diagram header
+    const hasAsciiBox = /^\s*\+[-=+]+\+\s*$/m.test(rawText) && /^\s*\|/m.test(rawText);
+    const hasAsciiHandshake = /^[A-Za-z0-9_\-\s]+\s*\|(?:---|\.\.\.|===)\s*\|/m.test(rawText);
+    const hasMermaidHeader = /^(?:graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|gitGraph)\b/im.test(rawText);
+
+    if (hasAsciiBox || hasAsciiHandshake || hasMermaidHeader) {
+      const healed = cleanMermaidSyntax(rawText);
+      const healedHeader = getFirstDiagramHeader(healed);
+      if (healedHeader && (healed !== rawText || hasMermaidHeader)) {
+        const wrap = document.createElement('div');
+        wrap.className = 'mermaid-diagram-wrap';
+        wrap.dataset['mermaidCode'] = healed;
+
+        const pre = document.createElement('pre');
+        pre.className = 'mermaid';
+        pre.textContent = healed;
+        wrap.appendChild(pre);
+
+        block.parentNode?.replaceChild(wrap, block);
+      }
+    }
+  }
+
   const wraps = document.querySelectorAll<HTMLElement>('.mermaid-diagram-wrap');
   const standaloneMermaids = document.querySelectorAll<HTMLElement>('.post-body pre.mermaid');
   if (wraps.length === 0 && standaloneMermaids.length === 0) return;

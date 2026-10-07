@@ -468,6 +468,51 @@ describe('Milestone 3: Interactive Client Scripts (src/scripts/main.ts)', () => 
       expect(cleaned).toContain('item_3 --> item_4');
     });
 
+    it('heals ASCII box numbered pipeline without divider lines into valid Mermaid flowchart', () => {
+      const input = `+-------------------------------------------------------------------------+
+|                  THE PIPELINE IMPERSONATION CALCULUS                    |
++-------------------------------------------------------------------------+
+|  1. Attacker (Developer Role) triggers pipeline via crafted schedule    |
+|  2. GitLab assigns pipeline.user = Victim (Maintainer / Project Owner)  |
+|  3. GitLab evaluates: Can 'Victim' access Protected Variables? -> YES   |
+|  4. Runner downloads AWS/GCP Production Keys into Job Environment       |
+|  5. Malicious CI job script exfiltrates secrets or poisons build artifact|
++-------------------------------------------------------------------------+`;
+
+      const cleaned = cleanMermaidSyntax(input);
+      expect(cleaned).toContain('graph TD');
+      expect(cleaned).toContain('subgraph "THE PIPELINE IMPERSONATION CALCULUS"');
+      expect(cleaned).toContain('step_1["1. Attacker (Developer Role) triggers pipeline via crafted schedule"]');
+      expect(cleaned).toContain('step_2["2. GitLab assigns pipeline.user = Victim (Maintainer / Project Owner)"]');
+      expect(cleaned).toContain('step_3["3. GitLab evaluates: Can \'Victim\' access Protected Variables? ➔ YES"]');
+      expect(cleaned).toContain('step_4["4. Runner downloads AWS/GCP Production Keys into Job Environment"]');
+      expect(cleaned).toContain('step_5["5. Malicious CI job script exfiltrates secrets or poisons build artifact"]');
+      expect(cleaned).toContain('step_1 --> step_2');
+      expect(cleaned).toContain('step_2 --> step_3');
+      expect(cleaned).toContain('step_3 --> step_4');
+      expect(cleaned).toContain('step_4 --> step_5');
+    });
+
+    it('compiles ASCII box numbered pipeline into .mermaid-diagram-wrap in compileMarkdownToHtml', () => {
+      const markdown = `\`\`\`
++-------------------------------------------------------------------------+
+|                  THE PIPELINE IMPERSONATION CALCULUS                    |
++-------------------------------------------------------------------------+
+|  1. Attacker (Developer Role) triggers pipeline via crafted schedule    |
+|  2. GitLab assigns pipeline.user = Victim (Maintainer / Project Owner)  |
+|  3. GitLab evaluates: Can 'Victim' access Protected Variables? -> YES   |
+|  4. Runner downloads AWS/GCP Production Keys into Job Environment       |
+|  5. Malicious CI job script exfiltrates secrets or poisons build artifact|
++-------------------------------------------------------------------------+
+\`\`\``;
+
+      const compiled = compileMarkdownToHtml(markdown);
+      expect(compiled).toContain('class="mermaid-diagram-wrap"');
+      expect(compiled).toContain('data-mermaid-code=');
+      expect(compiled).toContain('step_1');
+      expect(compiled).toContain('step_5');
+    });
+
     it('discriminates XML code blocks with HTML comments and brackets from Mermaid diagrams', () => {
       const xmlMarkdown = `\`\`\`
 <saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" ID="_123">
