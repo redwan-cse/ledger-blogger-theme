@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import { submitUrlsToSearchEngines } from './lib/search-engine-indexer.js';
 import { syncPostToGitHubBacklinkRepos } from './lib/github-research-syncer.js';
+import { resolveCompanionLinks, type CatalogPost } from './lib/companion-link-resolver.js';
 
 interface ServiceAccountKey {
   client_email: string;
@@ -178,7 +179,114 @@ async function syncAndCleanGoogleSheet(token: string, newRow?: (string | number)
   }
 }
 
+// 1.1 Load catalog of published posts from Google Sheet and Blogger API
+async function getCatalogFromSheetAndBlogger(
+  driveToken: string,
+  bloggerToken: string
+): Promise<CatalogPost[]> {
+  const map = new Map<string, string>(); // lowercase title -> canonical url
 
+  // 1. Fetch from Google Sheets
+  try {
+    const getUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/A1:Z200`;
+    const res = await fetch(getUrl, {
+      headers: { Authorization: `Bearer ${driveToken}` }
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { values?: string[][] };
+      const rows = data.values || [];
+      for (const row of rows.slice(1)) {
+        const title = (row[3] || '').trim();
+        const url = (row[7] || '').trim();
+        if (title && url && url.startsWith('http')) {
+          map.set(title.toLowerCase(), url);
+        }
+      }
+    }
+  } catch (e: any) {
+    console.warn(`[Catalog] Notice reading Google Sheet: ${e.message}`);
+  }
+
+  // 2. Fetch from Blogger API
+  try {
+    const listRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts?maxResults=50&status=live`, {
+      headers: { Authorization: `Bearer ${bloggerToken}` }
+    });
+    if (listRes.ok) {
+      const listData = (await listRes.json()) as { items?: Array<{ id: string; url: string; title: string }> };
+      for (const p of listData.items || []) {
+        if (p.title && p.url) {
+          map.set(p.title.trim().toLowerCase(), p.url);
+        }
+      }
+    }
+  } catch (e: any) {
+    console.warn(`[Catalog] Notice reading Blogger API: ${e.message}`);
+  }
+
+  const catalog: CatalogPost[] = [];
+  for (const [title, url] of map.entries()) {
+    catalog.push({ title, url });
+  }
+  return catalog;
+}
+
+// 1.2 Automatically heals placeholder companion links (https://blogs.redwan.work/ or /search?q=) in live posts
+async function healLiveCompanionLinks(
+  bloggerToken: string,
+  catalog: CatalogPost[]
+): Promise<void> {
+  if (catalog.length === 0) return;
+  try {
+    const listRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts?maxResults=20&status=live`, {
+      headers: { Authorization: `Bearer ${bloggerToken}` }
+    });
+    if (!listRes.ok) return;
+
+    const listData = (await listRes.json()) as {
+      items?: Array<{ id: string; url: string; title: string; content?: string; labels?: string[]; customMetaData?: string }>;
+    };
+
+    for (const p of listData.items || []) {
+      if (!p.content) continue;
+      if (
+        p.content.includes('href="https://blogs.redwan.work/"') ||
+        p.content.includes("href='https://blogs.redwan.work/'") ||
+        p.content.includes('href="https://blogs.redwan.work"') ||
+        p.content.includes("href='https://blogs.redwan.work'") ||
+        p.content.includes('href="/search?q=') ||
+        p.content.includes("href='/search?q=")
+      ) {
+        const { resolvedContent, replacementsCount } = resolveCompanionLinks(p.content, catalog, p.title);
+        if (replacementsCount > 0 && resolvedContent !== p.content) {
+          console.log(`🩺 Auto-healing ${replacementsCount} companion link(s) in live post: "${p.title}"...`);
+          const putRes = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts/${p.id}`, {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${bloggerToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              kind: 'blogger#post',
+              id: p.id,
+              title: p.title,
+              content: resolvedContent,
+              labels: p.labels || [],
+              ...(p.customMetaData ? { customMetaData: p.customMetaData } : {})
+            })
+          });
+          if (putRes.ok) {
+            console.log(`✅ Successfully healed companion links for: "${p.title}"`);
+          } else {
+            console.warn(`⚠️ Failed to heal post "${p.title}": ${await putRes.text()}`);
+          }
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[Link Healer] Notice during companion link scan: ${err.message}`);
+  }
+}
 
 // 2. Authenticate with Blogger as Md Redwan Ahmed via User Refresh Token
 async function getBloggerAccessToken(): Promise<string> {
@@ -1900,6 +2008,13 @@ async function main() {
   // Deduplicate and sync Content_Planner_and_History Google Sheet on startup
   await syncAndCleanGoogleSheet(driveToken);
 
+  // Load published post catalog from Google Sheet & Blogger API for automated cross-article linking
+  const catalog = await getCatalogFromSheetAndBlogger(driveToken, bloggerToken);
+  console.log(`Loaded ${catalog.length} published post(s) into cross-linking catalog.`);
+
+  // Auto-heal any placeholder companion links in recent live posts on Blogger
+  await healLiveCompanionLinks(bloggerToken, catalog);
+
   // Find Blog_Published folder ID (either via env, default ID, inside root, or directly by name)
   let publishedFolderId: string | null = process.env.DRIVE_PUBLISHED_FOLDER_ID?.trim() || DEFAULT_PUBLISHED_FOLDER_ID;
   if (!publishedFolderId) {
@@ -2321,9 +2436,22 @@ async function main() {
       continue;
     }
 
+    // Resolve any internal companion links (e.g. [Companion Title](https://blogs.redwan.work/)) to canonical permalinks
+    const mdLinkRes = resolveCompanionLinks(markdownContent, catalog, cleanTitle);
+    if (mdLinkRes.replacementsCount > 0) {
+      console.log(`🔗 Auto-resolved ${mdLinkRes.replacementsCount} companion markdown link(s) to live canonical URLs.`);
+      markdownContent = mdLinkRes.resolvedContent;
+    }
+
     // Compile Markdown to Semantic HTML
     console.log(`Compiling GFM markdown (with Mermaid diagrams and unified code windows)...`);
-    const compiledHtml = compileMarkdownToHtml(markdownContent, heroImageUrl, cleanTitle);
+    let compiledHtml = compileMarkdownToHtml(markdownContent, heroImageUrl, cleanTitle);
+    const htmlLinkRes = resolveCompanionLinks(compiledHtml, catalog, cleanTitle);
+    if (htmlLinkRes.replacementsCount > 0) {
+      console.log(`🔗 Auto-resolved ${htmlLinkRes.replacementsCount} companion HTML link(s) to live canonical URLs.`);
+      compiledHtml = htmlLinkRes.resolvedContent;
+    }
+
     const searchDescription = extractSearchDescription(markdownContent);
     if (searchDescription) {
       console.log(`Extracted Search Description (${searchDescription.length} chars): "${searchDescription}"`);
@@ -2423,6 +2551,10 @@ async function main() {
       post = await pubRes.json() as { title: string; url: string };
       console.log(`🎉 PUBLISHED LIVE: "${post.title}"`);
       console.log(`🔗 URL: ${post.url}`);
+    }
+
+    if (post?.url) {
+      catalog.push({ title: cleanTitle, url: post.url });
     }
 
     // 1. Log to Content_Planner_and_History Google Sheet
