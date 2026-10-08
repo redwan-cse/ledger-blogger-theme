@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.0] - 2026-10-08
+
+### Added
+- **Accessible Article Image Lightbox & Zoom Preview (`initImageLightbox`)**:
+  - Implemented single-blog article image preview modal with pure SVG icon controls (Zoom Out, Zoom In, Reset, Download, Close).
+  - Designed 1:1 circular controls with accessible `aria-label` attributes across desktop and mobile.
+  - Multi-touch and mouse pointer drag-to-pan across the entire expanded image canvas with boundary constraints.
+  - Full backdrop click-to-close and `Escape` keyboard dismissal without interfering with underlying page navigation.
+  - Clean cover thumbnails: eliminated overlay icons or announcements on lead thumbnails.
+- **Floating Action Button (Back to Top)**:
+  - Added responsive floating back-to-top button with smooth scroll-to-top interaction.
+  - Automatically reveals when the reader scrolls past 400px with smooth CSS fade/scale animations.
+  - Complete accessible labeling (`aria-label="Back to top"`) and keyboard focus ring.
+- **Automated Cross-Article Companion Link Resolver (`resolveCompanionLinks`)**:
+  - Added automated cross-article linking engine that detects referenced article titles (e.g., `[Title](https://blogs.redwan.work/)`) and resolves them to exact canonical permalinks during publishing and live rendering.
+- **Search Engine Indexer & IndexNow Automation**:
+  - Added `scripts/submit-urls.ts` and `scripts/lib/search-engine-indexer.ts` supporting Bing Webmaster API and IndexNow protocol submissions.
+  - Automated apex domain fallback (`https://redwan.work/{key}.txt`) for subdomain deployments (`blogs.redwan.work`).
+  - Added CLI generator `scripts/generate-indexnow-key.ts` for rapid IndexNow key deployment.
+- **Automated GitHub Research Catalog Syncer (`github-research-syncer.ts`)**:
+  - Automatically synchronizes published research articles to the author's GitHub profile and research catalog repository.
+
+### Changed
+- **Article Audio Reader Voice Optimization**:
+  - Prioritized high-fidelity, natural female speech synthesis voices across browser platforms (Google UK English Female, Microsoft Jenny, Samantha).
+  - Preserves inline code and technical terminology context during article narration without awkward skips.
+- **Dependency & Toolchain Updates**:
+  - Updated `sass` to 1.105.1.
+  - Updated `vitest` to 5.0.3.
+  - Updated `@types/node` to 26.6.4.
+
+### Fixed
+- **Automated ASCII Box & Numbered Pipeline Diagram Healing**:
+  - Enhanced `healAsciiBoxDiagram` Priority 2 to parse numbered steps (`1.`, `1)`, `Step 1:`, `Phase 1:`) with or without explicit divider lines (`|` or `v`), with multi-line step text support.
+  - Added Priority 8 sequential fallback transforming any titled ASCII box with 2+ items into an interactive Mermaid flowchart (`item_1 --> item_2`).
+  - Added client-side pre-scan in `initMermaidDiagrams` to dynamically detect, heal, and promote ASCII boxes and Mermaid blocks in existing published articles on page load.
+  - Normalized arrow label spacing (`\s*[-=]+>\s*` -> ` ➔ `) preventing label syntax errors.
+- **Schema.org BlogPosting JSON-LD Syntax Fix**:
+  - Resolved invalid snippet expression chaining in BlogPosting JSON-LD structured data on post views.
+- **Security Vulnerability Remediation**:
+  - Remediated high-severity vulnerability GHSA-68fv-2mgg-jv7q and CodeQL sanitization alerts in content publishing pipeline.
+
+---
+
 ## [1.7.0] - 2026-10-01
 
 ### Added
