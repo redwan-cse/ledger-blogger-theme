@@ -86,10 +86,32 @@ export function findMatchingCatalogPost(
   return null;
 }
 
+export function findTopicCompanionPost(catalog: CatalogPost[], currentPostTitle: string): CatalogPost | null {
+  const currentTokens = getSignificantTokens(currentPostTitle).filter(
+    (t) => !['hardening', 'blue', 'team', 'defense', 'mechanics', 'deconstructing'].includes(t)
+  );
+  if (currentTokens.length < 2) return null;
+
+  let bestMatch: CatalogPost | null = null;
+  let maxOverlap = 0;
+
+  for (const post of catalog) {
+    if (post.title.toLowerCase() === currentPostTitle.toLowerCase()) continue;
+    const postTokens = getSignificantTokens(post.title);
+    const overlap = currentTokens.filter((t) => postTokens.includes(t)).length;
+    if (overlap >= 2 && overlap > maxOverlap) {
+      maxOverlap = overlap;
+      bestMatch = post;
+    }
+  }
+
+  return bestMatch;
+}
+
 /**
  * Scans markdown and HTML content for placeholder internal links
  * (pointing to the root https://blogs.redwan.work/ or search paths)
- * and resolves them to their exact published permalink.
+ * or mismatched companion callouts, and resolves them to their exact published permalink.
  */
 export function resolveCompanionLinks(
   content: string,
@@ -135,6 +157,44 @@ export function resolveCompanionLinks(
     }
     return match;
   });
+
+  // C. Replace mismatched companion links in callout blocks (e.g. Blue Team Defense or Exploitation Mechanics)
+  if (currentPostTitle) {
+    const topicCompanion = findTopicCompanionPost(catalog, currentPostTitle);
+    if (topicCompanion?.url) {
+      // 1. HTML callout links
+      const companionHtmlRegex = /(?:🛡️|⚔️|Blue Team Defense|Exploitation Mechanics)(?:(?!<\/blockquote>|\n\n)[\s\S])*?<a\s+([^>]*?)href=["']([^"']+)["']([^>]*?)>([\s\S]*?)<\/a>/gi;
+      resolved = resolved.replace(companionHtmlRegex, (fullMatch, beforeHref, currentHref, afterHref, anchorText) => {
+        if (currentHref === topicCompanion.url) return fullMatch;
+        const currentHrefTokens = getSignificantTokens(currentHref);
+        const companionTokens = getSignificantTokens(topicCompanion.title);
+        const overlap = currentHrefTokens.filter((t) => companionTokens.includes(t)).length;
+        if (overlap < 2) {
+          replacementsCount++;
+          const oldLink = `<a ${beforeHref}href="${currentHref}"${afterHref}>${anchorText}</a>`;
+          const newLink = `<a ${beforeHref}href="${topicCompanion.url}"${afterHref}>${anchorText}</a>`;
+          return fullMatch.replace(oldLink, newLink);
+        }
+        return fullMatch;
+      });
+
+      // 2. Markdown callout links
+      const companionMdRegex = /(?:🛡️|⚔️|Blue Team Defense|Exploitation Mechanics)(?:(?!<\/blockquote>|\n\n)[\s\S])*?\[([^\]]+)\]\(([^)]+)\)/gi;
+      resolved = resolved.replace(companionMdRegex, (fullMatch, anchorText, currentHref) => {
+        if (currentHref === topicCompanion.url) return fullMatch;
+        const currentHrefTokens = getSignificantTokens(currentHref);
+        const companionTokens = getSignificantTokens(topicCompanion.title);
+        const overlap = currentHrefTokens.filter((t) => companionTokens.includes(t)).length;
+        if (overlap < 2) {
+          replacementsCount++;
+          const oldLink = `[${anchorText}](${currentHref})`;
+          const newLink = `[${anchorText}](${topicCompanion.url})`;
+          return fullMatch.replace(oldLink, newLink);
+        }
+        return fullMatch;
+      });
+    }
+  }
 
   return { resolvedContent: resolved, replacementsCount };
 }

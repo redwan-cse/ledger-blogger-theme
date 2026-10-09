@@ -255,7 +255,9 @@ async function healLiveCompanionLinks(
         p.content.includes('href="https://blogs.redwan.work"') ||
         p.content.includes("href='https://blogs.redwan.work'") ||
         p.content.includes('href="/search?q=') ||
-        p.content.includes("href='/search?q=")
+        p.content.includes("href='/search?q=") ||
+        p.content.includes('Blue Team Defense') ||
+        p.content.includes('Exploitation Mechanics')
       ) {
         const { resolvedContent, replacementsCount } = resolveCompanionLinks(p.content, catalog, p.title);
         if (replacementsCount > 0 && resolvedContent !== p.content) {
@@ -962,6 +964,67 @@ export function healAsciiBoxDiagram(code: string): string {
   }
 
   // ---------------------------------------------------------------------------
+  // Priority 7.5: Tabular Grid Comparison Card
+  // ---------------------------------------------------------------------------
+  const multiColCount = contentLines.filter(l => l.trim().split(/\s{2,}/).length >= 3).length;
+  if (multiColCount >= 2 && contentLines.length >= 2) {
+    const headerLine = contentLines[0]!.trim();
+    const headerCols = headerLine.split(/\s{2,}/);
+    if (headerCols.length >= 3) {
+      // Find start indices of columns in header
+      const colStarts: number[] = [0];
+      let searchFrom = 0;
+      for (let c = 1; c < headerCols.length; c++) {
+        const idx = headerLine.indexOf(headerCols[c]!, searchFrom);
+        colStarts.push(idx !== -1 ? idx : searchFrom);
+        if (idx !== -1) searchFrom = idx + headerCols[c]!.length;
+      }
+
+      let html = `<div class="table-container">\n<table>\n`;
+      if (title) html += `<caption><strong>${sanitize(title)}</strong></caption>\n`;
+      html += `<thead>\n<tr>\n${headerCols.map(c => `  <th>${sanitize(c.trim())}</th>`).join('\n')}\n</tr>\n</thead>\n`;
+      html += `<tbody>\n`;
+      for (let r = 1; r < contentLines.length; r++) {
+        const row = contentLines[r]!;
+        const rowCells: string[] = [];
+        for (let c = 0; c < colStarts.length; c++) {
+          const start = (c === 0) ? 0 : colStarts[c]!;
+          if (c === colStarts.length - 1) {
+            let actualStart = start;
+            if (row[actualStart] && row[actualStart] !== ' ') {
+              for (let d = 1; d <= 4; d++) {
+                if (row[actualStart - d] === ' ') { actualStart = actualStart - d + 1; break; }
+                if (row[actualStart + d] === ' ') { actualStart = actualStart + d + 1; break; }
+              }
+            }
+            rowCells.push(row.slice(actualStart).trim());
+          } else {
+            const nextColHeaderStart = colStarts[c + 1]!;
+            let splitPoint = nextColHeaderStart;
+            if (row[splitPoint] !== ' ') {
+              for (let d = 1; d <= 4; d++) {
+                if (row[splitPoint - d] === ' ') { splitPoint = splitPoint - d; break; }
+                if (row[splitPoint + d] === ' ') { splitPoint = splitPoint + d; break; }
+              }
+            }
+            let actualStart = start;
+            if (c > 0 && row[actualStart] && row[actualStart] !== ' ') {
+              for (let d = 1; d <= 4; d++) {
+                if (row[actualStart - d] === ' ') { actualStart = actualStart - d + 1; break; }
+                if (row[actualStart + d] === ' ') { actualStart = actualStart + d + 1; break; }
+              }
+            }
+            rowCells.push(row.slice(actualStart, splitPoint).trim());
+          }
+        }
+        html += `<tr>\n${rowCells.map(c => `  <td>${sanitize(c.trim())}</td>`).join('\n')}\n</tr>\n`;
+      }
+      html += `</tbody>\n</table>\n</div>`;
+      return html;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Priority 8: General Titled Box / Sequential Fallback
   // ---------------------------------------------------------------------------
   if (contentLines.length >= 2 && title) {
@@ -984,6 +1047,128 @@ export function healAsciiBoxDiagram(code: string): string {
   }
 
   return code;
+}
+
+/**
+ * Heals chained ASCII flowchart arrows and vertical ASCII branch connectors
+ * (e.g. [Node A] ---> Intermediate Action ---> [Node B] with vertical | and v connectors)
+ */
+export function healAsciiFlowchartChains(raw: string): string {
+  let code = raw;
+  const hasChains = /\[[^\]\n\r]+\]\s*[-=]+>\s*[^\[\n\r]+?\s*[-=]+>\s*\[/m.test(code);
+  const hasVerticalArt =
+    /^\s*\|\s*$\r?\n\s*[vV]\s*$\r?\n\s*\[/m.test(code) ||
+    /^\s*\|\s*\r?\n\s*[vV]\s*\r?\n\s*\[/m.test(code);
+
+  if (!hasChains && !hasVerticalArt) return code;
+
+  const lines = code.split(/\r?\n/).map(l => l.trimEnd());
+  const headerLine = lines.find(l => /^(?:flowchart|graph)\s+/i.test(l.trim()));
+  const header = headerLine ? headerLine.trim() : 'flowchart TD';
+
+  const bodyLines = lines.filter(l => !/^(?:flowchart|graph)\s+/i.test(l.trim()));
+
+  let sourceNode = '';
+  let intermediateNode = '';
+  let targetNode = '';
+  let branchTargetNode = '';
+
+  for (let i = 0; i < bodyLines.length; i++) {
+    const line = bodyLines[i] || '';
+    const chainMatch = line.match(/^\s*\[([^\]]+)\]\s*[-=]+>\s*(.+?)\s*[-=]+>\s*\[([^\]]+)\]\s*$/);
+    if (chainMatch) {
+      sourceNode = chainMatch[1]!.trim();
+      intermediateNode = chainMatch[2]!.trim();
+      targetNode = chainMatch[3]!.trim();
+      continue;
+    }
+
+    if (/^\s*\[([^\]]+)\]\s*$/.test(line)) {
+      const bMatch = line.match(/^\s*\[([^\]]+)\]\s*$/);
+      if (bMatch) {
+        branchTargetNode = bMatch[1]!.trim();
+      }
+    }
+  }
+
+  if (sourceNode && targetNode) {
+    const out: string[] = [header];
+    const sId = 'node_1';
+    const tId = 'node_2';
+    const cleanLabel = intermediateNode.replace(/"/g, "'");
+    out.push(`    ${sId}["${sourceNode}"] -->|"${cleanLabel}"| ${tId}["${targetNode}"]`);
+
+    if (branchTargetNode) {
+      const bId = 'node_3';
+      out.push(`    ${tId} --> ${bId}["${branchTargetNode}"]`);
+    }
+
+    return out.join('\n');
+  }
+
+  return code;
+}
+
+/**
+ * Heals ASCII Timeline representations into clean Mermaid flowcharts.
+ * (e.g. Timeline: Title followed by [Hour X] or Hour X: stages)
+ */
+export function healTimelineDiagram(raw: string): string {
+  const isTimelineHeader = /^\s*Timeline\s*:\s*(.+)$/im.test(raw);
+  if (!isTimelineHeader) return raw;
+
+  const lines = raw.split(/\r?\n/).map(l => l.trimEnd());
+  const headerMatch = lines[0]?.match(/^\s*Timeline\s*:\s*(.+)$/i);
+  const title = (headerMatch ? headerMatch[1]!.trim() : 'TIMELINE').replace(/"/g, "'");
+
+  const stages: { label: string; details: string[] }[] = [];
+  let currentStage: { label: string; details: string[] } | null = null;
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i] || '';
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    const stageMatch = trimmed.match(/^(?:\[([^\]]+)\]|([A-Za-z0-9\s:_-]+?):)\s*(.+)$/);
+    if (stageMatch) {
+      if (currentStage) stages.push(currentStage);
+      const timeTag = (stageMatch[1] || stageMatch[2] || '').trim();
+      const desc = (stageMatch[3] || '').trim().replace(/\s*[-=]{2,}>\s*/g, ' &bull; ');
+      currentStage = {
+        label: timeTag,
+        details: [desc]
+      };
+      continue;
+    }
+
+    if (currentStage) {
+      currentStage.details.push(trimmed.replace(/\s*[-=]{2,}>\s*/g, ' &bull; '));
+    }
+  }
+  if (currentStage) stages.push(currentStage);
+
+  if (stages.length >= 2) {
+    const out: string[] = ['flowchart TD'];
+    out.push(`    subgraph "${title}"`);
+    out.push('        direction TB');
+
+    const nodeIds: string[] = [];
+    stages.forEach((s, idx) => {
+      const id = `step_${idx + 1}`;
+      nodeIds.push(id);
+      const cleanHeader = s.label.replace(/"/g, "'");
+      const cleanDetails = s.details.join('<br/>').replace(/"/g, "'");
+      out.push(`        ${id}["${cleanHeader}<br/>${cleanDetails}"]`);
+    });
+
+    for (let i = 0; i < nodeIds.length - 1; i++) {
+      out.push(`        ${nodeIds[i]} --> ${nodeIds[i + 1]}`);
+    }
+    out.push('    end');
+    return out.join('\n');
+  }
+
+  return raw;
 }
 
 /**
@@ -1066,7 +1251,28 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     if (hasAsciiBox) {
       healedAscii = healAsciiBoxDiagram(cleanText);
     }
+    if (hasAsciiBox && healedAscii.startsWith('<div class="table-container">')) {
+      return healedAscii;
+    }
     const asciiHealedToMermaid = hasAsciiBox && healedAscii !== cleanText && Boolean(getFirstDiagramHeader(healedAscii));
+
+    // Check if block is a Timeline diagram
+    const hasTimeline = /^\s*Timeline\s*:\s*.+$/im.test(cleanText);
+    let healedTimeline = cleanText;
+    if (hasTimeline) {
+      healedTimeline = healTimelineDiagram(cleanText);
+    }
+    const timelineHealedToMermaid = hasTimeline && healedTimeline !== cleanText && Boolean(getFirstDiagramHeader(healedTimeline));
+
+    // Check if block is an ASCII flowchart chain with vertical connectors
+    const hasFlowchartChains =
+      /\[[^\]\n\r]+\]\s*[-=]+>\s*[^\[\n\r]+?\s*[-=]+>\s*\[/m.test(cleanText) ||
+      (/^\s*\|\s*$/m.test(cleanText) && /^\s*[vV]\s*$/m.test(cleanText));
+    let healedFlowchartChains = cleanText;
+    if (hasFlowchartChains) {
+      healedFlowchartChains = healAsciiFlowchartChains(cleanText);
+    }
+    const flowchartChainsHealedToMermaid = hasFlowchartChains && healedFlowchartChains !== cleanText && Boolean(getFirstDiagramHeader(healedFlowchartChains));
 
     // Strip HTML comments before detecting flowchart arrows so <!-- ... --> doesn't trigger Mermaid
     let textWithoutHtmlComments = cleanText;
@@ -1084,7 +1290,12 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
 
     // Auto-detect Mermaid sequence diagrams, flowcharts, graphs, and state diagrams
     const hasHeadings = /\n\s*##\s+/.test(cleanText);
-    const hasDiagramHeader = Boolean(getFirstDiagramHeader(cleanText)) || asciiHealedToMermaid;
+    const hasDiagramHeader =
+      Boolean(getFirstDiagramHeader(cleanText)) ||
+      asciiHealedToMermaid ||
+      timelineHealedToMermaid ||
+      flowchartChainsHealedToMermaid;
+
     const isMermaid = !NON_MERMAID_LANGS.has(rawLang) && !isXmlHtml && (rawLang === 'mermaid' ||
       rawLang === 'flowchart' ||
       rawLang === 'graph' ||
@@ -1097,12 +1308,30 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       && !(hasAsciiBox && !asciiHealedToMermaid);
 
     if (isMermaid) {
-      let mermaidCode = decodeHtmlEntities(asciiHealedToMermaid ? healedAscii : cleanText);
+      let mermaidCode = decodeHtmlEntities(
+        asciiHealedToMermaid ? healedAscii :
+        timelineHealedToMermaid ? healedTimeline :
+        flowchartChainsHealedToMermaid ? healedFlowchartChains :
+        cleanText
+      );
 
       // Strip stray markdown code fences inside Mermaid blocks (e.g. ```mermaid or ```)
       mermaidCode = mermaidCode
         .replace(/^`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
         .replace(/^\s*`{3,}\s*$/gm, '');
+
+      // In case not caught prior (e.g. code fences marked with ```mermaid):
+      mermaidCode = healTimelineDiagram(mermaidCode);
+      mermaidCode = healAsciiFlowchartChains(mermaidCode);
+
+      // Strip <b> and <i> tags from Mermaid labels to prevent literal tag rendering
+      mermaidCode = mermaidCode
+        .replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/gi, '$1')
+        .replace(/&lt;b>(.*?)&lt;\/b>/gi, '$1')
+        .replace(/<b>(.*?)<\/b>/gi, '$1')
+        .replace(/&lt;i&gt;(.*?)&lt;\/i&gt;/gi, '$1')
+        .replace(/&lt;i>(.*?)&lt;\/i>/gi, '$1')
+        .replace(/<i>(.*?)<\/i>/gi, '$1');
 
       // Deduplicate consecutive identical sequenceDiagram headers
       mermaidCode = mermaidCode.replace(/^(sequenceDiagram\s*\n)+sequenceDiagram/gim, 'sequenceDiagram');

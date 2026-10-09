@@ -86,4 +86,34 @@ describe('companion-link-resolver', () => {
     expect(replacementsCount).toBe(0);
     expect(resolvedContent).toBe(markdown);
   });
+
+  it('heals mismatched links in companion callout blocks', () => {
+    const catalog = [
+      {
+        title: 'Kerberos Diamond Ticket: Deconstructing TGT Forgery Architecture',
+        url: 'https://blogs.redwan.work/2026/10/kerberos-diamond-ticket-deconstructing.html'
+      },
+      {
+        title: 'Hardening Active Directory Kerberos: PAC Validation & Diamond Ticket Defense',
+        url: 'https://blogs.redwan.work/2026/10/hardening-active-directory-kerberos-pac.html'
+      },
+      {
+        title: 'Golden SAML: Deconstructing ADFS Token Forgery Architecture',
+        url: 'https://blogs.redwan.work/2026/10/golden-saml-deconstructing-adfs-token.html'
+      }
+    ];
+
+    // Post 1 with an outdated link pointing to Golden SAML instead of Hardening AD Kerberos PAC
+    const post1Html = '<blockquote><p>🛡️ <strong>Blue Team Defense</strong>: For detection rules, Sysmon event IDs, and hardening configurations, see our companion guide: <a href="https://blogs.redwan.work/2026/10/golden-saml-deconstructing-adfs-token.html">Hardening Guide</a>.</p></blockquote>';
+    const res1 = resolveCompanionLinks(post1Html, catalog, 'Kerberos Diamond Ticket: Deconstructing TGT Forgery Architecture');
+    expect(res1.replacementsCount).toBe(1);
+    expect(res1.resolvedContent).toContain('href="https://blogs.redwan.work/2026/10/hardening-active-directory-kerberos-pac.html"');
+
+    // Post 2 with an outdated link pointing to Golden SAML instead of Diamond Ticket
+    const post2Html = '<blockquote><p>⚔️ <strong>Exploitation Mechanics</strong>: For root-cause attack flow, see our deep-dive: <a href="https://blogs.redwan.work/2026/10/golden-saml-deconstructing-adfs-token.html">Deconstructing Breakdown</a>.</p></blockquote>';
+    const res2 = resolveCompanionLinks(post2Html, catalog, 'Hardening Active Directory Kerberos: PAC Validation & Diamond Ticket Defense');
+    expect(res2.replacementsCount).toBe(1);
+    expect(res2.resolvedContent).toContain('href="https://blogs.redwan.work/2026/10/kerberos-diamond-ticket-deconstructing.html"');
+  });
 });
+
