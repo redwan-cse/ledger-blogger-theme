@@ -143,7 +143,7 @@ export function resolveCompanionLinks(
   });
 
   // B. Replace HTML links: <a href="https://blogs.redwan.work/ or /search...">Anchor</a>
-  const htmlLinkRegex = /<a\s+([^>]*?)href=["'](https:\/\/blogs\.redwan\.work\/?|\/search\?[^"']*)["']([^>]*?)>([\s\S]*?)<\/a>/gi;
+  const htmlLinkRegex = /<a\s+([^>]*?)href=["'](https:\/\/blogs\.redwan\.work\/?|\/search\?[^"']*|\/search\/label\/[^"']*)["']([^>]*?)>([\s\S]*?)<\/a>/gi;
   resolved = resolved.replace(htmlLinkRegex, (match, beforeHref, rawUrl, afterHref, innerAnchor) => {
     const cleanAnchor = innerAnchor.replace(/<[^>]+>/g, '').trim();
     if (/^(home|homepage|blog|index|back to top)$/i.test(cleanAnchor)) {

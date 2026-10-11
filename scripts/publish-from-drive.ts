@@ -1214,6 +1214,114 @@ export function healBareBracketNodes(code: string): string {
   return code;
 }
 
+/**
+ * Balances Markdown table delimiter rows (e.g. | :--- | :--- |) when LLM output emits
+ * an unequal number of delimiter columns compared to table header columns.
+ * GFM strictly rejects tables where delimiter column count != header column count.
+ */
+export function balanceMarkdownTableDelimiters(prose: string): string {
+  return prose.replace(/^(\|[^\n]+\|)\r?\n(\|[ \t]*:?---+:?[ \t]*(?:\|[ \t]*:?---+:?[ \t]*)+\|)/gm, (match, headerLine, delimLine) => {
+    const headerCols = headerLine.split('|').slice(1, -1).length;
+    const delimCols = delimLine.split('|').slice(1, -1).length;
+    if (delimCols !== headerCols && headerCols > 0) {
+      const fixedDelim = '| ' + Array(headerCols).fill(':---').join(' | ') + ' |';
+      return `${headerLine}\n${fixedDelim}`;
+    }
+    return match;
+  });
+}
+
+/**
+ * Rescues unrendered Markdown tables that ended up inside <p>...</p> tags due to
+ * GFM syntax quirks or LLM column mismatches, and converts them to responsive HTML tables.
+ */
+export function healUnrenderedTableInHtml(html: string): string {
+  return html.replace(/<p>\s*>?\s*(\|[\s\S]+?\|)\s*(?:<br\s*\/?>)?\s*<\/p>/gi, (match, tableContent) => {
+    // Strip trailing/leading br tags per line
+    const rawLines = tableContent
+      .split(/\r?\n/)
+      .map((l: string) => l.trim().replace(/^<br\s*\/?>|<br\s*\/?>$/gi, '').trim())
+      .filter(Boolean);
+    if (rawLines.length < 3) return match;
+    const headerLine = rawLines[0] || '';
+    const delimLine = rawLines[1] || '';
+    if (!headerLine.includes('|') || !delimLine.includes('---')) return match;
+
+    const headerCols = headerLine.split('|').slice(1, -1).map((c: string) => c.trim());
+    if (headerCols.length === 0) return match;
+    const bodyLines = rawLines.slice(2);
+
+    let tableHtml = '<div class="table-container">\n<table>\n<thead>\n<tr>\n';
+    headerCols.forEach((c: string) => {
+      tableHtml += `  <th>${c}</th>\n`;
+    });
+    tableHtml += '</tr>\n</thead>\n<tbody>\n';
+
+    bodyLines.forEach((row: string) => {
+      if (!row.includes('|')) return;
+      const cols = row.split('|').slice(1, -1).map((c: string) => c.trim());
+      tableHtml += '<tr>\n';
+      headerCols.forEach((_, idx) => {
+        tableHtml += `  <td>${cols[idx] || ''}</td>\n`;
+      });
+      tableHtml += '</tr>\n';
+    });
+
+    tableHtml += '</tbody>\n</table>\n</div>';
+    return tableHtml;
+  });
+}
+
+/**
+ * Transforms GitHub/Starlight alert callouts (> [!WARNING], > [!IMPORTANT], > [!NOTE], etc.)
+ * into accessible, styled callout cards with icons and headers.
+ */
+export function transformCalloutAlerts(html: string): string {
+  const alertConfig: Record<string, { title: string; class: string; svg: string }> = {
+    warning: {
+      title: 'Warning',
+      class: 'callout-warning',
+      svg: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>'
+    },
+    important: {
+      title: 'Important',
+      class: 'callout-important',
+      svg: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>'
+    },
+    note: {
+      title: 'Note',
+      class: 'callout-note',
+      svg: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>'
+    },
+    caution: {
+      title: 'Caution',
+      class: 'callout-caution',
+      svg: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>'
+    },
+    tip: {
+      title: 'Tip',
+      class: 'callout-tip',
+      svg: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.21c-.04-.28-.21-.6-.464-.967a8.66 8.66 0 0 0-.648-.816l-.213-.254C3.003 7.502 2.5 6.64 2.5 5.25 2.5 2.38 4.887 0 8 0s5.5 2.38 5.5 5.25c0 1.39-.503 2.252-1.163 3.037l-.213.254c-.208.246-.427.525-.648.816-.254.368-.424.688-.464.968a.75.75 0 0 1-1.484-.211c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848l.214-.253c.56-.679.984-1.32.984-2.304 0-2.06-1.637-3.75-4-3.75ZM6 11.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5h-1.5Z"/></svg>'
+    }
+  };
+
+  return html.replace(
+    /<blockquote>\s*(?:<p>\s*)?\[!(WARNING|IMPORTANT|NOTE|CAUTION|TIP)\](?:\s*<\/p>\s*<p>|\s*<br\s*\/?>|\s*\n)?([\s\S]*?)<\/blockquote>/gi,
+    (_match, typeRaw, bodyHtml) => {
+      const type = typeRaw.toLowerCase();
+      const cfg = alertConfig[type] || alertConfig.warning!;
+      let cleanBody = bodyHtml.trim();
+      if (!cleanBody.startsWith('<p>')) {
+        cleanBody = `<p>${cleanBody}`;
+      }
+      if (!cleanBody.endsWith('</p>')) {
+        cleanBody = `${cleanBody}</p>`;
+      }
+      return `<div class="callout-card ${cfg.class}">\n  <div class="callout-header">\n    <span class="callout-icon">${cfg.svg}</span>\n    <strong class="callout-title">${cfg.title}</strong>\n  </div>\n  <div class="callout-body">\n    ${cleanBody}\n  </div>\n</div>`;
+    }
+  );
+}
+
 // 3. Configure Marked Markdown Compiler with Code Window & Mermaid Support
 export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, articleTitle?: string): string {
   const renderer = new marked.Renderer();
@@ -1239,7 +1347,7 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       'xml', 'html', 'xhtml', 'svg', 'json', 'yaml', 'yml', 'bash', 'sh', 'zsh',
       'powershell', 'ps1', 'python', 'py', 'c', 'cpp', 'csharp', 'cs', 'sql',
       'javascript', 'js', 'typescript', 'ts', 'go', 'rust', 'diff', 'ini', 'toml',
-      'css', 'scss', 'text', 'plaintext'
+      'css', 'scss', 'text', 'plaintext', 'kql', 'pseudocode', 'crypto'
     ]);
 
     // Check if block is XML/HTML
@@ -1487,6 +1595,10 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
         displayLang = 'python';
       } else if (cleanText.includes('SELECT ') || cleanText.includes('CREATE TABLE') || cleanText.includes('ALTER TABLE') || cleanText.includes('DO $$') || cleanText.includes('SET LOCAL')) {
         displayLang = 'sql';
+      } else if (cleanText.includes('SigninLogs') || cleanText.includes('| where') || cleanText.includes('DeviceProcessEvents') || cleanText.includes('| summarize') || cleanText.includes('| project') || cleanText.includes('| extend')) {
+        displayLang = 'kql';
+      } else if (cleanText.includes('base64url(') || cleanText.includes('HMAC-SHA256(') || cleanText.includes('AES-GCM') || cleanText.includes('RSA-OAEP')) {
+        displayLang = 'pseudocode';
       } else if (cleanText.includes('title:') || cleanText.includes('logsource:') || cleanText.includes('detection:')) {
         displayLang = 'yaml';
       } else if (cleanText.includes('curl ') || cleanText.includes('chmod ') || cleanText.includes('sudo ') || cleanText.includes('#!/bin')) {
@@ -1576,9 +1688,16 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     return parts.map((part, idx) => (idx % 2 === 1 ? part : fn(part))).join('');
   };
 
-  // 3. Clean prose-only quirks (backslash escapes, task-list checkboxes, tables)
+  // 3. Clean prose-only quirks (backslash escapes, task-list checkboxes, tables, inline code spacing)
   cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
-    return prose
+    let out = balanceMarkdownTableDelimiters(prose);
+    out = out
+      .replace(/\(\s+`([^`]+)`\s+\)/g, '(`$1`)')
+      .replace(/\(\s+`([^`]+)`/g, '(`$1`')
+      .replace(/`([^`]+)`\s+\)/g, '`$1`)')
+      .replace(/`([^`]+)`\s+([:.,;!?])/g, '`$1`$2')
+      .replace(/\)\s+([:.,;!?])/g, ')$1');
+    return out
       .replace(/\\([*_`~[\]()#+\-.!])/g, '$1') // Unescape markdown backslashes in prose only
       .replace(/^(\s*[-*+]\s+)\[[ xX]\]\s+/gm, '$1') // Strip task list checkboxes so they don't render double bullets
       .replace(/(\w)'''(\w)/g, "$1'$2")
@@ -1656,6 +1775,18 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
   htmlBody = htmlBody.replace(/<table(?:\s[^>]*)?>[\s\S]*?<\/table>/gi, (match) => {
     return `\n<div class="table-container">\n${match}\n</div>\n`;
   });
+
+  // Rescue any unrendered markdown tables trapped in <p>...</p> tags
+  htmlBody = healUnrenderedTableInHtml(htmlBody);
+
+  // Transform GitHub alert callouts (> [!WARNING], > [!IMPORTANT], etc.) into styled callout cards
+  htmlBody = transformCalloutAlerts(htmlBody);
+
+  // Clean typographic spaces around inline code tags
+  htmlBody = htmlBody
+    .replace(/\(\s*<code>(.*?)<\/code>\s*\)/g, '(<code>$1</code>)')
+    .replace(/<code>(.*?)<\/code>\s+([:.,;!?])/g, '<code>$1</code>$2')
+    .replace(/\)\s+([:.,;!?])/g, ')$1');
 
   // Escape unescaped C/C++ header includes inside code blocks
   htmlBody = htmlBody.replace(/#include\s*<([^>\r\n]+)>/g, '#include &lt;$1&gt;');
@@ -1765,6 +1896,24 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
     font-size: 0.875rem !important;
     line-height: 1.65 !important;
+  }
+  .post-body .code-block-wrap pre::-webkit-scrollbar,
+  .code-block-wrap pre::-webkit-scrollbar {
+    height: 6px !important;
+  }
+  .post-body .code-block-wrap pre::-webkit-scrollbar-track,
+  .code-block-wrap pre::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 4px !important;
+  }
+  .post-body .code-block-wrap pre::-webkit-scrollbar-thumb,
+  .code-block-wrap pre::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25) !important;
+    border-radius: 4px !important;
+  }
+  .post-body .code-block-wrap pre::-webkit-scrollbar-thumb:hover,
+  .code-block-wrap pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4) !important;
   }
   .post-body li:has(> input[type='checkbox']) {
     list-style: none !important;
@@ -1914,6 +2063,76 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
   .table-container td { padding: 8px 14px !important; border-bottom: 1px solid #d0d7de !important; color: #1f2328 !important; }
   .table-container tr:nth-child(even) td { background: #fbfcfd !important; }
 
+  /* Accessible Callout Alert Cards (GitHub / Starlight Styled) */
+  .callout-card {
+    margin: 24px 0 !important;
+    border-radius: 8px !important;
+    border: 1px solid #d0d7de !important;
+    border-left: 4px solid #1f6feb !important;
+    background-color: #f6f8fa !important;
+    overflow: hidden !important;
+  }
+  .callout-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 16px 6px 16px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+  }
+  .callout-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .callout-body {
+    padding: 0 16px 12px 16px !important;
+    font-size: 0.95rem !important;
+    line-height: 1.6 !important;
+    color: #1f2328 !important;
+  }
+  .callout-body p {
+    margin: 6px 0 !important;
+  }
+  .callout-body p:first-child { margin-top: 0 !important; }
+  .callout-body p:last-child { margin-bottom: 0 !important; }
+
+  .callout-warning {
+    border-left-color: #9a6700 !important;
+    background-color: #fff8c5 !important;
+    border-color: rgba(212, 167, 44, 0.4) !important;
+  }
+  .callout-warning .callout-header { color: #9a6700 !important; }
+
+  .callout-important {
+    border-left-color: #8250df !important;
+    background-color: #fbefff !important;
+    border-color: rgba(194, 151, 230, 0.4) !important;
+  }
+  .callout-important .callout-header { color: #8250df !important; }
+
+  .callout-note {
+    border-left-color: #0969da !important;
+    background-color: #ddf4ff !important;
+    border-color: rgba(84, 174, 255, 0.4) !important;
+  }
+  .callout-note .callout-header { color: #0969da !important; }
+
+  .callout-caution {
+    border-left-color: #cf222e !important;
+    background-color: #ffebe9 !important;
+    border-color: rgba(255, 129, 130, 0.4) !important;
+  }
+  .callout-caution .callout-header { color: #cf222e !important; }
+
+  .callout-tip {
+    border-left-color: #1a7f37 !important;
+    background-color: #dafbe1 !important;
+    border-color: rgba(74, 194, 107, 0.4) !important;
+  }
+  .callout-tip .callout-header { color: #1a7f37 !important; }
+
   /* Prism Syntax Highlighting Tokens (Light Mode) */
   .token.comment, .token.prolog, .token.doctype, .token.cdata {
     color: #6e7781 !important;
@@ -2058,6 +2277,59 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
   [data-theme='dark'] .table-container td, html[data-theme='dark'] .table-container td { border-bottom-color: #30363d !important; color: #c9d1d9 !important; }
   [data-theme='dark'] .table-container tr:nth-child(even) td { background: #0d1117 !important; }
 
+  [data-theme='dark'] .code-block-wrap pre::-webkit-scrollbar-track,
+  html[data-theme='dark'] .code-block-wrap pre::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+  [data-theme='dark'] .code-block-wrap pre::-webkit-scrollbar-thumb,
+  html[data-theme='dark'] .code-block-wrap pre::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25) !important;
+  }
+  [data-theme='dark'] .code-block-wrap pre::-webkit-scrollbar-thumb:hover,
+  html[data-theme='dark'] .code-block-wrap pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  [data-theme='dark'] .callout-warning, html[data-theme='dark'] .callout-warning {
+    background-color: rgba(187, 128, 9, 0.15) !important;
+    border-color: rgba(187, 128, 9, 0.4) !important;
+    border-left-color: #d29922 !important;
+  }
+  [data-theme='dark'] .callout-warning .callout-header, html[data-theme='dark'] .callout-warning .callout-header { color: #d29922 !important; }
+  [data-theme='dark'] .callout-warning .callout-body, html[data-theme='dark'] .callout-warning .callout-body { color: #e6edf3 !important; }
+
+  [data-theme='dark'] .callout-important, html[data-theme='dark'] .callout-important {
+    background-color: rgba(163, 113, 247, 0.15) !important;
+    border-color: rgba(163, 113, 247, 0.4) !important;
+    border-left-color: #a371f7 !important;
+  }
+  [data-theme='dark'] .callout-important .callout-header, html[data-theme='dark'] .callout-important .callout-header { color: #a371f7 !important; }
+  [data-theme='dark'] .callout-important .callout-body, html[data-theme='dark'] .callout-important .callout-body { color: #e6edf3 !important; }
+
+  [data-theme='dark'] .callout-note, html[data-theme='dark'] .callout-note {
+    background-color: rgba(56, 139, 253, 0.15) !important;
+    border-color: rgba(56, 139, 253, 0.4) !important;
+    border-left-color: #58a6ff !important;
+  }
+  [data-theme='dark'] .callout-note .callout-header, html[data-theme='dark'] .callout-note .callout-header { color: #58a6ff !important; }
+  [data-theme='dark'] .callout-note .callout-body, html[data-theme='dark'] .callout-note .callout-body { color: #e6edf3 !important; }
+
+  [data-theme='dark'] .callout-caution, html[data-theme='dark'] .callout-caution {
+    background-color: rgba(248, 81, 73, 0.15) !important;
+    border-color: rgba(248, 81, 73, 0.4) !important;
+    border-left-color: #f85149 !important;
+  }
+  [data-theme='dark'] .callout-caution .callout-header, html[data-theme='dark'] .callout-caution .callout-header { color: #f85149 !important; }
+  [data-theme='dark'] .callout-caution .callout-body, html[data-theme='dark'] .callout-caution .callout-body { color: #e6edf3 !important; }
+
+  [data-theme='dark'] .callout-tip, html[data-theme='dark'] .callout-tip {
+    background-color: rgba(46, 160, 67, 0.15) !important;
+    border-color: rgba(46, 160, 67, 0.4) !important;
+    border-left-color: #3fb950 !important;
+  }
+  [data-theme='dark'] .callout-tip .callout-header, html[data-theme='dark'] .callout-tip .callout-header { color: #3fb950 !important; }
+  [data-theme='dark'] .callout-tip .callout-body, html[data-theme='dark'] .callout-tip .callout-body { color: #e6edf3 !important; }
+
   /* Prism Syntax Highlighting Tokens (Dark Mode) */
   [data-theme='dark'] .token.comment, html[data-theme='dark'] .token.comment {
     color: #8b949e !important;
@@ -2107,6 +2379,15 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       box-shadow: none !important;
       color: #e6edf3 !important;
     }
+    :root:not([data-theme='light']) .code-block-wrap pre::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+    :root:not([data-theme='light']) .code-block-wrap pre::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25) !important;
+    }
+    :root:not([data-theme='light']) .code-block-wrap pre::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.45) !important;
+    }
     :root:not([data-theme='light']) .post-body code {
       background-color: rgba(110, 118, 129, 0.4) !important;
       color: #e6edf3 !important;
@@ -2130,6 +2411,46 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     :root:not([data-theme='light']) .table-container th { background: #161b22 !important; color: #f0f6fc !important; border-bottom: 2px solid #30363d !important; }
     :root:not([data-theme='light']) .table-container td { border-bottom-color: #30363d !important; color: #c9d1d9 !important; }
     :root:not([data-theme='light']) .table-container tr:nth-child(even) td { background: #0d1117 !important; }
+
+    :root:not([data-theme='light']) .callout-warning {
+      background-color: rgba(187, 128, 9, 0.15) !important;
+      border-color: rgba(187, 128, 9, 0.4) !important;
+      border-left-color: #d29922 !important;
+    }
+    :root:not([data-theme='light']) .callout-warning .callout-header { color: #d29922 !important; }
+    :root:not([data-theme='light']) .callout-warning .callout-body { color: #e6edf3 !important; }
+
+    :root:not([data-theme='light']) .callout-important {
+      background-color: rgba(163, 113, 247, 0.15) !important;
+      border-color: rgba(163, 113, 247, 0.4) !important;
+      border-left-color: #a371f7 !important;
+    }
+    :root:not([data-theme='light']) .callout-important .callout-header { color: #a371f7 !important; }
+    :root:not([data-theme='light']) .callout-important .callout-body { color: #e6edf3 !important; }
+
+    :root:not([data-theme='light']) .callout-note {
+      background-color: rgba(56, 139, 253, 0.15) !important;
+      border-color: rgba(56, 139, 253, 0.4) !important;
+      border-left-color: #58a6ff !important;
+    }
+    :root:not([data-theme='light']) .callout-note .callout-header { color: #58a6ff !important; }
+    :root:not([data-theme='light']) .callout-note .callout-body { color: #e6edf3 !important; }
+
+    :root:not([data-theme='light']) .callout-caution {
+      background-color: rgba(248, 81, 73, 0.15) !important;
+      border-color: rgba(248, 81, 73, 0.4) !important;
+      border-left-color: #f85149 !important;
+    }
+    :root:not([data-theme='light']) .callout-caution .callout-header { color: #f85149 !important; }
+    :root:not([data-theme='light']) .callout-caution .callout-body { color: #e6edf3 !important; }
+
+    :root:not([data-theme='light']) .callout-tip {
+      background-color: rgba(46, 160, 67, 0.15) !important;
+      border-color: rgba(46, 160, 67, 0.4) !important;
+      border-left-color: #3fb950 !important;
+    }
+    :root:not([data-theme='light']) .callout-tip .callout-header { color: #3fb950 !important; }
+    :root:not([data-theme='light']) .callout-tip .callout-body { color: #e6edf3 !important; }
     :root:not([data-theme='light']) .token.comment {
       background: transparent !important;
       border: none !important;
