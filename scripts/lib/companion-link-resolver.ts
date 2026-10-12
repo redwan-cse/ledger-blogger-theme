@@ -196,5 +196,57 @@ export function resolveCompanionLinks(
     }
   }
 
+  // D. Heal dead internal permalinks (pointing to non-existent blogs.redwan.work/YYYY/MM/*.html)
+  const publishedUrls = new Set(catalog.map((p) => p.url));
+  const deadInternalLinkRegex = /<a\s+([^>]*?)href=["'](https:\/\/blogs\.redwan\.work\/\d{4}\/\d{2}\/([^"']+)\.html)["']([^>]*?)>([\s\S]*?)<\/a>/gi;
+  resolved = resolved.replace(deadInternalLinkRegex, (fullMatch, beforeHref, deadUrl, slug, afterHref, innerAnchor) => {
+    if (publishedUrls.has(deadUrl)) {
+      return fullMatch;
+    }
+
+    const cleanAnchor = innerAnchor.replace(/<[^>]+>/g, '').trim();
+
+    // 1. Try to match anchor text to a published post
+    const postByAnchor = findMatchingCatalogPost(cleanAnchor, catalog, currentPostTitle);
+    if (postByAnchor?.url) {
+      replacementsCount++;
+      return `<a ${beforeHref}href="${postByAnchor.url}"${afterHref}>${innerAnchor}</a>`;
+    }
+
+    // 2. Try to match slug tokens to a published post
+    const slugTokens = getSignificantTokens(slug);
+    if (slugTokens.length >= 2) {
+      let bestMatch: CatalogPost | null = null;
+      let maxOverlap = 0;
+      for (const post of catalog) {
+        if (currentPostTitle && post.title.toLowerCase() === currentPostTitle.toLowerCase()) continue;
+        const postTokens = getSignificantTokens(post.title);
+        const overlap = slugTokens.filter((t) => postTokens.includes(t)).length;
+        if (overlap >= 2 && overlap > maxOverlap) {
+          maxOverlap = overlap;
+          bestMatch = post;
+        }
+      }
+      if (bestMatch?.url) {
+        replacementsCount++;
+        return `<a ${beforeHref}href="${bestMatch.url}"${afterHref}>${innerAnchor}</a>`;
+      }
+    }
+
+    // 3. If currentPostTitle has a companion post in the catalog, use it
+    if (currentPostTitle) {
+      const topicCompanion = findTopicCompanionPost(catalog, currentPostTitle);
+      if (topicCompanion?.url) {
+        replacementsCount++;
+        return `<a ${beforeHref}href="${topicCompanion.url}"${afterHref}>${innerAnchor}</a>`;
+      }
+    }
+
+    // 4. Fallback safely to search query rather than a dead 404 permalink
+    const query = slugTokens.slice(0, 3).join('+') || encodeURIComponent(cleanAnchor);
+    replacementsCount++;
+    return `<a ${beforeHref}href="/search?q=${query}"${afterHref}>${innerAnchor}</a>`;
+  });
+
   return { resolvedContent: resolved, replacementsCount };
 }

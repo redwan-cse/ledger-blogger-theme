@@ -115,5 +115,31 @@ describe('companion-link-resolver', () => {
     expect(res2.replacementsCount).toBe(1);
     expect(res2.resolvedContent).toContain('href="https://blogs.redwan.work/2026/10/kerberos-diamond-ticket-deconstructing.html"');
   });
+
+  it('heals dead internal permalinks pointing to non-existent blog posts into valid catalog posts or searches', () => {
+    const catalog = [
+      {
+        title: 'Ivanti Connect Secure: Deconstructing the Edge Zero-Day Chain',
+        url: 'https://blogs.redwan.work/2026/09/ivanti-connect-secure-deconstructing.html'
+      },
+      {
+        title: 'CrewAI CVE-2026-2275: Deconstructing Agent RCE Chains',
+        url: 'https://blogs.redwan.work/2026/10/crewai-cve-2026-2275-deconstructing.html'
+      }
+    ];
+
+    // Case 1: Dead link matching slug tokens in catalog
+    const deadHtml1 = '<p>See <a href="https://blogs.redwan.work/2026/09/ivanti-edge-zero-day.html">Edge Threat Analysis</a></p>';
+    const res1 = resolveCompanionLinks(deadHtml1, catalog);
+    expect(res1.replacementsCount).toBe(1);
+    expect(res1.resolvedContent).toContain('href="https://blogs.redwan.work/2026/09/ivanti-connect-secure-deconstructing.html"');
+
+    // Case 2: Dead link with no matching catalog post falls back to search rather than 404
+    const deadHtml2 = '<p>Check <a href="https://blogs.redwan.work/2026/09/vllm-cve-2026-22778-deconstructing.html">Hardening Guide</a></p>';
+    const res2 = resolveCompanionLinks(deadHtml2, catalog, 'CrewAI CVE-2026-2275: Deconstructing Agent RCE Chains');
+    expect(res2.replacementsCount).toBe(1);
+    expect(res2.resolvedContent).not.toContain('vllm-cve-2026-22778-deconstructing.html');
+    expect(res2.resolvedContent).toMatch(/href="\/search\?q=[^"]+"/);
+  });
 });
 

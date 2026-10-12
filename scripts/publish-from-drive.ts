@@ -1347,7 +1347,10 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       'xml', 'html', 'xhtml', 'svg', 'json', 'yaml', 'yml', 'bash', 'sh', 'zsh',
       'powershell', 'ps1', 'python', 'py', 'c', 'cpp', 'csharp', 'cs', 'sql',
       'javascript', 'js', 'typescript', 'ts', 'go', 'rust', 'diff', 'ini', 'toml',
-      'css', 'scss', 'text', 'plaintext', 'kql', 'pseudocode', 'crypto'
+      'css', 'scss', 'text', 'plaintext', 'kql', 'pseudocode', 'crypto',
+      'markdown', 'md', 'http', 'graphql', 'ruby', 'rb', 'java', 'php',
+      'c#', 'c++', 'bat', 'cmd', 'dockerfile', 'docker', 'nginx', 'apache',
+      'regex', 'latex', 'tex', 'shell'
     ]);
 
     // Check if block is XML/HTML
@@ -1389,30 +1392,37 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       prevComments = textWithoutHtmlComments;
       textWithoutHtmlComments = textWithoutHtmlComments.replace(/<!--[\s\S]*?-->/g, '');
     }
-    const hasFlowchartArrow = !hasAsciiBox && textWithoutHtmlComments.includes('-->') && (
-      textWithoutHtmlComments.includes('[') ||
-      textWithoutHtmlComments.includes('(') ||
-      textWithoutHtmlComments.includes('{') ||
-      textWithoutHtmlComments.includes('|')
-    );
+    // Also strip standalone or orphaned comment openers and closers
+    textWithoutHtmlComments = textWithoutHtmlComments
+      .replace(/^\s*<!--\s*$/gm, '')
+      .replace(/^\s*-->\s*$/gm, '');
+
+    // A real flowchart arrow connects nodes/tokens (e.g. A --> B, node["..."] --> node2, A ==> B, A -.-> B)
+    // It must NEVER match a standalone --> comment terminator or disconnected tokens across different lines
+    const hasFlowchartArrow = !hasAsciiBox &&
+      /(?:\[[^\]\r\n]+\]|\([^\)\r\n]+\)|\{[^\}\r\n]+\}|\b[\w\-]+)\s*(?:-->|==>|-.->)\s*(?:\|[^|\r\n]+\|\s*)?(?:\[|\(|\{|\b[\w\-]+)/.test(textWithoutHtmlComments);
 
     // Auto-detect Mermaid sequence diagrams, flowcharts, graphs, and state diagrams
-    const hasHeadings = /\n\s*##\s+/.test(cleanText);
+    const hasHeadings = /(?:^|\n)\s*#{1,6}\s+/.test(cleanText);
     const hasDiagramHeader =
       Boolean(getFirstDiagramHeader(cleanText)) ||
       asciiHealedToMermaid ||
       timelineHealedToMermaid ||
       flowchartChainsHealedToMermaid;
 
+    const hasCodeConstructs =
+      /\b(import\s+[\w\.]+|from\s+[\w\.]+\s+import|def\s+[\w_]+\s*\(|libc\.|payload\s*=|print\(|#include\s*<|SELECT\s+[\w\*]+|function\s*\(|var\s+\w+\s*=|const\s+\w+\s*=)\b/i.test(cleanText);
+
     const isMermaid = !NON_MERMAID_LANGS.has(rawLang) && !isXmlHtml && (rawLang === 'mermaid' ||
-      rawLang === 'flowchart' ||
-      rawLang === 'graph' ||
-      hasDiagramHeader ||
-      cleanText.includes('sequenceDiagram') ||
-      /\b(autonumber|participant)\b/i.test(cleanText) ||
-      /\bactor\s+[\w\-]+/i.test(cleanText) ||
-      hasFlowchartArrow)
-      && !(hasHeadings && !hasDiagramHeader && !/\b(participant|autonumber|-->|==>)\b/.test(cleanText))
+      (!hasCodeConstructs && !(hasHeadings && !hasDiagramHeader) && (
+        rawLang === 'flowchart' ||
+        rawLang === 'graph' ||
+        hasDiagramHeader ||
+        cleanText.includes('sequenceDiagram') ||
+        /\b(autonumber|participant)\b/i.test(cleanText) ||
+        /\bactor\s+[\w\-]+/i.test(cleanText) ||
+        hasFlowchartArrow
+      )))
       && !(hasAsciiBox && !asciiHealedToMermaid);
 
     if (isMermaid) {
@@ -1587,7 +1597,9 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     // Auto-detect programming language if missing
     let displayLang = rawLang;
     if (!displayLang || displayLang === 'code' || displayLang === 'text') {
-      if (isXmlHtml || cleanText.trim().startsWith('<')) {
+      if (/(?:^|\n)\s*#{1,6}\s+/.test(cleanText) || cleanText.trim().startsWith('<!--')) {
+        displayLang = 'markdown';
+      } else if (isXmlHtml || cleanText.trim().startsWith('<')) {
         displayLang = 'xml';
       } else if (cleanText.includes('$') || cleanText.includes('Get-AD') || cleanText.includes('param (') || cleanText.includes('Write-Host')) {
         displayLang = 'powershell';
