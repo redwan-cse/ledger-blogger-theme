@@ -1261,7 +1261,7 @@ export function healUnrenderedTableInHtml(html: string): string {
       if (!row.includes('|')) return;
       const cols = row.split('|').slice(1, -1).map((c: string) => c.trim());
       tableHtml += '<tr>\n';
-      headerCols.forEach((_, idx) => {
+      headerCols.forEach((_: string, idx: number) => {
         tableHtml += `  <td>${cols[idx] || ''}</td>\n`;
       });
       tableHtml += '</tr>\n';

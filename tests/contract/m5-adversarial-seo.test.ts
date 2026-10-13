@@ -214,54 +214,30 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
     output = output.replace(/<b:if cond="data:view\.isHomepage or data:view\.isSearch">[\s\S]*?<\/b:if>/g, '');
   }
 
-  // 11. Resolve BlogPosting JSON-LD
-  const shouldRenderBlogPosting = Boolean(ctx.view.isPost);
-  if (shouldRenderBlogPosting) {
-    const post = ctx.widgets?.Blog?.first?.posts?.first ?? ctx.posts?.[0];
-    const postSnippetRaw = post?.snippets?.long || ctx.view.description || ctx.view.title;
-    const postSnippetClean = bloggerSnippet(postSnippetRaw, { length: 250, links: false, linebreaks: false, ellipsis: true });
-
-    const blogPostingObj: any = {
+  // 11. Resolve BreadcrumbList JSON-LD in head
+  const shouldRenderBreadcrumb = Boolean(ctx.view.isPost);
+  if (shouldRenderBreadcrumb) {
+    const breadcrumbJson = JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': canonicalUrl
-      },
-      headline: ctx.view.title,
-      description: postSnippetClean,
-      datePublished: post?.date?.iso8601 ?? '2026-08-16T00:00:00Z'
-    };
-
-    if (post?.lastUpdated?.iso8601) {
-      blogPostingObj.dateModified = post.lastUpdated.iso8601;
-    }
-
-    if (ctx.view.featuredImage) {
-      blogPostingObj.image = ctx.view.featuredImage;
-    }
-
-    const authorObj: any = {
-      '@type': 'Person',
-      name: post?.author?.name ?? 'Admin'
-    };
-    if (post?.author?.profileUrl) {
-      authorObj.url = post.author.profileUrl;
-    }
-    if (post?.author?.authorPhoto?.image) {
-      authorObj.image = post.author.authorPhoto.image;
-    }
-    blogPostingObj.author = authorObj;
-
-    blogPostingObj.publisher = {
-      '@type': 'Organization',
-      name: ctx.blog.title
-    };
-
-    const blogPostingJson = JSON.stringify(blogPostingObj, null, 2);
-    output = output.replace(/<b:if cond="data:view\.isPost">[\s\S]*?<script type="application\/ld\+json">([\s\S]*?)<\/script>\s*<\/b:with>\s*<\/b:if>/g, `<script type="application/ld+json">\n${blogPostingJson}\n</script>`);
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: ctx.blog.canonicalHomepageUrl
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: ctx.view.title,
+          item: canonicalUrl
+        }
+      ]
+    }, null, 2);
+    output = output.replace(/<b:if cond="data:view\.isPost">\s*<script type="application\/ld\+json">[\s\S]*?<\/script>\s*<\/b:if>/g, `<script type="application/ld+json">\n${breadcrumbJson}\n</script>`);
   } else {
-    output = output.replace(/<b:if cond="data:view\.isPost">[\s\S]*?<script type="application\/ld\+json">([\s\S]*?)<\/script>\s*<\/b:with>\s*<\/b:if>/g, '');
+    output = output.replace(/<b:if cond="data:view\.isPost">\s*<script type="application\/ld\+json">[\s\S]*?<\/script>\s*<\/b:if>/g, '');
   }
 
   // Extract all script tags and parse JSON
@@ -540,14 +516,11 @@ describe('Empirical Challenge: Milestone M5 SEO, JSON-LD, & Social Metadata Robu
         if (testCase.view.isPost) {
           expect(result.metaTags['og:type']).toBe('article');
           expect(result.jsonLdScripts.length).toBe(1);
-          const posting = result.jsonLdScripts[0];
-          expect(posting['@type']).toBe('BlogPosting');
-          expect(posting.headline).toBe(testCase.view.title);
-          expect(posting.mainEntityOfPage['@id']).toBe(testCase.view.url.canonical);
-          expect(posting.publisher['@type']).toBe('Organization');
-          expect(posting.publisher.name).toBe(baseBlog.title);
-          expect(posting.author['@type']).toBe('Person');
-          expect(posting.author.name).toBe(basePost.author?.name);
+          const breadcrumb = result.jsonLdScripts[0];
+          expect(breadcrumb['@type']).toBe('BreadcrumbList');
+          expect(breadcrumb.itemListElement[0].name).toBe('Home');
+          expect(breadcrumb.itemListElement[1].name).toBe(testCase.view.title);
+          expect(breadcrumb.itemListElement[1].item).toBe(testCase.view.url.canonical);
         } else if (testCase.view.isHomepage || testCase.view.isSearch) {
           expect(result.metaTags['og:type']).toBe('website');
           expect(result.jsonLdScripts.length).toBe(1);

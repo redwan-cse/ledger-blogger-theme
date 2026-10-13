@@ -245,7 +245,11 @@ class BloggerV3Simulator {
     // Handle .jsonEscaped, .escaped, .empty, .iso8601 modifier wrappers
     if (trimmed.endsWith('.jsonEscaped')) {
       const innerVal = this.evaluateExpr(trimmed.slice(0, -'.jsonEscaped'.length), context);
-      return JSON.stringify(innerVal ?? '').slice(1, -1);
+      if (innerVal && typeof innerVal === 'object' && 'jsonEscaped' in innerVal) {
+        return innerVal.jsonEscaped;
+      }
+      const strVal = (innerVal && typeof innerVal === 'object') ? String(innerVal) : innerVal;
+      return JSON.stringify(strVal ?? '').slice(1, -1);
     }
     if (trimmed.endsWith('.escaped')) {
       const innerVal = this.evaluateExpr(trimmed.slice(0, -'.escaped'.length), context);
