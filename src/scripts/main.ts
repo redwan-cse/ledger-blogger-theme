@@ -2857,7 +2857,18 @@ export function cleanMermaidSyntax(rawCode: string): string {
  * Dynamically loads and renders Mermaid.js sequence and flow diagrams if present in article.
  * Supports theme toggling by caching raw diagram source code.
  */
+let isMermaidRendering = false;
+let isMermaidScriptLoading = false;
+let pendingMermaidTheme: 'dark' | 'default' | null = null;
+
 export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
+  const currentTheme = targetTheme || (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default');
+
+  if (isMermaidRendering || isMermaidScriptLoading) {
+    pendingMermaidTheme = currentTheme;
+    return;
+  }
+
   // Pre-scan: Auto-promote code blocks containing Mermaid diagrams or ASCII box/handshake diagrams
   const candidateBlocks = Array.from(
     document.querySelectorAll<HTMLElement>(
@@ -2926,11 +2937,12 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
   const standaloneMermaids = document.querySelectorAll<HTMLElement>('.post-body pre.mermaid');
   if (wraps.length === 0 && standaloneMermaids.length === 0) return;
 
-  const currentTheme = targetTheme || (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default');
   const isDark = currentTheme === 'dark';
 
   async function renderMermaid(mermaidApi: any): Promise<void> {
-    mermaidApi.initialize({
+    isMermaidRendering = true;
+    try {
+      mermaidApi.initialize({
       startOnLoad: false,
       theme: currentTheme,
       themeVariables: isDark ? {
@@ -3030,10 +3042,16 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
     }
 
     wraps.forEach((wrap, index) => {
-      const preElem = wrap.querySelector('.mermaid');
-      const preText = preElem?.textContent?.trim() || '';
-      const datasetText = wrap.dataset['mermaidCode']?.trim() || '';
-      let code = preText.length >= datasetText.length ? preText : datasetText;
+      // Authoritative source: ALWAYS use preserved clean code in dataset['mermaidCode']
+      let code = wrap.dataset['mermaidCode']?.trim() || '';
+      if (!code) {
+        const preElem = wrap.querySelector('.mermaid');
+        const preText = preElem?.textContent?.trim() || '';
+        // Guard against SVG text or generated CSS being mistaken for diagram source
+        if (preText && !preText.startsWith('<svg') && !preText.includes('#mermaid-') && !/^\s*#\w+[\s\w-]*\{/.test(preText)) {
+          code = preText;
+        }
+      }
       if (!code) return;
 
       // Demote accidental XML/HTML snippet wrappers to code-block-wrap
@@ -3077,13 +3095,14 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       }
 
       wrap.dataset['mermaidCode'] = cleanCode;
+      wrap.classList.remove('is-fallback');
 
       // Cleanly prepare wrap structure with an inner scrolling stage:
       // Outer wrap is the viewport with pinned toolbar.
       // Inner stage handles the 2D pan and overflow.
       const pre = document.createElement('pre');
       pre.className = 'mermaid';
-      pre.id = `mermaid-wrap-${index}`;
+      pre.id = `mermaid-wrap-${index}-${Date.now()}`;
       pre.textContent = cleanCode;
 
       const stage = document.createElement('div');
@@ -3095,8 +3114,18 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
 
     standaloneMermaids.forEach((pre) => {
       if (pre.closest('.mermaid-diagram-wrap')) return;
-      const cleanCode = cleanMermaidSyntax(pre.textContent || '');
-      pre.textContent = cleanCode;
+      let code = pre.dataset['mermaidCode']?.trim() || '';
+      if (!code) {
+        const raw = pre.textContent || '';
+        if (!raw.startsWith('<svg') && !raw.includes('#mermaid-') && !/^\s*#\w+[\s\w-]*\{/.test(raw)) {
+          code = cleanMermaidSyntax(raw);
+          pre.dataset['mermaidCode'] = code;
+        }
+      }
+      if (code) {
+        pre.textContent = code;
+        pre.removeAttribute('data-processed');
+      }
     });
 
     // Render each diagram individually with isolated async error handling
@@ -3329,19 +3358,38 @@ export function initMermaidDiagrams(targetTheme?: 'dark' | 'default'): void {
       // Prepend toolbar to wrap (outside stage so it stays pinned at top right)
       wrap.insertBefore(toolbar, wrap.firstChild);
     });
+    } finally {
+      isMermaidRendering = false;
+      if (pendingMermaidTheme !== null) {
+        const queued = pendingMermaidTheme;
+        pendingMermaidTheme = null;
+        if (queued !== currentTheme) {
+          requestAnimationFrame(() => {
+            initMermaidDiagrams(queued);
+          });
+        }
+      }
+    }
   }
 
   const win = window as any;
   if (win.mermaid) {
     renderMermaid(win.mermaid).catch((e) => console.warn('[Mermaid] Top-level render notice:', e));
   } else {
+    isMermaidScriptLoading = true;
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
     script.async = true;
     script.onload = () => {
+      isMermaidScriptLoading = false;
+      const themeToRender = pendingMermaidTheme || currentTheme;
+      pendingMermaidTheme = null;
       if (win.mermaid) {
-        renderMermaid(win.mermaid).catch((e) => console.warn('[Mermaid] Top-level render notice:', e));
+        initMermaidDiagrams(themeToRender);
       }
+    };
+    script.onerror = () => {
+      isMermaidScriptLoading = false;
     };
     document.head.appendChild(script);
   }
