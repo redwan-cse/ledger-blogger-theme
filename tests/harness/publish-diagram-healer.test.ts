@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   healAsciiBoxDiagram,
   healAsciiFlowchartChains,
-  healTimelineDiagram
+  healTimelineDiagram,
+  healAsciiHandshakeDiagram
 } from '../../scripts/publish-from-drive.js';
 
 describe('publish-diagram-healer', () => {
@@ -85,6 +86,87 @@ describe('publish-diagram-healer', () => {
     it('returns raw text unchanged if not a timeline format', () => {
       const plainCode = 'console.log("hello world");';
       expect(healTimelineDiagram(plainCode)).toBe(plainCode);
+    });
+  });
+
+  describe('healAsciiHandshakeDiagram (Multi-Participant & Unicode)', () => {
+    it('heals 3-participant Unicode box-drawing Kerberos ladder into valid Mermaid sequenceDiagram', () => {
+      const sampleUnicode = `Client (User or DC01$)                      Target Server (Web01$)                     KDC (Domain Controller)
+       │                                              │                                           │
+       ├── 1. TGS-REQ (Request ST for http/web01) ────┼──────────────────────────────────────────►│
+       │                                              │                                           │
+       │◄── 2. TGS-REP (OK-AS-DELEGATE Flag Set) ─────┼───────────────────────────────────────────┤
+       │                                              │                                           │
+       ├── 3. KRB_TGS_REQ (Request Forwarded TGT) ────┼──────────────────────────────────────────►│
+       │                                              │                                           │
+       │◄── 4. KRB_TGS_REP (Forwarded TGT) ───────────┼───────────────────────────────────────────┤
+       │                                              │                                           │
+       ├── 5. AP-REQ with KRB_CRED (Contains TGT) ───►│                                           │
+       │                                              │ ── 6. Extracts TGT & Caches in LSASS      │
+       │                                              │                                           │
+       │                                              │ ── 7. Server Can Now Impersonate Client!  │`;
+
+      const healed = healAsciiHandshakeDiagram(sampleUnicode);
+      expect(healed).toContain('sequenceDiagram');
+      expect(healed).toContain('autonumber');
+      expect(healed).toContain('actor Client as Client (User or DC01$)');
+      expect(healed).toContain('participant TargetServer as Target Server (Web01$)');
+      expect(healed).toContain('participant KDC as KDC (Domain Controller)');
+      expect(healed).toContain('Client->>KDC: TGS-REQ (Request ST for http/web01)');
+      expect(healed).toContain('KDC-->>Client: TGS-REP (OK-AS-DELEGATE Flag Set)');
+      expect(healed).toContain('Client->>KDC: KRB_TGS_REQ (Request Forwarded TGT)');
+      expect(healed).toContain('KDC-->>Client: KRB_TGS_REP (Forwarded TGT)');
+      expect(healed).toContain('Client->>TargetServer: AP-REQ with KRB_CRED (Contains TGT)');
+      expect(healed).toContain('Note over TargetServer: Extracts TGT & Caches in LSASS');
+      expect(healed).toContain('Note over TargetServer: Server Can Now Impersonate Client!');
+    });
+
+    it('heals 3-participant ASCII ladder into valid Mermaid sequenceDiagram', () => {
+      const sampleAscii = `Client (User or DC01$)                Target Server (Web01$)                 KDC
+|                                     |                                      |
+|-- 1. TGS-REQ (Request ST for http/web01) --------------------------------->|
+|                                     |                                      |
+|<-- 2. TGS-REP (OK-AS-DELEGATE Flag Set) -----------------------------------|
+|                                     |                                      |
+|-- 3. KRB_TGS_REQ (Request Forwarded TGT) ---------------------------------->|
+|                                     |                                      |
+|<-- 4. KRB_TGS_REP (Forwarded TGT) ------------------------------------------|
+|                                     |                                      |
+|-- 5. AP-REQ with KRB_CRED (Contains TGT) ->|                               |
+|                                     |-- 6. Extracts TGT & Caches in LSASS--|
+|                                     |                                      |
+|-- 7. Server Can Now Impersonate Client`;
+
+      const healed = healAsciiHandshakeDiagram(sampleAscii);
+      expect(healed).toContain('sequenceDiagram');
+      expect(healed).toContain('autonumber');
+      expect(healed).toContain('actor Client as Client (User or DC01$)');
+      expect(healed).toContain('participant TargetServer as Target Server (Web01$)');
+      expect(healed).toContain('participant KDC as KDC');
+      expect(healed).toContain('Client->>KDC: TGS-REQ (Request ST for http/web01)');
+      expect(healed).toContain('KDC-->>Client: TGS-REP (OK-AS-DELEGATE Flag Set)');
+      expect(healed).toContain('Client->>TargetServer: AP-REQ with KRB_CRED (Contains TGT)');
+    });
+
+    it('heals 2-participant bracket handshake ladder correctly', () => {
+      const sample2Part = `[Attacker Client]
+|---> Initial SYN Packet to FGFM Daemon
+|<--- SYN-ACK Response from Target
+|---> Final ACK Handshake Complete
+[Session Established]`;
+
+      const healed = healAsciiHandshakeDiagram(sample2Part);
+      expect(healed).toContain('sequenceDiagram');
+      expect(healed).toContain('actor Client as Attacker Client');
+      expect(healed).toContain('Client->>Server: Initial SYN Packet to FGFM Daemon');
+      expect(healed).toContain('Server-->>Client: SYN-ACK Response from Target');
+      expect(healed).toContain('Client->>Server: Final ACK Handshake Complete');
+      expect(healed).toContain('Note over Client,Server: Session Established');
+    });
+
+    it('returns raw text unchanged when text is regular code or not a ladder diagram', () => {
+      const code = 'const x = 42;\nconsole.log(x);';
+      expect(healAsciiHandshakeDiagram(code)).toBe(code);
     });
   });
 });

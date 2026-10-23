@@ -452,13 +452,259 @@ export function extractSearchDescription(markdown: string): string {
 /**
  * Heals ASCII protocol ladder / handshake diagrams (e.g. |--->, |<---, bare bracket labels, lone pipes)
  * into a valid, standard Mermaid sequenceDiagram with actors, numbered steps, messages, and notes.
+ * Supports multi-participant ladders, Unicode box-drawing rails (│, ├──, ┼, ►, ◄), and ASCII rails.
  */
 export function healAsciiHandshakeDiagram(rawCode: string): string {
-  const hasLadderArrows =
-    /(?:^\s*\|[-=]+>|^\s*\|<[-=]+|^\s*<[-=]+\||^\s*[-=]+>\|)/m.test(rawCode) ||
-    (/^\s*\|\s*$/m.test(rawCode) && /^\s*(?:[-=]+>|<[-=]+)\s+/m.test(rawCode));
-  if (!hasLadderArrows) return rawCode;
+  if (!rawCode || !rawCode.trim()) return rawCode;
 
+  // Never touch diagrams that have subgraphs, box borders, flowchart edge labels, or class/state/er diagrams
+  if (/^\s*subgraph\b/im.test(rawCode) || /\bsubgraph\s+["\w]/i.test(rawCode)) {
+    return rawCode;
+  }
+  if (/^\s*(?:classDiagram|stateDiagram|erDiagram|gitGraph|pie)\b/im.test(rawCode)) {
+    return rawCode;
+  }
+  if (/^\s*\+[-=+]+\+\s*$/m.test(rawCode)) {
+    return rawCode; // Handled by healAsciiBoxDiagram
+  }
+  if (/-->\|[^|\r\n]+\||<--\|[^|\r\n]+\||<-->\|[^|\r\n]+\|/.test(rawCode)) {
+    return rawCode;
+  }
+
+  // Check for Unicode ladder lines or ASCII ladder arrows
+  const hasUnicodeLadder =
+    /[│|]\s*[-=─]+[>►]|[│|]\s*[<◄][-=─]+|[<◄][-=─]+[│|]|[-=─]+[>►][│|]|├──.+[►>]|[◄<]──.+[┤│]|[│|]\s*──\s*\d+\./m.test(rawCode);
+  const hasAsciiLadder =
+    /(?:^\s*\|[-=]+>|^\s*\|<[-=]+|^\s*<[-=]+\||^\s*[-=]+>\|)/m.test(rawCode) ||
+    (/^\s*\|\s*$/m.test(rawCode) && /^\s*(?:[-=]+>|<[-=]+)\s+/m.test(rawCode)) ||
+    /\|\s*[-=]+>\s*\|/.test(rawCode) ||
+    /->\|/.test(rawCode);
+
+  if (!hasUnicodeLadder && !hasAsciiLadder) return rawCode;
+
+  const rawLines = rawCode.split(/\r?\n/);
+
+  // Phase 1: Try multi-participant column-based ladder parser
+  const railLines = rawLines.filter((line) => {
+    const stripped = line.replace(/[\s│|]/g, '');
+    return stripped.length === 0 && (line.match(/[│|]/g) || []).length >= 2;
+  });
+
+  let railCols: number[] = [];
+  if (railLines.length > 0) {
+    const colFreq = new Map<number, number>();
+    for (const rLine of railLines) {
+      for (let i = 0; i < rLine.length; i++) {
+        if (rLine[i] === '│' || rLine[i] === '|') {
+          colFreq.set(i, (colFreq.get(i) || 0) + 1);
+        }
+      }
+    }
+    railCols = Array.from(colFreq.entries())
+      .filter(([_col, count]) => count >= Math.min(2, railLines.length))
+      .map(([col]) => col)
+      .sort((a, b) => a - b);
+  }
+
+  if (railCols.length < 2) {
+    const colFreq = new Map<number, number>();
+    for (const line of rawLines) {
+      for (let i = 0; i < line.length; i++) {
+        if ('│|├┤┼'.includes(line[i])) {
+          colFreq.set(i, (colFreq.get(i) || 0) + 1);
+        }
+      }
+    }
+    railCols = Array.from(colFreq.entries())
+      .filter(([_col, count]) => count >= 3)
+      .map(([col]) => col)
+      .sort((a, b) => a - b);
+  }
+
+  if (railCols.length >= 2) {
+    let headerLineIdx = -1;
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i].trim();
+      if (!line) continue;
+      if (!/[─►◄│├┤┼]/.test(line) && !line.includes('--') && !line.includes('->')) {
+        headerLineIdx = i;
+        break;
+      }
+    }
+
+    interface Participant {
+      id: string;
+      label: string;
+      col: number;
+    }
+    const participants: Participant[] = [];
+    const headerLine = headerLineIdx !== -1 ? rawLines[headerLineIdx].trim() : '';
+
+    if (headerLine) {
+      const tokens = headerLine.split(/\s{2,}/).map((t) => t.trim()).filter(Boolean);
+      if (tokens.length === railCols.length) {
+        for (let c = 0; c < tokens.length; c++) {
+          const cleanName = tokens[c];
+          let alias = cleanName.replace(/\s*\([^)]*\)/g, '').replace(/[^a-zA-Z0-9_]/g, '');
+          if (!alias || participants.some((p) => p.id === alias)) {
+            alias = `P${c + 1}`;
+          }
+          participants.push({ id: alias, label: cleanName, col: railCols[c] });
+        }
+      } else {
+        for (let c = 0; c < railCols.length; c++) {
+          const col = railCols[c];
+          const prevCol = c === 0 ? 0 : railCols[c - 1];
+          const nextCol = c === railCols.length - 1 ? headerLine.length : railCols[c + 1];
+
+          const leftBound = c === 0 ? 0 : Math.floor((prevCol + col) / 2);
+          const rightBound = c === railCols.length - 1 ? headerLine.length : Math.floor((col + nextCol) / 2);
+
+          const segment = headerLine.slice(leftBound, rightBound).trim();
+          const cleanName = segment || `Participant_${c + 1}`;
+          let alias = cleanName.replace(/\s*\([^)]*\)/g, '').replace(/[^a-zA-Z0-9_]/g, '');
+          if (!alias || participants.some((p) => p.id === alias)) {
+            alias = `P${c + 1}`;
+          }
+          participants.push({ id: alias, label: cleanName, col });
+        }
+      }
+    } else {
+      for (let c = 0; c < railCols.length; c++) {
+        participants.push({ id: `P${c + 1}`, label: `Participant ${c + 1}`, col: railCols[c] });
+      }
+    }
+
+    function getNearestParticipant(col: number): Participant {
+      let closest = participants[0];
+      let minDiff = Math.abs(col - participants[0].col);
+      for (let i = 1; i < participants.length; i++) {
+        const diff = Math.abs(col - participants[i].col);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = participants[i];
+        }
+      }
+      return closest;
+    }
+
+    interface SequenceMessage {
+      kind: 'msg' | 'note';
+      from?: string;
+      to?: string;
+      arrow?: '->>' | '-->>';
+      text: string;
+    }
+    const sequenceItems: SequenceMessage[] = [];
+
+    const startLine = headerLineIdx !== -1 ? headerLineIdx + 1 : 0;
+    for (let i = startLine; i < rawLines.length; i++) {
+      const line = rawLines[i];
+      if (!line || !line.trim()) continue;
+
+      const nonRailText = line.replace(/[\s│|]/g, '');
+      if (!nonRailText) continue;
+
+      // Forward arrow check: e.g. ──►, --->, ->|, >|
+      const forwardArrowMatch = line.match(/(?:[─=-]{2,}[►>]|[─=-]*->\||[─=-]*>\|)/);
+      const reverseArrowMatch = line.match(/(?:[◄<][─=-]{2,}|<[─=-]{2,}\|)/);
+
+      if (forwardArrowMatch && forwardArrowMatch.index !== undefined) {
+        const startRailMatch = line.match(/[│|├]/);
+        const fromCol = startRailMatch && startRailMatch.index !== undefined ? startRailMatch.index : 0;
+        const arrowHeadCol = forwardArrowMatch.index + forwardArrowMatch[0].length;
+
+        const targetRailMatch = line.slice(forwardArrowMatch.index).match(/[│|┤]/);
+        const toCol = targetRailMatch && targetRailMatch.index !== undefined
+          ? forwardArrowMatch.index + targetRailMatch.index
+          : arrowHeadCol;
+
+        const fromPart = getNearestParticipant(fromCol);
+        const toPart = getNearestParticipant(toCol);
+
+        let msgText = line.replace(/^\s*[│|├]\s*(?:[─=-]{2,}|\s*)/, '');
+        msgText = msgText.replace(/(?:[─=-]{2,}|->\||>\|)[\s\S]*$/, '').replace(/[│|├┤┼─]/g, '').trim();
+        msgText = msgText.replace(/^\d+[\.\)]\s*/, '').trim();
+
+        if (msgText && fromPart.id !== toPart.id) {
+          sequenceItems.push({
+            kind: 'msg',
+            from: fromPart.id,
+            to: toPart.id,
+            arrow: '->>',
+            text: msgText
+          });
+          continue;
+        }
+      }
+
+      if (reverseArrowMatch && reverseArrowMatch.index !== undefined) {
+        const arrowHeadCol = reverseArrowMatch.index;
+        const targetPart = getNearestParticipant(arrowHeadCol);
+
+        let rightCol = line.length - 1;
+        for (let c = line.length - 1; c >= 0; c--) {
+          if ('│|┤┼'.includes(line[c])) {
+            rightCol = c;
+            break;
+          }
+        }
+        const sourcePart = getNearestParticipant(rightCol);
+
+        let msgText = line.slice(reverseArrowMatch.index + reverseArrowMatch[0].length);
+        msgText = msgText.replace(/(?:[─=]{2,}|-{2,})[\s\S]*$/, '').replace(/[│|├┤┼─]/g, '').trim();
+        msgText = msgText.replace(/^\d+[\.\)]\s*/, '').trim();
+
+        if (msgText && sourcePart.id !== targetPart.id) {
+          sequenceItems.push({
+            kind: 'msg',
+            from: sourcePart.id,
+            to: targetPart.id,
+            arrow: '-->>',
+            text: msgText
+          });
+          continue;
+        }
+      }
+
+      // Check for participant notes (e.g. "│  │ ── 6. Extracts TGT & Caches in LSASS │")
+      const noteMatch = line.match(/[│|]\s*[─-]{2,}\s*(.+?)(?:--\||──\||[│|]|\s*$)/);
+      if (noteMatch && noteMatch[1]) {
+        const pipeIdx = line.indexOf(noteMatch[0]);
+        const targetPart = getNearestParticipant(pipeIdx);
+        let noteText = noteMatch[1].trim();
+        noteText = noteText.replace(/^\d+[\.\)]\s*/, '').trim();
+        if (noteText) {
+          sequenceItems.push({
+            kind: 'note',
+            to: targetPart.id,
+            text: noteText
+          });
+          continue;
+        }
+      }
+    }
+
+    if (sequenceItems.length > 0) {
+      const output: string[] = ['sequenceDiagram', '    autonumber'];
+      for (let i = 0; i < participants.length; i++) {
+        const p = participants[i];
+        const role = i === 0 ? 'actor' : 'participant';
+        output.push(`    ${role} ${p.id} as ${p.label}`);
+      }
+      for (const item of sequenceItems) {
+        const cleanText = item.text.replace(/;/g, '#59;').replace(/"/g, '#34;');
+        if (item.kind === 'msg') {
+          output.push(`    ${item.from}${item.arrow}${item.to}: ${cleanText}`);
+        } else if (item.kind === 'note') {
+          output.push(`    Note over ${item.to}: ${cleanText}`);
+        }
+      }
+      return output.join('\n');
+    }
+  }
+
+  // Phase 2: Fallback to 2-participant handshake parser
   const lines = rawCode.split('\n');
   let clientLabel = '';
   let serverLabel = '';
@@ -1385,6 +1631,16 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     }
     const flowchartChainsHealedToMermaid = hasFlowchartChains && healedFlowchartChains !== cleanText && Boolean(getFirstDiagramHeader(healedFlowchartChains));
 
+    // Check if block is an ASCII handshake / sequence ladder diagram
+    const hasHandshake =
+      /(?:[│|]\s*[-=─]+[>►]|[│|]\s*[<◄][-=─]+|[<◄][-=─]+[│|]|[-=─]+[>►][│|]|├──.+[►>]|[◄<]──.+[┤│]|[│|]\s*──\s*\d+\.|->\|)/m.test(cleanText) ||
+      (/^\s*[│|]\s*$/m.test(cleanText) && /^\s*(?:[-=─]+[>►]|[<◄][-=─]+)\s+/m.test(cleanText));
+    let healedHandshake = cleanText;
+    if (hasHandshake) {
+      healedHandshake = healAsciiHandshakeDiagram(cleanText);
+    }
+    const handshakeHealedToMermaid = hasHandshake && healedHandshake !== cleanText && Boolean(getFirstDiagramHeader(healedHandshake));
+
     // Strip HTML comments before detecting flowchart arrows so <!-- ... --> doesn't trigger Mermaid
     let textWithoutHtmlComments = cleanText;
     let prevComments = '';
@@ -1404,32 +1660,40 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
 
     // Auto-detect Mermaid sequence diagrams, flowcharts, graphs, and state diagrams
     const hasHeadings = /(?:^|\n)\s*#{1,6}\s+/.test(cleanText);
-    const hasDiagramHeader =
-      Boolean(getFirstDiagramHeader(cleanText)) ||
+    const isHealedDiagram =
       asciiHealedToMermaid ||
       timelineHealedToMermaid ||
-      flowchartChainsHealedToMermaid;
+      flowchartChainsHealedToMermaid ||
+      handshakeHealedToMermaid;
+
+    const hasDiagramHeader =
+      Boolean(getFirstDiagramHeader(cleanText)) ||
+      isHealedDiagram;
 
     const hasCodeConstructs =
-      /\b(import\s+[\w\.]+|from\s+[\w\.]+\s+import|def\s+[\w_]+\s*\(|libc\.|payload\s*=|print\(|#include\s*<|SELECT\s+[\w\*]+|function\s*\(|var\s+\w+\s*=|const\s+\w+\s*=)\b/i.test(cleanText);
+      /\b(import\s+[\w\.]+|from\s+[\w\.]+\s+import|def\s+[\w_]+\s*\(|libc\.|payload\s*=|print\(|#include\s*<|SELECT\s+[\w\*]+|function\s*\(|var\s+\w+\s*=|const\s+\w+\s*=|\$[a-zA-Z_]\w*|\b(?:Get|Set|New|Remove|Invoke|Start|Stop|Restart|Update|Add|Clear)-[A-Za-z]\w+)\b/i.test(cleanText);
 
-    const isMermaid = !NON_MERMAID_LANGS.has(rawLang) && !isXmlHtml && (rawLang === 'mermaid' ||
-      (!hasCodeConstructs && !(hasHeadings && !hasDiagramHeader) && (
-        rawLang === 'flowchart' ||
-        rawLang === 'graph' ||
-        hasDiagramHeader ||
-        cleanText.includes('sequenceDiagram') ||
-        /\b(autonumber|participant)\b/i.test(cleanText) ||
-        /\bactor\s+[\w\-]+/i.test(cleanText) ||
-        hasFlowchartArrow
-      )))
-      && !(hasAsciiBox && !asciiHealedToMermaid);
+    const isMermaid = !isXmlHtml && (
+      (isHealedDiagram && !hasCodeConstructs) ||
+      (!NON_MERMAID_LANGS.has(rawLang) && (rawLang === 'mermaid' ||
+        (!hasCodeConstructs && !(hasHeadings && !hasDiagramHeader) && (
+          rawLang === 'flowchart' ||
+          rawLang === 'graph' ||
+          hasDiagramHeader ||
+          cleanText.includes('sequenceDiagram') ||
+          /\b(autonumber|participant)\b/i.test(cleanText) ||
+          /\bactor\s+[\w\-]+/i.test(cleanText) ||
+          hasFlowchartArrow
+        ))
+      ))
+    ) && !(hasAsciiBox && !asciiHealedToMermaid);
 
     if (isMermaid) {
       let mermaidCode = decodeHtmlEntities(
         asciiHealedToMermaid ? healedAscii :
         timelineHealedToMermaid ? healedTimeline :
         flowchartChainsHealedToMermaid ? healedFlowchartChains :
+        handshakeHealedToMermaid ? healedHandshake :
         cleanText
       );
 
@@ -1596,6 +1860,13 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
 
     // Auto-detect programming language if missing
     let displayLang = rawLang;
+    if (
+      (displayLang === 'powershell' || displayLang === 'ps1' || displayLang === 'bash' || displayLang === 'sh') &&
+      !hasCodeConstructs &&
+      (/[│├┤┼►◄]/.test(cleanText) || /^\s*\+[-=+]+\+\s*$/m.test(cleanText) || /[|│]\s*[-=─]{2,}/.test(cleanText))
+    ) {
+      displayLang = 'plaintext';
+    }
     if (!displayLang || displayLang === 'code' || displayLang === 'text') {
       if (/(?:^|\n)\s*#{1,6}\s+/.test(cleanText) || cleanText.trim().startsWith('<!--')) {
         displayLang = 'markdown';

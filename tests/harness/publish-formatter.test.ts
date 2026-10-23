@@ -170,6 +170,49 @@ graph TD
       expect(html).toContain('<pre class="mermaid">');
       expect(html).toContain('step_1["1. Untrusted Data Ingestion"] --> step_2["2. Indirect Prompt Injection"]');
     });
+
+    it('heals an ASCII/Unicode sequence ladder diagram mistakenly tagged as powershell into a Mermaid sequence diagram', () => {
+      const mistaggedMarkdown = `\`\`\`powershell
+Client (User or DC01$)                      Target Server (Web01$)                     KDC (Domain Controller)
+       │                                              │                                           │
+       ├── 1. TGS-REQ (Request ST for http/web01) ────┼──────────────────────────────────────────►│
+       │                                              │                                           │
+       │◄── 2. TGS-REP (OK-AS-DELEGATE Flag Set) ─────┼───────────────────────────────────────────┤
+       │                                              │                                           │
+       ├── 3. KRB_TGS_REQ (Request Forwarded TGT) ────┼──────────────────────────────────────────►│
+       │                                              │                                           │
+       │◄── 4. KRB_TGS_REP (Forwarded TGT) ───────────┼───────────────────────────────────────────┤
+       │                                              │                                           │
+       ├── 5. AP-REQ with KRB_CRED (Contains TGT) ───►│                                           │
+       │                                              │ ── 6. Extracts TGT & Caches in LSASS      │
+       │                                              │                                           │
+       │                                              │ ── 7. Server Can Now Impersonate Client!  │
+\`\`\``;
+
+      const html = compileMarkdownToHtml(mistaggedMarkdown);
+      expect(html).toContain('mermaid-diagram-wrap');
+      expect(html).toContain('<pre class="mermaid">');
+      expect(html).toContain('sequenceDiagram');
+      expect(html).toContain('Client->>KDC: TGS-REQ (Request ST for http/web01)');
+      expect(html).not.toContain('class="language-powershell"');
+      expect(html).not.toContain('POWERSHELL');
+    });
+
+    it('preserves genuine PowerShell scripts as syntax-highlighted powershell code blocks', () => {
+      const genuinePowershell = `\`\`\`powershell
+$domainControllers = Get-ADDomainController -Filter *
+foreach ($dc in $domainControllers) {
+    Set-ADAccountControl -Identity $dc.SamAccountName -TrustedForDelegation $false
+}
+\`\`\``;
+
+      const html = compileMarkdownToHtml(genuinePowershell);
+      expect(html).not.toContain('<div class="mermaid-diagram-wrap"');
+      expect(html).not.toContain('<pre class="mermaid"');
+      expect(html).toContain('class="code-block-wrap"');
+      expect(html).toContain('class="language-powershell"');
+      expect(html).toContain('POWERSHELL');
+    });
   });
 });
 
