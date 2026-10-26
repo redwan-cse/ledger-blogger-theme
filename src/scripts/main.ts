@@ -2187,7 +2187,7 @@ export function healAsciiHandshakeDiagram(rawCode: string): string {
     const colFreq = new Map<number, number>();
     for (const line of rawLines) {
       for (let i = 0; i < line.length; i++) {
-        if ('│|├┤┼'.includes(line[i])) {
+        if ('│|├┤┼'.includes(line.charAt(i))) {
           colFreq.set(i, (colFreq.get(i) || 0) + 1);
         }
       }
@@ -2201,7 +2201,9 @@ export function healAsciiHandshakeDiagram(rawCode: string): string {
   if (railCols.length >= 2) {
     let headerLineIdx = -1;
     for (let i = 0; i < rawLines.length; i++) {
-      const line = rawLines[i].trim();
+      const rawLine = rawLines[i];
+      if (!rawLine) continue;
+      const line = rawLine.trim();
       if (!line) continue;
       if (!/[─►◄│├┤┼]/.test(line) && !line.includes('--') && !line.includes('->')) {
         headerLineIdx = i;
@@ -2215,24 +2217,24 @@ export function healAsciiHandshakeDiagram(rawCode: string): string {
       col: number;
     }
     const participants: Participant[] = [];
-    const headerLine = headerLineIdx !== -1 ? rawLines[headerLineIdx].trim() : '';
+    const headerLine = headerLineIdx !== -1 ? (rawLines[headerLineIdx]?.trim() ?? '') : '';
 
     if (headerLine) {
       const tokens = headerLine.split(/\s{2,}/).map((t) => t.trim()).filter(Boolean);
       if (tokens.length === railCols.length) {
         for (let c = 0; c < tokens.length; c++) {
-          const cleanName = tokens[c];
+          const cleanName = tokens[c] ?? '';
           let alias = cleanName.replace(/\s*\([^)]*\)/g, '').replace(/[^a-zA-Z0-9_]/g, '');
           if (!alias || participants.some((p) => p.id === alias)) {
             alias = `P${c + 1}`;
           }
-          participants.push({ id: alias, label: cleanName, col: railCols[c] });
+          participants.push({ id: alias, label: cleanName, col: railCols[c] ?? 0 });
         }
       } else {
         for (let c = 0; c < railCols.length; c++) {
-          const col = railCols[c];
-          const prevCol = c === 0 ? 0 : railCols[c - 1];
-          const nextCol = c === railCols.length - 1 ? headerLine.length : railCols[c + 1];
+          const col = railCols[c] ?? 0;
+          const prevCol = c === 0 ? 0 : (railCols[c - 1] ?? 0);
+          const nextCol = c === railCols.length - 1 ? headerLine.length : (railCols[c + 1] ?? 0);
 
           const leftBound = c === 0 ? 0 : Math.floor((prevCol + col) / 2);
           const rightBound = c === railCols.length - 1 ? headerLine.length : Math.floor((col + nextCol) / 2);
@@ -2248,18 +2250,20 @@ export function healAsciiHandshakeDiagram(rawCode: string): string {
       }
     } else {
       for (let c = 0; c < railCols.length; c++) {
-        participants.push({ id: `P${c + 1}`, label: `Participant ${c + 1}`, col: railCols[c] });
+        participants.push({ id: `P${c + 1}`, label: `Participant ${c + 1}`, col: railCols[c] ?? 0 });
       }
     }
 
     function getNearestParticipant(col: number): Participant {
-      let closest = participants[0];
-      let minDiff = Math.abs(col - participants[0].col);
+      let closest: Participant = participants[0] ?? { id: 'P1', label: 'Participant 1', col: 0 };
+      let minDiff = Math.abs(col - closest.col);
       for (let i = 1; i < participants.length; i++) {
-        const diff = Math.abs(col - participants[i].col);
+        const p = participants[i];
+        if (!p) continue;
+        const diff = Math.abs(col - p.col);
         if (diff < minDiff) {
           minDiff = diff;
-          closest = participants[i];
+          closest = p;
         }
       }
       return closest;
@@ -2321,7 +2325,7 @@ export function healAsciiHandshakeDiagram(rawCode: string): string {
 
         let rightCol = line.length - 1;
         for (let c = line.length - 1; c >= 0; c--) {
-          if ('│|┤┼'.includes(line[c])) {
+          if ('│|┤┼'.includes(line.charAt(c))) {
             rightCol = c;
             break;
           }
@@ -2366,6 +2370,7 @@ export function healAsciiHandshakeDiagram(rawCode: string): string {
       const output: string[] = ['sequenceDiagram', '    autonumber'];
       for (let i = 0; i < participants.length; i++) {
         const p = participants[i];
+        if (!p) continue;
         const role = i === 0 ? 'actor' : 'participant';
         output.push(`    ${role} ${p.id} as ${p.label}`);
       }
