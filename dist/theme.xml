@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+66e18b895e3f12def80bfee5c007fc093197c546" name="theme-build"/>
+    <meta content="0.0.0+84716d3124907e006ed3feb1e8d1e9b43a481035" name="theme-build"/>
     <meta name="color-scheme" content="dark light"/>
     <link rel="alternate" type="application/rss+xml" expr:title="data:blog.title.escaped" expr:href="data:blog.canonicalHomepageUrl path &quot;feeds/posts/default&quot;"/>
     <link rel="me" href="https://redwan.work"/>
@@ -519,10 +519,13 @@
     <b:if cond="not data:view.description and not data:blog.metaDescription">
       <meta name="twitter:description" expr:content="data:view.title.escaped"/>
     </b:if>
-    <b:if cond="not data:view.isHomepage and not data:view.description and data:view.isPost">
+    <b:if cond="not data:view.isHomepage and data:view.isPost">
       <meta name="description" expr:content="data:view.title.escaped + &quot; — Technical analysis, vulnerability research, and security engineering guide.&quot;"/>
     </b:if>
-    <b:if cond="not data:view.isHomepage and not data:view.description and not data:view.isPost and data:blog.metaDescription">
+    <b:if cond="not data:view.isHomepage and not data:view.isPost and data:view.description">
+      <meta name="description" expr:content="data:view.description.escaped"/>
+    </b:if>
+    <b:if cond="not data:view.isHomepage and not data:view.isPost and not data:view.description and data:blog.metaDescription">
       <meta name="description" expr:content="data:blog.metaDescription.escaped"/>
     </b:if>
     <b:if cond="data:view.isHomepage or data:view.isSearch">

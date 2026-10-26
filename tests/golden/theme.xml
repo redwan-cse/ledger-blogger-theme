@@ -519,10 +519,13 @@
     <b:if cond="not data:view.description and not data:blog.metaDescription">
       <meta name="twitter:description" expr:content="data:view.title.escaped"/>
     </b:if>
-    <b:if cond="not data:view.isHomepage and not data:view.description and data:view.isPost">
+    <b:if cond="not data:view.isHomepage and data:view.isPost">
       <meta name="description" expr:content="data:view.title.escaped + &quot; — Technical analysis, vulnerability research, and security engineering guide.&quot;"/>
     </b:if>
-    <b:if cond="not data:view.isHomepage and not data:view.description and not data:view.isPost and data:blog.metaDescription">
+    <b:if cond="not data:view.isHomepage and not data:view.isPost and data:view.description">
+      <meta name="description" expr:content="data:view.description.escaped"/>
+    </b:if>
+    <b:if cond="not data:view.isHomepage and not data:view.isPost and not data:view.description and data:blog.metaDescription">
       <meta name="description" expr:content="data:blog.metaDescription.escaped"/>
     </b:if>
     <b:if cond="data:view.isHomepage or data:view.isSearch">

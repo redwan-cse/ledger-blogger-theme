@@ -193,21 +193,26 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   output = output.replace(/<b:if cond="data:view\.description">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>/g, `<meta name="twitter:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
 
   // 9b. Resolve Fallback Meta Description
-  if (!isHome && !viewDesc) {
+  if (!isHome) {
     if (ctx.view.isPost) {
       output = output.replace(
-        /<b:if cond="not data:view\.isHomepage and not data:view\.description and data:view\.isPost">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
+        /<b:if cond="not data:view\.isHomepage and data:view\.isPost">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
         `<meta name="description" content="${bloggerHtmlEscape(ctx.view.title + ' — Technical analysis, vulnerability research, and security engineering guide.')}"/>`
+      );
+    } else if (viewDesc) {
+      output = output.replace(
+        /<b:if cond="not data:view\.isHomepage and not data:view\.isPost and data:view\.description">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
+        `<meta name="description" content="${bloggerHtmlEscape(viewDesc)}"/>`
       );
     } else if (blogDesc) {
       output = output.replace(
-        /<b:if cond="not data:view\.isHomepage and not data:view\.description and not data:view\.isPost and data:blog\.metaDescription">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
+        /<b:if cond="not data:view\.isHomepage and not data:view\.isPost and not data:view\.description and data:blog\.metaDescription">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
         `<meta name="description" content="${bloggerHtmlEscape(blogDesc)}"/>`
       );
     }
   }
   output = output.replace(
-    /<b:if cond="not data:view\.isHomepage and not data:view\.description and [^"]+">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
+    /<b:if cond="not data:view\.isHomepage and [^"]+">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
     ''
   );
 
