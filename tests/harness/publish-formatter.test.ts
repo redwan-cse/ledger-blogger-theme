@@ -213,6 +213,21 @@ foreach ($dc in $domainControllers) {
       expect(html).toContain('class="language-powershell"');
       expect(html).toContain('POWERSHELL');
     });
+
+    it('detects terminal execution logs with [*] / [+] indicators as CONSOLE rather than PLAINTEXT', () => {
+      const terminalOutput = `\`\`\`
+[*] Operating system version: 10.0.19045
+[*] LSASS PID: 672
+[+] Process protection acquired: PsProtectedSignerWindows-TCB
+[*] Opening handle to LSASS (PID 672)...
+[+] Handle opened with access: 0x1010
+[+] Exploit completed successfully.
+\`\`\``;
+
+      const html = compileMarkdownToHtml(terminalOutput);
+      expect(html).toContain('CONSOLE');
+      expect(html).toContain('class="language-console"');
+    });
   });
 });
 

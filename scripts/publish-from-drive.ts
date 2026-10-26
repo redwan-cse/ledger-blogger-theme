@@ -1886,6 +1886,8 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
         displayLang = 'yaml';
       } else if (cleanText.includes('curl ') || cleanText.includes('chmod ') || cleanText.includes('sudo ') || cleanText.includes('#!/bin')) {
         displayLang = 'bash';
+      } else if (/^\s*\[[\*\+\-\!]\]/m.test(cleanText) || /^\s*(?:PS\s+)?[A-Z]:\\[^>]*>/m.test(cleanText) || /^\s*kd>\s+/m.test(cleanText)) {
+        displayLang = 'console';
       } else {
         displayLang = 'plaintext';
       }
@@ -3227,18 +3229,28 @@ async function main() {
         const expRes = await fetch(`https://www.googleapis.com/drive/v3/files/${articleFile.id}/export?mimeType=text/plain`, {
           headers: { Authorization: `Bearer ${driveToken}` }
         });
+        if (!expRes.ok) {
+          const errText = await expRes.text();
+          console.error(`Google Drive export failed for "${articleFile.name}" (${expRes.status}): ${errText}`);
+          continue;
+        }
         markdownContent = await expRes.text();
       } else {
-        const downRes = await fetch(`https://www.googleapis.com/drive/v3/files/${articleFile.id}?alt=media`, {
+        const downRes = await fetch(`https://www.googleapis.com/drive/v3/files/${articleFile.id}?alt=media&acknowledgeAbuse=true`, {
           headers: { Authorization: `Bearer ${driveToken}` }
         });
+        if (!downRes.ok) {
+          const errText = await downRes.text();
+          console.error(`Google Drive download failed for "${articleFile.name}" (${downRes.status}): ${errText}`);
+          continue;
+        }
         markdownContent = await downRes.text();
       }
 
       // Process thumbnail if present
       if (thumbnailFile) {
         console.log(`Downloading thumbnail image: "${thumbnailFile.name}"...`);
-        const imgRes = await fetch(`https://www.googleapis.com/drive/v3/files/${thumbnailFile.id}?alt=media`, {
+        const imgRes = await fetch(`https://www.googleapis.com/drive/v3/files/${thumbnailFile.id}?alt=media&acknowledgeAbuse=true`, {
           headers: { Authorization: `Bearer ${driveToken}` }
         });
         if (imgRes.ok) {
@@ -3296,11 +3308,22 @@ async function main() {
       const expRes = await fetch(`https://www.googleapis.com/drive/v3/files/${item.id}/export?mimeType=text/plain`, {
         headers: { Authorization: `Bearer ${driveToken}` }
       });
+      if (!expRes.ok) {
+        const errText = await expRes.text();
+        console.error(`Google Drive export failed for "${item.name}" (${expRes.status}): ${errText}`);
+        continue;
+      }
       markdownContent = await expRes.text();
     }
 
     if (!markdownContent.trim()) {
       console.warn(`Article content is empty for "${item.name}". Skipping.`);
+      continue;
+    }
+
+    // Defensive safeguard: abort if content is a raw JSON error response from Google Drive
+    if (markdownContent.trim().startsWith('{') && markdownContent.includes('"error"') && (markdownContent.includes('"cannotDownloadAbusiveFile"') || markdownContent.includes('"code": 403'))) {
+      console.error(`Article content for "${item.name}" is a raw Google Drive error payload! Skipping publish.`);
       continue;
     }
 
