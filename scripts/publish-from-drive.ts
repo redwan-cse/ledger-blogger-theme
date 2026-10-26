@@ -1939,6 +1939,18 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
+  // Heal accidental inline triple backticks in prose lines (e.g. "appears within triple backticks (` ```python ... ``` `).")
+  // Lines that do not start with a code fence must never contain unescaped triple backticks that cause phase inversion
+  cleanedMarkdown = cleanedMarkdown.split('\n').map((line) => {
+    if (!/^\s*`{3,}/.test(line)) {
+      return line.replace(/`{3,}/g, '&#96;&#96;&#96;');
+    }
+    return line;
+  }).join('\n');
+
+  // Upgrade outer ```markdown or ```text enclosing inner fences to 4 backticks ````
+  cleanedMarkdown = cleanedMarkdown.replace(/```(markdown|text|plaintext|console)\n([\s\S]*?\n```[a-z0-9_-]+\n[\s\S]*?\n```\n[\s\S]*?)\n```/g, '````$1\n$2\n````');
+
   // Convert any raw HTML <pre><code class="..."> blocks into standard markdown code fences
   cleanedMarkdown = cleanedMarkdown.replace(/<pre[^>]*>\s*<code(?:\s+class=["'](?:language-)?([a-zA-Z0-9_-]+)["'])?[^>]*>([\s\S]*?)<\/code>\s*<\/pre>/gi, (_m, lang, code) => {
     const inner = decodeHtmlEntities(code.trim())

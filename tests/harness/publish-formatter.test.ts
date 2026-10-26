@@ -228,6 +228,23 @@ foreach ($dc in $domainControllers) {
       expect(html).toContain('CONSOLE');
       expect(html).toContain('class="language-console"');
     });
+
+    it('heals accidental inline triple backticks in prose to avoid code phase inversion', () => {
+      const brokenProse = `## Section Heading\n\nThis executes whatever appears within triple backticks (\` \`\`\`python ... \`\`\` \`).\n\n### Next Subheading\n\nNormal prose follows here.`;
+      const html = compileMarkdownToHtml(brokenProse);
+      expect(html).toContain('<h2');
+      expect(html).toContain('<h3');
+      expect(html).toContain('Next Subheading');
+      expect(html).not.toContain('<code class="language-python">### Next Subheading');
+    });
+
+    it('upgrades nested code fences enclosing inner triple backticks', () => {
+      const nested = `## Output Example\n\n\`\`\`text\nOuter prompt:\n\`\`\`python\nprint(1)\n\`\`\`\nDone.\n\`\`\``;
+      const html = compileMarkdownToHtml(nested);
+      expect(html).toContain('Outer prompt:');
+      expect(html).toContain('print(1)');
+      expect(html).toContain('Done.');
+    });
   });
 });
 
