@@ -41,6 +41,12 @@ b:if(cond='not data:view.description and data:blog.metaDescription')
 b:if(cond='not data:view.description and not data:blog.metaDescription')
   meta(name='twitter:description' expr:content='data:view.title.escaped')/
 
+//- Fallback Meta Description when Blogger native all-head-content omits it on non-homepage views
+b:if(cond='not data:view.isHomepage and not data:view.description and data:view.isPost')
+  meta(name='description' expr:content='data:view.title.escaped + " — Technical analysis, vulnerability research, and security engineering guide."')/
+b:if(cond='not data:view.isHomepage and not data:view.description and not data:view.isPost and data:blog.metaDescription')
+  meta(name='description' expr:content='data:blog.metaDescription.escaped')/
+
 //- Schema.org WebSite JSON-LD
 b:if(cond='data:view.isHomepage or data:view.isSearch')
   script(type='application/ld+json').

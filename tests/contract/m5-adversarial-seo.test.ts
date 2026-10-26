@@ -147,12 +147,13 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   const canonicalUrl = ctx.view.url.canonical;
   const viewDesc = ctx.view.description;
   const blogDesc = ctx.blog.metaDescription;
-  const effectiveDesc = viewDesc || blogDesc || '';
+  const isHome = Boolean(ctx.view.isHomepage || (!ctx.view.isPost && !ctx.view.isPage && ctx.view.url?.canonical === ctx.blog.canonicalHomepageUrl));
+  const nativeDesc = viewDesc || (isHome ? blogDesc : '');
   const ogDesc = viewDesc || blogDesc || ctx.view.title;
 
   let allHeadReplacement = `<link rel="canonical" href="${bloggerHtmlEscape(canonicalUrl)}"/>\n`;
-  if (effectiveDesc) {
-    allHeadReplacement += `<meta content="${bloggerHtmlEscape(effectiveDesc)}" name="description"/>\n`;
+  if (nativeDesc) {
+    allHeadReplacement += `<meta content="${bloggerHtmlEscape(nativeDesc)}" name="description"/>\n`;
   }
   allHeadReplacement += `<meta content="${bloggerHtmlEscape(canonicalUrl)}" property="og:url"/>\n`;
   allHeadReplacement += `<meta content="${bloggerHtmlEscape(ctx.view.title)}" property="og:title"/>\n`;
@@ -190,6 +191,25 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   // 9. Resolve Twitter Title & Description
   output = output.replace(/<meta\b[^>]*name="twitter:title"[^>]*\/?>/g, `<meta name="twitter:title" content="${bloggerHtmlEscape(ctx.view.title)}"/>`);
   output = output.replace(/<b:if cond="data:view\.description">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and data:blog\.metaDescription">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>\s*<b:if cond="not data:view\.description and not data:blog\.metaDescription">\s*<meta [^>]*name="twitter:description"[^>]*\/>\s*<\/b:if>/g, `<meta name="twitter:description" content="${bloggerHtmlEscape(ogDesc)}"/>`);
+
+  // 9b. Resolve Fallback Meta Description
+  if (!isHome && !viewDesc) {
+    if (ctx.view.isPost) {
+      output = output.replace(
+        /<b:if cond="not data:view\.isHomepage and not data:view\.description and data:view\.isPost">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
+        `<meta name="description" content="${bloggerHtmlEscape(ctx.view.title + ' — Technical analysis, vulnerability research, and security engineering guide.')}"/>`
+      );
+    } else if (blogDesc) {
+      output = output.replace(
+        /<b:if cond="not data:view\.isHomepage and not data:view\.description and not data:view\.isPost and data:blog\.metaDescription">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
+        `<meta name="description" content="${bloggerHtmlEscape(blogDesc)}"/>`
+      );
+    }
+  }
+  output = output.replace(
+    /<b:if cond="not data:view\.isHomepage and not data:view\.description and [^"]+">\s*<meta [^>]*name="description"[^>]*\/>\s*<\/b:if>/g,
+    ''
+  );
 
   // 10. Resolve WebSite JSON-LD
   const shouldRenderWebSite = Boolean(ctx.view.isHomepage || ctx.view.isSearch);
@@ -250,8 +270,8 @@ export function renderHeadMetadata(themeXml: string, ctx: MockRenderContext): {
   const metaMatches = [...output.matchAll(/<meta\s+([^>]+)\/?>/g)];
   for (const m of metaMatches) {
     const attrs = m[1] ?? '';
-    const nameMatch = attrs.match(/(?:name|property)="([^"]+)"/);
-    const contentMatch = attrs.match(/content="([^"]*)"/);
+    const nameMatch = attrs.match(/(?:^|\s)(?:name|property)="([^"]+)"/);
+    const contentMatch = attrs.match(/(?:^|\s)content="([^"]*)"/);
     if (nameMatch && contentMatch) {
       const key = nameMatch[1]!;
       const rawVal = contentMatch[1]!;
@@ -814,6 +834,13 @@ describe('Empirical Challenge: Milestone M5 SEO, JSON-LD, & Social Metadata Robu
       expect(res3.metaTags['og:description']).toBe('View Title');
       expect(res3.metaTags['twitter:description']).toBe('View Title');
       expect(res3.metaTags['description']).toBeUndefined();
+
+      // 4. single post without view.description synthesizes unique, informative post description
+      const res4 = renderHeadMetadata(themeXml, {
+        blog: { title: 'B', canonicalHomepageUrl: 'https://b.blogspot.com', metaDescription: 'Blog Desc' },
+        view: { title: 'CVE-2023-4911 Analysis', url: { canonical: 'https://b.blogspot.com/post.html' }, isPost: true }
+      });
+      expect(res4.metaTags['description']).toBe('CVE-2023-4911 Analysis — Technical analysis, vulnerability research, and security engineering guide.');
     });
   });
 
