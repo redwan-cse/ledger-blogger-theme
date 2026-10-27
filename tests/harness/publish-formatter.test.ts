@@ -284,8 +284,8 @@ Connection from 192.168.1.100:54218 received!
 bash: cannot set terminal process group (8812): Inappropriate ioctl for device
 appuser@ai-compute-worker-01:~/agent_workspace$ whoami
 appuser
-appuser@ai-compute-worker-01:~/agent_workspace$ env | grep OPENAI
-OPENAI_API_KEY=sk-proj-12345
+appuser@ai-compute-worker-01:~/agent_workspace$ env | grep API_KEY
+API_KEY=token-placeholder-test
 \`\`\``;
 
       const html = compileMarkdownToHtml(revShell);
