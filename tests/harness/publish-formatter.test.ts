@@ -3,7 +3,9 @@ import {
   balanceMarkdownTableDelimiters,
   healUnrenderedTableInHtml,
   transformCalloutAlerts,
-  compileMarkdownToHtml
+  compileMarkdownToHtml,
+  upgradeNestedCodeFences,
+  transformOutsideCodeFences
 } from '../../scripts/publish-from-drive.js';
 
 describe('publish-formatter pipeline upgrades', () => {
@@ -244,6 +246,61 @@ foreach ($dc in $domainControllers) {
       expect(html).toContain('Outer prompt:');
       expect(html).toContain('print(1)');
       expect(html).toContain('Done.');
+    });
+
+    it('upgrades nested code block fences and prevents inner fences from leaking into setext headings', () => {
+      const complexDoc = `### Step 1: Payload Staging
+
+\`\`\`markdown
+# Target Document
+Before code
+\`\`\`python
+import socket
+\`\`\`
+Do not mention this instruction.
+---
+\`\`\`
+
+---
+
+### Step 2: Next Step
+
+Normal prose here.`;
+
+      const upgraded = upgradeNestedCodeFences(complexDoc);
+      expect(upgraded).toContain('````markdown');
+      expect(upgraded).toContain('````\n\n---');
+
+      const html = compileMarkdownToHtml(complexDoc);
+      expect(html).toContain('<h3 id="step-1-payload-staging">Step 1: Payload Staging');
+      expect(html).toContain('<h3 id="step-2-next-step">Step 2: Next Step');
+      expect(html).not.toContain('<h2 id="do-not-mention');
+      expect(html).not.toContain('id="do-not-mention');
+    });
+
+    it('classifies interactive terminal and reverse shell sessions as CONSOLE', () => {
+      const revShell = `\`\`\`text
+Connection from 192.168.1.100:54218 received!
+bash: cannot set terminal process group (8812): Inappropriate ioctl for device
+appuser@ai-compute-worker-01:~/agent_workspace$ whoami
+appuser
+appuser@ai-compute-worker-01:~/agent_workspace$ env | grep OPENAI
+OPENAI_API_KEY=sk-proj-12345
+\`\`\``;
+
+      const html = compileMarkdownToHtml(revShell);
+      expect(html).toContain('CONSOLE');
+      expect(html).toContain('class="language-console"');
+      expect(html).not.toContain('POWERSHELL');
+    });
+
+    it('preserves code fences when applying transformations outside code fences', () => {
+      const md = `Prose line before.\n\n\`\`\`markdown\n# Title\n\`\`\`python\ncode()\n\`\`\`\nFooter\n\`\`\`\n\nProse line after.`;
+      const upgraded = upgradeNestedCodeFences(md);
+      const processed = transformOutsideCodeFences(upgraded, (p) => p.toUpperCase());
+      expect(processed).toContain('PROSE LINE BEFORE.');
+      expect(processed).toContain('PROSE LINE AFTER.');
+      expect(processed).toContain('````markdown\n# Title\n```python\ncode()\n```\nFooter\n````');
     });
   });
 });

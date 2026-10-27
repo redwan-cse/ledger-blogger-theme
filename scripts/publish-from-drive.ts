@@ -1483,6 +1483,118 @@ export function balanceMarkdownTableDelimiters(prose: string): string {
 }
 
 /**
+ * Promotes outer code fences from 3 backticks to 4 backticks if they enclose inner code fences.
+ * Prevents markdown parsers from closing the outer block on an inner fence.
+ */
+export function upgradeNestedCodeFences(md: string): string {
+  const lines = md.split('\n');
+  const result: string[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i] ?? '';
+    const openMatch = line.match(/^(\s*)(`{3,}|~{3,})([a-zA-Z0-9_-]*)/);
+    if (!openMatch || !openMatch[2]) {
+      result.push(line);
+      i++;
+      continue;
+    }
+
+    const indent = openMatch[1] ?? '';
+    const fenceChar = openMatch[2].charAt(0);
+    const fenceLen = openMatch[2].length;
+    const lang = openMatch[3] ?? '';
+
+    // Check if this is an outer container block that might wrap other code fences
+    if (lang && ['markdown', 'text', 'plaintext', 'console', 'bash'].includes(lang.toLowerCase())) {
+      let hasInnerFences = false;
+      let innerCount = 0;
+      let closeIdx = -1;
+      let j = i + 1;
+      while (j < lines.length) {
+        const nextLine = lines[j] ?? '';
+        const nextMatch = nextLine.match(/^(\s*)(`{3,}|~{3,})([a-zA-Z0-9_-]*)/);
+        if (nextMatch && nextMatch[2] && nextMatch[2].charAt(0) === fenceChar && nextMatch[2].length === fenceLen) {
+          if (nextMatch[3]) {
+            innerCount++;
+            hasInnerFences = true;
+          } else {
+            if (innerCount > 0) {
+              innerCount--;
+            } else {
+              closeIdx = j;
+              break;
+            }
+          }
+        }
+        j++;
+      }
+
+      if (hasInnerFences && closeIdx !== -1) {
+        // Upgrade outer opening and closing fences to fenceLen + 1 backticks (e.g. 4 backticks)
+        const outerFence = fenceChar.repeat(fenceLen + 1);
+        result.push(`${indent}${outerFence}${lang}`);
+        for (let k = i + 1; k < closeIdx; k++) {
+          result.push(lines[k] ?? '');
+        }
+        result.push(`${indent}${outerFence}`);
+        i = closeIdx + 1;
+        continue;
+      }
+    }
+
+    result.push(line);
+    i++;
+  }
+
+  return result.join('\n');
+}
+
+/**
+ * Applies a prose transformation function strictly outside fenced code blocks.
+ * Uses a line-by-line state machine respecting code fence lengths to avoid splitting on nested fences.
+ */
+export function transformOutsideCodeFences(md: string, fn: (prose: string) => string): string {
+  const lines = md.split('\n');
+  const result: string[] = [];
+  let proseBuffer: string[] = [];
+  let inCodeBlock = false;
+  let codeFenceLength = 0;
+  let codeFenceChar = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? '';
+    const match = line.match(/^(\s*)(`{3,}|~{3,})/);
+    if (!inCodeBlock) {
+      if (match && match[2]) {
+        if (proseBuffer.length > 0) {
+          result.push(fn(proseBuffer.join('\n')));
+          proseBuffer = [];
+        }
+        inCodeBlock = true;
+        codeFenceLength = match[2].length;
+        codeFenceChar = match[2].charAt(0);
+        result.push(line);
+      } else {
+        proseBuffer.push(line);
+      }
+    } else {
+      result.push(line);
+      if (match && match[2] && match[2].charAt(0) === codeFenceChar && match[2].length >= codeFenceLength) {
+        inCodeBlock = false;
+        codeFenceLength = 0;
+        codeFenceChar = '';
+      }
+    }
+  }
+
+  if (proseBuffer.length > 0) {
+    result.push(fn(proseBuffer.join('\n')));
+  }
+
+  return result.join('\n');
+}
+
+/**
  * Rescues unrendered Markdown tables that ended up inside <p>...</p> tags due to
  * GFM syntax quirks or LLM column mismatches, and converts them to responsive HTML tables.
  */
@@ -1582,11 +1694,14 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       return ''; // NEVER EMIT EMPTY CODE BLOCKS
     }
 
-    // Strip accidental nested markdown fences inside code blocks (e.g. ```c or ```)
-    const cleanText = text
-      .replace(/^`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
-      .replace(/^\s*`{3,}\s*$/gm, '')
-      .trim();
+    // Strip accidental nested markdown fences inside code blocks ONLY if the block itself is NOT markdown/text/plaintext/console
+    let cleanText = text;
+    if (!['markdown', 'md', 'text', 'plaintext', 'console'].includes((lang || '').toLowerCase())) {
+      cleanText = cleanText
+        .replace(/^`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+        .replace(/^\s*`{3,}\s*$/gm, '');
+    }
+    cleanText = cleanText.trim();
 
     if (!cleanText || cleanText === '[ ]' || cleanText === '[]') {
       return '';
@@ -1873,11 +1988,21 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       displayLang = 'plaintext';
     }
     if (!displayLang || displayLang === 'code' || displayLang === 'text') {
-      if (/(?:^|\n)\s*#{1,6}\s+/.test(cleanText) || cleanText.trim().startsWith('<!--')) {
+      if (
+        /^\s*(?:PS\s+)?[A-Z]:\\[^>]*>/m.test(cleanText) ||
+        /^\s*kd>\s+/m.test(cleanText) ||
+        /^\s*\[[\*\+\-\!]\]/m.test(cleanText) ||
+        /^\s*(?:appuser|root|[\w\-]+)@[\w\-]+:[~/\w\s\-\.]*[\$#]/m.test(cleanText) ||
+        /Connection from .* received!/i.test(cleanText) ||
+        /EXECUTING CODE BLOCK/i.test(cleanText) ||
+        /\bexitcode:\s*\d+/i.test(cleanText)
+      ) {
+        displayLang = 'console';
+      } else if (/(?:^|\n)\s*#{1,6}\s+/.test(cleanText) || cleanText.trim().startsWith('<!--')) {
         displayLang = 'markdown';
       } else if (isXmlHtml || cleanText.trim().startsWith('<')) {
         displayLang = 'xml';
-      } else if (cleanText.includes('$') || cleanText.includes('Get-AD') || cleanText.includes('param (') || cleanText.includes('Write-Host')) {
+      } else if (cleanText.includes('Get-AD') || cleanText.includes('param (') || cleanText.includes('Write-Host') || cleanText.includes('$PSVersionTable') || cleanText.includes('[CmdletBinding]')) {
         displayLang = 'powershell';
       } else if (cleanText.includes('def ') || cleanText.includes('import ') || cleanText.includes('from collections')) {
         displayLang = 'python';
@@ -1889,10 +2014,8 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
         displayLang = 'pseudocode';
       } else if (cleanText.includes('title:') || cleanText.includes('logsource:') || cleanText.includes('detection:')) {
         displayLang = 'yaml';
-      } else if (cleanText.includes('curl ') || cleanText.includes('chmod ') || cleanText.includes('sudo ') || cleanText.includes('#!/bin')) {
+      } else if (cleanText.includes('curl ') || cleanText.includes('chmod ') || cleanText.includes('sudo ') || cleanText.includes('#!/bin') || cleanText.includes('nc -lvnp')) {
         displayLang = 'bash';
-      } else if (/^\s*\[[\*\+\-\!]\]/m.test(cleanText) || /^\s*(?:PS\s+)?[A-Z]:\\[^>]*>/m.test(cleanText) || /^\s*kd>\s+/m.test(cleanText)) {
-        displayLang = 'console';
       } else {
         displayLang = 'plaintext';
       }
@@ -1948,25 +2071,6 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     return line;
   }).join('\n');
 
-  // Upgrade outer ```markdown or ```text enclosing inner fences to 4 backticks ````
-  cleanedMarkdown = cleanedMarkdown.replace(/```(markdown|text|plaintext|console)\n([\s\S]*?\n```[a-z0-9_-]+\n[\s\S]*?\n```\n[\s\S]*?)\n```/g, '````$1\n$2\n````');
-
-  // Convert any raw HTML <pre><code class="..."> blocks into standard markdown code fences
-  cleanedMarkdown = cleanedMarkdown.replace(/<pre[^>]*>\s*<code(?:\s+class=["'](?:language-)?([a-zA-Z0-9_-]+)["'])?[^>]*>([\s\S]*?)<\/code>\s*<\/pre>/gi, (_m, lang, code) => {
-    const inner = decodeHtmlEntities(code.trim())
-      .replace(/^\s*`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
-      .trim();
-    return `\n\`\`\`${lang || 'plaintext'}\n${inner}\n\`\`\`\n`;
-  });
-
-  // Convert any raw HTML <pre class="mermaid"> blocks into standard ```mermaid fences
-  cleanedMarkdown = cleanedMarkdown.replace(/(?:<div[^>]*class=["'][^"']*mermaid-diagram-wrap[^"']*["'][^>]*>\s*)?<pre[^>]*class=["'][^"']*mermaid[^"']*["'][^>]*>([\s\S]*?)<\/pre>(?:\s*<\/div>)?/gi, (_m, code) => {
-    const inner = decodeHtmlEntities(code.trim())
-      .replace(/^\s*`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
-      .trim();
-    return `\n\`\`\`mermaid\n${inner}\n\`\`\`\n`;
-  });
-
   // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
   cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)```[a-z0-9_-]*[ \t]*(?:\r?\n)[ \t]*```[ \t]*(?=\r?\n|$)/gi, '');
 
@@ -1984,13 +2088,26 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
   cleanedMarkdown = cleanedMarkdown.replace(/```+([ \t]*[A-Z#\-\*][^\n\r`]+)/g, '```\n\n$1');
   cleanedMarkdown = cleanedMarkdown.replace(/```+([ \t]*[a-z]+[ \t]+[^\n\r`]+)/g, '```\n\n$1');
 
-  // Helper to apply prose transformations strictly outside fenced code blocks
-  const transformOutsideCodeFences = (md: string, fn: (prose: string) => string): string => {
-    const parts = md.split(/(`{3,}[^\n]*\n[\s\S]*?\n[ \t]*`{3,}[ \t]*)/g);
-    return parts.map((part, idx) => (idx % 2 === 1 ? part : fn(part))).join('');
-  };
+  // Convert any raw HTML <pre><code class="..."> blocks into standard markdown code fences
+  cleanedMarkdown = cleanedMarkdown.replace(/<pre[^>]*>\s*<code(?:\s+class=["'](?:language-)?([a-zA-Z0-9_-]+)["'])?[^>]*>([\s\S]*?)<\/code>\s*<\/pre>/gi, (_m, lang, code) => {
+    const inner = decodeHtmlEntities(code.trim())
+      .replace(/^\s*`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+      .trim();
+    return `\n\`\`\`${lang || 'plaintext'}\n${inner}\n\`\`\`\n`;
+  });
 
-  // 3. Clean prose-only quirks (backslash escapes, task-list checkboxes, tables, inline code spacing)
+  // Convert any raw HTML <pre class="mermaid"> blocks into standard ```mermaid fences
+  cleanedMarkdown = cleanedMarkdown.replace(/(?:<div[^>]*class=["'][^"']*mermaid-diagram-wrap[^"']*["'][^>]*>\s*)?<pre[^>]*class=["'][^"']*mermaid[^"']*["'][^>]*>([\s\S]*?)<\/pre>(?:\s*<\/div>)?/gi, (_m, code) => {
+    const inner = decodeHtmlEntities(code.trim())
+      .replace(/^\s*`{3,}[a-zA-Z0-9_-]*\s*$/gm, '')
+      .trim();
+    return `\n\`\`\`mermaid\n${inner}\n\`\`\`\n`;
+  });
+
+  // 3. Upgrade nested code fences (e.g. outer ```markdown or ```text enclosing inner triple backticks) to 4 backticks
+  cleanedMarkdown = upgradeNestedCodeFences(cleanedMarkdown);
+
+  // 4. Clean prose-only quirks (backslash escapes, task-list checkboxes, tables, inline code spacing)
   cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
     let out = balanceMarkdownTableDelimiters(prose);
     out = out
