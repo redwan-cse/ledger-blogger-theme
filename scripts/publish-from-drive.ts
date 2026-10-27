@@ -1766,12 +1766,12 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     let prevComments = '';
     while (prevComments !== textWithoutHtmlComments) {
       prevComments = textWithoutHtmlComments;
-      textWithoutHtmlComments = textWithoutHtmlComments.replace(/<!--[\s\S]*?-->/g, '');
+      textWithoutHtmlComments = textWithoutHtmlComments.replace(/<!--[\s\S]*?--!?>/g, '');
     }
     // Also strip standalone or orphaned comment openers and closers
     textWithoutHtmlComments = textWithoutHtmlComments
       .replace(/^\s*<!--\s*$/gm, '')
-      .replace(/^\s*-->\s*$/gm, '');
+      .replace(/^\s*--!?>\s*$/gm, '');
 
     // A real flowchart arrow connects nodes/tokens (e.g. A --> B, node["..."] --> node2, A ==> B, A -.-> B)
     // It must NEVER match a standalone --> comment terminator or disconnected tokens across different lines

@@ -25,6 +25,16 @@ function normalizeTitle(text: string): string {
     .trim();
 }
 
+function stripHtmlTags(input: string): string {
+  let prev = '';
+  let current = input;
+  do {
+    prev = current;
+    current = current.replace(/<[^>]+>/g, '');
+  } while (current !== prev);
+  return current.replace(/[<>]/g, '');
+}
+
 /**
  * Matches an anchor text to a published post in the catalog.
  */
@@ -33,7 +43,7 @@ export function findMatchingCatalogPost(
   catalog: CatalogPost[],
   currentPostTitle?: string
 ): CatalogPost | null {
-  const cleanAnchor = anchorText.replace(/<[^>]+>/g, '').trim();
+  const cleanAnchor = stripHtmlTags(anchorText).trim();
   const normAnchor = normalizeTitle(cleanAnchor);
   if (!normAnchor) return null;
 
@@ -145,7 +155,7 @@ export function resolveCompanionLinks(
   // B. Replace HTML links: <a href="https://blogs.redwan.work/ or /search...">Anchor</a>
   const htmlLinkRegex = /<a\s+([^>]*?)href=["'](https:\/\/blogs\.redwan\.work\/?|\/search\?[^"']*|\/search\/label\/[^"']*)["']([^>]*?)>([\s\S]*?)<\/a>/gi;
   resolved = resolved.replace(htmlLinkRegex, (match, beforeHref, rawUrl, afterHref, innerAnchor) => {
-    const cleanAnchor = innerAnchor.replace(/<[^>]+>/g, '').trim();
+    const cleanAnchor = stripHtmlTags(innerAnchor).trim();
     if (/^(home|homepage|blog|index|back to top)$/i.test(cleanAnchor)) {
       return match;
     }
@@ -204,7 +214,7 @@ export function resolveCompanionLinks(
       return fullMatch;
     }
 
-    const cleanAnchor = innerAnchor.replace(/<[^>]+>/g, '').trim();
+    const cleanAnchor = stripHtmlTags(innerAnchor).trim();
 
     // 1. Try to match anchor text to a published post
     const postByAnchor = findMatchingCatalogPost(cleanAnchor, catalog, currentPostTitle);
