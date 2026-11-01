@@ -8,7 +8,14 @@
     <link rel="alternate" type="application/rss+xml" expr:title="data:blog.title.escaped" expr:href="data:blog.canonicalHomepageUrl path &quot;feeds/posts/default&quot;"/>
     <link rel="me" href="https://redwan.work"/>
     <link rel="me" href="https://orcid.org/0009-0001-9419-4760"/>
-    <title><data:view.title.escaped/></title>
+    <title>
+      <b:if cond="data:view.isHomepage"><data:view.title.escaped/></b:if>
+      <b:if cond="data:view.isLabelSearch">Topic: <data:view.search.label/> | <data:blog.title.escaped/></b:if>
+      <b:if cond="data:view.isSearch and not data:view.isLabelSearch">Search: <data:view.search.query/> | <data:blog.title.escaped/></b:if>
+      <b:if cond="data:view.isArchive">Archive: <data:view.archive.rangeMessage/> | <data:blog.title.escaped/></b:if>
+      <b:if cond="data:view.isPost or data:view.isPage"><data:view.title.escaped/> | <data:blog.title.escaped/></b:if>
+      <b:if cond="data:view.isError">404 Page Not Found | <data:blog.title.escaped/></b:if>
+    </title>
     <b:include data="blog" name="all-head-content"/>
     <link rel="icon" href="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s192-c"/>
     <link rel="icon" type="image/jpeg" href="https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s192-c"/>
@@ -156,7 +163,7 @@
         <b:includable id="previousPageLink"></b:includable>
         <b:includable id="homePageLink"></b:includable>
         <b:includable id="nextPageLink">
-          <b:if cond="data:olderPageUrl"><a class="blog-pager-older-link flat-button ripple" expr:href="data:olderPageUrl" expr:title="data:messages.morePosts" rel="nofollow">
+          <b:if cond="data:olderPageUrl"><a class="blog-pager-older-link flat-button ripple" expr:href="data:olderPageUrl" expr:title="data:messages.morePosts">
               <b:eval expr="data:messages.morePosts"/></a></b:if>
         </b:includable>
         <b:includable id="inlineAd" var="post">
@@ -1261,19 +1268,19 @@
           <b:includable id="postPagination">
             <b:if cond="data:newerPageUrl or data:olderPageUrl">
               <nav class="pagination post-pagination" id="blog-pagination" aria-label="Posts navigation">
-                <b:if cond="data:newerPageUrl"><a class="newer-link blog-pager-newer-link page-nav-btn prev-btn" id="Blog1_blog-pager-newer-link" expr:href="data:newerPageUrl" rel="nofollow"><span>Previous</span></a></b:if>
+                <b:if cond="data:newerPageUrl"><a class="newer-link blog-pager-newer-link page-nav-btn prev-btn" id="Blog1_blog-pager-newer-link" expr:href="data:newerPageUrl"><span>Previous</span></a></b:if>
                 <b:if cond="not data:newerPageUrl">
                   <button class="page-nav-btn prev-btn" type="button" disabled="disabled"><span>Previous</span></button>
                 </b:if>
                 <div class="numbered-pages" id="numbered-pages">
-                  <b:if cond="data:newerPageUrl"><a class="page-num-btn" expr:href="data:newerPageUrl" aria-label="Page 1" rel="nofollow">1</a><span class="page-num-btn is-active">2</span>
-                    <b:if cond="data:olderPageUrl"><a class="page-num-btn" expr:href="data:olderPageUrl" aria-label="Page 3" rel="nofollow">3</a></b:if>
+                  <b:if cond="data:newerPageUrl"><a class="page-num-btn" expr:href="data:newerPageUrl" aria-label="Page 1">1</a><span class="page-num-btn is-active">2</span>
+                    <b:if cond="data:olderPageUrl"><a class="page-num-btn" expr:href="data:olderPageUrl" aria-label="Page 3">3</a></b:if>
                   </b:if>
                   <b:if cond="not data:newerPageUrl"><span class="page-num-btn is-active">1</span>
-                    <b:if cond="data:olderPageUrl"><a class="page-num-btn" expr:href="data:olderPageUrl" aria-label="Page 2" rel="nofollow">2</a></b:if>
+                    <b:if cond="data:olderPageUrl"><a class="page-num-btn" expr:href="data:olderPageUrl" aria-label="Page 2">2</a></b:if>
                   </b:if>
                 </div>
-                <b:if cond="data:olderPageUrl"><a class="older-link blog-pager-older-link page-nav-btn next-btn" id="Blog1_blog-pager-older-link" expr:href="data:olderPageUrl" rel="nofollow"><span>Next</span></a></b:if>
+                <b:if cond="data:olderPageUrl"><a class="older-link blog-pager-older-link page-nav-btn next-btn" id="Blog1_blog-pager-older-link" expr:href="data:olderPageUrl"><span>Next</span></a></b:if>
                 <b:if cond="not data:olderPageUrl">
                   <button class="page-nav-btn next-btn" type="button" disabled="disabled"><span>Next</span></button>
                 </b:if>

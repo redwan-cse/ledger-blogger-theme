@@ -8,7 +8,18 @@ html&attributes(rootAttributes)
     link(rel='me' href='https://redwan.work')/
     link(rel='me' href='https://orcid.org/0009-0001-9419-4760')/
     title
-      | <data:view.title.escaped/>
+      b:if(cond='data:view.isHomepage')
+        | <data:view.title.escaped/>
+      b:if(cond='data:view.isLabelSearch')
+        | Topic: <data:view.search.label/> | <data:blog.title.escaped/>
+      b:if(cond='data:view.isSearch and not data:view.isLabelSearch')
+        | Search: <data:view.search.query/> | <data:blog.title.escaped/>
+      b:if(cond='data:view.isArchive')
+        | Archive: <data:view.archive.rangeMessage/> | <data:blog.title.escaped/>
+      b:if(cond='data:view.isPost or data:view.isPage')
+        | <data:view.title.escaped/> | <data:blog.title.escaped/>
+      b:if(cond='data:view.isError')
+        | 404 Page Not Found | <data:blog.title.escaped/>
     b:include(data='blog' name='all-head-content')/
     link(rel='icon' href='https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s192-c')/
     link(rel='icon' type='image/jpeg' href='https://blogger.googleusercontent.com/img/a/AVvXsEid2pK6sS9Z_2jCm6SFeomZwfHDSq0li0pY6e8i_NNiuJkwHKqMqJ9gLw2qws2Xp42oCc5QGFvDw-PjbWF6CHaF7D-BShybE1d5A4OglhgVfsNPm0dg-1CRHkmrBZnAv8neHaTTb_hEzsaZZMgUP9mnTJqSAvtYtuzbOEKnsE2OJ1viJolqiQU7D532vxQ=s192-c')/

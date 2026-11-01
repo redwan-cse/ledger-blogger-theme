@@ -5,6 +5,7 @@ import { marked } from 'marked';
 import { submitUrlsToSearchEngines } from './lib/search-engine-indexer.js';
 import { syncPostToGitHubBacklinkRepos } from './lib/github-research-syncer.js';
 import { resolveCompanionLinks, type CatalogPost } from './lib/companion-link-resolver.js';
+import { syncArchivePage } from './lib/archive-page-syncer.js';
 
 interface ServiceAccountKey {
   client_email: string;
@@ -3651,6 +3652,18 @@ async function main() {
   }
 
   console.log('\n=== All Documents Processed Successfully ===');
+
+  // 5. Automatically synchronize Master Archive Page (/p/archive.html)
+  try {
+    await syncArchivePage({
+      token: bloggerToken,
+      blogId: BLOG_ID,
+      pageId: '1598577468722262893',
+      log: console.log
+    });
+  } catch (e: any) {
+    console.warn(`Archive page auto-sync warning: ${e.message}`);
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
