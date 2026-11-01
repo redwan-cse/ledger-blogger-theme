@@ -3,7 +3,7 @@
 <html b:css="false" b:defaultwidgetversion="2" b:layoutsVersion="3" b:responsive="true" b:templateUrl="indie.xml" b:templateVersion="0.0.0" expr:dir="data:blog.languageDirection" expr:lang="data:blog.locale" data-theme="dark" xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://www.google.com/2005/gml/b" xmlns:data="http://www.google.com/2005/gml/data" xmlns:expr="http://www.google.com/2005/gml/expr">
   <head>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="0.0.0+09f5bc78a09ad4af66606b04255a9153c0272b39" name="theme-build"/>
+    <meta content="0.0.0+6b1cc2bc632824a33194ac12a1d0f3af5f967226" name="theme-build"/>
     <meta name="color-scheme" content="dark light"/>
     <link rel="alternate" type="application/rss+xml" expr:title="data:blog.title.escaped" expr:href="data:blog.canonicalHomepageUrl path &quot;feeds/posts/default&quot;"/>
     <link rel="me" href="https://redwan.work"/>
@@ -13,7 +13,7 @@
       <b:if cond="data:view.isLabelSearch">Topic: <data:view.search.label/> | <data:blog.title.escaped/></b:if>
       <b:if cond="data:view.isSearch and not data:view.isLabelSearch">Search: <data:view.search.query/> | <data:blog.title.escaped/></b:if>
       <b:if cond="data:view.isArchive">Archive: <data:view.archive.rangeMessage/> | <data:blog.title.escaped/></b:if>
-      <b:if cond="data:view.isPost or data:view.isPage"><data:view.title.escaped/> | <data:blog.title.escaped/></b:if>
+      <b:if cond="data:view.isPost or data:view.isPage"><data:view.title.escaped/></b:if>
       <b:if cond="data:view.isError">404 Page Not Found | <data:blog.title.escaped/></b:if>
     </title>
     <b:include data="blog" name="all-head-content"/>

@@ -17,7 +17,7 @@ html&attributes(rootAttributes)
       b:if(cond='data:view.isArchive')
         | Archive: <data:view.archive.rangeMessage/> | <data:blog.title.escaped/>
       b:if(cond='data:view.isPost or data:view.isPage')
-        | <data:view.title.escaped/> | <data:blog.title.escaped/>
+        | <data:view.title.escaped/>
       b:if(cond='data:view.isError')
         | 404 Page Not Found | <data:blog.title.escaped/>
     b:include(data='blog' name='all-head-content')/
