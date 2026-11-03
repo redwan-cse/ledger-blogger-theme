@@ -914,7 +914,7 @@
                 <div class="post-card-inner" expr:class="data:post.featuredImage ? &quot;post-card-inner has-thumbnail&quot; : &quot;post-card-inner no-thumbnail&quot;">
                   <b:if cond="data:post.featuredImage">
                     <b:with value="resizeImage(data:post.featuredImage, 640, &quot;16:9&quot;)" var="thumbUrl">
-                      <b:with value="resizeImage(data:post.featuredImage, 384, &quot;16:9&quot;)" var="thumbUrlSmall"><a class="post-thumbnail-link" expr:href="data:post.url" tabindex="-1" aria-hidden="true">
+                      <b:with value="resizeImage(data:post.featuredImage, 384, &quot;16:9&quot;)" var="thumbUrlSmall"><a class="post-thumbnail-link" expr:href="data:post.url" expr:aria-label="data:post.title" tabindex="-1" aria-hidden="true">
                           <b:if cond="data:post.id == data:posts.first.id"><img class="post-thumbnail" expr:src="data:thumbUrl" expr:srcset="data:thumbUrlSmall + &quot; 384w, &quot; + data:thumbUrl + &quot; 640w&quot;" sizes="(max-width: 768px) 348px, 280px" width="640" height="360" fetchpriority="high" loading="eager" expr:alt="data:post.title" referrerpolicy="no-referrer"/></b:if>
                           <b:if cond="data:post.id != data:posts.first.id"><img class="post-thumbnail" expr:src="data:thumbUrl" expr:srcset="data:thumbUrlSmall + &quot; 384w, &quot; + data:thumbUrl + &quot; 640w&quot;" sizes="(max-width: 768px) 348px, 280px" width="640" height="360" loading="lazy" decoding="async" expr:alt="data:post.title" referrerpolicy="no-referrer"/></b:if></a></b:with>
                     </b:with>
@@ -1648,7 +1648,7 @@
           <article class="post">
             <div class="post-card-inner ${c.thumbnail?"has-thumbnail":"no-thumbnail"}">
               ${c.thumbnail?`
-                <a class="post-thumbnail-link" href="${c.url}" tabindex="-1" aria-hidden="true">
+                <a class="post-thumbnail-link" href="${c.url}" aria-label="${N(c.title)}" tabindex="-1" aria-hidden="true">
                   <img class="post-thumbnail" src="${c.thumbnail}" alt="${N(c.title)}" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
                 </a>
               `:""}

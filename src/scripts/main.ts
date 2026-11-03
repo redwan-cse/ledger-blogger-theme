@@ -1841,7 +1841,7 @@ export function initHomepageCatalog(): void {
           <article class="post">
             <div class="post-card-inner ${p.thumbnail ? 'has-thumbnail' : 'no-thumbnail'}">
               ${p.thumbnail ? `
-                <a class="post-thumbnail-link" href="${p.url}" tabindex="-1" aria-hidden="true">
+                <a class="post-thumbnail-link" href="${p.url}" aria-label="${escapeHtml(p.title)}" tabindex="-1" aria-hidden="true">
                   <img class="post-thumbnail" src="${p.thumbnail}" alt="${escapeHtml(p.title)}" width="640" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
                 </a>
               ` : ''}

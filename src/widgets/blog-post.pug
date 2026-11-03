@@ -74,7 +74,7 @@ b:includable(id='post' var='post')
         b:if(cond='data:post.featuredImage')
           b:with(value='resizeImage(data:post.featuredImage, 640, "16:9")' var='thumbUrl')
             b:with(value='resizeImage(data:post.featuredImage, 384, "16:9")' var='thumbUrlSmall')
-              a.post-thumbnail-link(expr:href='data:post.url' tabindex='-1' aria-hidden='true')
+              a.post-thumbnail-link(expr:href='data:post.url' expr:aria-label='data:post.title' tabindex='-1' aria-hidden='true')
                 b:if(cond='data:post.id == data:posts.first.id')
                   img.post-thumbnail(expr:src='data:thumbUrl' expr:srcset='data:thumbUrlSmall + " 384w, " + data:thumbUrl + " 640w"' sizes='(max-width: 768px) 348px, 280px' width='640' height='360' fetchpriority='high' loading='eager' expr:alt='data:post.title' referrerpolicy='no-referrer')/
                 b:if(cond='data:post.id != data:posts.first.id')
