@@ -2072,10 +2072,32 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     return line;
   }).join('\n');
 
-  // 1. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
+  // 1. Convert Google Docs code block delimiters (\uEC03 / &#60419; and \uEC02 / &#60418;) into standard markdown code fences
+  cleanedMarkdown = cleanedMarkdown.replace(/(?:[\uEC03]|&#60419;)([\s\S]*?)(?:[\uEC02]|&#60418;)/g, (_m, rawCode) => {
+    let cleanCode = decodeHtmlEntities(rawCode.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+>/g, '')).trim();
+    let lang = 'plaintext';
+    if (cleanCode.startsWith('flowchart') || cleanCode.startsWith('sequenceDiagram') || cleanCode.startsWith('graph')) {
+      lang = 'mermaid';
+    } else if (cleanCode.startsWith('{') || cleanCode.startsWith('[')) {
+      lang = 'json';
+    } else if (cleanCode.startsWith('title:') || cleanCode.startsWith('logsource:') || cleanCode.includes('detection:')) {
+      lang = 'yaml';
+    } else if (cleanCode.includes('<!-- Sysmon') || cleanCode.startsWith('<Sysmon') || cleanCode.startsWith('<Configuration')) {
+      lang = 'xml';
+    } else if (cleanCode.includes('Get-') || cleanCode.includes('Set-') || cleanCode.includes('$') || cleanCode.includes('[CmdletBinding')) {
+      lang = 'powershell';
+    } else if (cleanCode.includes('sysctl') || cleanCode.includes('curl ') || cleanCode.includes('aws ') || cleanCode.includes('docker ') || cleanCode.includes('chmod ') || cleanCode.includes('nc ')) {
+      lang = 'bash';
+    } else if (cleanCode.includes('def ') || cleanCode.includes('import ') || cleanCode.includes('print(')) {
+      lang = 'python';
+    }
+    return `\n\n\`\`\`${lang}\n${cleanCode}\n\`\`\`\n\n`;
+  });
+
+  // 2. Purge completely empty code blocks (e.g. ```\n``` or ```powershell\n```)
   cleanedMarkdown = cleanedMarkdown.replace(/(?:^|\n)```[a-z0-9_-]*[ \t]*(?:\r?\n)[ \t]*```[ \t]*(?=\r?\n|$)/gi, '');
 
-  // 2. Fix glued code fences (Google Docs / AppScript export artifacts) before splitting by fences
+  // 3. Fix glued code fences (Google Docs / AppScript export artifacts) before splitting by fences
   // A. Opening fence glued to preceding text or punctuation (e.g. plan.```mermaid or view:```sql or word```c)
   cleanedMarkdown = cleanedMarkdown.replace(/([^\n])\s*```+([a-zA-Z0-9_-]*)/g, '$1\n\n```$2');
 
@@ -2105,10 +2127,10 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
     return `\n\`\`\`mermaid\n${inner}\n\`\`\`\n`;
   });
 
-  // 3. Upgrade nested code fences (e.g. outer ```markdown or ```text enclosing inner triple backticks) to 4 backticks
+  // 4. Upgrade nested code fences (e.g. outer ```markdown or ```text enclosing inner triple backticks) to 4 backticks
   cleanedMarkdown = upgradeNestedCodeFences(cleanedMarkdown);
 
-  // 4. Clean prose-only quirks (backslash escapes, task-list checkboxes, tables, inline code spacing)
+  // 5. Clean prose-only quirks (backslash escapes, task-list checkboxes, tables, inline code spacing)
   cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
     let out = balanceMarkdownTableDelimiters(prose);
     out = out
@@ -2126,38 +2148,123 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       .replace(/(\|[^\n]+\|)\n([^\n|# -<])/g, '$1\n\n$2');
   });
 
-  // 4. Intelligent Auto-Fencer for Google Docs plain-text exports (ONLY if text lacks markdown fences, and ONLY outside existing fences)
-  const existingFences = (cleanedMarkdown.match(/```/g) || []).length;
-  const isWellFormedMarkdown = existingFences >= 2; // Already has at least 1 fenced block
-
-  if (!isWellFormedMarkdown) {
-    cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
-      let out = prose;
-      // A. Mermaid sequence diagrams & flowcharts
-      out = out.replace(/(?:^|\n)(sequenceDiagram[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
-      out = out.replace(/(?:^|\n)((?:flowchart|graph)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\n(?:##|---|# )|$)/g, '\n\n```mermaid\n$1\n```\n\n');
-
-      // B. C Structures (struct cred, etc.)
-      out = out.replace(/(?:^|\n)(struct\s+\w+\s*\{[\s\S]*?\};)/g, '\n\n```c\n$1\n```\n\n');
-
-      // C. Bash runbooks and scripts (with shebang or shell comments)
-      out = out.replace(/(?:^|\n)((?:#!.*bash|# Fast Cyber.*|set -euo pipefail)[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```bash\n$1\n```\n\n');
-
-      // D. Sigma Detection Rules (YAML)
-      out = out.replace(/(?:^|\n)(title:\s*[\s\S]*?tags:[\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+)|$)/g, '\n\n```yaml\n$1\n```\n\n');
-
-      // E. Python Monitoring Scripts
-      out = out.replace(/(?:^|\n)((?:#!.*python3?|import sys|import subprocess|import json|from typing import|class \w+Auditor)[\s\S]*?)(?=\n\n(?:\d+\.|\##|Fast Cyber Defense)|$)/g, '\n\n```python\n$1\n```\n\n');
-
-      // F. PowerShell Audit Modules
-      out = out.replace(/(?:^|\n)(\[CmdletBinding\(\)\][\s\S]*?)(?=\n\n(?:\d+\.|\##|[A-Z][a-z]+:)|$)/g, '\n\n```powershell\n$1\n```\n\n');
-      return out;
-    });
-  }
-
-  // 5. Demote any accidental '# ' headings in prose body to '## ' (never touches # comments inside fenced code blocks)
+  // 6. Intelligent Auto-Fencer & Formatter for Google Docs plain-text exports (groups commands, elevates section titles, handles alerts)
   cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
-    return prose.replace(/^# (?!#)/gm, '## ');
+    let out = prose;
+
+    // A. Mermaid sequence diagrams & flowcharts outside fences
+    out = out.replace(/(?:^|\n)\s*((?:flowchart|graph|sequenceDiagram)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\s*(?:Tier \d|Phase \d|Step \d|Strategy \d|Overview|Defensive|Exploit|Hardening|Attack Path|Actionable|Production|Blue Team|Fast Cyber|Executive Takeaway|Authoritative References|##|###|$))/gi, (_m, diag) => {
+      return `\n\n\`\`\`mermaid\n${diag.trim()}\n\`\`\`\n\n`;
+    });
+
+    // B. Group sequences of shell / PowerShell / Python commands and comments into code fences
+    const lines = out.split('\n');
+    const newLines: string[] = [];
+    let inCodeSeq = false;
+    let codeSeqLang = 'powershell';
+    let codeSeqLines: string[] = [];
+
+    const isCodeLine = (line: string): { isCode: boolean; lang: string } => {
+      const trimmed = line.trim();
+      if (!trimmed) return { isCode: inCodeSeq, lang: codeSeqLang };
+      if (/^(?:Get-|Set-|Stop-|Start-|New-|Remove-|Enable-|Disable-|Import-|Export-|Restart-|Update-|Invoke-|secedit|gpupdate|\$infContent|\$updatedContent|\$inf\b|\$proc\b|Where-Object|Select-Object|ForEach-Object|Add-Type|\[CmdletBinding)/i.test(trimmed)) {
+        return { isCode: true, lang: 'powershell' };
+      }
+      if (/^(?:aws\s+ecs|aws\s+iam|aws\s+sts|aws\s+s3|vol\.py|sysctl|curl|nc\s+-|chmod|sudo|systemctl|journalctl|echo\s+['"].*>\s*\/|iptables|grep|sed|awk|cat\s+<<|mkdir|rm\s+-rf|export\s+[A-Z_]+=|docker\s+|kubectl\s+|falco\s+|sha256sum\s+)/i.test(trimmed)) {
+        return { isCode: true, lang: 'bash' };
+      }
+      if (/^-[a-zA-Z0-9_\-]+\s+/i.test(trimmed) && inCodeSeq) {
+        return { isCode: true, lang: codeSeqLang };
+      }
+      if (/^#\s+(?:\d+\.|\b(?:Export|Update|Apply|Force|Check|Immediately|Confirm|Verify|Enable|Inspect|Run|Query|Dump|Calculate|Deploy|Reload|Persist|Create|Disable|Set|Restart|Monitor|Transmit|Inbound|Trigger|Execute|Launch|Stage|Catch|Send)\b)/i.test(trimmed)) {
+        return { isCode: true, lang: codeSeqLang };
+      }
+      if (/^(?:if\s*\(\$|else\s*\{|\}|\"[a-zA-Z0-9_\-]+ = \*S-1)/.test(trimmed) && inCodeSeq) {
+        return { isCode: true, lang: 'powershell' };
+      }
+      return { isCode: false, lang: 'plaintext' };
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const check = isCodeLine(line);
+      if (check.isCode) {
+        if (!inCodeSeq) {
+          inCodeSeq = true;
+          codeSeqLang = check.lang;
+          codeSeqLines = [line];
+        } else {
+          codeSeqLines.push(line);
+        }
+      } else {
+        if (inCodeSeq) {
+          const joinedCode = codeSeqLines.join('\n').trim();
+          if (joinedCode) {
+            newLines.push(`\`\`\`${codeSeqLang}\n${joinedCode}\n\`\`\``);
+          }
+          inCodeSeq = false;
+          codeSeqLines = [];
+        }
+        newLines.push(line);
+      }
+    }
+    if (inCodeSeq) {
+      const joinedCode = codeSeqLines.join('\n').trim();
+      if (joinedCode) {
+        newLines.push(`\`\`\`${codeSeqLang}\n${joinedCode}\n\`\`\``);
+      }
+    }
+
+    out = newLines.join('\n');
+
+    // C. Elevate Section Headings
+    // Major Headings (H2)
+    out = out.replace(
+      /^(?:<p>)?\s*(Overview & (?:Defensive Context|Threat Landscape)[^\n<]*)/gim,
+      '\n\n## $1\n\n'
+    );
+    out = out.replace(
+      /^(?:<p>)?\s*((?:Defensive Architecture & Hardening Strategy|Vulnerability & Attack Root-Cause Analysis|Exploit Architecture|Hardening Architecture|Defensive Architecture Flowchart|Attack Path Step-by-Step[^\n<]*|Defensive Implementation Runbook[^\n<]*|Step-by-Step Weaponization[^\n<]*|Actionable Detection (?:Artifacts|Rule)[^\n<]*|Production Detection (?:Artifacts|Rule)[^\n<]*|Blue Team Telemetry & Detection Engineering[^\n<]*|Incident Response Runbook[^\n<]*|Forensic Analysis Runbook[^\n<]*|Architecture Hardening:[^\n<]*|Fast Cyber Defense (?:Morning|Evening) Takeaways[^\n<]*|Executive Takeaway Table[^\n<]*|Authoritative References[^\n<]*))/gim,
+      '\n\n## $1\n\n'
+    );
+    out = out.replace(
+      /^(?:<p>)?\s*(Tier \d+:[^\n<]*)/gim,
+      '\n\n## $1\n\n'
+    );
+
+    // Subheadings (H3) - Strictly capped to concise titles (< 90 chars)
+    out = out.replace(
+      /^(?:<p>)?\s*((?:Phase \d+:|Step \d+:|Strategy \d+:|Dual Role Architecture:|The Link-Local|The Linux|The PAN-OS|The Flowise|The BuildKit|The Windows|The Process|Enabling |Restricting |Deploying |Hardening |Configuring |Auditing and Removing |Security Template Configuration Script|Forensic Indicators Confirmed:|Production Sigma Rule:|Falco Runtime Security Rule:|Sysmon Hardening Configuration)[^\n<]{0,90})$/gim,
+      (match, titleText) => {
+        const t = titleText.trim();
+        if (/^##\s+/i.test(t)) return match;
+        if (t.endsWith('.') && t.length > 50) return match;
+        return `\n\n### ${t}\n\n`;
+      }
+    );
+
+    // D. Demote ANY remaining raw '# ' headings outside code blocks to '### ' (prevents spurious <h1>)
+    out = out.replace(/^# (?!#)/gm, '### ');
+
+    // E. Callout alerts
+    out = out.replace(
+      /^(?:<p>)?\s*(\[!WARNING\]|\bWARNING:)\s*([^\n<]+)/gim,
+      '\n\n> [!WARNING]\n> $2\n\n'
+    );
+    out = out.replace(
+      /^(?:<p>)?\s*(\[!NOTE\]|\bNOTE:)\s*([^\n<]+)/gim,
+      '\n\n> [!NOTE]\n> $2\n\n'
+    );
+    out = out.replace(
+      /^(?:<p>)?\s*(\[!TIP\]|\bTIP:)\s*([^\n<]+)/gim,
+      '\n\n> [!TIP]\n> $2\n\n'
+    );
+    out = out.replace(
+      /^(?:<p>)?\s*(\[!IMPORTANT\]|\bIMPORTANT:)\s*([^\n<]+)/gim,
+      '\n\n> [!IMPORTANT]\n> $2\n\n'
+    );
+
+    return out;
   });
 
   // 6. Safely merge consecutive code blocks of identical language separated only by whitespace
