@@ -1,7 +1,7 @@
 b:section(class='topics' id='topics' name='Topics' showaddelement='false')
   b:widget(id='Label1' locked='false' title='Topics' type='Label' version='2' visible='true')
     b:includable(id='main')
-      b:if(cond='data:labels')
+      b:if(cond='data:view.isSingleItem and data:labels')
         nav.topics-bar(aria-label='Topic Navigation')
           ul.topics-list
             b:loop(values='data:labels' var='label')

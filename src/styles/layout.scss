@@ -2141,7 +2141,10 @@ html[data-theme='dark'] .theme-icon-moon {
 .intro-container:has(> .no-items.section),
 .topics-container:has(> .no-items.section),
 .cta-container:has(> .no-items.section),
-.footer-container:has(> .no-items.section) {
+.footer-container:has(> .no-items.section),
+body:not(.is-post):not(.is-page) .topics-container,
+.topics-container:not(:has(.topics-bar)),
+.nav-container:not(:has(.nav-item)) {
   display: none !important;
   margin: 0 !important;
   padding: 0 !important;
