@@ -1634,6 +1634,34 @@ export function healUnrenderedTableInHtml(html: string): string {
     tableHtml += '</tbody>\n</table>\n</div>';
     return tableHtml;
   });
+
+  // 2. Tab-separated plain-text tables trapped in <p>...</p> tags
+  html = html.replace(/<p>\s*([^\t\n<]+(?:\t[^\t\n<]+){2,}(?:<br\s*\/?>|\n)[^\t\n<]+(?:\t[^\t\n<]+){2,}[\s\S]*?)<\/p>/gi, (match, tableContent) => {
+    const rawLines = tableContent
+      .split(/<br\s*\/?>|\r?\n/)
+      .map((l: string) => l.trim())
+      .filter(Boolean);
+    if (rawLines.length < 2) return match;
+    const rows = rawLines.map((l: string) => l.split('\t').map((c: string) => c.trim()));
+    const colCount = rows[0].length;
+    if (colCount < 3 || !rows.every((r: string[]) => r.length === colCount)) return match;
+    let tableHtml = '<div class="table-container">\n<table>\n<thead>\n<tr>\n';
+    rows[0].forEach((c: string) => {
+      tableHtml += `  <th>${c}</th>\n`;
+    });
+    tableHtml += '</tr>\n</thead>\n<tbody>\n';
+    rows.slice(1).forEach((r: string[]) => {
+      tableHtml += '<tr>\n';
+      r.forEach((c: string) => {
+        tableHtml += `  <td>${c}</td>\n`;
+      });
+      tableHtml += '</tr>\n';
+    });
+    tableHtml += '</tbody>\n</table>\n</div>';
+    return tableHtml;
+  });
+
+  return html;
 }
 
 /**
@@ -2152,6 +2180,23 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
   cleanedMarkdown = transformOutsideCodeFences(cleanedMarkdown, (prose) => {
     let out = prose;
 
+    // Auto-fence Sigma detection rules outside code blocks
+    out = out.replace(/(?:^|\n)(title:\s+[^\n]+\nid:\s+[a-f0-9-]{36}[\s\S]*?\nlevel:\s*(?:critical|high|medium|low)\b[^\n]*)/gi, (_m, sigma) => {
+      return `\n\n\`\`\`yaml\n${sigma.trim()}\n\`\`\`\n\n`;
+    });
+
+    // Auto-convert Google Docs tab-separated plain-text tables into Markdown tables
+    out = out.replace(/(?:^|\n)([^\t\n]+(?:\t[^\t\n]+){2,}(?:\r?\n[^\t\n]+(?:\t[^\t\n]+){2,})+)/g, (match) => {
+      const rows = match.trim().split(/\r?\n/).map(r => r.split('\t').map(c => c.trim()));
+      if (rows.length < 2) return match;
+      const colCount = rows[0].length;
+      if (!rows.every(r => r.length === colCount)) return match;
+      const header = '| ' + rows[0].join(' | ') + ' |';
+      const delim = '| ' + rows[0].map(() => '---').join(' | ') + ' |';
+      const body = rows.slice(1).map(r => '| ' + r.join(' | ') + ' |').join('\n');
+      return `\n\n${header}\n${delim}\n${body}\n\n`;
+    });
+
     // A. Mermaid sequence diagrams & flowcharts outside fences
     out = out.replace(/(?:^|\n)\s*((?:flowchart|graph|sequenceDiagram)\s+(?:TD|LR|BT|RL)[\s\S]*?)(?=\n\s*(?:Tier \d|Phase \d|Step \d|Strategy \d|Overview|Defensive|Exploit|Hardening|Attack Path|Actionable|Production|Blue Team|Fast Cyber|Executive Takeaway|Authoritative References|##|###|$))/gi, (_m, diag) => {
       return `\n\n\`\`\`mermaid\n${diag.trim()}\n\`\`\`\n\n`;
@@ -2170,13 +2215,13 @@ export function compileMarkdownToHtml(markdown: string, heroImageUrl?: string, a
       if (/^(?:Get-|Set-|Stop-|Start-|New-|Remove-|Enable-|Disable-|Import-|Export-|Restart-|Update-|Invoke-|secedit|gpupdate|\$infContent|\$updatedContent|\$inf\b|\$proc\b|Where-Object|Select-Object|ForEach-Object|Add-Type|\[CmdletBinding)/i.test(trimmed)) {
         return { isCode: true, lang: 'powershell' };
       }
-      if (/^(?:aws\s+ecs|aws\s+iam|aws\s+sts|aws\s+s3|vol\.py|sysctl|curl|nc\s+-|chmod|sudo|systemctl|journalctl|echo\s+['"].*>\s*\/|iptables|grep|sed|awk|cat\s+<<|mkdir|rm\s+-rf|export\s+[A-Z_]+=|docker\s+|kubectl\s+|falco\s+|sha256sum\s+)/i.test(trimmed)) {
+      if (/^(?:aws\s+|vol\.py|sysctl|curl|nc\s+-|chmod|sudo|systemctl|journalctl|echo\s+|iptables|grep|sed|awk|cat\s+|mkdir|rm\s+|export\s+[A-Z_]+=|docker\s+|kubectl\s+|falco\s+|sha256sum\s+|vault\s+|step-security|gh\s+|git\s+)/i.test(trimmed)) {
         return { isCode: true, lang: 'bash' };
       }
       if (/^-[a-zA-Z0-9_\-]+\s+/i.test(trimmed) && inCodeSeq) {
         return { isCode: true, lang: codeSeqLang };
       }
-      if (/^#\s+(?:\d+\.|\b(?:Export|Update|Apply|Force|Check|Immediately|Confirm|Verify|Enable|Inspect|Run|Query|Dump|Calculate|Deploy|Reload|Persist|Create|Disable|Set|Restart|Monitor|Transmit|Inbound|Trigger|Execute|Launch|Stage|Catch|Send)\b)/i.test(trimmed)) {
+      if (/^#\s+/i.test(trimmed) && inCodeSeq) {
         return { isCode: true, lang: codeSeqLang };
       }
       if (/^(?:if\s*\(\$|else\s*\{|\}|\"[a-zA-Z0-9_\-]+ = \*S-1)/.test(trimmed) && inCodeSeq) {
