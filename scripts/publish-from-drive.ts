@@ -1,5 +1,6 @@
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
+import * as zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import { submitUrlsToSearchEngines } from './lib/search-engine-indexer.js';
@@ -1712,6 +1713,185 @@ export function transformCalloutAlerts(html: string): string {
       return `<div class="callout-card ${cfg.class}">\n  <div class="callout-header">\n    <span class="callout-icon">${cfg.svg}</span>\n    <strong class="callout-title">${cfg.title}</strong>\n  </div>\n  <div class="callout-body">\n    ${cleanBody}\n  </div>\n</div>`;
     }
   );
+}
+
+const PNG_CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function pngCrc32(buf: Buffer): number {
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) {
+    c = PNG_CRC_TABLE[(c ^ buf[i]!) & 0xff]! ^ (c >>> 8);
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function makePngChunk(type: string, data: Buffer): Buffer {
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(data.length, 0);
+  const typeBuf = Buffer.from(type, 'ascii');
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(pngCrc32(Buffer.concat([typeBuf, data])), 0);
+  return Buffer.concat([len, typeBuf, data, crcBuf]);
+}
+
+/**
+ * Strips the 60px background grid layer from generated thumbnail PNGs and flattens
+ * any semi-transparent pixels onto the solid dark card background so light themes
+ * or image lightboxes never bleed through grid lines.
+ */
+export function stripThumbnailGridLayer(buf: Buffer): Buffer {
+  try {
+    if (buf.length < 32 || buf.readUInt32BE(0) !== 0x89504e47 || buf.readUInt32BE(4) !== 0x0d0a1a0a) {
+      return buf;
+    }
+    const w = buf.readUInt32BE(16);
+    const h = buf.readUInt32BE(20);
+    const bitDepth = buf.readUInt8(24);
+    const ct = buf.readUInt8(25);
+    if (bitDepth !== 8 || (ct !== 6 && ct !== 2) || w < 240 || h < 240) {
+      return buf;
+    }
+    const bpp = ct === 6 ? 4 : 3;
+
+    let pos = 8;
+    const idat: Buffer[] = [];
+    while (pos + 12 <= buf.length) {
+      const len = buf.readUInt32BE(pos);
+      const type = buf.toString('ascii', pos + 4, pos + 8);
+      if (type === 'IDAT') idat.push(buf.subarray(pos + 8, pos + 8 + len));
+      pos += 12 + len;
+    }
+    if (idat.length === 0) return buf;
+
+    const dec = zlib.inflateSync(Buffer.concat(idat));
+    const stride = 1 + w * bpp;
+    if (dec.length < h * stride) return buf;
+
+    const unc = Buffer.alloc(w * h * bpp);
+    const prev = Buffer.alloc(w * bpp);
+    const curr = Buffer.alloc(w * bpp);
+
+    for (let y = 0; y < h; y++) {
+      const f = dec[y * stride]!;
+      const src = dec.subarray(y * stride + 1, (y + 1) * stride);
+      for (let x = 0; x < w * bpp; x++) {
+        const r = src[x]!;
+        const l = x >= bpp ? curr[x - bpp]! : 0;
+        const u = prev[x]!;
+        const ul = x >= bpp ? prev[x - bpp]! : 0;
+        let v = r;
+        if (f === 1) v = (r + l) & 0xff;
+        else if (f === 2) v = (r + u) & 0xff;
+        else if (f === 3) v = (r + ((l + u) >> 1)) & 0xff;
+        else if (f === 4) {
+          const p = l + u - ul;
+          const pa = Math.abs(p - l), pb = Math.abs(p - u), pc = Math.abs(p - ul);
+          v = (r + ((pa <= pb && pa <= pc) ? l : (pb <= pc ? u : ul))) & 0xff;
+        }
+        curr[x] = v;
+      }
+      curr.copy(unc, y * w * bpp);
+      curr.copy(prev);
+    }
+
+    // Verify uniform dark card background at (50, 50), (55, 55), (40, 50), (50, 40)
+    // and consistent 60px minor grid at (60,50), (180,50), (50,60), (50,180), plus optional 120px major grid
+    const pxAt = (px: number, py: number) => {
+      const idx = (py * w + px) * bpp;
+      return [unc[idx]!, unc[idx + 1]!, unc[idx + 2]!, bpp === 4 ? unc[idx + 3]! : 255] as const;
+    };
+    const sameColor = (
+      a: readonly [number, number, number, number],
+      b: readonly [number, number, number, number],
+      tolRgb = 4,
+      tolA = 10
+    ) => Math.abs(a[0] - b[0]) <= tolRgb && Math.abs(a[1] - b[1]) <= tolRgb && Math.abs(a[2] - b[2]) <= tolRgb && Math.abs(a[3] - b[3]) <= tolA;
+
+    const bgPx = pxAt(50, 50);
+    const [bgR, bgG, bgB] = bgPx;
+    if (![pxAt(55, 55), pxAt(40, 50), pxAt(50, 40)].every((p) => sameColor(p, bgPx, 3, 5))) {
+      return buf;
+    }
+
+    const g1 = pxAt(60, 50);
+    const hasMinorGrid = [pxAt(180, 50), pxAt(50, 60), pxAt(50, 180)].every((p) => sameColor(p, g1));
+    const gridDiffersFromBg = hasMinorGrid && !sameColor(g1, bgPx, 3, 5);
+
+    const g2 = pxAt(120, 50);
+    const hasMajorGrid = hasMinorGrid && sameColor(g2, pxAt(240, 50)) && !sameColor(g2, bgPx, 3, 5);
+
+    if (!gridDiffersFromBg && ct === 2) {
+      return buf;
+    }
+
+    const outStride = 1 + w * 3;
+    const outRaw = Buffer.alloc(h * outStride);
+    let modified = false;
+
+    for (let y = 0; y < h; y++) {
+      const rowBase = y * outStride;
+      outRaw[rowBase] = 1; // Sub filter
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * bpp;
+        let r = unc[i]!, g = unc[i + 1]!, b = unc[i + 2]!;
+        const a = bpp === 4 ? unc[i + 3]! : 255;
+
+        const onGridLine = (x % 60 === 0 || y % 60 === 0);
+        const curPx = [r, g, b, a] as const;
+        const isGridPixel = gridDiffersFromBg && onGridLine && (
+          sameColor(curPx, g1) || (hasMajorGrid && sameColor(curPx, g2))
+        );
+
+        if (isGridPixel) {
+          r = bgR; g = bgG; b = bgB;
+          modified = true;
+        } else if (a < 255) {
+          const alpha = a / 255;
+          r = Math.round(r * alpha + bgR * (1 - alpha));
+          g = Math.round(g * alpha + bgG * (1 - alpha));
+          b = Math.round(b * alpha + bgB * (1 - alpha));
+          modified = true;
+        }
+
+        const outPos = rowBase + 1 + x * 3;
+        outRaw[outPos] = r;
+        outRaw[outPos + 1] = g;
+        outRaw[outPos + 2] = b;
+      }
+      for (let x = w * 3 - 1; x >= 3; x--) {
+        const p = rowBase + 1 + x;
+        outRaw[p] = (outRaw[p]! - outRaw[p - 3]!) & 0xff;
+      }
+    }
+
+    if (!modified && ct === 2) return buf;
+
+    const ihdr = Buffer.alloc(13);
+    ihdr.writeUInt32BE(w, 0);
+    ihdr.writeUInt32BE(h, 4);
+    ihdr.writeUInt8(8, 8);
+    ihdr.writeUInt8(2, 9); // Solid opaque RGB PNG
+    const compressed = zlib.deflateSync(outRaw, { level: 6 });
+
+    return Buffer.concat([
+      Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+      makePngChunk('IHDR', ihdr),
+      makePngChunk('IDAT', compressed),
+      makePngChunk('IEND', Buffer.alloc(0))
+    ]);
+  } catch {
+    return buf;
+  }
 }
 
 // 3. Configure Marked Markdown Compiler with Code Window & Mermaid Support
@@ -3541,7 +3721,11 @@ async function main() {
           headers: { Authorization: `Bearer ${driveToken}` }
         });
         if (imgRes.ok) {
-          const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
+          const rawImgBuffer = Buffer.from(await imgRes.arrayBuffer());
+          const imgBuffer = stripThumbnailGridLayer(rawImgBuffer);
+          if (imgBuffer !== rawImgBuffer) {
+            console.log(`Stripped background grid layer & flattened thumbnail PNG (${rawImgBuffer.length} -> ${imgBuffer.length} bytes).`);
+          }
           const ghToken = process.env.BLOG_ASSETS_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
           if (ghToken) {
             try {
